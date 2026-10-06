@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Temitope Adeyeri
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""The operator's tool says what it did, in a sentence, and fails in one too."""
+import tempfile, unittest
+from pathlib import Path
+
+from cli import run
+from registry import Registry
+
+
+class Operator(unittest.TestCase):
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.r = Registry(Path(self.dir.name) / "houses.db")
+        self.said = []
+
+    def tearDown(self):
+        self.r.db.close(); self.dir.cleanup()
+
+    def say(self, *argv):
+        self.said.clear()
+        code = run(list(argv), self.r, out=self.said.append)
+        return code, "\n".join(self.said)
+
+    def test_grant_then_stop_then_release(self):
+        self.r.claim("jordan")
+        self.assertEqual(self.say("grant", "jordan", "2099-10-01", "Jordan,", "by", "hand"), (0, "jordan is carried until 2099-10-01."))
+        code, listed = self.say("list")
+        self.assertIn("carried until 2099-10-01", listed); self.assertIn("Jordan, by hand", listed)
+        self.assertTrue(self.r.status("jordan")["carried"])
+        self.assertEqual(self.say("stop", "jordan")[0], 0)
+        self.assertFalse(self.r.status("jordan")["carried"]); self.assertTrue(self.r.taken("jordan"))
+        self.assertEqual(self.say("release", "jordan")[0], 0)
+        self.assertFalse(self.r.taken("jordan"))
+
+    def test_a_house_that_is_not_there_is_named(self):
+        self.assertEqual(self.say("grant", "nobody", "2099-01-01"), (1, "No house called nobody."))
+
+    def test_rotate_prints_the_new_secret_and_nothing_else(self):
+        self.r.claim("jordan")
+        code, secret = self.say("rotate", "jordan")
+        self.assertEqual(code, 0); self.assertTrue(self.r.holder("jordan", secret))
+
+    def test_nonsense_gets_the_usage(self):
+        self.assertEqual(self.say()[0], 2)
+        self.assertEqual(self.say("grant", "jordan")[0], 2)
+        self.assertEqual(self.say("grant", "jordan", "next tuesday")[0], 2)
+
+
+if __name__ == "__main__":
+    unittest.main()
