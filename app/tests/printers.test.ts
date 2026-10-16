@@ -16,7 +16,7 @@ import {
 const job = { name: 'Phone stand', progress: 0.42, layer: 118, layers: 280, remaining_s: 5580, eta_clock: '4:20 pm',
               elapsed_s: 7440, colors: ['#f4f1ea'], material: 'PLA', filament: 'White PLA', thumbnail: '/printers/atlas/thumbnail' }
 const printer = (id: string, state: Printer['state'], more: Partial<Printer> = {}): Printer => ({
-  id, name: id.toUpperCase(), connected: true, via: 'home', state, headline: 'x', detail: null,
+  id, name: id[0].toUpperCase() + id.slice(1), connected: true, via: 'home', state, headline: 'x', detail: null,
   word: ({ ready: 'ready', printing: 'printing', needs_you: 'needs you', finished: 'done', problem: 'stopped', preparing: 'getting ready' } as any)[state ?? ''] ?? '',
   since: null, room: null, actions: [], temps: {}, camera: `/printers/${id}/camera`, job: null, ...more })
 
