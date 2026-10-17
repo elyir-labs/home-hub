@@ -339,7 +339,7 @@ class NothingIsDroppedQuietly(ApiTest):
         self.add("home", "switch.cedar_falls_alarm_siren", "alarm", detail={"shown_as": True})
         for t in self.texts():
             self.assertNotRegex(t, r"\b[a-z_]+\.[a-z0-9_]+\b", t)
-        self.assertIn("set Cedar summit alarm siren to show as an alarm.", self.texts())
+        self.assertIn("set Cedar falls alarm siren to show as an alarm.", self.texts())
 
     def test_a_shared_device_is_named_from_where_its_id_actually_is(self):
         """The row is ("share", "device", <id>, "shared"): the id is in `old`. Reading it off

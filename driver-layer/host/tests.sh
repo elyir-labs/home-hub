@@ -433,9 +433,152 @@ I
 }
 
 
+# A unit with a screen asks this before it installs a hub of its own (design/companion/, C). The
+# network is a script on PATH: avahi-browse says who announced themselves, curl says who answers like
+# a hub, and hostname says which addresses are this unit's own.
+finding() {
+  group "a screen looks for the house's hub before it builds a second house"
+  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin"
+  cat > "$bin/avahi-browse" <<'SH'
+#!/usr/bin/env bash
+printf '%s\n' "$ANNOUNCED"
+SH
+  # A hub's front door answers only the names it was installed with (driver-layer/caddy/Caddyfile):
+  # HUBS is the list of them; anything else gets Caddy's empty page.
+  cat > "$bin/curl" <<'SH'
+#!/usr/bin/env bash
+for a in "$@"; do case "$a" in http://*) url=$a ;; esac; done
+case " $HUBS " in *" ${url%/phones/me} "*) echo '{"locked": true, "paired": false, "home": "Maple Court"}' ;; *) exit 0 ;; esac
+SH
+  printf '#!/usr/bin/env bash\n[ "$1" = -I ] && echo "$MINE" || echo "$NAME"\n' > "$bin/hostname"
+  chmod +x "$bin"/*
+  find_hub() { PATH="$bin:$PATH" FIND_FOR=0 NAME="${NAME:-screen}" "$HERE/../../startup/find-hub.sh"; }
+
+  local hub='=;eth0;IPv4;hub;_home-hub._tcp;local;hub.local;192.168.1.20;80;"path=/"'
+  is "a hub that answers is found, by its name" "$(ANNOUNCED="$hub" HUBS="http://hub.local http://192.168.1.20" MINE="192.168.1.30" find_hub)" "http://hub.local"
+  is "...asked by its name, because its front door has forgotten the address the router gave it since" \
+    "$(ANNOUNCED="$hub" HUBS="http://hub.local" MINE="192.168.1.30" find_hub)" "http://hub.local"
+  ANNOUNCED="" HUBS="" MINE="192.168.1.30" find_hub >/dev/null; is "no hub, and it says so" "$?" "1"
+  ANNOUNCED="$hub" HUBS="" MINE="192.168.1.30" find_hub >/dev/null; is "something announcing itself that does not answer like a hub is not one" "$?" "1"
+  is "its own announcement is not another hub" "$(ANNOUNCED="$hub" HUBS="http://hub.local" MINE="192.168.1.20" find_hub)" ""
+  local self='=;lo;IPv4;hub-2;_home-hub._tcp;local;hub-2.local;127.0.0.1;80;"path=/"'
+  is "...nor is its own name, on loopback" "$(ANNOUNCED="$self" HUBS="http://hub-2.local" MINE="192.168.1.30" NAME=hub-2 find_hub)" ""
+  # A unit installed as a hub once is still called hub, and avahi calls it hub-2: the real hub.local is not it.
+  is "a unit that was once called hub still finds the real one" "$(ANNOUNCED="$hub" HUBS="http://hub.local" MINE="192.168.1.30" NAME=hub find_hub)" "http://hub.local"
+  local odd='=;eth0;IPv4;hub;_home-hub._tcp;local;hub.local;192.168.1.20;8300;"path=/"'
+  is "a hub on another port keeps its port" "$(ANNOUNCED="$odd" HUBS="http://hub.local:8300" MINE="" find_hub)" "http://hub.local:8300"
+  local bare='=;eth0;IPv4;hub;_home-hub._tcp;local;;192.168.1.20;80;"path=/"'
+  is "an announcement with no name is asked by its address" "$(ANNOUNCED="$bare" HUBS="http://192.168.1.20" MINE="" find_hub)" "http://192.168.1.20"
+  rm -rf "$root"
+}
+
+
+# A screen opens the hub by its name, and the name is found by asking the whole Wi-Fi. When the Wi-Fi
+# stops hearing the answers the hub is still right there, so the address it last had is kept in the
+# hosts file, refreshed whenever the name answers and the thing answering is a hub.
+keeping() {
+  group "a screen keeps the hub's address for when its name stops answering"
+  local root bin hosts; root=$(mktemp -d); bin="$root/bin"; hosts="$root/hosts"; mkdir -p "$bin"
+  printf '#!/usr/bin/env bash\n[ -n "${ANSWER:-}" ] && printf "%%s\\t%%s\\n" "$3" "$ANSWER"\nexit 0\n' > "$bin/avahi-resolve"
+  printf '#!/usr/bin/env bash\necho "$*" >> "%s/curled"\n[ "${ALIVE:-yes}" = yes ]\n' "$root" > "$bin/curl"
+  chmod +x "$bin"/*
+  keep() { PATH="$bin:$PATH" HUB_HOSTS="$hosts" ELYIR_PANEL_URL="${URL:-http://hub.local/?screen=1}" "$HERE/../../startup/keep-hub.sh" >/dev/null; }
+  kept() { grep 'keep-hub' "$hosts" | cut -f1,2 | tr '\t' ' '; }
+  printf '127.0.0.1\tlocalhost\n127.0.1.1\tscreen\n' > "$hosts"
+
+  ANSWER=192.168.1.20 keep
+  is "the name answers: its address is written down" "$(kept)" "192.168.1.20 hub.local"
+  is "...beside what was already there" "$(head -2 "$hosts" | cut -f2 | tr '\n' ' ')" "localhost screen "
+  is "...after asking the hub at that address, by its name" "$(tail -1 "$root/curled")" "-fsS -m 3 -o /dev/null --resolve hub.local:80:192.168.1.20 http://hub.local:80/alive"
+  ANSWER="" keep
+  is "the name stops answering: the address last seen is kept" "$(kept)" "192.168.1.20 hub.local"
+  ANSWER=192.168.1.44 keep
+  is "the hub moved: the new address replaces the old, once" "$(kept)" "192.168.1.44 hub.local"
+  ANSWER=192.168.1.99 ALIVE=no keep
+  is "something answering the name that is not a hub is not believed" "$(kept)" "192.168.1.44 hub.local"
+  rm -f "$root/curled"; ANSWER=192.168.1.20 URL="http://192.168.1.20/?screen=1" keep
+  is "a screen opening an address has nothing to keep" "$([ -f "$root/curled" ] && echo asked || echo left)" "left"
+  ANSWER=192.168.1.20 URL="http://localhost/?screen=1" keep
+  is "...nor does a hub's own screen" "$([ -f "$root/curled" ] && echo asked || echo left)" "left"
+  ANSWER=192.168.1.21 URL="http://hub-2.local:8300/?screen=1" keep
+  is "a hub on another name and port is asked on that port" "$(tail -1 "$root/curled" | cut -d" " -f7)" "hub-2.local:8300:192.168.1.21"
+  rm -rf "$root"
+}
+
+# Wi-Fi that dozes misses what is said to everyone, including the key that unlocks it, and stays deaf
+# until it rejoins. Hubs and screens are on mains: the radio is told never to doze, now and from now on.
+awake() {
+  group "Wi-Fi stays awake on hubs and screens"
+  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin" "$root/nm" "$root/net/wlan0/wireless" "$root/net/eth0"
+  printf '#!/usr/bin/env bash\necho "iw $*" >> "%s/asked"\n[ "$3" = get ] && echo "Power save: $(cat "%s/ps")"\nexit 0\n' "$root" "$root" > "$bin/iw"
+  printf '#!/usr/bin/env bash\necho "nmcli $*" >> "%s/asked"\n' "$root" > "$bin/nmcli"
+  chmod +x "$bin"/*
+  wake() { rm -f "$root/asked"; PATH="$bin:$PATH" HUB_NM="$root/nm" HUB_NET="$root/net" "$HERE/wifi-awake.sh" >/dev/null; }
+  echo on > "$root/ps"; wake
+  is "NetworkManager is told for every connection" "$(grep '^wifi.powersave' "$root/nm/conf.d/home-hub-wifi.conf")" "wifi.powersave = 2"
+  is "...and rereads its settings" "$(grep -c 'nmcli general reload conf' "$root/asked")" "1"
+  is "the radio up now is woken without rejoining" "$(grep -c 'iw dev wlan0 set power_save off' "$root/asked")" "1"
+  is "...and a wired port is left alone" "$(grep -c eth0 "$root/asked")" "0"
+  echo off > "$root/ps"; wake
+  is "run again, nothing is rewritten or set twice" "$(grep -c 'reload\|set power_save' "$root/asked")" "0"
+  rm -rf "$root/nm"; wake
+  is "a box without NetworkManager gets no settings file" "$([ -e "$root/nm" ] && echo written || echo none)" "none"
+  rm -rf "$root"
+}
+
+
+# What first boot makes of a unit: the house's screen, or the house's hub. Never a second hub beside a
+# real one when the unit was told it is a screen (design/companion/, C). The checkout is fake: its
+# installers leave a file saying they ran, and find-hub.sh answers with $FOUND or nothing.
+becoming() {
+  group "first boot makes a screen, or a hub, and never a second hub when told it is a screen"
+  local root dir bin drm; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; drm="$root/drm"
+  mkdir -p "$dir/startup" "$bin" "$drm"
+  printf '#!/usr/bin/env bash\n[ -n "${FOUND:-}" ] && echo "$FOUND"\n' > "$dir/startup/find-hub.sh"
+  printf '#!/usr/bin/env bash\ntouch "%s/screen-installed"\n' "$root" > "$dir/startup/install.sh"
+  printf '#!/usr/bin/env bash\ntouch "%s/hub-installed"\n' "$root" > "$dir/install.sh"
+  for c in hostnamectl apt-get avahi-browse; do printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/$c"; done
+  # systemctl and docker write down what they were asked, so a unit that was a hub can be seen to stop being one
+  printf '#!/usr/bin/env bash\necho "systemctl $*" >> "%s/asked"\n[ "$1" = list-unit-files ] && printf "home-hub-watchdog.timer enabled enabled\\nhome-hub-update.path enabled enabled\\n"\nexit 0\n' "$root" > "$bin/systemctl"
+  printf '#!/usr/bin/env bash\necho "docker $* in $PWD" >> "%s/asked"\n' "$root" > "$bin/docker"
+  mkdir -p "$dir/driver-layer" "$root/avahi"; touch "$dir/driver-layer/docker-compose.yml"
+  chmod +x "$dir/startup/"*.sh "$dir/install.sh" "$bin"/*
+  boot() {   # role, found, dsi
+    rm -f "$root"/*-installed "$root/done" "$root/conf" "$root/asked"; rm -rf "${drm:?}"/*
+    echo '<service-group/>' > "$root/avahi/home-hub.service"
+    [ -n "$1" ] && echo "HUB_ROLE=\"$1\"" > "$root/conf"
+    [ -n "$3" ] && { mkdir -p "$drm/card1-DSI-1"; echo connected > "$drm/card1-DSI-1/status"; }
+    PATH="$bin:$PATH" FOUND="$2" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_FIRSTBOOT_MARK="$root/done" HUB_DRM="$drm" HUB_AVAHI="$root/avahi" \
+      "$HERE/firstboot.sh" >/dev/null 2>&1
+  }
+  ran() { local out=""; for k in hub screen; do [ -f "$root/$k-installed" ] && out="$out$k "; done; [ -f "$root/done" ] && out="${out}done"; echo "${out% }"; }
+
+  boot screen http://hub.local ""
+  is "told it is a screen, on HDMI, with a hub on the Wi-Fi: it becomes the screen and nothing else" "$(ran)" "screen done"
+  is "...and opens the hub's panel as a screen" "$(grep '^ELYIR_PANEL_URL=' "$root/conf")" 'ELYIR_PANEL_URL="http://hub.local/?screen=1"'
+  is "...a hub it used to be stops: its timers and watchers are switched off" "$(grep -c 'systemctl disable --now home-hub-watchdog.timer home-hub-update.path' "$root/asked")" "1"
+  is "...its house is taken down" "$(grep -c "docker compose down in $dir/driver-layer" "$root/asked")" "1"
+  is "...and it no longer says it is a hub" "$([ -f "$root/avahi/home-hub.service" ] && echo still || echo gone)" "gone"
+  is "...said once, not appended twice" "$(grep -c '^HUB_ROLE=' "$root/conf")" "1"
+  boot screen "" ""; local code=$?
+  is "told it is a screen, and no hub found: no hub installed, and it tries again next start" "$(ran)" ""
+  is "...and says it did not finish" "$code" "1"
+  boot "" http://hub.local dsi
+  is "the wall's own screen and a hub on the Wi-Fi: the screen, without being told" "$(ran)" "screen done"
+  boot "" "" dsi
+  is "the wall's own screen and no hub: it runs the house, on its own screen" "$(ran)" "hub screen done"
+  boot "" http://hub.local ""
+  is "a monitor on HDMI and nobody said screen: a hub, as before, whatever is on the Wi-Fi" "$(ran)" "hub done"
+  is "...and a hub keeps its house: nothing taken down" "$(cat "$root/asked" 2>/dev/null | grep -c 'compose down\|disable')" "0"
+  boot hub http://hub.local dsi
+  is "HUB_ROLE=hub skips the look" "$(ran)" "hub screen done"
+  rm -rf "$root"
+}
+
+
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; watchdog; away
+signatures; holds; undo; radios; watchdog; away; finding; becoming; keeping; awake
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

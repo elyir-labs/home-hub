@@ -4,7 +4,8 @@
    Knobs: PORT, WX=rainy (a condition), FOUND=0 (nothing new nearby), ENGINE=down (the engine-starting screen),
    LOCKED=1 (a code is set), FRESH=1 (first run), ASK=1 (a phone is asking to join; needs LOCKED=1), ?join=1 (the join screen),
    UPDATE=ready (one waiting, with its sheet), UPDATE=running (one happening, walking the phases), UPDATE=away (the sheet a
-   phone outside the house gets), ?printers= on the panel's address (a house with 3D printers: mock/printers.mjs).
+   phone outside the house gets), ?printers= on the panel's address (a house with 3D printers: mock/printers.mjs), ?power=
+   (a house with a Tesla gateway: mock/power.mjs).
    Nothing here talks to a real device; every POST or DELETE says ok. */
 import http from 'node:http'
 import fs from 'node:fs'
@@ -13,6 +14,7 @@ import crypto from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { printerNotes, printersAsked, printersRoute } from './printers.mjs'
+import { powerRoute } from './power.mjs'
 
 const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 const PORT = Number(process.env.PORT || 8399)
@@ -85,6 +87,8 @@ const rooms = [
   { id: 'garage', name: 'Garage', intent: 'occupied', set_by: null, hold_until: null, devices: [
     dev('g1', 'Garage View', 'garage', 'camera', 'idle', {}),
     dev('g2', 'Garage door', 'garage', 'cover', 'closed', {}),
+    /* a car charger (design/charger/): one device made from a wall connector's readings. CHARGING=1 to see it charge */
+    dev('g9', 'Car charger', 'garage', 'charger', process.env.CHARGING ? 'charging' : 'plugged', { power: process.env.CHARGING ? 7.2 : null }, 'Tesla', { kind: 'charger', hw: 'hw-twc', hw_name: 'Tesla Wall Connector', model: 'Wall Connector' }),
   ] },
   { id: 'backyard', name: 'Backyard', intent: 'occupied', set_by: null, hold_until: null, devices: [
     dev('y1', 'Backyard cam', 'backyard', 'camera', 'recording', { light: 'y1l' }),   // a floodlight cam: the viewer offers its lamp
@@ -546,6 +550,7 @@ const server = http.createServer((req, res) => {
     }
   }
   if (printersRoute(req, res, p)) return    // 3D printers, only for a page that asked for them: mock/printers.mjs
+  if (powerRoute(req, res, p)) return       // a Tesla gateway, the same way: mock/power.mjs
   if (p === '/setup/status') return json(res, status)
   if (p === '/update/notes') return json(res, { notes: releaseNotes[0], history: releaseNotes })
   /* Install: on a hub the brain restarts and comes back as the next build, and the page follows it
@@ -727,6 +732,17 @@ const bridgeRows = process.env.BRIDGES === 'none' ? [] : [
     playing: {},
     folder: '/data/sounds',
   })
+  /* Never on Home (design/home-keep/): the house's answer, carried on the thing as the brain carries it */
+  if (p.startsWith('/devices/') && p.endsWith('/home') && req.method === 'POST') { let raw = ''; req.on('data', c => (raw += c)); return req.on('end', () => {
+    let b = {}; try { b = JSON.parse(raw) } catch {}
+    const id = decodeURIComponent(p.split('/')[2])
+    const d = rooms.flatMap(r => r.devices).find(x => x.id === id)
+    if (!d) return json(res, { detail: 'unknown device' }, 404)
+    if (b.show !== 'never' && b.show !== 'on') return json(res, { detail: "On Home is never, or when it's on." }, 400)
+    if (b.show === 'never') d.attrs.off_home = true; else delete d.attrs.off_home
+    push({ type: 'device', device: d })
+    return json(res, { ok: true, show: b.show })
+  }) }
   // the two ways out of a quiet thing, and the way back into a part that stopped
   if (p.startsWith('/devices/') && p.endsWith('/check') && req.method === 'POST') {
     const id = p.split('/')[2]
@@ -865,6 +881,12 @@ const bridgeRows = process.env.BRIDGES === 'none' ? [] : [
     ? { locked: !!process.env.LOCKED, paired: true, home: 'Maple Court', phone: { ...phones.phones[1], me: true, moved: !!process.env.MOVED }, away: false,
         lan: '192-168-1-53.maple-court.home.elyir.app', address: 'https://maple-court.elyir.app' }
     : { locked: !!process.env.LOCKED, paired: true, home: 'Maple Court', phone: null })
+  /* A wall screen saying which room it hangs in (design/companion/, C). The mock house has no passcode, so no record. */
+  if (p === '/phones/me/room' && req.method === 'POST') { let b = ''; req.on('data', c => { b += c }); req.on('end', () => {
+    let room = ''; try { room = JSON.parse(b).room } catch {}
+    if (rooms.some(r => r.id === room)) return json(res, { room, phone: null })
+    res.writeHead(404, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ detail: 'No such room.' }))
+  }); return }
   /* Into the Houses app since 3 October (design/houses/, MoveToApp). K7Q4MPWR is the code that works; any other is
      the brain's 410, so the app's wrong-code line can be seen. */
   if (p === '/phones/move' && req.method === 'POST') return json(res, { code: 'K7Q4MPWR', url: 'https://houses.elyir.app/add#h=maple-court&c=K7Q4MPWR', ttl: 600 })
@@ -974,6 +996,18 @@ const bridgeRows = process.env.BRIDGES === 'none' ? [] : [
     } catch {}
     res.writeHead(200, { 'Content-Type': 'image/svg+xml' })
     return res.end(svg ?? FAKE_QR)
+  }
+  /* The wall keyboard's completions (design/keyboard/, C), the brain's way: the house's own sentences, typed words first. */
+  if (p === '/say/complete') {
+    const typed = (url.searchParams.get('text') || '').toLowerCase().replace(/\s+/g, ' ').trim(), here = url.searchParams.get('room')
+    const all = [...rooms].sort((a, b) => (b.id === here) - (a.id === here)).flatMap((r) => {
+      const n = r.name.toLowerCase(), out = []
+      if (r.devices.some((d) => d.capability === 'light')) out.push(`${n} lights off`, `${n} lights on`, `dim the ${n} lights`)
+      if (r.devices.some((d) => d.capability === 'media' && /tv|roku|chromecast|apple tv/i.test(d.name))) out.push(`movie in the ${n}`, `${n} tv off`)
+      return out
+    }).concat('is anything on?')
+    const hit = (s) => !typed ? 0 : s.startsWith(typed) ? 1 : new RegExp('\\b' + typed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(s) ? 2 : -1
+    return json(res, { sentences: all.map((s, i) => [hit(s), i, s]).filter(([h]) => h >= 0).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(([, , s]) => s).slice(0, 6) })
   }
   if (p === '/say' && req.method === 'POST') { let b = ''; req.on('data', c => (b += c)); return req.on('end', () => { let t = ''; try { t = JSON.parse(b).text || '' } catch {}
     if (/^(is|are|what|who|how)\b/i.test(t)) return json(res, { kind: 'answer', text: 'Front door is locked.', said: t })
