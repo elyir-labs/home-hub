@@ -48,7 +48,7 @@
       "y": 0,
       "w": 1440,
       "h": 900,
-      "title": "Today · github.com/topeysoft/home-hub on a computer: the first screen is a list of files",
+      "title": "Today · github.com/elyir-labs/home-hub on a computer: the first screen is a list of files",
       "page": "site"
     },
     {
@@ -174,7 +174,7 @@
       "x": 0,
       "y": 960,
       "w": 1440,
-      "text": "TODAY: THE REPOSITORY IS THE FRONT PAGE\n\ngithub.com/topeysoft/home-hub at 1440 wide: the first screen is a list of files, most of them saying \"home-hub, 11 days ago\". The README, which reads well (plug it in, open hub.local, answer a few questions), starts below that list and has no picture of the panel at all. The install command is about three screens down. There's nothing to try, nowhere to leave an email, and no price: Use it anywhere's $3 a month is said only on the hub itself, at the end of setup.\n\nOn a phone it's the same list, and the command is one nobody on a phone can run.\n\nWhat the repository does well stays. The README's sentences become the page's sentences, and its rules that do not change make a good last section."
+      "text": "TODAY: THE REPOSITORY IS THE FRONT PAGE\n\ngithub.com/elyir-labs/home-hub at 1440 wide: the first screen is a list of files, most of them saying \"home-hub, 11 days ago\". The README, which reads well (plug it in, open hub.local, answer a few questions), starts below that list and has no picture of the panel at all. The install command is about three screens down. There's nothing to try, nowhere to leave an email, and no price: Use it anywhere's $3 a month is said only on the hub itself, at the end of setup.\n\nOn a phone it's the same list, and the command is one nobody on a phone can run.\n\nWhat the repository does well stays. The README's sentences become the page's sentences, and its rules that do not change make a good last section."
     },
     {
       "id": "a",

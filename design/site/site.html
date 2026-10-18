@@ -155,8 +155,8 @@ const WAITLIST_LINE = `<div style="border-top:1px solid var(--s-line);padding-to
 const FILES = [['.github','home-hub','11 days ago'],['app','home-hub','11 days ago'],['brain','home-hub','11 days ago'],['design','home-hub','11 days ago'],['docs','The README is the front door for Elyir Home Hub','11 days ago'],['driver-layer','home-hub','11 days ago'],['kiosk','home-hub','11 days ago'],['matter-bridge','home-hub','11 days ago'],['puck','home-hub','11 days ago'],['relay','relay: the printer app may compile the WebAssembly…','yesterday'],['releases','home-hub','11 days ago'],['sounds','home-hub','11 days ago'],['strip','home-hub','11 days ago'],['tools','The README is the front door for Elyir Home Hub','11 days ago'],['.gitignore','home-hub','11 days ago'],['.gitleaks.toml','home-hub','11 days ago'],['AGENTS.md','home-hub','11 days ago'],['CLA.md','home-hub','11 days ago'],['CONTRIBUTING.md','Security reports go to security@elyir.app…','11 days ago']]
 
 const BOARDS = {
-  today: () => computer('github.com/topeysoft/home-hub', `<div class="gh">
-    <div class="hd"><span class="o"></span><span>topeysoft / <b>home-hub</b></span><span class="btn" style="margin-left:10px;border-radius:999px;height:24px;line-height:22px;font-size:12px;padding:0 8px">Public</span></div>
+  today: () => computer('github.com/elyir-labs/home-hub', `<div class="gh">
+    <div class="hd"><span class="o"></span><span>elyir-labs / <b>home-hub</b></span><span class="btn" style="margin-left:10px;border-radius:999px;height:24px;line-height:22px;font-size:12px;padding:0 8px">Public</span></div>
     <div class="tabs"><span>Code</span><span>Issues</span><span>Pull requests</span><span>Actions</span><span>Security</span><span>Insights</span></div>
     <div class="main"><div>
       <div class="bar"><span class="btn">main</span><span class="btn">1 Branch</span><span class="btn">0 Tags</span><span class="btn" style="margin-left:auto">Go to file</span><span class="btn go">Code</span></div>
@@ -166,7 +166,7 @@ const BOARDS = {
 
   'today-phone': () => phone('github.com', `<div class="gh m">
     <div class="hd"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e6edf3" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="o" style="margin:0 auto"></span><span class="btn" style="height:30px;line-height:28px">Sign in</span></div>
-    <div class="repo"><div style="color:var(--g-mute)">topeysoft / <b style="color:var(--g-link);font-weight:600">home-hub</b></div><h4 style="margin-top:8px">home-hub</h4><p>Elyir Home Hub: a smart home hub a household sets up from its own screen</p><div style="color:var(--g-mute)">AGPL-3.0 license · 0 stars · 0 forks</div></div>
+    <div class="repo"><div style="color:var(--g-mute)">elyir-labs / <b style="color:var(--g-link);font-weight:600">home-hub</b></div><h4 style="margin-top:8px">home-hub</h4><p>Elyir Home Hub: a smart home hub a household sets up from its own screen</p><div style="color:var(--g-mute)">AGPL-3.0 license · 0 stars · 0 forks</div></div>
     <div class="tabs" style="padding:0 16px"><span>Code</span><span>Issues</span><span>Pull requests</span><span>Actions</span></div>
     <div class="files"><div><span><b>Alex</b> Merge pull…</span><em>6 Commits</em></div>${FILES.slice(0, 10).map(([n, , t]) => `<div><b>${n}</b><em>${t}</em></div>`).join('')}</div></div>`),
 

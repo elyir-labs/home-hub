@@ -101,7 +101,7 @@ log "installing the hub"
 if [ -x "$DIR/install.sh" ]; then
   HOME_HUB_DIR="$DIR" "$DIR/install.sh"
 else
-  curl -fsSL https://raw.githubusercontent.com/topeysoft/home-hub/main/install.sh | HOME_HUB_DIR="$DIR" bash
+  curl -fsSL https://raw.githubusercontent.com/elyir-labs/home-hub/main/install.sh | HOME_HUB_DIR="$DIR" bash
 fi
 # A unit with a screen of its own starts the way every Elyir product does.
 if screen_here; then

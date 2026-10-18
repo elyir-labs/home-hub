@@ -23,7 +23,7 @@ more than a household's guess that it might be fine.
 """
 import json, os, subprocess, sys, time, urllib.error, urllib.request
 
-RELEASES = os.environ.get("HOME_HUB_RELEASES") or "https://github.com/topeysoft/home-hub/releases/download"
+RELEASES = os.environ.get("HOME_HUB_RELEASES") or "https://github.com/elyir-labs/home-hub/releases/download"
 URL = f"{RELEASES}/channel/channel.json"
 PRIV = os.environ.get("HOME_HUB_RELEASE_KEY") or os.path.expanduser("~/.home-hub/release-key.pem")
 KEYS = "driver-layer/host/release-keys.d"
