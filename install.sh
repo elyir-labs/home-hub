@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # One-line install on any fresh Linux box: a Raspberry Pi 5, an Intel NUC, a VM, anything running
 # Debian, Ubuntu, Raspberry Pi OS or Fedora with systemd:
-#   curl -fsSL https://raw.githubusercontent.com/topeysoft/home-hub/main/install.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/elyir-labs/home-hub/main/install.sh | sudo bash
 # or, from a checkout:  sudo ./install.sh
 #
 # Installs Docker, names the machine "hub" so it answers at http://hub.local, finds any Zigbee or
@@ -12,7 +12,7 @@
 # fills in what is missing. Nothing in here is specific to a Pi; that lives in host/firstboot.sh.
 set -euo pipefail
 
-REPO="${HOME_HUB_REPO:-https://github.com/topeysoft/home-hub.git}"
+REPO="${HOME_HUB_REPO:-https://github.com/elyir-labs/home-hub.git}"
 DIR="${HOME_HUB_DIR:-/opt/home-hub}"
 HOSTNAME_WANTED="${HOME_HUB_HOSTNAME:-hub}"
 # Which code this hub follows. "release" is the newest version tag: nothing reaches a house until
@@ -119,8 +119,8 @@ cd "$DIR/driver-layer"
 # a branch, whose image is tagged with the branch's name, and for the first install of a release that
 # predates the signing.
 if [ -z "${HUB_BRAIN_IMAGE:-}" ]; then
-  if [ -n "$VERSION" ]; then export HUB_BRAIN_IMAGE="ghcr.io/topeysoft/home-hub-brain:${VERSION}"
-  elif [ "$CHANNEL" != "release" ]; then export HUB_BRAIN_IMAGE="ghcr.io/topeysoft/home-hub-brain:${BRANCH}"
+  if [ -n "$VERSION" ]; then export HUB_BRAIN_IMAGE="ghcr.io/elyir-labs/home-hub-brain:${VERSION}"
+  elif [ "$CHANNEL" != "release" ]; then export HUB_BRAIN_IMAGE="ghcr.io/elyir-labs/home-hub-brain:${BRANCH}"
   fi
 fi
 # The Matter bridge is ours too, and it and the brain have a contract between them -- what the bridge
@@ -128,8 +128,8 @@ fi
 # against a bridge it had cached from a month ago is a version skew nobody would enjoy finding, so it
 # is named by the release exactly the way the brain is rather than left on :latest. docs/matter.md.
 if [ -z "${HUB_BRIDGE_IMAGE:-}" ]; then
-  if [ -n "$VERSION" ]; then export HUB_BRIDGE_IMAGE="ghcr.io/topeysoft/home-hub-matter-bridge:${VERSION}"
-  elif [ "$CHANNEL" != "release" ]; then export HUB_BRIDGE_IMAGE="ghcr.io/topeysoft/home-hub-matter-bridge:${BRANCH}"
+  if [ -n "$VERSION" ]; then export HUB_BRIDGE_IMAGE="ghcr.io/elyir-labs/home-hub-matter-bridge:${VERSION}"
+  elif [ "$CHANNEL" != "release" ]; then export HUB_BRIDGE_IMAGE="ghcr.io/elyir-labs/home-hub-matter-bridge:${BRANCH}"
   fi
 fi
 export HUB_CHANNEL="$CHANNEL"
@@ -253,7 +253,7 @@ if ! PULLED="$(docker compose pull -q --ignore-buildable 2>&1)"; then
   echo "$PULLED" | sed -n 's/.*failed to resolve reference "\([^"]*\)".*/  could not fetch \1 — that pin is not on the registry/p' | sort -u
 fi
 if PULL="$(docker compose pull -q brain 2>&1)"; then
-  echo "  brain image: $(docker image inspect "${HUB_BRAIN_IMAGE:-ghcr.io/topeysoft/home-hub-brain:latest}" --format '{{index .RepoDigests 0}}' 2>/dev/null | cut -d@ -f2 | cut -c1-19)"
+  echo "  brain image: $(docker image inspect "${HUB_BRAIN_IMAGE:-ghcr.io/elyir-labs/home-hub-brain:latest}" --format '{{index .RepoDigests 0}}' 2>/dev/null | cut -d@ -f2 | cut -c1-19)"
 else
   case "$PULL" in
     *denied*|*unauthorized*|*401*|*403*) echo "  the published brain image is not public (GitHub package visibility); building it here from the code above, which takes a few minutes" ;;

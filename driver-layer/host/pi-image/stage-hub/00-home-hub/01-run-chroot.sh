@@ -6,7 +6,7 @@
 # shellcheck disable=SC1091
 . /etc/home-hub.conf
 REF="${HOME_HUB_REF:-main}"
-REPO="${HOME_HUB_REPO:-https://github.com/topeysoft/home-hub.git}"
+REPO="${HOME_HUB_REPO:-https://github.com/elyir-labs/home-hub.git}"
 
 git clone --depth 1 --branch "$REF" "$REPO" /opt/home-hub
 chmod +x /opt/home-hub/install.sh /opt/home-hub/driver-layer/radios.sh /opt/home-hub/driver-layer/host/firstboot.sh

@@ -94,7 +94,7 @@ onUnmounted(() => { clearTimeout(timer); clearInterval(poll) })
         <button class="button ghost" @click="emit('done')">Not now</button>
       </div>
     </div>
-    <p class="setup-foot">Have a server of your own? <a href="https://github.com/topeysoft/home-hub/blob/main/relay/README.md" target="_blank" rel="noopener">Use it instead</a>, free.</p>
+    <p class="setup-foot">Have a server of your own? <a href="https://github.com/elyir-labs/home-hub/blob/main/relay/README.md" target="_blank" rel="noopener">Use it instead</a>, free.</p>
   </section>
 
   <section class="setup-page address-step" v-else-if="moment === 'phone'">

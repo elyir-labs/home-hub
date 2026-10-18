@@ -99,7 +99,7 @@ variable "admin_cidrs" {
 variable "relay_service_repository" {
   description = "Where the box builds the registration service from. A fork running its own relay points this at itself."
   type        = string
-  default     = "topeysoft/home-hub"
+  default     = "elyir-labs/home-hub"
 }
 
 variable "relay_service_ref" {
