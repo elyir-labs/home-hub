@@ -435,7 +435,7 @@ class Printers:
         reader = asyncio.create_task(self._read(pid, ws))
         try:
             await self.call(pid, "server.connection.identify", {"client_name": "home-hub", "version": "1", "type": "other",
-                                                                 "url": "https://github.com/topeysoft/home-hub"})
+                                                                 "url": "https://github.com/elyir-labs/home-hub"})
             intent = await self.call(pid, "printer.intent")
             self.live[pid] = {"intent": intent, "connected": True, "via": via,
                               "since": (self.live.get(pid) or {}).get("since") or self.now()}

@@ -41,7 +41,7 @@ Any Linux machine with systemd can be a hub: a Raspberry Pi 5, an Intel NUC, a m
 Debian, Ubuntu, Raspberry Pi OS or Fedora.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/topeysoft/home-hub/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/elyir-labs/home-hub/main/install.sh | sudo bash
 ```
 
 A ready-made Raspberry Pi image is attached to each release: flash it, power it, open `http://hub.local`.

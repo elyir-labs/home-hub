@@ -59,7 +59,7 @@ only when the math is meant to change.
 
 Docker: `docker build -f brain/Dockerfile -t home-hub/brain .` from the repo root builds the panel
 in. CI (`.github/workflows/brain-image.yml`) publishes the same image for amd64 and arm64 as
-`ghcr.io/topeysoft/home-hub-brain` on every push to main and every `v*` tag; the compose file pulls
+`ghcr.io/elyir-labs/home-hub-brain` on every push to main and every `v*` tag; the compose file pulls
 that and builds locally only as a fallback. `HUB_DATA` is where settings and the event log live
 (`/data` in the image), `HUB_PORT` the port.
 
