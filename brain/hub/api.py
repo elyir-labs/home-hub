@@ -411,7 +411,7 @@ class Hub:
         parts = code.split("-")
         self.language = "-".join([parts[0].lower(), *parts[1:]])
         self.settings.set(language=self.language)
-        self.onboarding._strings.clear(); self.onboarding._names.clear()
+        self.add._strings.clear(); self.add._names.clear()
         self._broadcast(json.dumps({"type": "status", "status": self.status()}))
         return self.language
 
