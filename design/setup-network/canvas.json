@@ -1,6 +1,8 @@
 {
   "name": "Setting up a hub without a cable",
-  "areas": ["First run"],
+  "areas": [
+    "First run"
+  ],
   "reading": [
     "why",
     "Today.dc.html",
@@ -21,18 +23,86 @@
     "pick"
   ],
   "artboards": [
-    { "file": "Today.dc.html", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Today: a box with no screen starts with a cable to the router" },
-    { "file": "Label.dc.html", "x": 1560, "y": 0, "w": 1440, "h": 900, "title": "The label on the hub, for A and for B" },
-
-    { "file": "OwnWiFiA-1.dc.html", "x": 0, "y": 1400, "w": 390, "h": 844, "title": "A1: point the camera at the hub" },
-    { "file": "OwnWiFiA-2.dc.html", "x": 510, "y": 1400, "w": 390, "h": 844, "title": "A2: which Wi-Fi is yours, in the sign-in sheet" },
-    { "file": "OwnWiFiA-3.dc.html", "x": 1020, "y": 1400, "w": 390, "h": 844, "title": "A3: a wrong password is a sentence, not a vanished hub" },
-    { "file": "OwnWiFiA-4.dc.html", "x": 1530, "y": 1400, "w": 390, "h": 844, "title": "A4: back to your own Wi-Fi, carrying one address" },
-
-    { "file": "NearbyB-1.dc.html", "x": 0, "y": 2700, "w": 390, "h": 844, "title": "B1: the page finds the hub nearby (Android)" },
-    { "file": "NearbyB-iPhone.dc.html", "x": 510, "y": 2700, "w": 390, "h": 844, "title": "B on an iPhone: something of ours from the App Store first" },
-    { "file": "NearbyB-2.dc.html", "x": 1020, "y": 2700, "w": 390, "h": 844, "title": "B2: which Wi-Fi, without leaving yours" },
-    { "file": "NearbyB-3.dc.html", "x": 1530, "y": 2700, "w": 390, "h": 844, "title": "B3: straight on to Welcome home" }
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: a box with no screen starts with a cable to the router"
+    },
+    {
+      "file": "Label.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "The label on the hub, for A and for B"
+    },
+    {
+      "file": "OwnWiFiA-1.dc.html",
+      "x": 0,
+      "y": 1400,
+      "w": 390,
+      "h": 844,
+      "title": "A1: point the camera at the hub"
+    },
+    {
+      "file": "OwnWiFiA-2.dc.html",
+      "x": 510,
+      "y": 1400,
+      "w": 390,
+      "h": 844,
+      "title": "A2: which Wi-Fi is yours, in the sign-in sheet"
+    },
+    {
+      "file": "OwnWiFiA-3.dc.html",
+      "x": 1020,
+      "y": 1400,
+      "w": 390,
+      "h": 844,
+      "title": "A3: a wrong password is a sentence, not a vanished hub"
+    },
+    {
+      "file": "OwnWiFiA-4.dc.html",
+      "x": 1530,
+      "y": 1400,
+      "w": 390,
+      "h": 844,
+      "title": "A4: back to your own Wi-Fi, carrying one address"
+    },
+    {
+      "file": "NearbyB-1.dc.html",
+      "x": 0,
+      "y": 2700,
+      "w": 390,
+      "h": 844,
+      "title": "B1: the page finds the hub nearby (Android)"
+    },
+    {
+      "file": "NearbyB-iPhone.dc.html",
+      "x": 510,
+      "y": 2700,
+      "w": 390,
+      "h": 844,
+      "title": "B on an iPhone: something of ours from the App Store first"
+    },
+    {
+      "file": "NearbyB-2.dc.html",
+      "x": 1020,
+      "y": 2700,
+      "w": 390,
+      "h": 844,
+      "title": "B2: which Wi-Fi, without leaving yours"
+    },
+    {
+      "file": "NearbyB-3.dc.html",
+      "x": 1530,
+      "y": 2700,
+      "w": 390,
+      "h": 844,
+      "title": "B3: straight on to Welcome home"
+    }
   ],
   "annotations": [
     {
@@ -82,7 +152,12 @@
       "x": 2040,
       "y": 2700,
       "w": 520,
-      "text": "TO PICK\n\nA, B, A now with B added later, or something else (describe it).\n\nMy recommendation is A now. It works on every phone without an app, it depends on nothing of ours being online, and it is the floor docs/network.md already promised. B is better on the screen, but it waits on an iPhone app the product does not have. If an app comes, B can find the same hub by the same label, so picking A first doesn't close B off."
+      "text": "DECIDED 19 OCTOBER 2026\n\nA now, B once there is an app. The hub makes a Wi-Fi of its own, and the code on its label joins it. B's boards stay on this page because they are the next step, not a loser: when an Elyir app exists, it finds the same hub by the same label over Bluetooth, and the phone never has to leave its own Wi-Fi.\n\nWhy A first: it works on every phone without an app, it depends on nothing of ours being online, and it is the floor docs/network.md already promised. B is better on the screen but waits on an iPhone app the product does not have."
     }
-  ]
+  ],
+  "decided": {
+    "on": "2026-10-19",
+    "chose": "A now, B once there is an app",
+    "board": "OwnWiFiA-2.dc.html"
+  }
 }
