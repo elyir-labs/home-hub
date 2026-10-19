@@ -6,7 +6,7 @@ Not what the panel's own words are in -- those are English. What everything the 
 write is asked for in: Home Assistant's names for every integration and every form label, the
 place search, the dates and the voice. See hub.set_language and app/src/lang.ts.
 """
-import json, tempfile, unittest
+import inspect, json, tempfile, unittest
 from pathlib import Path
 from hub.api import Hub
 from hub.settings import Settings
@@ -29,7 +29,7 @@ class FakeHub:
     def __init__(self, path):
         self.settings = Settings(path)
         self.language = self.settings.get("language") or "en"
-        self.onboarding = FakeOnboarding()
+        self.add = FakeOnboarding()
         self.sent = []
 
     def _broadcast(self, msg): self.sent.append(json.loads(msg))
@@ -75,10 +75,15 @@ class LanguageTests(unittest.TestCase):
         """The whole point of the setting. Onboarding caches HA's translated strings per handler;
         without this the Add screen would go on saying the old language's words until the brain
         restarted, which is the kind of bug somebody reports as "it only half worked"."""
-        self.assertTrue(self.hub.onboarding._strings)
+        self.assertTrue(self.hub.add._strings)
         self.hub.set_language("nl")
-        self.assertEqual(self.hub.onboarding._strings, {})
-        self.assertEqual(self.hub.onboarding._names, {})
+        self.assertEqual(self.hub.add._strings, {})
+        self.assertEqual(self.hub.add._names, {})
+
+    def test_the_cache_dropped_is_the_one_the_hub_keeps(self):
+        """The fake above once named the cache `onboarding` while the real Hub keeps it as `add`, so
+        this file passed while every new house failed at its first question."""
+        self.assertIn("self.add = Onboarding(self)", inspect.getsource(Hub.__init__))
 
     def test_every_screen_is_told_at_once(self):
         """One house, one language: a phone and the wall must not disagree about what the
