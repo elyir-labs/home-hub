@@ -1,7 +1,6 @@
 # Nightfall, into the panel
 
-The canvas is at (a private page, not linked here) —
-three artboards, and every number below is already in
+The canvas has three artboards, and every number below is already in
 [`Main.dc.html`](Main.dc.html) as working code rather than as a description of
 code. When something here is vague, read the artboard: it is the spec.
 
