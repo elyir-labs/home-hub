@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B1: the page finds the hub nearby</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="setup-network.css">
+<style>
+  .found { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--edge); }
+  .found .ic { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: rgba(var(--lamp-rgb), .16); color: var(--lamp); flex: none; }
+  .found b { display: block; font-weight: 500; font-size: 17px; }
+  .found small { display: block; font-size: 13.5px; color: var(--muted); }
+  .chooser { top: 430px; padding: 20px 20px 16px; }
+  .chooser .t { font-size: 17px; font-weight: 600; }
+  .chooser .s { font-size: 14px; color: rgba(255,255,255,.65); margin-top: 4px; }
+  .chooser .dev { display: flex; align-items: center; gap: 12px; height: 54px; margin-top: 14px; padding: 0 14px; border-radius: 12px; background: rgba(93,156,245,.18); font-size: 16px; }
+  .chooser .row2 { display: flex; justify-content: flex-end; gap: 22px; margin-top: 18px; font-size: 15.5px; font-weight: 600; color: #8ab4f8; }
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.45); z-index: 5; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar"><span>9:41</span><span class="r"><span class="wifi">Bluebell</span><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i>
+    <svg width="26" height="13" viewBox="0 0 26 13" style="margin-left: 6px"><rect x=".5" y=".5" width="22" height="12" rx="3.5" fill="none" stroke="rgba(255,255,255,.5)"/><rect x="2.5" y="2.5" width="15" height="8" rx="2" fill="#fff"/><rect x="24" y="4.5" width="1.6" height="4" rx=".8" fill="rgba(255,255,255,.5)"/></svg></span></div>
+
+  <div class="col" style="top: 96px;">
+    <div class="mark"><svg class="i" width="26" height="26" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg></div>
+    <h1>Your hub is nearby.</h1>
+    <p class="lede">Let this page talk to it, and it can take your Wi&#8209;Fi from here.</p>
+    <div class="found"><span class="ic"><svg class="i" width="24" height="24" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg></span><span><b>Elyir Hub 4F2A</b><small>The number on its label</small></span></div>
+    <div class="cta" style="margin-top: 22px;">Connect to it</div>
+  </div>
+
+  <div class="browser"><div class="url"><svg class="i" width="13" height="13" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>elyir.app/start</div></div>
+
+  <div class="scrim"></div>
+  <div class="ask chooser">
+    <div class="t">elyir.app wants to connect</div>
+    <div class="s">Choose a device nearby</div>
+    <div class="dev"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></svg>Elyir Hub 4F2A</div>
+    <div class="row2"><span>Cancel</span><span>Pair</span></div>
+  </div>
+  <div class="home-ind"></div>
+
+  <div class="ann" style="left: 14px; right: 14px; top: 640px;">
+    <span class="cap">Android, in Chrome: no app, no new network</span>
+    The phone stays on Bluebell the whole way. The browser asks once which nearby device the page may talk to, and the page has already narrowed it to <b>this hub, by the number in the code</b>.
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A4: back to your own Wi-Fi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="setup-network.css">
+<style>
+  .addr { display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 12px 0 20px; border-radius: var(--r-md); background: var(--surface);
+          border: 1px solid var(--edge-hi); font-size: 24px; letter-spacing: -.01em; }
+  .addr .copy { margin-left: auto; height: 40px; padding: 0 14px; border-radius: 999px; background: var(--surface-hi); border: 1px solid var(--edge);
+                display: flex; align-items: center; gap: 6px; font-size: 14.5px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="phone" style="background: #07080a;">
+  <div class="status-bar"><span>9:41</span><span class="r"><span class="wifi">Elyir Hub 4F2A</span><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i>
+    <svg width="26" height="13" viewBox="0 0 26 13" style="margin-left: 6px"><rect x=".5" y=".5" width="22" height="12" rx="3.5" fill="none" stroke="rgba(255,255,255,.5)"/><rect x="2.5" y="2.5" width="15" height="8" rx="2" fill="#fff"/><rect x="24" y="4.5" width="1.6" height="4" rx=".8" fill="rgba(255,255,255,.5)"/></svg></span></div>
+
+  <div class="sheet">
+    <div class="sheet-bar"><b>Elyir Hub 4F2A</b><span class="sys r" style="font-weight: 600;">Done</span></div>
+
+    <div class="col" style="top: 96px;">
+      <div class="mark done"><svg class="i" width="26" height="26" viewBox="0 0 24 24" style="stroke-width: 2.2"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h1>The hub is on Bluebell.</h1>
+      <p class="lede">Tap Done, and your phone goes back to Bluebell too. The rest of setup is at this address, in your browser.</p>
+      <div class="addr">hub.local<span class="copy"><svg class="i" width="15" height="15" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copy</span></div>
+      <p class="foot" style="margin-top: 16px;">If that doesn&rsquo;t open, <u>elyir.app/start</u> finds the hub on your Wi&#8209;Fi.</p>
+    </div>
+  </div>
+  <div class="home-ind"></div>
+
+  <div class="ring" style="left: 10px; right: 10px; top: 398px; height: 110px; border-radius: 16px;"></div>
+  <div class="ann" style="left: 14px; right: 14px; top: 600px;">
+    <span class="cap">A&rsquo;s one real cost, drawn where it lands</span>
+    The sheet can&rsquo;t open the phone&rsquo;s browser, and it closes when the phone changes network. So the handover is <b>one address, carried by the person</b>. The fallback works because the hub, now online, tells our service it is on this network, which is how a page can find it without .local.
+  </div>
+</div>
+</body>
+</html>

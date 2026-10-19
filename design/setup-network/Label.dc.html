@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>The label on the hub</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="setup-network.css">
+<style>
+  .board { position: relative; width: 1440px; height: 900px; overflow: hidden; color: var(--ink); background: linear-gradient(#10131a, #0c0d10); }
+  .head { position: absolute; left: 64px; top: 56px; width: 1300px; }
+  .head h2 { margin: 10px 0 0; font-size: 40px; line-height: 1.08; letter-spacing: -.025em; font-weight: 400; }
+  .head p { margin: 12px 0 0; font-size: 17px; color: var(--ink-2); max-width: 82ch; }
+  .which { position: absolute; top: 236px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+  .under { position: absolute; top: 720px; width: 400px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+  .under b { color: var(--ink); font-weight: 500; }
+  .hub { position: absolute; left: 1060px; top: 300px; }
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="head">
+    <div class="cap">The label · enlarged</div>
+    <h2>One code on the hub itself, and the sentence that says what to do with it.</h2>
+    <p>On the underside of the hub, not only on the carton: the carton is gone by the time the router changes, and the same code sets it up again then. The words are the only instructions in the box.</p>
+  </div>
+
+  <div class="which" style="left: 64px;">A · the code joins the hub&rsquo;s own Wi&#8209;Fi</div>
+  <div class="label" style="position: absolute; left: 64px; top: 280px;">
+    <div class="brand">elyir<small>Home Hub</small></div>
+    <img class="qr" src="qr-wifi.svg" alt="">
+    <div class="big">
+      <div class="say">Plug it in, then point your phone&rsquo;s camera at this code.</div>
+      <div class="small">Your phone joins the hub for a minute to give it your Wi&#8209;Fi.</div>
+      <div class="code"><span>Network<b>Elyir Hub 4F2A</b></span><span>Password<b>kite-maple-41</b></span></div>
+    </div>
+  </div>
+  <div class="under" style="left: 64px;">The code is a standard Wi&#8209;Fi code, so <b>any phone&rsquo;s camera</b> offers to join it with no app. The name and password are printed too, for a phone whose camera does not read codes.</div>
+
+  <div class="which" style="left: 560px;">B · the code opens a page</div>
+  <div class="label" style="position: absolute; left: 560px; top: 280px;">
+    <div class="brand">elyir<small>Home Hub</small></div>
+    <img class="qr" src="qr-link.svg" alt="">
+    <div class="big">
+      <div class="say">Plug it in, then point your phone&rsquo;s camera at this code.</div>
+      <div class="small">Keep your phone near the hub. Setting it up takes a few minutes.</div>
+      <div class="code"><span>Or go to<b>elyir.app/start</b></span><span>Hub<b>4F2A-9KQ7</b></span></div>
+    </div>
+  </div>
+  <div class="under" style="left: 560px;">The code is a link with this hub&rsquo;s number in it. The page finds the hub over <b>Bluetooth</b>, so the phone never leaves its own Wi&#8209;Fi. The number lets the page tell this hub from the neighbor&rsquo;s.</div>
+
+  <div class="hub">
+    <svg width="300" height="300" viewBox="0 0 300 300" fill="none">
+      <rect x="20" y="40" width="260" height="220" rx="26" fill="#1d1f24" stroke="rgba(255,255,255,.14)"/>
+      <rect x="70" y="80" width="160" height="160" rx="12" fill="#f3f1ec"/>
+      <image href="qr-wifi.svg" x="152" y="92" width="66" height="66"/>
+      <rect x="82" y="96" width="50" height="8" rx="3" fill="#1b1c1f"/>
+      <rect x="82" y="176" width="136" height="7" rx="3" fill="#8b8984"/>
+      <rect x="82" y="190" width="110" height="7" rx="3" fill="#8b8984"/>
+      <rect x="82" y="212" width="136" height="12" rx="3" fill="#d9d6cf"/>
+      <circle cx="44" cy="64" r="7" stroke="rgba(255,255,255,.2)"/><circle cx="256" cy="64" r="7" stroke="rgba(255,255,255,.2)"/>
+      <circle cx="44" cy="236" r="7" stroke="rgba(255,255,255,.2)"/><circle cx="256" cy="236" r="7" stroke="rgba(255,255,255,.2)"/>
+    </svg>
+    <div style="width: 300px; text-align: center; font-size: 13px; color: var(--muted); margin-top: 6px;">The underside of the hub</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,88 @@
+{
+  "name": "Setting up a hub without a cable",
+  "areas": ["First run"],
+  "reading": [
+    "why",
+    "Today.dc.html",
+    "today",
+    "Label.dc.html",
+    "label",
+    "a",
+    "OwnWiFiA-1.dc.html",
+    "OwnWiFiA-2.dc.html",
+    "OwnWiFiA-3.dc.html",
+    "OwnWiFiA-4.dc.html",
+    "b",
+    "NearbyB-1.dc.html",
+    "NearbyB-iPhone.dc.html",
+    "NearbyB-2.dc.html",
+    "NearbyB-3.dc.html",
+    "behind",
+    "pick"
+  ],
+  "artboards": [
+    { "file": "Today.dc.html", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Today: a box with no screen starts with a cable to the router" },
+    { "file": "Label.dc.html", "x": 1560, "y": 0, "w": 1440, "h": 900, "title": "The label on the hub, for A and for B" },
+
+    { "file": "OwnWiFiA-1.dc.html", "x": 0, "y": 1400, "w": 390, "h": 844, "title": "A1: point the camera at the hub" },
+    { "file": "OwnWiFiA-2.dc.html", "x": 510, "y": 1400, "w": 390, "h": 844, "title": "A2: which Wi-Fi is yours, in the sign-in sheet" },
+    { "file": "OwnWiFiA-3.dc.html", "x": 1020, "y": 1400, "w": 390, "h": 844, "title": "A3: a wrong password is a sentence, not a vanished hub" },
+    { "file": "OwnWiFiA-4.dc.html", "x": 1530, "y": 1400, "w": 390, "h": 844, "title": "A4: back to your own Wi-Fi, carrying one address" },
+
+    { "file": "NearbyB-1.dc.html", "x": 0, "y": 2700, "w": 390, "h": 844, "title": "B1: the page finds the hub nearby (Android)" },
+    { "file": "NearbyB-iPhone.dc.html", "x": 510, "y": 2700, "w": 390, "h": 844, "title": "B on an iPhone: something of ours from the App Store first" },
+    { "file": "NearbyB-2.dc.html", "x": 1020, "y": 2700, "w": 390, "h": 844, "title": "B2: which Wi-Fi, without leaving yours" },
+    { "file": "NearbyB-3.dc.html", "x": 1530, "y": 2700, "w": 390, "h": 844, "title": "B3: straight on to Welcome home" }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS (19 OCTOBER 2026)\n\nA NUC was set up as a hub today. It took a USB stick, a keyboard and monitor, a typed command, and a cable to the router, which is four things the person this product is for will not have or do.\n\nThe box has no screen, so there is nowhere to type a Wi-Fi password. Until somebody gives it one, the only way onto the network is a cable, and the hub ends up wherever the router is.\n\ndocs/network.md, piece 5, already says what the floor is: when the hub has no connection, it offers one of its own and asks which Wi-Fi from a phone. docs/shipping.md lists Wi-Fi onboarding as not yet started. These boards draw it, in two ways.\n\nWHAT DOES NOT CHANGE: Welcome home and every step after it. design/setup/ and design/words-setup/ own those. This collection is everything before them."
+    },
+    {
+      "id": "today",
+      "x": 0,
+      "y": 940,
+      "w": 1440,
+      "text": "TODAY\n\nTraced from install.sh, driver-layer/host/pi-image/README.md and this morning's NUC. On a Pi the first step is flashing our image; on a NUC it is installing Ubuntu and pasting the install command, which needs a keyboard and monitor. Either way the hub then needs a cable to the router, downloads the engine and the brain on its first start, and is found by typing hub.local and trying until it answers. Steps 1 to 4 are where a household gives up, and none of them shows a word we wrote."
+    },
+    {
+      "id": "label",
+      "x": 1560,
+      "y": 940,
+      "w": 1440,
+      "text": "THE LABEL\n\nThe only instructions in the box, so it says what to do in one sentence and carries one code. It goes on the hub itself as well as the carton, because the same code is how the hub gets its Wi-Fi back after a new router, months after the carton is gone.\n\nThe code is unique to each hub. In A it is a standard Wi-Fi code with that hub's own network name and password, printed in words too. In B it is a link carrying that hub's number. Either way it is also the claim code docs/shipping.md asks for under per-unit identity. elyir.app/start is a placeholder address for the page."
+    },
+    {
+      "id": "a",
+      "x": -620,
+      "y": 1400,
+      "w": 500,
+      "text": "A: THE HUB MAKES A WI-FI OF ITS OWN\n\nPlugged in with no connection, the hub starts a Wi-Fi called Elyir Hub 4F2A, with a password printed on its label. The phone's camera reads the code and offers to join it. The phone then opens the sheet it uses for hotel Wi-Fi, and our first question is in it: which Wi-Fi is yours, then its password. The hub tries the password while keeping its own network up, so a typo is said on the phone. Once it is on, it turns its own network off, and the phone goes back to the home Wi-Fi.\n\nFOR: it works on every phone with a camera. No app, no store, nothing native; the question is Setup.vue's, one step in front, as piece 5 asked. The hub needs nothing it doesn't already have: NetworkManager can start the network, and network.sh is already the one place that talks to it. Nothing of ours has to be running on the internet for a house to be set up.\n\nAGAINST: the phone leaves its own Wi-Fi for a minute, and the sheet is cramped and closes when the network changes. So the handover is an address the person has to carry to the browser (A4), and that is the one place they can get lost. Some Android phones ask \"This network has no internet. Stay connected?\", a question we don't get to write. And a hub with no Wi-Fi card can only use a cable."
+    },
+    {
+      "id": "b",
+      "x": -620,
+      "y": 2700,
+      "w": 500,
+      "text": "B: THE PHONE TALKS TO THE HUB OVER BLUETOOTH\n\nThe code on the label is a link. It opens a page that finds this hub nearby by its number and, with one permission from the phone, asks which Wi-Fi over Bluetooth. The phone never leaves its own Wi-Fi. Once the hub is on, it tells the page its address, and the page goes straight to Welcome home.\n\nFOR: nothing for the person to carry, and no moment where the phone is on a strange network. The journey is the shortest of the two by a whole screen, and it ends on today's Welcome home without a hop.\n\nAGAINST: an iPhone can't do it from a web page. Safari has no Bluetooth, so B needs something of ours from the App Store: an App Clip the code opens without a full install, or the whole app. That means native code, App Store review and an Apple account, in a product that is one web app today, and a second thing to keep working. It also needs our page to be up for a house to be set up at all, and a hub without Bluetooth can't do it. On Android in Chrome it works as drawn, with no app."
+    },
+    {
+      "id": "behind",
+      "x": 2040,
+      "y": 1400,
+      "w": 520,
+      "text": "UNDER BOTH\n\nTHE BOX ARRIVES WITH THE HUB ON IT. An image for x86 boxes, built the way driver-layer/host/pi-image/ builds the Pi's, and written to the disk before it ships. The engine and the brain are already in it, not downloaded on first start: with no network there is nothing to download from, and the setup screen has to be served before the hub is online.\n\nA CABLE STILL WINS. Plugged into the router, the hub never offers its own way in, and the Wi-Fi question is skipped. Piece 4 keeps the cable as the recommendation.\n\nIT IS THERE ONLY WHEN NOTHING ELSE IS, and it comes back on its own when the hub loses its network: a new router, a changed password. Same label, same steps, months later. That is the second reason the label is on the hub.\n\nNOT OPEN. Piece 5 says the setup network has no password. These boards give it one, unique to the hub and printed under it, so a neighbor can't get onto a hub that is waiting to be set up. Whichever is picked, piece 5 changes to match.\n\nWORDS. Elyir Hub and the label's four characters are the only new names. Wi-Fi and Bluetooth are words households already use. Access point, captive portal, provisioning and mDNS stay in docs/.\n\nTO CHECK BEFORE BUILDING: whether this NUC's card can run its own network and join another at the same time (iw list, valid interface combinations). A3 assumes it can, and says what happens if it can't."
+    },
+    {
+      "id": "pick",
+      "x": 2040,
+      "y": 2700,
+      "w": 520,
+      "text": "TO PICK\n\nA, B, A now with B added later, or something else (describe it).\n\nMy recommendation is A now. It works on every phone without an app, it depends on nothing of ours being online, and it is the floor docs/network.md already promised. B is better on the screen, but it waits on an iPhone app the product does not have. If an app comes, B can find the same hub by the same label, so picking A first doesn't close B off."
+    }
+  ]
+}
