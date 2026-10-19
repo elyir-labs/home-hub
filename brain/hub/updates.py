@@ -30,7 +30,7 @@ from .restart import plainly
 from .settings import DATA
 
 log = logging.getLogger("hub.updates")
-REPO = os.environ.get("HUB_REPO") or "topeysoft/home-hub"
+REPO = os.environ.get("HUB_REPO") or "elyir-labs/home-hub"
 RELEASE_API = f"https://api.github.com/repos/{REPO}/releases/latest"
 BRANCHES = ("main", "development")    # the channels that follow a branch rather than tags, each named for its branch
 # A branch hub is offered the newest commit whose BRAIN IMAGE finished building, not the branch's head.

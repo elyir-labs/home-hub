@@ -25,11 +25,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "brain"))
 from hub import notes as release_notes            # noqa: E402 -- the path above is what makes it importable
 
 COMPOSE = "driver-layer/docker-compose.yml"
-BRAIN = "ghcr.io/topeysoft/home-hub-brain"
+BRAIN = "ghcr.io/elyir-labs/home-hub-brain"
 # Ours too, and named by the release for the same reason the brain is: the two have a contract
 # between them -- the shape of what the bridge is handed per device, and how long a request to open
 # the door stays live -- so a hub must never be able to run a new one against an old one.
-BRIDGE = "ghcr.io/topeysoft/home-hub-matter-bridge"
+BRIDGE = "ghcr.io/elyir-labs/home-hub-matter-bridge"
 ACCEPT = ", ".join((
     "application/vnd.oci.image.index.v1+json",
     "application/vnd.docker.distribution.manifest.list.v2+json",

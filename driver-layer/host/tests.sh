@@ -43,7 +43,7 @@ manifest() {  # file, version, commit, min_from
   "schema": 1,
   "version": "$2",
   "commit": "$3",
-  "brain": "ghcr.io/topeysoft/home-hub-brain@sha256:aaaa",
+  "brain": "ghcr.io/elyir-labs/home-hub-brain@sha256:aaaa",
   "images": {
     "caddy": "caddy@sha256:bbbb",
     "mosquitto": "eclipse-mosquitto@sha256:cccc"
@@ -190,7 +190,7 @@ undo() {
 #!/usr/bin/env bash
 case "$1 ${2:-}" in
   "inspect --format") echo "sha256:oldimageid" ;;
-  "image inspect")    echo "ghcr.io/topeysoft/home-hub-brain@sha256:olddigest" ;;
+  "image inspect")    echo "ghcr.io/elyir-labs/home-hub-brain@sha256:olddigest" ;;
   "compose up")       touch "$FAKE/answering" ;;   # the old brain is back and answering
 esac
 D
@@ -241,7 +241,7 @@ I
   is "...and the putting back is on the record" "$(phases)" 'checking restarting putting_back proving'
   is "...and the hub is back where it was" "$(at)" "$old"
   case "$(cat "$dir/driver-layer/.env")" in
-    *"HUB_BRAIN_IMAGE=ghcr.io/topeysoft/home-hub-brain@sha256:olddigest"*)
+    *"HUB_BRAIN_IMAGE=ghcr.io/elyir-labs/home-hub-brain@sha256:olddigest"*)
       ok "...with the old image pinned, so nothing walks back onto the new one" ;;
     *) no "...with the old image pinned" "no pin in .env" ;;
   esac
