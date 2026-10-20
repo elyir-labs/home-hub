@@ -296,7 +296,10 @@ jobs:
             "$RUNNER_TEMP/gitleaks" git . -c .gitleaks.toml --redact --no-banner --log-opts="$BASE..$HEAD"
           fi
       - name: private words
-        # no person's name or email, real printer or home network: the repository is public (scripts/private-words.sh)
+        # no person's name or email, real printer or home network: the repository is public (scripts/private-words.sh).
+        # The words are a secret so the list does not publish them; a fork's pull request runs without it.
+        env:
+          PRIVATE_WORDS: ${{ secrets.PRIVATE_WORDS }}
         run: scripts/private-words.sh
 
   kiosk:

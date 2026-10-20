@@ -13,7 +13,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { allCollections, byArea, decisionOf, documentOf, elsewhere, launchBoard, noteHeadFor, search, sentenceCase, pagesOf } from './lib.mjs'
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node:fs'
 import os from 'node:os'
 import { contentsPage, documentPage, canvasPage } from './pages.mjs'
 
@@ -192,6 +192,29 @@ test('note headings are typed in capitals and read in sentence case', () => {
   assert.equal(noteHeadFor('A -- IN THE ROOM: THE LIGHT SAYS IT, WHERE YOU REACH FOR IT', 'A — in the room: the light says it where you reach for it'), '')
   assert.equal(noteHeadFor('TODAY -- DRAWN FROM THE SHIPPED PANEL', 'Today — the strip is dark, and the wall says it is on'), 'Drawn from the shipped panel')
   assert.equal(noteHeadFor('WHY THIS EXISTS', 'Today — what ships'), 'Why this exists')
+})
+
+/* The wall's boards live in the hardware repository and are linked in as design/wall; each of its
+   collections is a folder inside the link, and has to be on the contents like any other. */
+test('a linked folder of collections is read one level deeper, and sorts under Hardware', async () => {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), 'artboards-'))
+  try {
+    const hw = path.join(tmp, 'hardware', 'wall'), design = path.join(tmp, 'design')
+    const put = (dir, canvas) => { mkdirSync(dir, { recursive: true }); writeFileSync(path.join(dir, 'canvas.json'), JSON.stringify(canvas)) }
+    put(hw, { name: 'The wall screen', artboards: [], annotations: [] })
+    put(path.join(hw, 'desk-stand'), { name: 'The desk stand', artboards: [], annotations: [] })
+    mkdirSync(path.join(hw, 'mechanical'))
+    put(path.join(design, 'rooms'), { name: 'The Rooms tab', areas: ['Wall screens'], artboards: [], annotations: [] })
+    symlinkSync(hw, path.join(design, 'wall'))
+
+    const all = await allCollections(design)
+    assert.deepEqual(all.map((c) => c.dir).sort(), ['rooms', 'wall', 'wall/desk-stand'])
+    const stand = all.find((c) => c.dir === 'wall/desk-stand')
+    assert.deepEqual([stand.name, stand.linked, stand.areas], ['The desk stand', true, ['Hardware']])
+    assert.equal(all.find((c) => c.dir === 'rooms').linked, false)
+  } finally {
+    rmSync(tmp, { recursive: true, force: true })
+  }
 })
 
 /* From other checkouts, direction A of design/artboards/'s second page: a collection drawn in another
