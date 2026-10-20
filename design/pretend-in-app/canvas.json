@@ -1,0 +1,100 @@
+{
+ "name": "The pretend house in the app",
+ "areas": [
+  "Phones and away"
+ ],
+ "pages": [
+  {
+   "id": "page-1",
+   "name": "A phone with no house"
+  }
+ ],
+ "artboards": [
+  {
+   "file": "Today.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Today — no house: Add a house, and nothing else",
+   "page": "page-1"
+  },
+  {
+   "file": "LineA.dc.html",
+   "x": 560,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "A — A line under: Or try a pretend house",
+   "page": "page-1"
+  },
+  {
+   "file": "DoorsB.dc.html",
+   "x": 1020,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "B — Two doors: add yours, or try one",
+   "page": "page-1"
+  },
+  {
+   "file": "OpensC.dc.html",
+   "x": 1480,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "C — Opens in it: the pretend house, saying so",
+   "page": "page-1"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "why",
+   "page": "page-1",
+   "x": -620,
+   "y": 0,
+   "w": 500,
+   "text": "WHY THIS EXISTS\n\nThe store app opens the Houses app (docs/apps.md, Decided, 19 October 2026), and the first person to open it with no house will be App Review. Today they meet a code box and nothing they can do. Review rejects an app it cannot use, and a reviewer has no hub.\n\nThe same is true for somebody who installs the app before their box arrives, or who heard about it from a friend.\n\nThe pretend house already has a name and an address: the site calls it that (design/site/, decided 16 October) and serves it at hub.elyir.com/try, the real panel on a made-up house running inside the page, with nothing behind it. Each person gets their own; leaving puts it back. These boards are only about how the app gets you into it. Inside, it is the panel, framed like any house, with its name reading Pretend house.\n\nWhatever is chosen: it never becomes one of your houses, it is never shown once you have one except from Houses, and nothing typed into it leaves the phone."
+  },
+  {
+   "id": "today",
+   "page": "page-1",
+   "x": 0,
+   "y": -560,
+   "w": 390,
+   "text": "TODAY\n\nTraced off the built Houses app at 390x844 with nothing in it. Correct for somebody holding a code from their house's screen, and a dead end for everybody else: there is no way to see what the app does without a house to add."
+  },
+  {
+   "id": "a",
+   "page": "page-1",
+   "x": 560,
+   "y": -560,
+   "w": 390,
+   "text": "A — A LINE UNDER\n\nAdd a house stays exactly as it is, the screen for the person with a code. Above Add it, one quiet line in the site's own words: No house yet? Try a pretend house. It opens framed like a house; Houses then lists it under your houses until you add one.\n\nFOR: the smallest change, and the same words as the site, so the person who saw it there finds it here. Nothing in the way of somebody with a code.\n\nAGAINST: a reviewer has to notice a line at the bottom of a form. It reads as a footnote, and it is the only thing on the screen they can do."
+  },
+  {
+   "id": "b",
+   "page": "page-1",
+   "x": 1020,
+   "y": -560,
+   "w": 390,
+   "text": "B — TWO DOORS\n\nWith no house, the app opens on one sentence of what it is and two buttons. Add a house leads, solid; Try a pretend house beside it, quiet. Add a house is the screen from Today, one tap in. Once a house is added this screen is never seen again.\n\nFOR: both kinds of person see their way in at once, and neither has to read past the other's. Says what the app is before asking for anything, which a stranger needs.\n\nAGAINST: one more tap for the person who opened the app holding a code, which is most real people. A screen that exists only for the first minute."
+  },
+  {
+   "id": "c",
+   "page": "page-1",
+   "x": 1480,
+   "y": -560,
+   "w": 390,
+   "text": "C — OPENS IN IT\n\nWith no house, the app opens straight into the pretend house. Its name, where Connected was, reads Pretend house, and one nudge in the band says This house isn't real, Tap anything, Add yours when you have one. Tapping the name opens Houses with Add a house, as it does for any house (design/houses/, HereB). Adding your first house replaces it.\n\nFOR: the first thing anybody sees is the app working, which is what review is looking for and what a newcomer wants. No screen invented for the first minute: everything here already exists.\n\nAGAINST: the person who opened the app to join their house lands in somebody else's, and has to find Add through the name. A real household's first second is a made-up one."
+  },
+  {
+   "id": "else",
+   "page": "page-1",
+   "x": 1960,
+   "y": 0,
+   "w": 420,
+   "text": "OR SOMETHING ELSE\n\nDescribe it."
+  }
+ ]
+}

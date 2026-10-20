@@ -272,8 +272,8 @@ Do not reopen these, and do not propose around them.
 
 - **The phone app is a native shell around the Houses app, never Capacitor and never a second panel** (19 October
   2026, `docs/apps.md`, Decided). Swift and Kotlin in `elyir-labs/home-hub-apps` under Apache-2.0, never in this
-  tree; the panel always comes from the hub and is never bundled. One demo house, run in the browser at
-  `hub.elyir.com/demo` (never a name on the shared `elyir.app`), serves the website, App Review and anyone without a box yet. What the stores require is listed
+  tree; the panel always comes from the hub and is never bundled. One pretend house, run in the browser at
+  `hub.elyir.com/try` (never a name on the shared `elyir.app`), serves the website, App Review and anyone without a box yet. What the stores require is listed
   there and settled before shell code. The address offer inside the app is `design/store-app/`, C: on the US
   storefront its button opens the payment page in the browser, on every other storefront setup has no such step.
   Pinned by `app/tests/storefront.test.ts` and `app/e2e/houses.spec.ts`.

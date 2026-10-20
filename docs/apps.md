@@ -28,7 +28,8 @@ native panel.** Asked as "Capacitor, or native?", once the relay was carrying ho
   Not in this tree, because every hub clones it whole (the reason hardware moved out) and because one license per
   repository keeps the line obvious. Android still starts from `kiosk/`: its discovery and reconnecting are the
   maintainer's own code, so they can be carried over under the new license; the kiosk itself stays here.
-- **One demo house, in the browser, at `hub.elyir.com/demo`.** The panel built against the mock house running inside
+- **One pretend house, in the browser, at `hub.elyir.com/try`.** (The site's word and address, decided 16 October
+  in `design/site/`.) The panel built against the mock house running inside
   the page, no server behind it: each visitor gets a house of their own, and a reload puts it back. It lives on the
   hub's own site and ships with it (`site/`, Cloudflare Pages under Terraform), not on `elyir.app`: that zone is one
   flat list of names shared by houses, printers, Elyir Bench and whatever comes next, so a product's page has no
@@ -37,7 +38,7 @@ native panel.** Asked as "Capacitor, or native?", once the relay was carrying ho
   which reaches it from the Houses app with no houses in it; and somebody who installs the app before the box
   arrives. Not bundled into the shell: that would put this AGPL panel inside the binary, and a copy in the binary
   is a panel that falls behind. The work is the mock's handler made runnable in a page (it is a Node server today,
-  `app/mock/brain.mjs`) and a demo build `site/build.sh` copies in; the Houses app's way into it is a screen change,
+  `app/mock/brain.mjs`) and a build of it `site/build.sh` copies in; the Houses app's way into it is a screen change,
   so it starts as a board.
 
 ### What the shell owes the page
@@ -64,7 +65,7 @@ Settled before any shell code, because three of them change what gets built rath
   is allowed beside in-app purchase; Apple takes nothing on it today and asked the court in August 2026 for up to
   15%, so price it as unsettled. Google Play allows the link in the US; its fees follow the Epic settlement. This
   changes nothing about paying never happening on the wall.
-- **A house for the reviewers.** Review rejects an app it cannot use, and a reviewer has no hub. The demo house
+- **A house for the reviewers.** Review rejects an app it cannot use, and a reviewer has no hub. The pretend house
   above has to exist before the first submission. It is also what keeps the
   app from reading as a bare website wrapper (guideline 4.2), with the widget and push.
 - **The shell's license.** This repository is AGPL, and the App Store's terms have long been read as incompatible
@@ -225,7 +226,8 @@ if it is ever built.
 3. **The relay running** (`docs/away.md` pieces 2 and 3 up to the name). *Running since 2 October; this was the
    decision point, and the decision is at the top.*
 4. **Before the shell, in the web:** the Houses app knowing it is inside the store app and on which storefront
-   (`design/store-app/`), and the demo house at `hub.elyir.com/demo`.
+   (`design/store-app/`), and the pretend house at `hub.elyir.com/try`, with the app's way into it
+   (`design/pretend-in-app/`).
 5. **The iOS shell** — a web view onto the Houses app, a push registration, a Bonjour lookup, and one widget with the
    App Intents behind it. No pinned CA any more. If the list grows past that in the planning, it has stopped being a
    shell and the plan is wrong.
