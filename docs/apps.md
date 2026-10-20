@@ -28,14 +28,17 @@ native panel.** Asked as "Capacitor, or native?", once the relay was carrying ho
   Not in this tree, because every hub clones it whole (the reason hardware moved out) and because one license per
   repository keeps the line obvious. Android still starts from `kiosk/`: its discovery and reconnecting are the
   maintainer's own code, so they can be carried over under the new license; the kiosk itself stays here.
-- **One demo house, in the browser, at `demo.elyir.app`.** The panel built against the mock house running inside
-  the page, no server behind it: each visitor gets a house of their own, and a reload puts it back. Static, so it
-  is published the way the Houses app is (`tools/publish-houses.sh`) and costs nothing per visitor. It serves three
-  people at once: the website, which shows the real panel rather than a picture of it; App Review, which reaches it
-  from the Houses app with no houses in it; and somebody who installs the app before the box arrives. Not bundled
-  into the shell: that would put this AGPL panel inside the binary, and a copy in the binary is a panel that
-  falls behind. The work is the mock's handler made runnable in a page (it is a Node server today, `app/mock/
-  brain.mjs`) and a demo build; the Houses app's way into it is a screen change, so it starts as a board.
+- **One demo house, in the browser, at `hub.elyir.com/demo`.** The panel built against the mock house running inside
+  the page, no server behind it: each visitor gets a house of their own, and a reload puts it back. It lives on the
+  hub's own site and ships with it (`site/`, Cloudflare Pages under Terraform), not on `elyir.app`: that zone is one
+  flat list of names shared by houses, printers, Elyir Bench and whatever comes next, so a product's page has no
+  business taking one of them, and not on `houses.elyir.app` either, the origin that holds every phone's passes. It
+  serves three people at once: the website, which shows the real panel rather than a picture of it; App Review,
+  which reaches it from the Houses app with no houses in it; and somebody who installs the app before the box
+  arrives. Not bundled into the shell: that would put this AGPL panel inside the binary, and a copy in the binary
+  is a panel that falls behind. The work is the mock's handler made runnable in a page (it is a Node server today,
+  `app/mock/brain.mjs`) and a demo build `site/build.sh` copies in; the Houses app's way into it is a screen change,
+  so it starts as a board.
 
 ### What the stores will hold us to
 
@@ -209,7 +212,7 @@ if it is ever built.
 3. **The relay running** (`docs/away.md` pieces 2 and 3 up to the name). *Running since 2 October; this was the
    decision point, and the decision is at the top.*
 4. **Before the shell, in the web:** the Houses app knowing it is inside the store app and on which storefront
-   (`design/store-app/`), and the demo house at `demo.elyir.app`.
+   (`design/store-app/`), and the demo house at `hub.elyir.com/demo`.
 5. **The iOS shell** — a web view onto the Houses app, a push registration, a Bonjour lookup, and one widget with the
    App Intents behind it. No pinned CA any more. If the list grows past that in the planning, it has stopped being a
    shell and the plan is wrong.
