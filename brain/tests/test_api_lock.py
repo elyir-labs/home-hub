@@ -458,7 +458,9 @@ class PushTests(ApiTest):
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.json()["phone"]["push"])
         push = self.hub.phones.get(phone["id"])["push"]
-        self.assertEqual((push["vapid"], push["tz"], push["subscription"]), (self.key, "America/Chicago", subscription()))
+        self.assertEqual(push["vapid"], self.key)
+        self.assertEqual(push["subscription"], subscription())
+        self.assertEqual(push["tz"], "America/Chicago")
         self.assertTrue(self.client.get("/phones/me").json()["phone"]["push"])
 
     def test_the_phones_key_never_comes_back_out(self):
