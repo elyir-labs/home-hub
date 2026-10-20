@@ -1,0 +1,73 @@
+# The flash-and-go image for x86 hosts (a NUC, a mini PC): Ubuntu Server 24.04 with the hub on it, attached to
+# the GitHub release as a .img.xz with its checksum. Built on every version tag, by hand from the Actions tab,
+# and on a pull request that changes how it is built, so a broken image is found before a tag rather than by
+# a household. See driver-layer/host/x86-image/README.md.
+name: x86 image
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths: ["driver-layer/host/x86-image/**", "driver-layer/host/firstboot.sh", ".github/workflows/x86-image.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # Tags bypass branch protection; this is what stops a release image being cut from an untested commit.
+  verify:
+    if: github.ref_type == 'tag'
+    uses: ./.github/workflows/ci.yml
+
+  image:
+    needs: verify
+    if: always() && needs.verify.result != 'failure' && needs.verify.result != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Which code the image carries
+        run: |
+          REF="${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          echo "REF=$REF" >> "$GITHUB_ENV"
+          echo "NAME=home-hub-$(echo "$REF" | tr '/' '-')-x86.img" >> "$GITHUB_ENV"
+      - name: Room, and the tools
+        # libguestfs boots a small appliance with the host's own kernel, which Ubuntu keeps unreadable to users,
+        # and runs much faster with /dev/kvm, which the runner has but does not open to the runner's user.
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /usr/share/swift /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          sudo apt-get update -q && sudo apt-get install -yq --no-install-recommends libguestfs-tools qemu-utils xz-utils
+          sudo chmod 0644 /boot/vmlinuz-*
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+          df -h /
+      - name: The containers a hub starts with before it has internet
+        # The same three as the Pi image, for amd64: the brain and the front door serve the Wi-Fi step, and the
+        # broker's image is what install.sh hashes its password with. On a tag the brain is published from the
+        # same tag by brain-image.yml, so it may not be there yet.
+        run: |
+          mkdir -p preload
+          case "$REF" in v*) B="ghcr.io/elyir-labs/home-hub-brain:${REF#v}" ;; *) B="ghcr.io/elyir-labs/home-hub-brain:latest" ;; esac
+          for i in $(seq 1 60); do docker pull -q --platform linux/amd64 "$B" && break; echo "waiting for $B"; sleep 30; done
+          docker pull -q --platform linux/amd64 caddy:2
+          docker pull -q --platform linux/amd64 eclipse-mosquitto:2
+          docker save "$B" -o preload/brain.tar; docker save caddy:2 -o preload/caddy.tar; docker save eclipse-mosquitto:2 -o preload/mosquitto.tar
+          ls -lh preload
+      - name: Build
+        run: driver-layer/host/x86-image/build.sh "$REF" "$NAME" preload
+      - name: Compress and checksum
+        run: |
+          xz -T0 -6 "$NAME"
+          sha256sum "$NAME.xz" | tee "$NAME.xz.sha256"
+          ls -lh "$NAME.xz"
+          # GitHub refuses a release file over 2 GiB; say so here rather than at the upload.
+          [ "$(stat -c %s "$NAME.xz")" -lt 2147483648 ] || { echo "the image is over 2 GiB and cannot be attached to a release"; exit 1; }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: home-hub-x86-image
+          path: ${{ env.NAME }}.xz*
+          retention-days: 14
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          files: ${{ env.NAME }}.xz*

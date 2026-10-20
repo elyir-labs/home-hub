@@ -689,9 +689,68 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
 }
 
 
+# The x86 image boots from a USB stick and moves to the NUC's own disk, but only to one with nothing on
+# it. Disks, partitions and signatures are scripts on PATH; dd, wipefs and reboot write down what they
+# were asked, and do nothing.
+moving_in() {
+  group "the x86 image moves from its stick to an empty internal disk, and never onto one with anything on it"
+  local root dir bin sys; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"
+  mkdir -p "$dir/driver-layer" "$bin" "$sys/sda/sda1" "$sys/nvme0n1/nvme0n1p1"
+  echo 1 > "$sys/sda/sda1/partition"; echo 1 > "$sys/nvme0n1/nvme0n1p1/partition"
+  printf '#!/usr/bin/env bash\ntouch "%s/hub-installed"\n' "$root" > "$dir/install.sh"
+  cat > "$bin/lsblk" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "-no PKNAME /dev/sda1") echo sda ;;
+  "-no PKNAME /dev/nvme0n1p1") echo nvme0n1 ;;
+  "-dno TRAN /dev/sda") echo "${TRAN:-usb}" ;;
+  "-dno TRAN /dev/nvme0n1") echo nvme ;;
+  "-dno NAME,TRAN,TYPE") printf 'sda %s disk\nnvme0n1 nvme disk\n' "${TRAN:-usb}" ;;
+  "-no NAME /dev/nvme0n1") echo nvme0n1; [ -n "${USED:-}" ] && echo nvme0n1p1 ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\necho "${ROOTDEV:-/dev/sda1}"\n' > "$bin/findmnt"
+  printf '#!/usr/bin/env bash\n[ "$1" = -n ] && { [ -n "${SIGNED:-}" ] && echo "nvme0n1 ntfs"; exit 0; }\necho "wipefs $*" >> "%s/asked"\n' "$root" > "$bin/wipefs"
+  printf '#!/usr/bin/env bash\n[ "$1" = -J ] && echo %s && exit 0\necho "sfdisk $*" >> "%s/asked"\n' \
+    "'{\"partitiontable\": {\"sectorsize\": 512, \"partitions\": [{\"start\": 2048, \"size\": 12000000}, {\"start\": 227328, \"size\": 2048}]}}'" "$root" > "$bin/sfdisk"
+  printf '#!/usr/bin/env bash\necho "${SIZE:-512110190592}"\n' > "$bin/blockdev"
+  for c in dd reboot growpart resize2fs sync; do printf '#!/usr/bin/env bash\necho "%s $*" >> "%s/asked"\n' "$c" "$root" > "$bin/$c"; done
+  for c in systemctl docker; do printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/$c"; done
+  chmod +x "$dir/install.sh" "$bin"/*
+  boot() {
+    rm -f "$root"/hub-installed "$root/done" "$root/asked"; printf 'HUB_IMAGE=x86\n%s\n' "${EXTRA:-}" > "$root/conf"
+    echo "${REMOVABLE:-0}" > "$sys/sda/removable"
+    PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_FIRSTBOOT_MARK="$root/done" HUB_SYS_BLOCK="$sys" \
+      HUB_PRELOAD="$root/none" HUB_DRM="$root/drm" "$HERE/firstboot.sh" >/dev/null 2>&1
+  }
+  asked() { grep -c "$1" "$root/asked" 2>/dev/null || true; }
+
+  boot
+  is "on a stick, with an empty internal disk: the system is copied there, as far as its last partition" \
+    "$(asked 'dd if=/dev/sda of=/dev/nvme0n1 bs=4M count=6145048576 iflag=count_bytes conv=fsync status=none')" "1"
+  is "...the copy's backup partition table is moved to the end of the bigger disk" "$(asked 'sfdisk --relocate gpt-bak-std /dev/nvme0n1')" "1"
+  is "...the stick is blanked, so the next start cannot come from it, or find two of everything" "$(asked 'wipefs -a -f /dev/sda')" "1"
+  is "...and it restarts, from the internal disk, before installing anything" "$(asked '^reboot')$([ -f "$root/hub-installed" ] && echo ' installed')" "1"
+  USED=1 boot
+  is "an internal disk with a partition on it is never written" "$(asked '^dd ')" "0"
+  is "...the hub runs from the stick instead, grown to fill it" "$(asked 'growpart /dev/sda 1')$([ -f "$root/hub-installed" ] && echo ' installed')" "1 installed"
+  SIGNED=1 boot
+  is "nor one with any signature on it, partitions or not" "$(asked '^dd ')" "0"
+  SIZE=1000 boot
+  is "nor one too small to hold the system" "$(asked '^dd ')" "0"
+  EXTRA="HUB_AUTO_INTERNAL=0" boot
+  is "HUB_AUTO_INTERNAL=0 keeps it on the stick" "$(asked '^dd ')" "0"
+  TRAN=nvme ROOTDEV=/dev/nvme0n1p1 boot
+  is "already on the internal disk: nothing is copied, the system grows to fill it, and the hub installs" \
+    "$(asked '^dd ') $(asked 'growpart /dev/nvme0n1 1')$([ -f "$root/hub-installed" ] && echo ' installed')" "0 1 installed"
+  rm -rf "$root"
+}
+
+
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; watchdog; away; finding; becoming; keeping; awake; setting_up
+signatures; holds; undo; radios; watchdog; away; finding; becoming; keeping; awake; setting_up; moving_in
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

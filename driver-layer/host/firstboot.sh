@@ -16,6 +16,12 @@
 #      the next start.
 #   4. Run install.sh, which does everything a hand install would.
 #   5. On a unit with its own screen: startup/install.sh, the splash and the panel full screen.
+#
+# The x86 image (x86-image/) is written to a USB stick and booted on the NUC. Booted from the stick
+# with an empty internal disk, it copies itself there, blanks the stick so the firmware cannot start
+# from it again, and restarts from the internal disk. A disk with anything on it is never touched: the
+# hub runs from the stick instead (HUB_AUTO_INTERNAL=0 in /etc/home-hub.conf turns the copy off).
+# Wherever it runs, the root filesystem is grown to fill its disk.
 set -euo pipefail
 MARK=${HUB_FIRSTBOOT_MARK:-/var/lib/home-hub/firstboot.done}
 CONF=${HUB_CONF:-/etc/home-hub.conf}
@@ -49,6 +55,48 @@ if is_pi5; then
       reboot; exit 0
     fi
     log "could not copy to the NVMe; carrying on from the SD card"
+  fi
+fi
+
+if [ "${HUB_IMAGE:-}" = x86 ]; then
+  SYS_BLOCK="${HUB_SYS_BLOCK:-/sys/block}"
+  ROOT_PART="$(findmnt -no SOURCE /)"
+  ROOT_DISK="$(lsblk -no PKNAME "$ROOT_PART" | head -1)"
+  on_stick() { [ "$(lsblk -dno TRAN "/dev/$1" 2>/dev/null)" = usb ] || [ "$(cat "$SYS_BLOCK/$1/removable" 2>/dev/null)" = 1 ]; }
+  # An internal disk with no partitions and no signature of any kind: nothing anybody could lose.
+  empty_disk() {
+    lsblk -dno NAME,TRAN,TYPE 2>/dev/null | awk -v r="$ROOT_DISK" '$3=="disk" && $1!=r && ($2=="nvme"||$2=="sata"||$2=="ata") {print $1}' \
+      | while read -r d; do
+          [ -z "$(lsblk -no NAME "/dev/$d" | tail -n +2)" ] && [ -z "$(wipefs -n "/dev/$d" 2>/dev/null)" ] && { echo "$d"; break; }
+        done
+  }
+  if [ "${HUB_AUTO_INTERNAL:-1}" = 1 ] && on_stick "$ROOT_DISK"; then
+    TARGET="$(empty_disk)" || TARGET=""
+    if [ -n "$TARGET" ]; then
+      # Only as far as the last partition: the stick may be far bigger than the image on it.
+      BYTES="$(sfdisk -J "/dev/$ROOT_DISK" | python3 -c 'import json,sys
+p=json.load(sys.stdin)["partitiontable"]; print(max(x["start"]+x["size"] for x in p["partitions"])*p.get("sectorsize",512))')" || BYTES=""
+      if [ -n "$BYTES" ] && [ "$(blockdev --getsize64 "/dev/$TARGET")" -ge "$BYTES" ]; then
+        log "running from a USB stick with an empty internal disk ($TARGET): copying the system across"
+        if dd if="/dev/$ROOT_DISK" of="/dev/$TARGET" bs=4M count="$BYTES" iflag=count_bytes conv=fsync status=none \
+           && sfdisk --relocate gpt-bak-std "/dev/$TARGET" >/dev/null 2>&1; then
+          # The copy has the same filesystems, by the same ids, as the stick. Two of each would leave the
+          # next boot choosing between them, so the stick stops being a disk with partitions on it.
+          wipefs -a -f "/dev/$ROOT_DISK" >/dev/null 2>&1 || true
+          sync
+          log "copied; restarting from the internal disk. The stick is blank now and can be written again."
+          reboot; exit 0
+        fi
+        log "could not copy to $TARGET; carrying on from the stick"
+      fi
+    else
+      log "running from a USB stick, and the internal disk has something on it: it is left alone"
+    fi
+  fi
+  PARTN="$(cat "$SYS_BLOCK/$ROOT_DISK/$(basename "$ROOT_PART")/partition" 2>/dev/null || true)"
+  if [ -n "$PARTN" ] && growpart "/dev/$ROOT_DISK" "$PARTN" >/dev/null 2>&1; then
+    resize2fs "$ROOT_PART" >/dev/null 2>&1 || true
+    log "the system now fills its disk"
   fi
 fi
 
