@@ -794,6 +794,7 @@ const bridgeRows = process.env.BRIDGES === 'none' ? [] : [
                     opposite case: this one IS the hub that should be moved
      MOVE=moving|done|late pins a moment of the move instead of walking it. */
   if (p.startsWith('/network')) return network(p, req, res)
+  if (p.startsWith('/drive')) return driveRoute(p, req, res)
   /* A bridge being set up. BRIDGE=cable walks the whole job the way a real one does -- software,
      Wi-Fi, keys, then the walk to find it a socket -- so the sheet can be watched rather than
      described. BRIDGE=knocking|working|placing|ready|failed pins one moment instead. */
@@ -1124,6 +1125,26 @@ server.on('upgrade', (req, socket) => {
   socket.on('error', () => { live.delete(socket); })
 })
 server.listen(PORT, () => console.log(`mock brain on http://localhost:${PORT}/`))
+
+/* ---- the drive beside a hub on its USB stick (design/move-to-drive/) ----------------------------
+   DRIVE=stick   running from the stick beside a drive with Ubuntu on it: first run asks, or This hub's row
+   DRIVE=kept    the same, already answered Keep, so only the row shows
+   DRIVE=moved   just moved onto the drive: first run says so once */
+const DRIVE = process.env.DRIVE ?? ''
+const UBUNTU = { name: 'nvme0n1', serial: 'S6P7NS0T', model: 'Samsung SSD 980 500GB', bytes: 500107862016, empty: false,
+                 system: 'Ubuntu 24.04', used: 61e9, last: Math.floor(Date.now() / 1000) - 90000 }
+let driveKept = DRIVE === 'kept', driveSeenMoved = false
+function driveState() {
+  if (DRIVE === 'moved') return { from: 'drive', drives: [], drive: null, ask: false, kept: false, moved: !driveSeenMoved, moving: false }
+  if (DRIVE === 'stick' || DRIVE === 'kept') return { from: 'stick', drives: [UBUNTU], drive: UBUNTU, ask: !driveKept, kept: driveKept, moved: false, moving: false }
+  return { from: 'drive', drives: [], drive: null, ask: false, kept: false, moved: false, moving: false }
+}
+function driveRoute(p, req, res) {
+  if (p === '/drive/keep') driveKept = true
+  if (p === '/drive/seen') driveSeenMoved = true
+  if (p === '/drive/move') return json(res, { ...driveState(), moving: true })
+  return json(res, driveState())
+}
 
 /* ---- the network, and eleven bridges following it ---------------------------------------- */
 const NET = process.env.NET ?? 'cable'

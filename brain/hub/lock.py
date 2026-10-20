@@ -72,6 +72,8 @@ def needs_code(method: str, path: str) -> bool:
     # reading how a move went changes nothing. A code in front of either would be a code in front of
     # a household finding out what happened to their own house.
     if path.startswith("/network") and m == "POST" and path not in ("/network/scan", "/network/done"): return True
+    # Moving onto the computer's drive erases it (design/move-to-drive/). Keeping it, or reading that it moved, does not.
+    if path == "/drive/move" and m == "POST": return True
     # Sharing the house with Apple Home, Google Home or Alexa is a change to the house, not a tap on
     # it. The bridge's own routes are not here: they never reach this function, because the service
     # token answered for them before the gate. docs/matter.md.

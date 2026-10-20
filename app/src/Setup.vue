@@ -4,7 +4,9 @@
 -->
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { setupOwner, setupLogin, setupDone, addRoom, setPin, getAddress, type AddressState } from './api'
+import { setupOwner, setupLogin, setupDone, addRoom, setPin, getAddress, getDrive, type AddressState, type DriveState } from './api'
+import { firstPage } from './drive'
+import DriveStep from './DriveStep.vue'
 import { offersOutside } from './address'
 import { remember } from './code'
 import { store, load } from './store'
@@ -21,8 +23,8 @@ import AddressStep from './AddressStep.vue'
    code, which cannot, because a house that is still open to the whole Wi-Fi is not set up yet.
    And one more after what to add, only when the address service is offering it: whether the house
    wants an address of its own for reaching it from outside (AddressStep.vue, design/address/). */
-type Page = 'welcome' | 'login' | 'owner' | 'starting' | 'code' | 'location' | 'rooms' | 'devices' | 'address' | 'done'
-const PAGES: Page[] = ['welcome', 'login', 'owner', 'starting', 'code', 'location', 'rooms', 'devices', 'address', 'done']
+type Page = 'drive' | 'erase' | 'moving' | 'moved' | 'welcome' | 'login' | 'owner' | 'starting' | 'code' | 'location' | 'rooms' | 'devices' | 'address' | 'done'
+const PAGES: Page[] = ['drive', 'erase', 'moving', 'moved', 'welcome', 'login', 'owner', 'starting', 'code', 'location', 'rooms', 'devices', 'address', 'done']
 const preview = new URLSearchParams(location.search).get('page') as Page | null   // ?setup=1&page=rooms previews one screen
 const page = ref<Page>(preview && PAGES.includes(preview) ? preview : 'welcome')
 const status = computed(() => store.status)
@@ -38,6 +40,16 @@ const advanced = `${location.protocol}//${location.hostname}:8123/`
    service, or a brain that predates it, simply never shows the step -- the house is complete without it. */
 const address = ref<AddressState | null>(null)
 getAddress().then(a => (address.value = a)).catch(() => {})
+/* A hub on its USB stick beside a drive with something on it asks about the drive before anything else, and
+   one that just moved onto its drive says so once (design/move-to-drive/, A). */
+const drive = ref<DriveState | null>(null)
+const onDrive = computed(() => ['drive', 'erase', 'moving', 'moved'].includes(page.value))
+const drivePage = computed(() => page.value as 'drive' | 'erase' | 'moving' | 'moved')
+getDrive().then(s => {
+  drive.value = s
+  const p = firstPage(s)
+  if (p && (!preview || PAGES.indexOf(preview) <= PAGES.indexOf('moved'))) page.value = preview ?? p
+}).catch(() => {})
 
 function next(after: Page) {
   const s = status.value
@@ -148,8 +160,13 @@ async function saveCode() {
 <template>
   <main class="setup" :class="{ docked }" ref="scroller">
     <Transition name="view" mode="out-in" @after-enter="measure">
+      <!-- the drive beside a hub on its stick, before anything else (design/move-to-drive/, A) -->
+      <section class="setup-page" v-if="onDrive && drive" :key="page">
+        <DriveStep :page="drivePage" :state="drive" @go="p => (page = p)" />
+      </section>
+
       <!-- welcome -->
-      <section class="setup-page" v-if="page === 'welcome'" key="welcome">
+      <section class="setup-page" v-else-if="page === 'welcome'" key="welcome">
         <span class="setup-mark"><Icon name="home" :size="30" /></span>
         <h1 class="display">Welcome home.</h1>
         <!-- No count in here, on purpose. It used to promise "one or two questions" and then ask

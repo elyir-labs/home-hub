@@ -30,6 +30,7 @@ from .happened import Happened, Changes
 from .healed import Healed
 from .backup import Backup
 from .network import Network
+from .drive import Drive
 from .restart import Restart
 from .sounds import Sounds, DIR as SOUNDS_DIR
 from .commands import Commands, NotUnderstood, refusal_aloud
@@ -138,6 +139,7 @@ class Hub:
         self.power = Power()               # the sun on the roof, the battery and the grid: hub/power.py
         self._power_sent: tuple[float, tuple | None] = (0.0, None)
         self.net = Network(self)           # how this hub is connected, and what it hands out: docs/network.md
+        self.drive = Drive(self)           # what it runs from, and the drive beside it: design/move-to-drive/
         self.share = Share(self)           # what this house lets a Matter bridge publish: docs/matter.md
         self.share_status: dict = {}       # what the bridge last said about itself (pairing codes, who holds it)
         self.relay = Relay(self)           # two switches on one light: the hub carries the press across
@@ -1907,6 +1909,35 @@ async def network_hub(body: dict, request: Request):
             await hub.bridge.move(ssid, password)
         return hub.net.join(ssid, password)
     except ValueError as e: raise HTTPException(400, str(e))
+
+
+# ---------------------------------------------------------------- the drive beside a hub on a USB stick
+#
+# design/move-to-drive/. Looking is open; moving erases a drive, so it is a change to the house (lock.py), and
+# it is never done from away, where nobody can see which computer it is.
+
+
+@app.get("/drive")
+def drive_state():
+    return hub.drive.state()
+
+
+@app.post("/drive/move")
+def drive_move(body: dict, request: Request):
+    if request.state.away:
+        raise HTTPException(403, "Moving the hub onto its drive has to be done in the house.")
+    try: return hub.drive.move(str(body.get("name") or ""), str(body.get("serial") or ""))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.post("/drive/keep")
+def drive_keep():
+    return hub.drive.keep()
+
+
+@app.post("/drive/seen")
+def drive_seen():
+    return hub.drive.seen()
 
 
 @app.post("/network/done")

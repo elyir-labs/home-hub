@@ -190,6 +190,16 @@ export type NetMove = {
   waiting?: string[]
   late?: string[]
 }
+/* What the hub runs from, and the drive beside it (design/move-to-drive/). `ask` is first run's question;
+   `drive` is the one with something on it. The host checks every move again (driver-layer/host/drive.sh). */
+export type Drive = { name: string; serial: string; model: string; bytes: number; empty: boolean; system: string | null; used: number | null; last: number | null }
+export type DriveState = { from: 'stick' | 'drive' | 'unknown'; drives: Drive[]; drive: Drive | null; ask: boolean; kept: boolean; moved: boolean; moving: boolean; refused?: string | null; failed?: string | null }
+export async function getDrive(): Promise<DriveState> {
+  const r = await request('/drive'); if (!r.ok) await fail(r); return r.json()
+}
+export const moveToDrive = (name: string, serial: string) => post<DriveState>('/drive/move', { name, serial })
+export const keepDrive = () => post<DriveState>('/drive/keep')
+export const driveSeen = () => post<DriveState>('/drive/seen')
 export type SeenNetwork = { ssid: string; signal?: 'strong' | 'ok' | 'faint'; band?: string | null; secure: boolean }
 export async function getNetwork(): Promise<NetState> {
   const r = await request('/network'); if (!r.ok) await fail(r); return r.json()

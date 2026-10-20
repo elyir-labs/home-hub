@@ -293,6 +293,14 @@ Do not reopen these, and do not propose around them.
   give the hub a Wi-Fi and nothing else. B (the same over Bluetooth, no network switch) waits for an app, because
   Safari has no Bluetooth. Pinned by `app/tests/wifi.test.ts`, `app/e2e/setup-wifi.spec.ts`, `brain/tests/test_setup_wifi.py` and the
   `setting_up` group in `driver-layer/host/tests.sh`; the host's half is `host/network.sh`.
+- **A hub on its USB stick asks before it erases the drive beside it** (20 October, `design/move-to-drive/`, A with
+  B's sheet). An empty drive is moved onto without asking; anything else only on the screen. First run opens on the
+  question, naming the drive and what is on it, and erases only on the typed word; Keep is an answer, and This hub's
+  first row offers the move again on a hold, behind the passcode. There is no band on Home for it. The move happens
+  at the start of a boot with the disk read-only (`host/move-early.sh`), the host checks the drive's serial against
+  the one the screen showed, and the stick is never written, so one stick sets up hub after hub. Pinned by
+  `app/tests/drive.test.ts`, `app/e2e/move-to-drive.spec.ts`, `brain/tests/test_drive.py` and the `moving_in`,
+  `moving` and `describing` groups in `driver-layer/host/tests.sh`.
 - **The hub's front page is Elyir Bench's shape, with one line for a hub ready to plug in** (16 October,
   `design/site/`, D). It lives at `hub.elyir.com`, as Bench lives at `bench.elyir.com`; never under `elyir.app`, where
   names are houses' own. On a computer, Put it on a computer you have leads; on a phone, Try it live. Under the two
