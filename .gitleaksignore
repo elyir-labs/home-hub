@@ -1,0 +1,3 @@
+# Findings checked by hand and known not to be secrets, one per line, by gitleaks fingerprint.
+# A test that read a phone's time zone beside its key; the assertion is split since 2201562.
+372c482de84f6ae1c48a981368440ea6742120fe:brain/tests/test_api_lock.py:generic-api-key:461
