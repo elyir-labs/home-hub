@@ -172,14 +172,15 @@ class on one transport, not a feature anybody writes twice. That is the four-ite
 
 The first two are today's work and depend on nothing.
 
-1. **Wire the orphan.** A `message` branch in `connect()`, `notify()` on the far end of it, a test that a rule's note
+1. *Done 19 October 2026 (`app/e2e/note.spec.ts`).* **Wire the orphan.** A `message` branch in `connect()`, `notify()` on the far end of it, a test that a rule's note
    reaches a screen. Five lines against a documented outcome that has never worked.
 2. **`brain/hub/messages.py` and the classes.** Move the 19 `e.message` receipts and everything in `health.py` onto
    ids. The panel keeps the receipts that describe its own hand and loses the rest. No delivery work at all in this
    step — it is a refactor whose output is a file you can read the house's whole voice out of.
 3. **The band and the log read the catalog** rather than each assembling its own sentence. *Recent* can then say
    what a message was, not just that one happened.
-4. **The service worker**, with the offline shell only. This is `docs/apps.md` step 2 and it lands as soon as there is
+4. *Changed 19 October 2026: the worker is the Houses app's, not the panel's, and it keeps no offline shell -- see
+   `docs/apps.md`, Decided. What follows is the plan as first written.* **The service worker**, with the offline shell only. This is `docs/apps.md` step 2 and it lands as soon as there is
    a trusted origin — `docs/away.md` step 5 — and not before, because a service worker on the wall's plain `http://hub.local` is inert, and on the hub's own CA it is only as trusted as the certificate a phone was made to install.
 5. **Push: the keypair, `POST /phones/me/push`, `pywebpush`.** `docs/away.md` step 6.
 6. **The switches on *People*** — per phone, `attention` off by default and `alert` off by default, landing with the
