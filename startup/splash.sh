@@ -34,10 +34,9 @@ if [ -f "$CMD" ]; then
 fi
 
 # Nor does a PC's, past the maker's logo: no menu, no "Loading Linux", no kernel log. This file is read after
-# the image's own, so it is the one that counts. The boot always goes through the initramfs, which is where
-# the splash and the graphics driver are, rather than Ubuntu's cloud shortcut around it, which starts the
-# splash seconds later. plymouth.use-simpledrm draws on the screen the firmware left lit until a graphics
-# driver takes over, and is the only screen there is on an AMD box, whose firmware the image leaves out.
+# the image's own, so it is the one that counts. plymouth.use-simpledrm draws on the screen the firmware left
+# lit until a graphics driver takes over, and is the only screen there is on an AMD box, whose firmware the
+# image leaves out.
 if [ -d /etc/default/grub.d ]; then
   cat > /etc/default/grub.d/99-elyir.cfg <<'GRUB'
 # Elyir: after the maker's logo, the startup is ours (startup/splash.sh)
@@ -45,8 +44,14 @@ GRUB_CMDLINE_LINUX_DEFAULT="quiet splash loglevel=3 vt.global_cursor_default=0 p
 GRUB_TIMEOUT=0
 GRUB_TIMEOUT_STYLE=hidden
 GRUB_RECORDFAIL_TIMEOUT=0
-GRUB_FORCE_PARTUUID=
 GRUB
   update-grub
 fi
-plymouth-set-default-theme -R elyir >/dev/null
+# Debian names the theme with plymouth-set-default-theme; Ubuntu has no such command and picks it as an alternative.
+if command -v plymouth-set-default-theme >/dev/null 2>&1; then
+  plymouth-set-default-theme -R elyir >/dev/null
+else
+  update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth "$THEME/elyir.plymouth" 200 >/dev/null
+  update-alternatives --set default.plymouth "$THEME/elyir.plymouth" >/dev/null
+  update-initramfs -u
+fi
