@@ -182,7 +182,14 @@ The first two are today's work and depend on nothing.
 4. *Changed 19 October 2026: the worker is the Houses app's, not the panel's, and it keeps no offline shell -- see
    `docs/apps.md`, Decided. What follows is the plan as first written.* **The service worker**, with the offline shell only. This is `docs/apps.md` step 2 and it lands as soon as there is
    a trusted origin — `docs/away.md` step 5 — and not before, because a service worker on the wall's plain `http://hub.local` is inert, and on the hub's own CA it is only as trusted as the certificate a phone was made to install.
-5. **Push: the keypair, `POST /phones/me/push`, `pywebpush`.** `docs/away.md` step 6.
+5. *Built 19 October 2026, the house's half (`brain/hub/pusher.py`, `brain/tests/test_pusher.py`): `POST` and
+   `DELETE /phones/me/push` keep `{subscription, vapid, tz, since}` on the phone's own record in `phones.json`, now
+   0600, and the key never leaves it; on the drivers' half-minute look, an `attention` line that is new and still
+   there on the next look goes once to every phone that holds keys and has push (a blip, such as things gone for a
+   moment while the engine restarts, tells nobody), signed with that phone's key, `sub` the maker's, tagged with the
+   house's name as well as its id and subject, and held overnight until 07:00 in the phone's zone. Not yet: the Houses app's worker and its call to the route,
+   APNs and the sealed sender, and the switches in step 6 -- until they land, every owner's phone with push is told.*
+   **Push: the keypair, `POST /phones/me/push`, `pywebpush`.** `docs/away.md` step 6.
 6. **The switches on *People*** — per phone, `attention` off by default and `alert` off by default, landing with the
    `remote` switch in the same step for the same reason: the panel never shows a promise it cannot keep.
 

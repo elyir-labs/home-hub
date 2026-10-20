@@ -11,7 +11,7 @@ import unittest
 
 from hub.lock import needs_code
 from hub.phones import COOKIE, open_to_strangers
-from tests.apptest import ApiTest
+from tests.apptest import ApiTest, signing_key, subscription
 
 
 class OpenHouseTests(ApiTest):
@@ -435,3 +435,81 @@ class TheBackupNeedsACodeToExist(ApiTest):
         carries it is the thing being refused. Recovery must not need the thing it recovers."""
         self.assertFalse(self.hub.lock.locked)
         self.assertNotEqual(self.client.post("/restore").status_code, 403)
+
+
+class PushTests(ApiTest):
+    """POST and DELETE /phones/me/push: a phone of the house's own asks to be told things (docs/messages.md, step 5)."""
+    def setUp(self):
+        super().setUp()
+        self.code = self.lock_the_house("4821")
+        self.key = signing_key()
+
+    def as_phone(self, kind="phone"):
+        phone, token = self.hub.phones.with_code("Jordan's phone", kind)
+        self.client.cookies.set(COOKIE, token)
+        return phone
+
+    def body(self, **kw):
+        return {"subscription": subscription(), "vapid": self.key, "tz": "America/Chicago", **kw}
+
+    def test_a_phone_of_the_house_turns_it_on_without_the_code_and_its_record_keeps_it(self):
+        phone = self.as_phone()
+        r = self.client.post("/phones/me/push", json=self.body())
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.json()["phone"]["push"])
+        push = self.hub.phones.get(phone["id"])["push"]
+        self.assertEqual((push["vapid"], push["tz"], push["subscription"]), (self.key, "America/Chicago", subscription()))
+        self.assertTrue(self.client.get("/phones/me").json()["phone"]["push"])
+
+    def test_the_phones_key_never_comes_back_out(self):
+        self.as_phone()
+        answers = [self.client.post("/phones/me/push", json=self.body()), self.client.get("/phones/me"), self.client.get("/phones")]
+        for r in answers:
+            self.assertEqual(r.status_code, 200)
+            self.assertNotIn(self.key["privateKey"], r.text)
+            self.assertNotIn("vapid", r.text)
+
+    def test_a_key_that_does_not_match_itself_is_refused(self):
+        phone = self.as_phone()
+        r = self.client.post("/phones/me/push", json=self.body(vapid={**self.key, "publicKey": signing_key()["publicKey"]}))
+        self.assertEqual(r.status_code, 400)
+        r = self.client.post("/phones/me/push", json=self.body(vapid={"publicKey": self.key["publicKey"], "privateKey": "not-a-key"}))
+        self.assertEqual(r.status_code, 400)
+        self.assertNotIn("push", self.hub.phones.get(phone["id"]))
+
+    def test_anything_that_is_not_a_subscription_is_refused(self):
+        self.as_phone()
+        for sub in ({**subscription(), "endpoint": "http://push.example/x"}, {"endpoint": "https://push.example/x", "keys": {"p256dh": "x"}}, {}, "nope"):
+            self.assertEqual(self.client.post("/phones/me/push", json=self.body(subscription=sub)).status_code, 400, sub)
+
+    def test_a_time_zone_the_hub_does_not_know_is_left_out(self):
+        phone = self.as_phone()
+        self.client.post("/phones/me/push", json=self.body(tz="Mars/Olympus"))
+        self.assertIsNone(self.hub.phones.get(phone["id"])["push"]["tz"])
+
+    def test_a_stranger_the_wall_and_an_open_house_are_refused(self):
+        self.assertEqual(self.client.post("/phones/me/push", json=self.body()).status_code, 401)
+        _, wall = self.hub.phones.from_setup("wall")
+        self.client.cookies.set(COOKIE, wall)
+        self.assertEqual(self.client.post("/phones/me/push", json=self.body()).status_code, 403)
+        self.as_phone("screen")
+        self.assertEqual(self.client.post("/phones/me/push", json=self.body()).status_code, 403)
+
+    def test_a_tablet_the_browser_took_for_a_desktop_is_still_a_phone(self):
+        self.as_phone("wall")                       # what an iPad's Safari is guessed as
+        self.assertEqual(self.client.post("/phones/me/push", json=self.body()).status_code, 200)
+
+    def test_turning_it_off_and_leaving_both_take_it(self):
+        phone = self.as_phone()
+        self.client.post("/phones/me/push", json=self.body())
+        self.assertEqual(self.client.delete("/phones/me/push").status_code, 200)
+        self.assertNotIn("push", self.hub.phones.get(phone["id"]))
+        self.client.post("/phones/me/push", json=self.body())
+        self.assertEqual(self.client.delete(f"/phones/{phone['id']}", headers={"x-hub-code": self.code}).status_code, 200)
+        self.assertNotIn(self.key["privateKey"], self.hub.phones.path.read_text())
+
+
+class OpenHousePushTests(ApiTest):
+    def test_a_house_with_no_code_has_no_phones_to_tell(self):
+        r = self.client.post("/phones/me/push", json={"subscription": subscription(), "vapid": signing_key()})
+        self.assertEqual(r.status_code, 409)
