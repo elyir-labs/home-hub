@@ -1,0 +1,100 @@
+{
+ "name": "A house on the home screen",
+ "areas": [
+  "Phones and away"
+ ],
+ "pages": [
+  {
+   "id": "page-1",
+   "name": "The widget"
+  }
+ ],
+ "artboards": [
+  {
+   "file": "Today.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Today — an icon, and nothing about any house until it is opened",
+   "page": "page-1"
+  },
+  {
+   "file": "GlanceA.dc.html",
+   "x": 560,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "A — How the house is: a small one per house, a tap opens it",
+   "page": "page-1"
+  },
+  {
+   "file": "OneThingB.dc.html",
+   "x": 1020,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "B — One thing: its state, and a tap that changes it",
+   "page": "page-1"
+  },
+  {
+   "file": "ScenesC.dc.html",
+   "x": 1480,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "C — The house, with Bedtime and Everything off",
+   "page": "page-1"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "why",
+   "page": "page-1",
+   "x": -620,
+   "y": 0,
+   "w": 500,
+   "text": "WHY THIS EXISTS\n\ndocs/apps.md has always said the one reason a store app is worth having over the web one is what lives outside it: \"Garage, closed on a lock screen is the most out-of-the-box thing in this product.\" The shell's list is a web view, push, and one widget. This is the widget.\n\nWHAT EVERY DIRECTION SHARES. The widget asks the house itself, with the same pass the Houses app holds for it, at its Wi-Fi name at home and its own address away, and never a server of ours. So the Houses app hands the app its list of houses (name, address, pass) through the web view, kept in the phone's keychain for the widget. A widget refreshes when the phone lets it, roughly every quarter of an hour, so what it shows is a few minutes old at worst, and says how old when it is. A house that cannot be reached says so in the widget's own words, never a blank. The look is the app icon's: its night, its ink, its lamp.\n\nOn Android the same choice becomes the Android widget, drawn to that platform's sizes."
+  },
+  {
+   "id": "today",
+   "page": "page-1",
+   "x": 0,
+   "y": -560,
+   "w": 390,
+   "text": "TODAY\n\nThe simulator's home screen with the iOS app installed (19 October). The house is one icon among others; how it is, whether anything needs anybody, is only known by opening it."
+  },
+  {
+   "id": "a",
+   "page": "page-1",
+   "x": 560,
+   "y": -560,
+   "w": 390,
+   "text": "A — HOW THE HOUSE IS\n\nA small widget, one house each, picked when it is added: the house's name as this phone calls it, the weather, and one line, the same line Houses already says for it (On in 5 rooms, 2 people home; or in lamp, The back door lock needs a look). Nothing to press but the widget, which opens that house.\n\nFOR: the safest. It only reads, so no tap on a home screen ever does something in a house by mistake, and it is all things the house already answers. Two houses side by side is the multi-house promise made visible.\n\nAGAINST: it informs but does not do. \"Garage, closed\" is in there only if the garage is what needs a look."
+  },
+  {
+   "id": "b",
+   "page": "page-1",
+   "x": 1020,
+   "y": -560,
+   "w": 390,
+   "text": "B — ONE THING\n\nThe widget is set to one thing in one house when it is added (the garage door, the front lock, a lamp): what it is, how it is and since when, and one button that does the obvious thing (Open it, Lock it). A lock in the wrong state is in lamp. The lock screen gets the same as a line: Garage door, Closed.\n\nFOR: exactly the sentence docs/apps.md wrote down. Doing something without opening anything is what a widget is for.\n\nAGAINST: a button on a home screen can be pressed by a pocket or a child, so anything that opens or unlocks needs a second tap or Face ID; that is a rule to decide, not a detail. It shows one thing and nothing else about the house, so a house that needs a look elsewhere is silent here."
+  },
+  {
+   "id": "c",
+   "page": "page-1",
+   "x": 1480,
+   "y": -560,
+   "w": 390,
+   "text": "C — THE HOUSE AND ITS TWO WORDS\n\nA medium widget: A's line for one house across the top, and under it Bedtime and Everything off, the two things people say to a whole house, as the panel's own routines row has them. A tap runs it, and the widget says it did (Done, Everything is off) until the next refresh.\n\nFOR: the two buttons are the ones a person reaches for leaving the house or going to bed, and neither unlocks or opens anything, so a stray tap costs nothing worse than lights off.\n\nAGAINST: it is the house's routines, not your things; the garage is not in it. It takes a medium slot, twice a small one."
+  },
+  {
+   "id": "else",
+   "page": "page-1",
+   "x": 1960,
+   "y": 0,
+   "w": 420,
+   "text": "OR SOMETHING ELSE\n\nThey are not exclusive in the app: iOS offers each widget's sizes when it is added, so one could be A and C (small and medium of the same widget) with B later. Say which, or describe something else."
+  }
+ ]
+}
