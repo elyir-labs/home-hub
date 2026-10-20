@@ -60,7 +60,8 @@ chroot "$ROOT" bash /tmp/inside.sh
 
 rm -f "$ROOT/tmp/inside.sh" "$ROOT/usr/sbin/policy-rc.d" "$ROOT/etc/resolv.conf"
 mv "$WORK/resolv.keep" "$ROOT/etc/resolv.conf"
-for m in dev/pts dev proc sys run; do umount "$ROOT/$m"; done
+# Lazily: these are this machine's own /dev, /proc, /sys and /run, and a package may have left something open in one.
+for m in dev/pts dev proc sys run; do umount -R -l "$ROOT/$m"; done
 # Blocks that held the downloaded packages still hold their bytes after the files are gone, and xz cannot
 # tell them from the system. Discarding them leaves zeros in the image file, which compress to nothing.
 fstrim -v "$ROOT/boot/efi" || true; mountpoint -q "$ROOT/boot" && { fstrim -v "$ROOT/boot" || true; }
