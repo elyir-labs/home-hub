@@ -11,12 +11,13 @@ export DEBIAN_FRONTEND=noninteractive
 # the firmware they load. NetworkManager runs every link, cable and Wi-Fi alike, because host/network.sh
 # is the one thing that talks to the network and it speaks nmcli. iw and dnsmasq are the hub's own
 # setup Wi-Fi (docs/network.md, piece 5).
-# A hub has no screen to drive and no data-center card to run, and that firmware is most of linux-firmware's size,
-# already compressed, so it is most of the image's too. Every Wi-Fi, Bluetooth and Ethernet chip's stays. dpkg
-# leaves these paths out now and on every upgrade after.
+# A hub has no data-center card to run and seldom a screen to drive, and that firmware is most of linux-firmware's
+# size, already compressed, so it is most of the image's too. Every Wi-Fi, Bluetooth and Ethernet chip's stays, and
+# Intel graphics' (i915, xe), which is small and what a NUC has: the startup splash draws on it from the initramfs.
+# dpkg leaves these paths out now and on every upgrade after.
 {
   echo "# home-hub: a headless hub never loads these (driver-layer/host/x86-image/inside.sh)"
-  for d in nvidia amdgpu radeon i915 xe qcom mellanox netronome liquidio qed cxgb4 cirrus intel/ipu intel/vpu \
+  for d in nvidia amdgpu radeon qcom mellanox netronome liquidio qed cxgb4 cirrus intel/ipu intel/vpu \
            ti-keystone dpaa2 mrvl/prestera ueagle-atm vsc nxp/sdma imx; do
     printf 'path-exclude=/lib/firmware/%s/*\npath-exclude=/usr/lib/firmware/%s/*\n' "$d" "$d"
   done
@@ -70,6 +71,14 @@ systemctl enable docker avahi-daemon NetworkManager home-hub-firstboot home-hub-
 # on slows the boot. The screen is the only console here, and an update to GRUB keeps it so.
 sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="console=tty1"/' /etc/default/grub.d/50-cloudimg-settings.cfg
 update-grub
+
+# After the maker's logo, Elyir's startup, with nothing between them, held until the hub answers (startup/). A
+# tag cut before startup/splash.sh existed boots as before.
+if [ -x /opt/home-hub/startup/splash.sh ]; then
+  HOME_HUB_DIR=/opt/home-hub /opt/home-hub/startup/splash.sh
+  install -m 644 /opt/home-hub/startup/elyir-splash.service /etc/systemd/system/elyir-splash.service
+  systemctl enable elyir-splash.service
+fi
 
 # A USB stick is started through the firmware's removable-media path, EFI/BOOT/BOOTX64.EFI, which is shim. The cloud
 # image puts Ubuntu's fallback beside it and no GRUB, so shim runs the fallback, which writes a boot entry into the
