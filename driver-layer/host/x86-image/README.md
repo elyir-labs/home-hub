@@ -6,7 +6,9 @@ The NUC and mini-PC image: Ubuntu Server 24.04 with the hub already on it, built
 **To set up a NUC:** write the image to a USB stick with balenaEtcher, or with Raspberry Pi Imager's *Use custom*,
 answering **No** when it offers OS customisation: those settings are for a Raspberry Pi, and Imager fails with
 "Operating system did not mount FAT32 partition" trying to write them, because macOS keeps a PC's boot partition
-to itself. Plug the stick into the NUC with nothing else, and power it on.
+to itself. An image downloaded from a CI run (rather than a release) comes inside a `.zip`; unzip it first and give
+the writer the `.img.xz` inside, because neither app looks inside a zip for a second layer of compression. Plug the
+stick into the NUC with nothing else, and power it on.
 
 - With an **empty internal drive**, the hub moves itself there at the start of its first boot, before anything has
   written to the disk (`host/move-early.sh`, `host/move-to-drive.sh`), and restarts from the drive. The stick is never
