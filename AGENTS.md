@@ -271,9 +271,10 @@ Do not reopen these, and do not propose around them.
   `Commands.complete`; pinned by `app/tests/keys.test.ts` and `app/e2e/keyboard.touch.spec.ts`.
 
 - **The phone app is a native shell around the Houses app, never Capacitor and never a second panel** (19 October
-  2026, `docs/apps.md`, Decided). Swift on iOS, Kotlin beside `kiosk/` on Android; the panel always comes from the
-  hub. What the stores require -- the address offer left out where they say so, a demo house for review, the shell
-  licensed apart from this AGPL tree -- is listed there, and is settled before shell code.
+  2026, `docs/apps.md`, Decided). Swift and Kotlin in `elyir-labs/home-hub-apps` under Apache-2.0, never in this
+  tree; the panel always comes from the hub and is never bundled. One demo house, run in the browser at
+  `demo.elyir.app`, serves the website, App Review and anyone without a box yet. What the stores require is listed
+  there and settled before shell code; the offer inside the app is `design/store-app/`.
 
 - **The Brilliant work lives in a repository of its own, and public code never reaches into it**
   (5 October 2026). This repository is public and every hub clones it whole. The bridge puck here (`puck/`) is

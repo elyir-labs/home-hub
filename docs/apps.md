@@ -22,8 +22,20 @@ native panel.** Asked as "Capacitor, or native?", once the relay was carrying ho
 - **Push is the Houses app's**, one key for every house (`app/houses/public/sw.js`): web push from its worker in a
   browser, APNs and FCM from the shell. Not a worker per house -- the panel on a house's own name keeps no worker,
   and the Houses app's caches nothing on purpose.
-- **Android starts from `kiosk/`.** It is already a Kotlin web view onto the hub with discovery and reconnecting
-  built in; the phone app is a second module in that project, not a new one.
+- **The shells live in a repository of their own, `elyir-labs/home-hub-apps`, under Apache-2.0.** Not proprietary:
+  there is nothing in a web view and four native pieces worth hiding, and what stops a lookalike in the store is the
+  name and the icon, which are trademarks and are not licensed with the code. Not AGPL, for the store terms below.
+  Not in this tree, because every hub clones it whole (the reason hardware moved out) and because one license per
+  repository keeps the line obvious. Android still starts from `kiosk/`: its discovery and reconnecting are the
+  maintainer's own code, so they can be carried over under the new license; the kiosk itself stays here.
+- **One demo house, in the browser, at `demo.elyir.app`.** The panel built against the mock house running inside
+  the page, no server behind it: each visitor gets a house of their own, and a reload puts it back. Static, so it
+  is published the way the Houses app is (`tools/publish-houses.sh`) and costs nothing per visitor. It serves three
+  people at once: the website, which shows the real panel rather than a picture of it; App Review, which reaches it
+  from the Houses app with no houses in it; and somebody who installs the app before the box arrives. Not bundled
+  into the shell: that would put this AGPL panel inside the binary, and a copy in the binary is a panel that
+  falls behind. The work is the mock's handler made runnable in a page (it is a Node server today, `app/mock/
+  brain.mjs`) and a demo build; the Houses app's way into it is a screen change, so it starts as a board.
 
 ### What the stores will hold us to
 
@@ -36,12 +48,13 @@ Settled before any shell code, because three of them change what gets built rath
   is allowed beside in-app purchase; Apple takes nothing on it today and asked the court in August 2026 for up to
   15%, so price it as unsettled. Google Play allows the link in the US; its fees follow the Epic settlement. This
   changes nothing about paying never happening on the wall.
-- **A house for the reviewers.** Review rejects an app it cannot use, and a reviewer has no hub. A demo house they
-  can reach -- the mock's, served for them -- has to exist before the first submission. It is also what keeps the
+- **A house for the reviewers.** Review rejects an app it cannot use, and a reviewer has no hub. The demo house
+  above has to exist before the first submission. It is also what keeps the
   app from reading as a bare website wrapper (guideline 4.2), with the widget and push.
 - **The shell's license.** This repository is AGPL, and the App Store's terms have long been read as incompatible
   with the GPL family. The panel is served by the hub and never ships in the binary, so it is untouched; the shell's
-  own code is licensed apart (`CLA.md` makes that possible) and takes no AGPL code from this tree.
+  own code is licensed apart (Apache-2.0, above; `CLA.md` section 3 makes that possible) and takes no AGPL code from
+  this tree.
 - **Asked for by hand:** Apple's critical-alert entitlement (home security can qualify; time-sensitive needs no
   approval), the background-location declaration if phones ever report arriving (`docs/settings.md`), and on iOS the
   local-network reason with `_home-hub._tcp` listed. On Android 14+, full-screen notifications are for calls and
@@ -195,9 +208,9 @@ if it is ever built.
    certificate in `docs/away.md` step 5 is on every house.
 3. **The relay running** (`docs/away.md` pieces 2 and 3 up to the name). *Running since 2 October; this was the
    decision point, and the decision is at the top.*
-4. **Before the shell, in the web:** the Houses app knowing it is inside the store app and on which storefront, and
-   a demo house the reviewers can reach.
+4. **Before the shell, in the web:** the Houses app knowing it is inside the store app and on which storefront
+   (`design/store-app/`), and the demo house at `demo.elyir.app`.
 5. **The iOS shell** — a web view onto the Houses app, a push registration, a Bonjour lookup, and one widget with the
    App Intents behind it. No pinned CA any more. If the list grows past that in the planning, it has stopped being a
    shell and the plan is wrong.
-6. **The Android shell**, a second module beside `kiosk/`.
+6. **The Android shell**, in the same repository, starting from `kiosk/`'s discovery.
