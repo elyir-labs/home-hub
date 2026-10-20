@@ -61,7 +61,7 @@ SUBS+=("LABEL=cloudimg-rootfs" "LABEL=hub-root" "LABEL=BOOT" "LABEL=hub-boot" "L
 mount "$ROOT" "$M"
 [ -n "$BOOT" ] && mount "$BOOT" "$M/boot"
 [ -n "$EFI" ] && mount "$EFI" "$M/boot/efi"
-for f in "$M/etc/fstab" "$M/boot/grub/grub.cfg" "$M/boot/efi/EFI/ubuntu/grub.cfg"; do
+for f in "$M/etc/fstab" "$M/boot/grub/grub.cfg" "$M/boot/efi/EFI/ubuntu/grub.cfg" "$M/boot/efi/EFI/BOOT/grub.cfg"; do
   [ -f "$f" ] || continue
   i=0; while [ "$i" -lt "${#SUBS[@]}" ]; do sed -i.was "s|${SUBS[$i]}|${SUBS[$((i + 1))]}|g" "$f"; i=$((i + 2)); done
   rm -f "$f.was"

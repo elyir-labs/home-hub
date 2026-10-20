@@ -65,6 +65,15 @@ chmod +x /opt/home-hub/driver-layer/host/move-early.sh /opt/home-hub/driver-laye
 for u in home-hub-firstboot.service home-hub-move.service; do install -m 644 "/opt/home-hub/driver-layer/host/$u" "/etc/systemd/system/$u"; done
 systemctl enable docker avahi-daemon NetworkManager home-hub-firstboot home-hub-move
 
+# A USB stick is started through the firmware's removable-media path, EFI/BOOT/BOOTX64.EFI, which is shim. The cloud
+# image puts Ubuntu's fallback beside it and no GRUB, so shim runs the fallback, which writes a boot entry into the
+# firmware and resets the computer -- on a NUC that already has an Ubuntu entry, over and over. So GRUB and its menu
+# go beside shim, the fallback goes, and an apt hook keeps it that way after shim or GRUB is updated.
+fix_removable='E=/boot/efi/EFI; if [ -f $E/ubuntu/grubx64.efi ] && [ -d $E/BOOT ]; then cp $E/ubuntu/shimx64.efi $E/BOOT/BOOTX64.EFI && cp $E/ubuntu/grubx64.efi $E/ubuntu/grub.cfg $E/BOOT/ && rm -f $E/BOOT/fbx64.efi; fi'
+sh -c "$fix_removable"
+printf 'DPkg::Post-Invoke { "%s || true"; };\n' "$fix_removable" > /etc/apt/apt.conf.d/90-home-hub-removable-boot
+ls -l /boot/efi/EFI/BOOT
+
 # Every unit its own: a machine id made on first boot names the hub's setup Wi-Fi, among other things.
 du -sh /usr/lib/firmware /usr/lib/modules /var/lib/home-hub/preload /usr/bin/docker* /var 2>/dev/null || true
 apt-get clean; rm -rf /var/lib/apt/lists/*

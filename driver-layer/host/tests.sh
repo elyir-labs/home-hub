@@ -830,6 +830,7 @@ moving() {
   printf 'LABEL=cloudimg-rootfs / ext4 discard 0 1\nLABEL=BOOT /boot ext4 defaults 0 2\nLABEL=UEFI /boot/efi vfat umask=0077 0 1\n' > "$root/system/etc/fstab"
   printf 'search --no-floppy --fs-uuid --set=root bbbb-boot\nlinux /vmlinuz root=PARTUUID=pppp-root ro\n' > "$root/system/boot/grub/grub.cfg"
   printf 'search.fs_uuid bbbb-boot root hd0,gpt16\n' > "$root/system/boot/efi/EFI/ubuntu/grub.cfg"
+  mkdir -p "$root/system/boot/efi/EFI/BOOT"; cp "$root/system/boot/efi/EFI/ubuntu/grub.cfg" "$root/system/boot/efi/EFI/BOOT/grub.cfg"
   echo stick-made-this > "$root/system/etc/machine-id"
   cat > "$root/table" <<'T'
 /dev/sda1 PARTUUID pppp-root
@@ -873,7 +874,7 @@ SH
   is "...and its own labels" "$(asked 'e2label /dev/nvme0n1p1 hub-root') $(asked 'e2label /dev/nvme0n1p16 hub-boot') $(asked 'fatlabel /dev/nvme0n1p15 HUB-EFI')" "1 1 1"
   is "its fstab finds its own filesystems, not the stick's" "$(cut -d' ' -f1 "$root/after/etc/fstab" | tr '\n' ' ')" "LABEL=hub-root LABEL=hub-boot LABEL=HUB-EFI "
   is "...and so does its boot menu" "$(cat "$root/after/boot/grub/grub.cfg" | tr '\n' ' ')" "search --no-floppy --fs-uuid --set=root new-nvme0n1p16 linux /vmlinuz root=PARTUUID=uuid-2 ro "
-  is "...on both copies of it" "$(cat "$root/after/boot/efi/EFI/ubuntu/grub.cfg")" "search.fs_uuid new-nvme0n1p16 root hd0,gpt16"
+  is "...on every copy of it, the removable-media one included" "$(cat "$root/after/boot/efi/EFI/ubuntu/grub.cfg" "$root/after/boot/efi/EFI/BOOT/grub.cfg" | sort -u)" "search.fs_uuid new-nvme0n1p16 root hd0,gpt16"
   is "it makes its own machine id, rather than the one the stick made" "$(wc -c < "$root/after/etc/machine-id" | tr -d ' ')" "0"
   rm -f "$root/asked"; SIZE=1000 move
   is "a drive too small for the system is refused before anything is written" "$(asked '^dd ')" "0"
