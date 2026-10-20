@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Plus Jakarta Sans", -apple-system, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    .phone { position: relative; width: 390px; height: 844px; overflow: hidden; }
+    .shot { position: absolute; left: 0; top: 0; width: 390px; height: 844px; display: block; }
+    /* the People sheet's phone rows, read off the running panel at 390x844 (?sheet=people, a passcode set) */
+    .rows { position: absolute; left: 0; right: 0; top: 520px; bottom: 0; padding: 18px 16px 0; background: linear-gradient(rgb(232,234,242), rgb(236,237,243)); display: grid; gap: 8px; align-content: start; color: rgb(30,27,36); }
+    .row { background: rgba(255,255,255,.66); border: 1px solid rgba(30,27,36,.1); border-radius: 16px; padding: 10px 12px; }
+    .row-top { display: grid; grid-template-columns: 32px 1fr auto; gap: 12px; align-items: center; }
+    .ic { width: 32px; height: 32px; border-radius: 10px; background: rgba(30,27,36,.06); color: rgb(87,84,106); display: grid; place-items: center; }
+    .name { font-size: 15px; font-weight: 500; line-height: 21px; }
+    .sub { font-size: 13px; line-height: 18.2px; color: rgb(110,106,120); }
+    .this { color: rgb(150,104,32); font-weight: 400; }
+    .ghost { font-size: 14px; font-weight: 500; padding: 8px 14px; border-radius: 999px; background: rgba(30,27,36,.06); border: 1px solid rgba(30,27,36,.1); }
+    .tell { display: grid; grid-template-columns: 32px 1fr auto; gap: 12px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(30,27,36,.08); }
+    .tell-t { font-size: 14px; line-height: 19px; }
+    .tell-s { font-size: 12.5px; line-height: 17px; color: rgb(110,106,120); }
+    /* the panel's own .toggle: 50x30, the knob 22, lit in --lamp when on */
+    .toggle { position: relative; width: 50px; height: 30px; border-radius: 999px; background: rgba(30,27,36,.06); border: 1px solid rgba(30,27,36,.18); }
+    .toggle i { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: rgb(87,84,106); }
+    .toggle.on { background: rgb(233,184,114); border-color: transparent; }
+    .toggle.on i { left: 23px; background: rgb(42,28,7); }
+    .bell { width: 16px; height: 16px; }
+  </style>
+</helmet>
+<!-- B -- ONCE, IN HOUSES. One place for the phone, under the houses it has: switched on there, every house can tell it what needs it. -->
+<div class="phone"><img class="shot" src="shots/houses-sheet.png" alt="">
+  <div style="position: absolute; left: 26px; right: 26px; top: 410px; color: #f1eee8;">
+    <div style="height: 1px; background: rgba(255,255,255,.1); margin-bottom: 26px;"></div>
+    <div style="font-size: 12px; letter-spacing: .72px; text-transform: uppercase; color: #7f7d77;">This phone</div>
+    <div style="display: grid; grid-template-columns: 36px 1fr auto; gap: 14px; align-items: center; margin-top: 14px;">
+      <span style="width: 36px; height: 36px; border-radius: 12px; background: rgba(255,255,255,.08); color: #b9b5ad; display: grid; place-items: center;"><svg class="bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 004 0"/></svg></span>
+      <span><div style="font-size: 16px; line-height: 22px;">Notifications</div><div style="font-size: 13px; line-height: 18px; color: oklch(0.594 0.01 269);">Your houses can tell this phone when something needs you.</div></span>
+      <span style="width: 50px; height: 30px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); position: relative;"><i style="position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #b9b5ad;"></i></span>
+    </div>
+    <div style="font-size: 13px; line-height: 18px; color: #7f7d77; margin-top: 18px;">Each house decides what is worth telling you, on its People. Apple sees that one of your houses sent this phone something, and when, never what.</div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
