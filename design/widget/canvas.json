@@ -7,6 +7,10 @@
   {
    "id": "page-1",
    "name": "The widget"
+  },
+  {
+   "id": "page-2",
+   "name": "The widget, and why: not chosen yet"
   }
  ],
  "artboards": [
@@ -30,16 +34,16 @@
   },
   {
    "file": "OneThingB.dc.html",
-   "x": 1020,
+   "x": 0,
    "y": 0,
    "w": 390,
    "h": 844,
    "title": "B — One thing: its state, and a tap that changes it",
-   "page": "page-1"
+   "page": "page-2"
   },
   {
    "file": "ScenesC.dc.html",
-   "x": 1480,
+   "x": 1020,
    "y": 0,
    "w": 390,
    "h": 844,
@@ -70,31 +74,35 @@
    "x": 560,
    "y": -560,
    "w": 390,
-   "text": "A — HOW THE HOUSE IS\n\nA small widget, one house each, picked when it is added: the house's name as this phone calls it, the weather, and one line, the same line Houses already says for it (On in 5 rooms, 2 people home; or in lamp, The back door lock needs a look). Nothing to press but the widget, which opens that house.\n\nFOR: the safest. It only reads, so no tap on a home screen ever does something in a house by mistake, and it is all things the house already answers. Two houses side by side is the multi-house promise made visible.\n\nAGAINST: it informs but does not do. \"Garage, closed\" is in there only if the garage is what needs a look."
+   "text": "A — HOW THE HOUSE IS  ·  CHOSEN, 20 OCTOBER 2026, AS THE SMALL SIZE\n\nA small widget, one house each, picked when it is added: the house's name as this phone calls it, the weather, and one line, the same line Houses already says for it (On in 5 rooms, 2 people home; or in lamp, The back door lock needs a look). Nothing to press but the widget, which opens that house.\n\nFOR: the safest. It only reads, so no tap on a home screen ever does something in a house by mistake, and it is all things the house already answers. Two houses side by side is the multi-house promise made visible.\n\nAGAINST: it informs but does not do. \"Garage, closed\" is in there only if the garage is what needs a look."
   },
   {
    "id": "b",
-   "page": "page-1",
-   "x": 1020,
+   "page": "page-2",
+   "x": 0,
    "y": -560,
    "w": 390,
-   "text": "B — ONE THING\n\nThe widget is set to one thing in one house when it is added (the garage door, the front lock, a lamp): what it is, how it is and since when, and one button that does the obvious thing (Open it, Lock it). A lock in the wrong state is in lamp. The lock screen gets the same as a line: Garage door, Closed.\n\nFOR: exactly the sentence docs/apps.md wrote down. Doing something without opening anything is what a widget is for.\n\nAGAINST: a button on a home screen can be pressed by a pocket or a child, so anything that opens or unlocks needs a second tap or Face ID; that is a rule to decide, not a detail. It shows one thing and nothing else about the house, so a house that needs a look elsewhere is silent here."
+   "text": "B — ONE THING\n\nThe widget is set to one thing in one house when it is added (the garage door, the front lock, a lamp): what it is, how it is and since when, and one button that does the obvious thing (Open it, Lock it). A lock in the wrong state is in lamp. The lock screen gets the same as a line: Garage door, Closed.\n\nFOR: exactly the sentence docs/apps.md wrote down. Doing something without opening anything is what a widget is for.\n\nAGAINST: a button on a home screen can be pressed by a pocket or a child, so anything that opens or unlocks needs a second tap or Face ID; that is a rule to decide, not a detail. It shows one thing and nothing else about the house, so a house that needs a look elsewhere is silent here.\n\nNOT CHOSEN YET, 20 October 2026: wanted later, once there is a rule for a button that opens or unlocks something from a home screen."
   },
   {
    "id": "c",
    "page": "page-1",
-   "x": 1480,
+   "x": 1020,
    "y": -560,
    "w": 390,
-   "text": "C — THE HOUSE AND ITS TWO WORDS\n\nA medium widget: A's line for one house across the top, and under it Bedtime and Everything off, the two things people say to a whole house, as the panel's own routines row has them. A tap runs it, and the widget says it did (Done, Everything is off) until the next refresh.\n\nFOR: the two buttons are the ones a person reaches for leaving the house or going to bed, and neither unlocks or opens anything, so a stray tap costs nothing worse than lights off.\n\nAGAINST: it is the house's routines, not your things; the garage is not in it. It takes a medium slot, twice a small one."
+   "text": "C — THE HOUSE AND ITS TWO WORDS  ·  CHOSEN, 20 OCTOBER 2026, AS THE MEDIUM SIZE\n\nA medium widget: A's line for one house across the top, and under it Bedtime and Everything off, the two things people say to a whole house, as the panel's own routines row has them. A tap runs it, and the widget says it did (Done, Everything is off) until the next refresh.\n\nFOR: the two buttons are the ones a person reaches for leaving the house or going to bed, and neither unlocks or opens anything, so a stray tap costs nothing worse than lights off.\n\nAGAINST: it is the house's routines, not your things; the garage is not in it. It takes a medium slot, twice a small one."
   },
   {
    "id": "else",
    "page": "page-1",
-   "x": 1960,
+   "x": 1480,
    "y": 0,
    "w": 420,
    "text": "OR SOMETHING ELSE\n\nThey are not exclusive in the app: iOS offers each widget's sizes when it is added, so one could be A and C (small and medium of the same widget) with B later. Say which, or describe something else."
   }
- ]
+ ],
+ "decided": {
+  "on": "2026-10-20",
+  "chose": "A as the small size and C as the medium, one widget; B later"
+ }
 }
