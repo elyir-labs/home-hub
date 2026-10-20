@@ -274,7 +274,9 @@ Do not reopen these, and do not propose around them.
   2026, `docs/apps.md`, Decided). Swift and Kotlin in `elyir-labs/home-hub-apps` under Apache-2.0, never in this
   tree; the panel always comes from the hub and is never bundled. One demo house, run in the browser at
   `hub.elyir.com/demo` (never a name on the shared `elyir.app`), serves the website, App Review and anyone without a box yet. What the stores require is listed
-  there and settled before shell code; the offer inside the app is `design/store-app/`.
+  there and settled before shell code. The address offer inside the app is `design/store-app/`, C: on the US
+  storefront its button opens the payment page in the browser, on every other storefront setup has no such step.
+  Pinned by `app/tests/storefront.test.ts` and `app/e2e/houses.spec.ts`.
 
 - **The Brilliant work lives in a repository of its own, and public code never reaches into it**
   (5 October 2026). This repository is public and every hub clones it whole. The bridge puck here (`puck/`) is

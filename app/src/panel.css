@@ -3730,8 +3730,9 @@ input:focus-visible {
 }
 .address-row {
   display: flex;
+  flex-wrap: wrap;               /* on a phone the verdict goes under the field rather than off the edge (design/store-app/, C) */
   align-items: center;
-  gap: 18px;
+  gap: 8px 18px;
 }
 .address-name {
   display: flex;
@@ -3799,6 +3800,12 @@ input:focus-visible {
 }
 .address-step .setup-actions {
   margin-top: 18px;
+}
+.address-out {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
 }
 .address-pay {
   display: flex;

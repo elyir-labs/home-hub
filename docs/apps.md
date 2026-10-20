@@ -40,6 +40,19 @@ native panel.** Asked as "Capacitor, or native?", once the relay was carrying ho
   `app/mock/brain.mjs`) and a demo build `site/build.sh` copies in; the Houses app's way into it is a screen change,
   so it starts as a board.
 
+### What the shell owes the page
+
+Decided with `design/store-app/` (C, 19 October 2026), so the web half could be built before the shell exists:
+
+- **It opens `https://houses.elyir.app/?shell=ios&store=US`**: `shell` is `ios` or `android`, `store` is the
+  storefront as two letters (StoreKit gives three; the shell converts). The Houses app keeps both for the session
+  and hands them to every house it frames (`app/houses/src/shell.ts`), and the panel reads them only when it is
+  framed by the app (`readShell` in `app/src/inapp.ts`). A storefront nobody could read counts as not the US.
+- **A `window.open` or `target="_blank"` to anywhere but a house goes to the system browser**, from any frame, and
+  the shell allows it without a fresh tap (`javaScriptCanOpenWindowsAutomatically` on iOS): the panel opens the
+  payment page right after the claim comes back, which is a beat after the tap. Paying never happens inside the
+  app.
+
 ### What the stores will hold us to
 
 Settled before any shell code, because three of them change what gets built rather than what gets filled in:

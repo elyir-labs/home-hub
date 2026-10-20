@@ -13,6 +13,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { glance, reach, save, state, type House } from './houses'
+import { shell } from './shell'
 
 const props = defineProps<{ id: string; base: string }>()
 const emit = defineEmits<{ switch: [id: string]; add: []; reached: [id: string, base: string] }>()
@@ -22,7 +23,7 @@ const base = ref(props.base)
 const frame = ref<HTMLIFrameElement | null>(null)
 const sheet = ref(false)
 const connected = ref(false)
-const src = computed(() => (base.value ? `${base.value}/?app=1` : ''))
+const src = computed(() => (base.value ? `${base.value}/?app=1${shell}` : ''))
 const others = computed(() => state.houses.some(h => h.id !== props.id && (h.glance?.notes ?? 0) > 0))
 
 function tellHouse(type: string, data: Record<string, unknown>) {

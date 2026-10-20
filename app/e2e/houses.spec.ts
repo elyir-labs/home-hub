@@ -25,8 +25,8 @@ const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist-houses')
 const TYPES: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json' }
 
 /* The app's half, by hand: frame the panel as the app does, hand it a pass when it says it is ready, keep what it says. */
-const standIn = (base: string, others: boolean) => `<!doctype html>
-  <body style="margin:0"><iframe id="f" allow="local-network-access" src="${base}/?app=1&layout=wall&nav=top&at=19:40" style="border:0;width:390px;height:844px"></iframe>
+const standIn = (base: string, others: boolean, extra = '') => `<!doctype html>
+  <body style="margin:0"><iframe id="f" allow="local-network-access" src="${base}/?app=1&layout=wall&nav=top&at=19:40${extra}" style="border:0;width:390px;height:844px"></iframe>
   <script>
     window.said = []
     const f = document.getElementById('f')
@@ -45,7 +45,7 @@ test.beforeAll(() => {
     const path = (req.url || '/').split('#')[0]
     if (!appToo || path.startsWith('/stand-in')) {
       res.writeHead(200, { 'Content-Type': 'text/html' })
-      return res.end(standIn(base, path.includes('others')))
+      return res.end(standIn(base, path.includes('others'), new URL(path, 'http://x').searchParams.get('q') ?? ''))
     }
     const file = join(DIST, path.split('?')[0])
     const real = path !== '/' && existsSync(file) && !file.endsWith('/') ? file : join(DIST, 'index.html')    // try_files {path} /index.html
@@ -142,4 +142,67 @@ test('outside the app, nothing changes', async ({ page }) => {
   await page.goto('/?layout=wall&nav=top&at=19:40')
   await expect(page.locator('.topbar .link')).toBeVisible()
   await expect(page.locator('.house-switch')).toHaveCount(0)
+})
+
+// ---- the store app around it (design/store-app/, C, chosen 19 October 2026) ------------------------
+
+test('the Houses app hands the store app\'s storefront on to the house it frames', async ({ page }) => {
+  await fresh(page)
+  await page.goto(`${APP}/add#h=maple-court&c=K7Q4MPWR`)
+  await expect(page.getByRole('heading', { name: 'Added.' })).toBeVisible()
+  await page.getByRole('button', { name: 'Lake house' }).click()
+  await page.getByRole('button', { name: 'Open Lake house' }).click()
+  await expect(page.frameLocator('.hs-frame').locator('.house-switch')).toContainText('Lake house')   // kept, before the app is opened again
+  await page.goto(`${APP}/?shell=ios&store=US`)
+  await expect(page.locator('.hs-frame')).toHaveAttribute('src', /\?app=1&shell=ios&store=US$/)
+})
+
+/* The last step of setup, reached the real way: from devices, inside the store app. The house is answered here
+   rather than by the mock, which remembers a name claimed by an earlier test and would then skip the step for
+   that reason instead of the one being tested. */
+const OFFER = { open: true, price: '$3 a month', pay: 'https://pay.example/start' }
+async function lastStep(page: Page, shell: string) {
+  await page.context().route(/\/address$/, r => r.request().method() === 'POST'
+    ? r.fulfill({ json: { offer: OFFER, guess: 'jordan', house: 'jordan', address: 'jordan.elyir.app', want: 'on', carried: false } })
+    : r.fulfill({ json: { offer: OFFER, guess: 'jordan', house: null } }))
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(`${APP}/stand-in?q=${encodeURIComponent(`&setup=1&page=devices&${shell}`)}`)
+  const house = page.frameLocator('#f')
+  await house.locator('.setup-page .setup-actions .button.big').click()
+  return house
+}
+
+test('on the US storefront the offer stays, and its button opens the payment page in the browser', async ({ page }) => {
+  const house = await lastStep(page, 'shell=ios&store=US')
+  const step = house.locator('.address-step')
+  await expect(step.locator('h1')).toHaveText('Use it anywhere?')
+  await expect(step.locator('.address-amount')).toHaveText('$3')
+  await expect(step.locator('.address-out')).toHaveText('Opens the payment page for jordan.elyir.app. You come back here when it’s done.')
+  // On a phone the verdict goes under the field instead of off the edge.
+  const [field, said] = [(await step.locator('.address-name').boundingBox())!, (await step.locator('.address-said').boundingBox())!]
+  expect(said.y).toBeGreaterThan(field.y + field.height - 1)
+  expect(said.x + said.width).toBeLessThanOrEqual(390)
+
+  await page.context().route('https://pay.example/**', r => r.fulfill({ contentType: 'text/html', body: 'the payment page' }))
+  const opened = page.context().waitForEvent('page')
+  await step.getByRole('button', { name: 'Continue in Safari' }).click()
+  expect((await opened).url()).toContain('pay.example/start?house=jordan')
+  await expect(step.locator('h1')).toHaveText('Finish in Safari.')
+  await expect(step.locator('.setup-lede')).toHaveText('The payment page for jordan.elyir.app is open in Safari. This screen moves on by itself when it is done.')
+  await expect(step.locator('.setup-status')).toContainText('Waiting for the payment')
+  const [again, not] = [step.getByRole('button', { name: 'Open it again' }), step.getByRole('button', { name: 'Not now' })]
+  expect(Math.abs((await again.boundingBox())!.y - (await not.boundingBox())!.y)).toBeLessThan(4)
+})
+
+test('on Android the browser is not named', async ({ page }) => {
+  const house = await lastStep(page, 'shell=android&store=US')
+  await expect(house.getByRole('button', { name: 'Continue in your browser' })).toBeVisible()
+})
+
+test('on any other storefront there is no step: setup ends at ready', async ({ page }) => {
+  for (const shell of ['shell=ios&store=CA', 'shell=android&store=GB', 'shell=ios']) {
+    const house = await lastStep(page, shell)
+    await expect(house.locator('.setup-page h1')).toContainText('is ready', { timeout: 5000 })
+    await expect(house.locator('.address-step')).toHaveCount(0)
+  }
 })
