@@ -21,14 +21,29 @@ export DEBIAN_FRONTEND=noninteractive
     printf 'path-exclude=/lib/firmware/%s/*\npath-exclude=/usr/lib/firmware/%s/*\n' "$d" "$d"
   done
 } > /etc/dpkg/dpkg.cfg.d/90-home-hub-firmware
+# Nobody reads a manual on a hub.
+printf '%s\n' 'path-exclude=/usr/share/doc/*' 'path-include=/usr/share/doc/*/copyright' 'path-exclude=/usr/share/man/*' \
+  'path-exclude=/usr/share/info/*' 'path-exclude=/usr/share/locale/*' 'path-include=/usr/share/locale/en*' > /etc/dpkg/dpkg.cfg.d/91-home-hub-docs
+rm -rf /usr/share/man/* /usr/share/info/* /usr/share/doc/*/[!c]* 2>/dev/null || true
 
 # Snaps are not how anything on a hub is installed, and the cloud image seeds several.
 apt-get purge -y snapd || true
 rm -rf /var/lib/snapd /snap /var/snap /var/cache/snapd
 
 apt-get update
-apt-get install -y --no-install-recommends linux-generic linux-firmware wireless-regdb network-manager wpasupplicant \
+apt-get install -y --no-install-recommends linux-image-generic linux-firmware wireless-regdb network-manager wpasupplicant \
   iw dnsmasq-base avahi-daemon git curl ca-certificates python3 cloud-guest-utils
+# One kernel: the newest generic one just installed. The cloud image's own and every header package go, because
+# nothing on a hub builds a kernel module. And the extras that only make sense in somebody's cloud. Only what is
+# installed is named, because apt refuses a whole purge over one name it does not know.
+NEW="$(dpkg-query -W -f='${Depends}' linux-image-generic | grep -o 'linux-image-[0-9][^ ,]*' | head -1 | sed 's/^linux-image-//')"
+[ -n "$NEW" ] || { echo "no generic kernel installed"; exit 1; }
+GONE="$(dpkg-query -W -f='${Package} ${db:Status-Status}\n' 'linux-image-*' 'linux-modules-*' 'linux-headers-*' 'linux-virtual' \
+          lxd-installer open-vm-tools multipath-tools landscape-common byobu sosreport 2>/dev/null \
+        | awk '$2=="installed"{print $1}' | grep -v -x -e "linux-image-$NEW" -e "linux-modules-$NEW" -e "linux-modules-extra-$NEW" -e linux-image-generic || true)"
+# shellcheck disable=SC2086
+[ -z "$GONE" ] || apt-get purge -y $GONE
+apt-get autoremove -y --purge || true
 curl -fsSL https://get.docker.com | sh || true
 command -v docker >/dev/null || { echo "docker did not install"; exit 1; }
 

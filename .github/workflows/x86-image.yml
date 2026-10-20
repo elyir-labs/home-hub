@@ -54,7 +54,7 @@ jobs:
           sudo chown "$(id -u):$(id -g)" "$NAME"
       - name: Compress and checksum
         run: |
-          xz -T0 -6 "$NAME"
+          xz -T0 -9e "$NAME"
           sha256sum "$NAME.xz" | tee "$NAME.xz.sha256"
           ls -lh "$NAME.xz"
           # GitHub refuses a release file over 2 GiB; say so here rather than at the upload.
