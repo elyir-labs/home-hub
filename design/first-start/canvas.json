@@ -1,0 +1,190 @@
+{
+ "name": "Words on the first start",
+ "areas": [
+  "First run"
+ ],
+ "reading": [
+  "why",
+  "today",
+  "Today-1.dc.html",
+  "Today-2.dc.html",
+  "a",
+  "LineA-1.dc.html",
+  "LineA-2.dc.html",
+  "b",
+  "StepsB-1.dc.html",
+  "StepsB-2.dc.html",
+  "c",
+  "AmountsC-1.dc.html",
+  "AmountsC-2.dc.html",
+  "ready",
+  "Ready-1.dc.html",
+  "Ready-2.dc.html",
+  "detail",
+  "pick"
+ ],
+ "artboards": [
+  {
+   "file": "Today-1.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today: two minutes into a first start",
+   "page": "first"
+  },
+  {
+   "file": "Today-2.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today: past three minutes, in the middle of the copy",
+   "page": "first"
+  },
+  {
+   "file": "LineA-1.dc.html",
+   "x": 0,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "A1: one line, while it moves onto the drive",
+   "page": "first"
+  },
+  {
+   "file": "LineA-2.dc.html",
+   "x": 1560,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "A2: one line, while it downloads",
+   "page": "first"
+  },
+  {
+   "file": "StepsB-1.dc.html",
+   "x": 0,
+   "y": 2600,
+   "w": 1440,
+   "h": 900,
+   "title": "B1: the line, and which step of how many",
+   "page": "first"
+  },
+  {
+   "file": "StepsB-2.dc.html",
+   "x": 1560,
+   "y": 2600,
+   "w": 1440,
+   "h": 900,
+   "title": "B2: step three of four",
+   "page": "first"
+  },
+  {
+   "file": "AmountsC-1.dc.html",
+   "x": 0,
+   "y": 3900,
+   "w": 1440,
+   "h": 900,
+   "title": "C1: the line, and how far it has got",
+   "page": "first"
+  },
+  {
+   "file": "AmountsC-2.dc.html",
+   "x": 1560,
+   "y": 3900,
+   "w": 1440,
+   "h": 900,
+   "title": "C2: downloading, with the amount",
+   "page": "first"
+  },
+  {
+   "file": "Ready-1.dc.html",
+   "x": 0,
+   "y": 5200,
+   "w": 1440,
+   "h": 900,
+   "title": "Ready, on a cable: where to go next",
+   "page": "first"
+  },
+  {
+   "file": "Ready-2.dc.html",
+   "x": 1560,
+   "y": 5200,
+   "w": 1440,
+   "h": 900,
+   "title": "Ready, with no cable: where to go next",
+   "page": "first"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "why",
+   "page": "first",
+   "x": -1240,
+   "y": 0,
+   "w": 500,
+   "text": "WHY THIS EXISTS (20 OCTOBER 2026)\n\nA NUC set up from the USB stick now shows Elyir's startup right after the maker's logo. On its first start it then shows the house breathing, with nothing else, for as long as the first start takes: copying itself onto the drive (minutes), restarting, unpacking what it came with, downloading the rest of the hub (a gigabyte or more), and starting the house for the first time. Watching it, it looks stuck.\n\nThe startup decided on 7 October (design/boot/, J) says no progress and no words but the name, and one sentence only if a start is slow. That was decided for an ordinary start, which is seconds to a minute. A first start is an install: it takes many minutes, it happens once, and somebody is watching it on purpose. These boards ask what the first start alone should say. Every other start stays J, exactly.\n\nMonitor or wall, the splash draws in this 1440x900 space and is scaled to fit the screen, so a 1920x1080 monitor shows these boards at 1.2x."
+  },
+  {
+   "id": "today",
+   "page": "first",
+   "x": -620,
+   "y": 0,
+   "w": 500,
+   "text": "TODAY\n\nTwo minutes in, the house breathes and nothing says what is happening (left). It can be copying gigabytes, downloading, or genuinely stuck, and the screen is the same in every case.\n\nAt three minutes the splash's one sentence comes up (right), because it was written for an ordinary start: \"This is taking longer than usual. If it stays like this, unplug it for ten seconds and plug it back in.\" On a first start it always comes up, and it can come up in the middle of the copy onto the drive. Following its advice there interrupts the copy. Whatever is picked here, the first start must not show that sentence."
+  },
+  {
+   "id": "a",
+   "page": "first",
+   "x": -620,
+   "y": 1300,
+   "w": 500,
+   "text": "A: ONE LINE\n\nOne line under the house, in plain words, saying the step the hub is on right now. It changes when the step changes, and it is sent by the step itself, so it is never a guess on a timer. The steps on a NUC with an empty drive: Moving onto this computer's drive. Getting the hub ready. Downloading the rest of the hub. Starting the house for the first time.\n\nThe case for it: it is the smallest change to J. The house is still the picture, and the line is in the place and the size of the sentence J already allows. Where leaving it alone matters, the line says so.\n\nThe cost: a long step is still one unchanging line for several minutes, so a download that has stalled looks the same as one that is nearly finished."
+  },
+  {
+   "id": "b",
+   "page": "first",
+   "x": -620,
+   "y": 2600,
+   "w": 500,
+   "text": "B: THE LINE, AND WHICH STEP\n\nA's line, with \"Step 1 of 4\" above it and a quieter line under it where there is something to know.\n\nThe case for it: a person can tell how far through they are, and that the restart after step one is part of the plan rather than a failure. That restart is the moment a first start most looks broken: the screen goes black and the name is written again.\n\nThe cost: the count differs from unit to unit. A hub that runs from its stick has no step one, a hub with no internet skips the download, and a wall that finds a hub has different steps altogether, so \"of 4\" has to be worked out on the unit at the start. And steps are not equal: step one can be ten minutes and step four ten seconds, so 3 of 4 does not mean three quarters done."
+  },
+  {
+   "id": "c",
+   "page": "first",
+   "x": -620,
+   "y": 3900,
+   "w": 500,
+   "text": "C: THE LINE, AND HOW FAR\n\nA's line, with the amount under it, counting up: 3.2 of 9.0 GB copied, 640 MB of 1.4 GB.\n\nThe case for it: this is the closest to the ask, which was to know exactly what is happening behind the scenes. Numbers that move are the one sign that cannot be mistaken for a frozen screen, and they say how long is left without anybody having to guess a time.\n\nThe cost: it needs the most building. The copy and the download have to report their progress to the splash, and the splash has to draw numbers it cannot know in advance, which means either digits drawn as pictures or Plymouth's text drawing and a font in the boot image. And the steps that have no amount (getting ready, starting) fall back to A."
+  },
+  {
+   "id": "ready",
+   "page": "first",
+   "x": -620,
+   "y": 5200,
+   "w": 500,
+   "text": "READY: WHERE TO GO NEXT (EVERY DIRECTION)\n\nToday, when the hub answers, the splash plays its ending and the screen goes dark. On a NUC with a monitor that is the last thing anybody sees, and nothing on it says the hub is ready, or where to go now.\n\nSo whichever direction is picked, the first start ends on this: the house fully lit, and where to go next. On a cable it is the hub's web address (left). With no cable the hub offers a Wi-Fi of its own, and the screen says to join it, by the name on the label (right). After that the screen can go to sleep like any monitor.\n\nIt is shown only once, at the end of the first start. A wall does not need it, because its panel opens instead."
+  },
+  {
+   "id": "detail",
+   "page": "first",
+   "x": 3120,
+   "y": 0,
+   "w": 520,
+   "text": "AND THE WHOLE STORY, FOR WHOEVER WANTS IT\n\nThe ask was to see exactly what is happening. The screen can't say that in plain words for everybody, but it can for one person. Pressing Esc on a keyboard plugged into the NUC switches the splash to the full log, with the first start's own lines in it, and Esc again switches back. That is Plymouth's own, it should already work today, and it needs nothing on the screen to advertise it."
+  },
+  {
+   "id": "pick",
+   "page": "first",
+   "x": 3120,
+   "y": 760,
+   "w": 520,
+   "text": "WHICH ONE\n\nRecommendation: A, with B's quieter line under it where there is something to know (\"Leave it plugged in. It restarts by itself when this is done.\"). And Ready, in every case.\n\nA says what is happening in the fewest words, and it is the smallest step away from J, which was chosen for being simple. B's count is true on one unit and wrong on the next, and it implies an evenness the steps do not have. C answers the ask most literally, and I would build it if the line alone still feels stuck when it is watched on the NUC. The amounts can be added under A later without changing anything else here.\n\nOr something else: describe it, and I'll draw it."
+  }
+ ],
+ "pages": [
+  {
+   "id": "first",
+   "name": "Words on the first start"
+  }
+ ]
+}
