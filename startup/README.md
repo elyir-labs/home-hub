@@ -23,6 +23,10 @@ node startup/render.mjs              # needs the panel's Playwright: cd app && n
 node --test startup/startup.test.mjs # fails while the three disagree; CI runs it
 ```
 
+**A phone app** draws it itself, from `sequence.json` (`node startup/json.mjs` writes it; the test fails when it
+is stale): all of J the first time it opens, the house breathing on every start after, and its own sentence when it
+cannot reach anything (design/boot/, decided 19 October 2026).
+
 **For another product**, the name and the lamp are the shared part, frame for frame. What the
 product brings is where the dot lands (the hub's is the house) and the moment it is ready: its
 service sends `plymouth update --status=elyir:ready`, and the splash plays its ending.
