@@ -371,3 +371,39 @@ test('People shows which phones the house tells, read only', async ({ page }) =>
   await expect(rows.first().locator('.phones-sub'), 'the wall is never told; it shows').not.toContainText('told')
   await expect(robin.getByRole('switch')).toHaveCount(0)
 })
+
+// ---- the widget's houses (design/widget/, A and C, chosen 20 October 2026; docs/apps.md) ----------------------
+
+/* The store app's half, by hand: a message handler where WKWebView puts one, keeping what it is handed. */
+const IOS_SHELL = () => {
+  const w = window as any
+  w.toShell = []
+  w.webkit = { messageHandlers: { houses: { postMessage: (m: unknown) => w.toShell.push(m) } } }
+}
+
+test('inside the store app the shell is handed every house and the one opened, and opens the one its widget asks for', async ({ page }) => {
+  await page.addInitScript(IOS_SHELL)
+  await fresh(page)
+  await addHouse(page, 'maple-court', 'Home')
+  await addHouse(page, 'lake', 'Lake house')
+  expect(await page.evaluate(() => (window as any).toShell), 'in a browser nothing is posted, even with a handler there').toEqual([])
+
+  await page.goto(`${APP}/?shell=ios&store=US&open=maple-court`)
+  await expect(page.frameLocator('.hs-frame').locator('.house-switch')).toContainText('Home')
+  await expect(page.locator('.hs-frame')).toHaveAttribute('src', /\?app=1&shell=ios&store=US$/)
+  expect(new URL(page.url()).search, 'only open comes off the address').toBe('?shell=ios&store=US')
+
+  const said = await page.evaluate(() => (window as any).toShell as any[])
+  const list = said.find(m => m.type === 'houses:list')
+  expect(list.houses.map((h: any) => [h.id, h.name]).sort()).toEqual([['lake', 'Lake house'], ['maple-court', 'Home']])
+  for (const h of list.houses) {
+    expect(Object.keys(h).sort()).toEqual(['id', 'lan', 'name', 'origin', 'token'])
+    expect(h.token).toBe('mocktoken')
+    expect(h.origin).toBe('http://localhost:8399')
+  }
+  expect(said.filter(m => m.type === 'houses:opened')).toEqual([{ type: 'houses:opened', id: 'maple-court' }])
+
+  await page.frameLocator('.hs-frame').locator('.house-switch').click()
+  await page.getByRole('dialog', { name: 'Houses' }).locator('.hs-row', { hasText: 'Lake house' }).click()
+  await expect.poll(() => page.evaluate(() => (window as any).toShell.filter((m: any) => m.type === 'houses:opened').map((m: any) => m.id))).toEqual(['maple-court', 'lake'])
+})

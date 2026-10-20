@@ -26,6 +26,7 @@ from . import notes as notes_mod
 from .updates import Updates
 from .address import Address, Unreachable
 from .health import Health
+from .glance import glance as glance_of
 from .happened import Happened, Changes
 from .healed import Healed
 from .backup import Backup
@@ -2727,6 +2728,13 @@ async def retry_part(part_id: str):
 def health():
     """What needs a look, in plain words: [{"kind", "text", "since", "subject"}]. Empty is good news."""
     return {"notes": hub.health.notes() if hub.driver == "ready" else []}
+
+
+@app.get("/glance")
+def glance():
+    """How the house is, in a few words, for a phone's home screen: docs/apps.md, What the page gives the shell."""
+    hub.ready()
+    return glance_of(hub)
 
 
 # ---------- backup and restore ----------

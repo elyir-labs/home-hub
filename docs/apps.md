@@ -67,6 +67,39 @@ Decided with `design/store-app/` (C, 19 October 2026), so the web half could be 
   payment page right after the claim comes back, which is a beat after the tap. Paying never happens inside the
   app.
 
+### What the page gives the shell
+
+**The widget is one widget in two sizes** (`design/widget/`, decided 20 October 2026): small is A, one house's
+name, its weather and its line, a tap opening that house; medium is C, the same line with **Bedtime** and
+**Everything off** under it, the two routines the panel's own row has, run without opening anything. B, one thing
+with a button that opens or unlocks it, waits for a rule about such a button on a home screen. The widget asks the
+house itself, with the phone's own pass, at the house's Wi-Fi name at home and its own address away, never a
+server of ours. So the page hands the shell what it needs for that, and the house answers it in its own words:
+
+- **The houses.** Inside the store app (`shell` is `ios` or `android`), the Houses app posts its list whenever it
+  loads or changes -- a house added, removed or renamed, a pass or a Wi-Fi name that changed -- and never outside
+  it (`handHouses` in `app/houses/src/shell.ts`):
+  iOS `window.webkit.messageHandlers.houses.postMessage({type: 'houses:list', houses: [...]})`, Android
+  `window.HousesShell.postMessage(JSON.stringify({type: 'houses:list', houses: [...]}))`. Each house is
+  `{id, name, origin, lan, token}`: `id` its label (`jordan` of `jordan.elyir.app`), `name` this phone's name for
+  it, `origin` its https address, `lan` its Wi-Fi name or `null`, `token` its pass. The shell keeps them in the
+  keychain for the widget.
+- **The house opened.** `{type: 'houses:opened', id}`, the same two ways, each time a house is opened. The widget
+  starts on the house opened last.
+- **Opening a house from the widget.** The shell loads `https://houses.elyir.app/?shell=ios&store=XX&open=<id>`.
+  `open` is the same label a notification uses; it comes off the address once read, and `shell` and `store` stay.
+- **`GET /glance`** on the house, with the pass as `Authorization: Bearer` (or the cookie), behind the same door as
+  `/health`: refused to a stranger, and from away answered only for a phone set to Anywhere. A starting hub
+  answers 503. Otherwise:
+  `{"name", "temp": "78°" | null, "sky": <the condition the panel draws its weather from> | null, "said": [...],
+  "needs": <the first line of Needs a look, as it says it> | null, "count": <how many lines need a look>, "at": <epoch seconds>}`.
+  `said` is one or two lines, written once in the brain (`brain/hub/glance.py`) from what it already holds, so
+  nothing is asked of a device: *Everything is off*, *On in the Kitchen* or *On in 5 rooms*, counted the way the
+  panel's "on right now" counts; then, only when the house can see its people, *Nobody home*, *1 person home* or
+  *2 people home*.
+- **The two routines** are the panel's own: `POST /home/intent/asleep` (Bedtime) and `POST /home/intent/away`
+  (Everything off), with the same pass. Neither needs the passcode; from away, a phone set to Anywhere.
+
 ### What the stores will hold us to
 
 Settled before any shell code, because three of them change what gets built rather than what gets filled in:
