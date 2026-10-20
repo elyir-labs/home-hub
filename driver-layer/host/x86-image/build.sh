@@ -26,7 +26,7 @@ qemu-img convert -O raw "$WORK/$CLOUD" "$OUT"
 qemu-img resize -f raw "$OUT" "${HUB_IMAGE_SIZE:-9G}"
 
 printf 'HOME_HUB_REF=%s\nHOME_HUB_REPO=%s\nHUB_IMAGE=x86\n' "$REF" "$REPO" > "$WORK/home-hub.conf"
-ARGS=(-a "$OUT" --format raw --smp 2 --memsize 2048
+ARGS=(--format raw -a "$OUT" --smp 2 --memsize 2048
       --upload "$WORK/home-hub.conf:/etc/home-hub.conf"
       --run "$HERE/inside.sh")
 if [ -n "$PRELOAD" ] && ls "$PRELOAD"/*.tar >/dev/null 2>&1; then
