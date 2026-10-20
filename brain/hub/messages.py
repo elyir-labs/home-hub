@@ -93,7 +93,7 @@ TABLE = (
     Message("hub.part_restarted", "attention", "{part!u} did not start again by itself {count} times this week, and the hub had to start it.", "hub",
             back=BACK_UP, more="Something is wrong that starting it again is not fixing. A backup now means nothing is lost if it gets worse.",
             also={"several": "Part of the hub did not start again by itself {count} times this week, and the hub had to start it."}),
-    Message("update.refused", "attention", "Version {version} could not be checked, so the hub did not install it. Nothing has changed and the house is working normally.", "hub",
+    Message("update.refused", "house", "Version {version} could not be checked, so the hub did not install it. Nothing has changed and the house is working normally.", "hub",
             also={"unnamed": "The last update could not be checked, so the hub did not install it. Nothing has changed and the house is working normally."}),
     Message("update.put_back", "attention", "Version {version} did not start, so the hub put back the one it was on. Everything is working; you can try it again from here.", "hub",
             back=UPDATE_AGAIN,

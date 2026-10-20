@@ -7,6 +7,10 @@
   {
    "id": "page-1",
    "name": "Where a phone is told"
+  },
+  {
+   "id": "page-2",
+   "name": "Where a phone is told, and why: not chosen"
   }
  ],
  "artboards": [
@@ -21,16 +25,16 @@
   },
   {
    "file": "RowA.dc.html",
-   "x": 560,
+   "x": 0,
    "y": 0,
    "w": 390,
    "h": 844,
    "title": "A — On this phone's own row, on each house's People",
-   "page": "page-1"
+   "page": "page-2"
   },
   {
    "file": "SheetB.dc.html",
-   "x": 1020,
+   "x": 560,
    "y": 0,
    "w": 390,
    "h": 844,
@@ -39,12 +43,12 @@
   },
   {
    "file": "AskC.dc.html",
-   "x": 1480,
+   "x": 560,
    "y": 0,
    "w": 390,
    "h": 844,
    "title": "C — Asked the first time something needs you",
-   "page": "page-1"
+   "page": "page-2"
   }
  ],
  "annotations": [
@@ -66,35 +70,39 @@
   },
   {
    "id": "a",
-   "page": "page-1",
-   "x": 560,
+   "page": "page-2",
+   "x": 0,
    "y": -560,
    "w": 390,
-   "text": "A — ON THIS PHONE'S OWN ROW\n\nOn each house's People, the row for the phone you are holding grows one line: Tell this phone when something needs you, with the panel's own switch and two examples under it. Other phones' rows say what they are told, read only: only a phone can turn itself on. The first switch on a phone also asks the phone to allow notifications.\n\nFOR: it lives where the phone already lives in the house, next to Remove, and Remove taking the notifications with it reads naturally. Each house is decided where that house is.\n\nAGAINST: a phone with three houses says yes three times, in three places. And the tap happens inside the house's own panel, framed by the Houses app, which is not the page iOS lets ask; in the store app that is fine, and in Houses on the Home Screen it has to be proved it can work before this is chosen."
+   "text": "A — ON THIS PHONE'S OWN ROW\n\nOn each house's People, the row for the phone you are holding grows one line: Tell this phone when something needs you, with the panel's own switch and two examples under it. Other phones' rows say what they are told, read only: only a phone can turn itself on. The first switch on a phone also asks the phone to allow notifications.\n\nFOR: it lives where the phone already lives in the house, next to Remove, and Remove taking the notifications with it reads naturally. Each house is decided where that house is.\n\nAGAINST: a phone with three houses says yes three times, in three places. And the tap happens inside the house's own panel, framed by the Houses app, which is not the page iOS lets ask; in the store app that is fine, and in Houses on the Home Screen it has to be proved it can work before this is chosen.\n\nNOT CHOSEN, 20 October 2026: B, one yes for every house, asked in the Houses app itself."
   },
   {
    "id": "b",
    "page": "page-1",
-   "x": 1020,
+   "x": 560,
    "y": -560,
    "w": 390,
-   "text": "B — ONCE, IN HOUSES\n\nThe Houses sheet, under the list of houses, gets a part for the phone itself: Notifications, one switch, and a line saying each house decides what it tells you and what Apple sees. Switched on, every house this phone has joined can tell it what needs it; each house's People then shows which phones it tells, read only, the way A's other rows do.\n\nFOR: one yes, for every house, in the one place that is the phone's own rather than any house's. The tap is in the Houses app, the page iOS lets ask, in the browser and the store app alike. Says the privacy sentence where the decision is made.\n\nAGAINST: it is a setting, found only by somebody who goes looking in Houses, which most people never open with one house. Turning one house off needs a second level (a switch per house under it), not drawn."
+   "text": "B — ONCE, IN HOUSES  ·  CHOSEN, 20 OCTOBER 2026\n\nThe Houses sheet, under the list of houses, gets a part for the phone itself: Notifications, one switch, and a line saying each house decides what it tells you and what Apple sees. Switched on, every house this phone has joined can tell it what needs it; each house's People then shows which phones it tells, read only, the way A's other rows do.\n\nFOR: one yes, for every house, in the one place that is the phone's own rather than any house's. The tap is in the Houses app, the page iOS lets ask, in the browser and the store app alike. Says the privacy sentence where the decision is made.\n\nAGAINST: it is a setting, found only by somebody who goes looking in Houses, which most people never open with one house. Turning one house off needs a second level (a switch per house under it), not drawn."
   },
   {
    "id": "c",
-   "page": "page-1",
-   "x": 1480,
+   "page": "page-2",
+   "x": 560,
    "y": -560,
    "w": 390,
-   "text": "C — WHEN IT FIRST MATTERS\n\nNothing to set up front. The first time something that needs you reaches the band on this phone (here, an iPad asking to join), the chip carries one more line: Tell this phone next time? Yes, and the phone is asked to allow notifications and this house will tell it; No, and it is not asked again by that house. Changing it later is on the phone's own row, as A draws it.\n\nFOR: asked at the one moment the answer is obvious, which is also what Apple's own guidance asks for. Nobody meets a setting before they know why they would want it.\n\nAGAINST: the first thing that needs you is the one thing never told to you. Like A, the tap is inside the house's panel; and C still needs A's row to change its mind, so it is A plus a moment, not instead of it."
+   "text": "C — WHEN IT FIRST MATTERS\n\nNothing to set up front. The first time something that needs you reaches the band on this phone (here, an iPad asking to join), the chip carries one more line: Tell this phone next time? Yes, and the phone is asked to allow notifications and this house will tell it; No, and it is not asked again by that house. Changing it later is on the phone's own row, as A draws it.\n\nFOR: asked at the one moment the answer is obvious, which is also what Apple's own guidance asks for. Nobody meets a setting before they know why they would want it.\n\nAGAINST: the first thing that needs you is the one thing never told to you. Like A, the tap is inside the house's panel; and C still needs A's row to change its mind, so it is A plus a moment, not instead of it.\n\nNOT CHOSEN, 20 October 2026: B, one yes for every house, asked in the Houses app itself."
   },
   {
    "id": "else",
    "page": "page-1",
-   "x": 1960,
+   "x": 1020,
    "y": 0,
    "w": 420,
    "text": "OR SOMETHING ELSE\n\nDescribe it."
   }
- ]
+ ],
+ "decided": {
+  "on": "2026-10-20",
+  "chose": "B, once in Houses"
+ }
 }

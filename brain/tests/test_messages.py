@@ -61,6 +61,13 @@ class CatalogTests(unittest.TestCase):
         """Alert-class is the household's list, not ours."""
         self.assertEqual([m.id for m in messages.TABLE if m.cls == "alert"], [])
 
+    def test_an_update_that_was_refused_is_news_and_tells_no_phone(self):
+        """Decided 20 October 2026: nothing changed and nothing is asked of anybody, so it is never pushed."""
+        from hub import pusher
+        refused = next(m for m in messages.TABLE if m.id == "update.refused")
+        self.assertEqual(refused.cls, "house")
+        self.assertNotIn(refused.cls, pusher.URGENCY)
+
     def test_every_template_is_filled_by_what_its_callers_pass(self):
         self.assertEqual(set(SAMPLES), set(messages.CATALOG))
         for m in messages.TABLE:
