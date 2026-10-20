@@ -7,10 +7,6 @@ set -euxo pipefail
 export DEBIAN_FRONTEND=noninteractive
 . /etc/home-hub.conf
 
-# The disk build.sh made bigger, used.
-growpart /dev/sda 1 || true
-resize2fs /dev/sda1
-
 # The cloud image's kernel is the virtual flavor, which leaves out the drivers for real Wi-Fi cards and
 # the firmware they load. NetworkManager runs every link, cable and Wi-Fi alike, because host/network.sh
 # is the one thing that talks to the network and it speaks nmcli. iw and dnsmasq are the hub's own
