@@ -20,6 +20,7 @@ export type HouseRecord = {
   token: string       // this phone's pass for this house
   added: number
   opened: number      // when it was last opened here: where the app opens when no house answers at home
+  push?: boolean      // the house holds this phone's notification key (push.ts)
 }
 
 /** Where a house was found: on its own Wi-Fi, over the internet, there but not letting this phone in from out there, or not at all. */
@@ -134,6 +135,9 @@ export async function reach(h: House): Promise<{ reach: Reach; base: string }> {
   return { reach: 'offline', base: h.origin }
 }
 
+/** Where to ask a house something: its Wi-Fi name when this phone is on it, else its own name. */
+export const baseOf = (h: Pick<House, 'reach' | 'lan' | 'origin'>) => (h.reach === 'here' && h.lan ? `https://${h.lan}` : h.origin)
+
 /** One line of how a house is, for Houses (HereB-sheet): its weather, and anything that needs somebody. */
 export async function glance(h: House, base: string): Promise<Glance | null> {
   try {
@@ -150,8 +154,8 @@ export async function glance(h: House, base: string): Promise<Glance | null> {
 // ---- the list ----------------------------------------------------------------------------------
 
 function record(h: HouseRecord): HouseRecord {
-  const { id, name, origin, lan, token, added, opened } = h
-  return { id, name, origin, lan, token, added, opened }
+  const { id, name, origin, lan, token, added, opened, push } = h
+  return { id, name, origin, lan, token, added, opened, push }
 }
 
 export async function save(h: HouseRecord) { await put(record(h)) }

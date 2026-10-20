@@ -114,6 +114,10 @@ class Pusher:
     def house(self) -> str:
         return self.hub.settings.get("home_name") or "Home"
 
+    def label(self) -> str | None:
+        """The house's label in the zone (`jordan` of jordan.elyir.app): how the phone finds its own name for the house."""
+        return self.hub.address.house()
+
     async def look(self) -> int:
         """Once a tick: what is new on Needs a look goes to every phone that can act on it. Never raises."""
         try:
@@ -143,7 +147,7 @@ class Pusher:
         # Every house a phone joined shares its one subscription, so the tag says whose house it is.
         tag = f"{house}|{key(line)}"
         payload = {"id": line["id"], "class": line["class"], "text": line.get("text") or "", "subject": line.get("subject"),
-                   "house": house, "at": now, "tag": tag}
+                   "house": house, "label": self.label(), "at": now, "tag": tag}
         topic = b64(hashlib.sha256(tag.encode()).digest())[:32]   # Topic is at most 32 base64url characters
         for p in self.listeners():
             self.held = [h for h in self.held if not (h["phone"] == p["id"] and h["topic"] == topic)]

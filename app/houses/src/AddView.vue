@@ -13,6 +13,7 @@
  */
 import { computed, onMounted, ref } from 'vue'
 import { add, addLink, claim, codeOf, iphoneSafari, labelOf, nearby, originOf, standalone, state } from './houses'
+import { tellNew } from './push'
 
 defineProps<{ back?: boolean }>()
 const emit = defineEmits<{ added: [id: string]; cancel: [] }>()
@@ -60,6 +61,7 @@ async function finish() {
   if (!got.value) return
   const g = got.value
   await add({ id: g.id, name: name.value.trim() || 'Home', origin: g.origin, lan: g.lan ?? '', token: g.token, added: Date.now(), opened: Date.now() })
+  tellNew(g.id)
   emit('added', g.id)
 }
 

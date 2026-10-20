@@ -37,9 +37,14 @@ class FakeHealth:
     def notes(self): return list(self.lines)
 
 
+class FakeAddress:
+    def __init__(self): self.label = "maple"
+    def house(self): return self.label
+
+
 class FakeHub:
     def __init__(self, data: Path):
-        self.log, self.health, self.tz = FakeLog(), FakeHealth(), CHICAGO
+        self.log, self.health, self.tz, self.address = FakeLog(), FakeHealth(), CHICAGO, FakeAddress()
         self.settings, self.sent = {"home_name": "Maple Street"}, []
         self.phones = Phones(self, data / "phones.json")
     def _broadcast(self, msg): self.sent.append(msg)
@@ -102,12 +107,19 @@ class PusherTests(unittest.IsolatedAsyncioTestCase):
         sent = next(c for c in self.sender.calls if c["to"].endswith("/sam"))
         self.assertEqual({k: v for k, v in sent["payload"].items() if k != "at"},
                          {"id": "storage.low", "class": "attention", "text": "The hub's storage is nearly full: 1.2 GB left.",
-                          "subject": None, "house": "Maple Street", "tag": "Maple Street|storage.low|"})
+                          "subject": None, "house": "Maple Street", "label": "maple", "tag": "Maple Street|storage.low|"})
         self.assertEqual(sent["payload"]["at"], self.clock[0])
         self.assertEqual(sent["headers"]["Urgency"], "normal")
         self.assertRegex(sent["headers"]["Topic"], re.compile(r"^[A-Za-z0-9_-]{1,32}$"))
         self.assertEqual(sent["ttl"], 12 * 3600)
         self.assertEqual(sent["key"], self.keys[self.owner["id"]]["privateKey"])       # signed with that phone's own key
+
+    async def test_it_names_the_house_by_its_label_so_the_phone_can_use_its_own_name_for_it(self):
+        await self.look()
+        self.hub.address.label = None                                                   # a house with no address yet
+        await self.settle(line())
+        self.assertEqual({c["payload"]["label"] for c in self.sender.calls}, {None})
+        self.assertEqual({c["payload"]["house"] for c in self.sender.calls}, {"Maple Street"})
 
     async def test_a_line_there_for_one_look_is_never_sent(self):
         await self.look()

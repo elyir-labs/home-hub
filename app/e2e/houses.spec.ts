@@ -12,6 +12,7 @@
  *
  * The mock speaks the move: K7Q4MPWR is the code that works, anything else is the brain's 410. */
 import { expect, test, type Page } from '@playwright/test'
+import { createECDH } from 'node:crypto'
 import { createServer, type Server } from 'node:http'
 import { readFileSync, existsSync } from 'node:fs'
 import { dirname, extname, join } from 'node:path'
@@ -236,4 +237,135 @@ test('on any other storefront there is no step: setup ends at ready', async ({ p
     await expect(house.locator('.setup-page h1')).toContainText('is ready', { timeout: 5000 })
     await expect(house.locator('.address-step')).toHaveCount(0)
   }
+})
+
+// ---- telling this phone (design/notify/, B, chosen 20 October 2026) ---------------------------------
+
+/* Headless Chromium has no push service and answers every page that notifications are denied, whatever was
+   granted, so the browser's part is played by hand: the permission, and the subscription it hands back.
+   Everything after that -- the key, the houses told -- is the app's. */
+const NO_PUSH_SERVICE = () => {
+  Object.defineProperty(Notification, 'permission', { get: () => 'granted' })
+  Notification.requestPermission = async () => 'granted'
+  let current: any = null
+  const w = window as any
+  w.subscribedWith = null
+  PushManager.prototype.subscribe = async function (opts?: PushSubscriptionOptionsInit) {
+    const key = new Uint8Array(opts!.applicationServerKey as Uint8Array)
+    w.subscribedWith = btoa(String.fromCharCode(...key)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    const json = { endpoint: 'https://push.example/this-phone', expirationTime: null, keys: { p256dh: 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', auth: 'tBHItJI5svbpez7KI4CCXg' } }
+    current = { endpoint: json.endpoint, options: { applicationServerKey: key.buffer, userVisibleOnly: true }, toJSON: () => json, unsubscribe: async () => { current = null; w.unsubscribed = true; return true } }
+    return current
+  }
+  PushManager.prototype.getSubscription = async function () { return current }
+}
+
+async function addHouse(page: Page, label: string, name: string) {
+  await page.goto(`${APP}/add#h=${label}&c=K7Q4MPWR`)
+  await expect(page.getByRole('heading', { name: 'Added.' })).toBeVisible()
+  await page.getByLabel('What you call this house').fill(name)
+  await page.getByRole('button', { name: `Open ${name}` }).click()
+  await expect(page.frameLocator('.hs-frame').locator('.house-switch')).toContainText(name)
+}
+
+async function houses(page: Page) {
+  await page.frameLocator('.hs-frame').locator('.house-switch').click()
+  const sheet = page.getByRole('dialog', { name: 'Houses' })
+  await expect(sheet).toBeVisible()
+  return sheet
+}
+
+test('Houses has a part for this phone under Add a house, drawn as the board draws it', async ({ page }) => {
+  await page.addInitScript(NO_PUSH_SERVICE)
+  await fresh(page)
+  await addHouse(page, 'maple-court', 'Home')
+  await addHouse(page, 'lake', 'Lake house')
+  const sheet = await houses(page)
+  const part = sheet.getByRole('region', { name: 'This phone' })
+  await expect(part.locator('.hs-phone-cap')).toHaveText('This phone')
+  await expect(part.locator('.hs-phone-t')).toHaveText('Notifications')
+  await expect(part.locator('.hs-phone-s')).toHaveText('Your houses can tell this phone when something needs you.')
+  await expect(part.locator('.hs-phone-fine')).toHaveText('Each house decides what is worth telling you. Your browser’s maker sees that one of your houses sent this phone something, and when, never what.')
+  const toggle = part.getByRole('switch', { name: 'Notifications' })
+  await expect(toggle).toHaveAttribute('aria-checked', 'false')
+
+  const add = (await sheet.locator('.hs-row', { hasText: 'Add a house' }).boundingBox())!
+  const [box, row, sw] = [(await part.boundingBox())!, (await part.locator('.hs-phone-row').boundingBox())!, (await toggle.boundingBox())!]
+  expect(box.y, 'under Add a house').toBeGreaterThan(add.y + add.height)
+  expect(box.y - (add.y + add.height), 'close under it, as drawn').toBeLessThan(30)
+  expect(Math.abs(box.x - 26), 'on the rows’ left edge').toBeLessThan(2)
+  expect([sw.width, sw.height]).toEqual([50, 30])
+  expect(Math.abs(sw.x + sw.width - (row.x + row.width)), 'the switch at the row’s right').toBeLessThan(1)
+  expect(Math.abs(sw.x + sw.width - (add.x + add.width - 10)), 'lined up with the houses’ arrows').toBeLessThan(2)
+  expect(Math.abs((sw.y + sw.height / 2) - (row.y + row.height / 2))).toBeLessThan(2)
+})
+
+test('inside the store app the part is not there: a web view has no web push', async ({ page }) => {
+  await fresh(page)
+  await addHouse(page, 'maple-court', 'Home')
+  await page.goto(`${APP}/?shell=ios&store=US`)
+  const sheet = await houses(page)
+  await expect(sheet.locator('.hs-row', { hasText: 'Add a house' })).toBeVisible()
+  await expect(sheet.locator('.hs-phone')).toHaveCount(0)
+})
+
+test('switched on, every house is handed the subscription and this phone’s key; switched off, every house lets it go', async ({ page }) => {
+  await page.addInitScript(NO_PUSH_SERVICE)
+  await fresh(page)
+  await addHouse(page, 'maple-court', 'Home')
+  await addHouse(page, 'lake', 'Lake house')
+  const asked: { method: string; auth: string | undefined; body: any }[] = []
+  page.on('request', r => { if (r.url().endsWith('/phones/me/push') && r.method() !== 'OPTIONS') asked.push({ method: r.method(), auth: r.headers().authorization, body: r.postDataJSON() }) })
+
+  const sheet = await houses(page)
+  const toggle = sheet.getByRole('switch', { name: 'Notifications' })
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-checked', 'true')
+  await expect(sheet.locator('.hs-phone-s')).toHaveText('Your houses can tell this phone when something needs you.')
+  await expect.poll(() => asked.filter(a => a.method === 'POST').length).toBe(2)
+  const subscribedWith = await page.evaluate(() => (window as any).subscribedWith)
+  for (const { auth, body } of asked) {
+    expect(auth).toBe('Bearer mocktoken')
+    expect(body.subscription.endpoint).toBe('https://push.example/this-phone')
+    expect(body.subscription.keys.auth).toBeTruthy()
+    expect(body.tz).toBe('America/Chicago')
+    expect(body.vapid.publicKey, 'subscribed with the key it hands the house').toBe(subscribedWith)
+    const ecdh = createECDH('prime256v1')
+    ecdh.setPrivateKey(Buffer.from(body.vapid.privateKey, 'base64url'))
+    expect(ecdh.getPublicKey('base64url'), 'the public half is the private half’s').toBe(body.vapid.publicKey)
+  }
+  expect(new Set(asked.map(a => a.body.vapid.privateKey)).size, 'one key for every house').toBe(1)
+
+  asked.length = 0
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-checked', 'false')
+  await expect.poll(() => asked.filter(a => a.method === 'DELETE').length).toBe(2)
+  expect(await page.evaluate(() => (window as any).unsubscribed)).toBe(true)
+})
+
+test('a house that could not be told is named, by this phone’s name for it', async ({ page }) => {
+  await page.addInitScript(NO_PUSH_SERVICE)
+  await fresh(page)
+  await addHouse(page, 'maple-court', 'Home')
+  await addHouse(page, 'lake', 'Lake house')
+  let first = true
+  await page.route('**/phones/me/push', r => {
+    if (r.request().method() !== 'POST' || !first) return r.fallback()
+    first = false
+    return r.abort()
+  })
+  const sheet = await houses(page)
+  await sheet.getByRole('switch', { name: 'Notifications' }).click()
+  await expect(sheet.getByRole('switch', { name: 'Notifications' })).toHaveAttribute('aria-checked', 'true')
+  await expect(sheet.locator('.hs-phone-s')).toHaveText(/^(Home|Lake house) can’t tell this phone yet\. It will be asked again\.$/)
+})
+
+test('People shows which phones the house tells, read only', async ({ page }) => {
+  await page.route('**/status', async r => { const res = await r.fetch(); const j = await res.json(); await r.fulfill({ json: { ...j, locked: true } }) })
+  await page.goto('/?sheet=people')
+  const rows = page.locator('.phones li').filter({ has: page.locator('.phones-icon') })
+  const robin = rows.filter({ hasText: "Robin's Android phone" })
+  await expect(robin.locator('.phones-sub')).toContainText(' · told when something needs it')
+  await expect(rows.first().locator('.phones-sub'), 'the wall is never told; it shows').not.toContainText('told')
+  await expect(robin.getByRole('switch')).toHaveCount(0)
 })

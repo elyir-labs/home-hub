@@ -433,8 +433,8 @@ export function createHouse({ env = {}, qr = null } = {}) {
   const mockAddress = { house: null, claimedAt: 0, want: 'on' }
   const phones = { phones: [
     { id: 'w', name: 'This wall', kind: 'wall', joined: now - 86400 * 30, expires: null, remote: false, last_seen: now, how: 'setup', me: true },
-    { id: 'p1', name: "Jordan's iPhone", kind: 'phone', joined: now - 86400 * 20, expires: null, remote: false, last_seen: now - 3600, how: 'code', me: false },
-    { id: 'p2', name: "Robin's Android phone", kind: 'phone', joined: now - 3600, expires: now + 86400 * 2, remote: false, last_seen: now - 600, how: 'wall', me: false },
+    { id: 'p1', name: "Jordan's iPhone", kind: 'phone', joined: now - 86400 * 20, expires: null, remote: false, last_seen: now - 3600, how: 'code', me: false, push: false },
+    { id: 'p2', name: "Robin's Android phone", kind: 'phone', joined: now - 3600, expires: now + 86400 * 2, remote: false, last_seen: now - 600, how: 'wall', me: false, push: true },
   ], asks: env.ASK ? [{ id: 'a1', name: "Sam's iPhone", kind: 'phone', asked: now - 30 }] : [] }
 
   /* ---------- a bridge being set up ----------
@@ -900,6 +900,15 @@ export function createHouse({ env = {}, qr = null } = {}) {
       ? { locked: !!env.LOCKED, paired: true, home: 'Maple Court', phone: { ...phones.phones[1], me: true, moved: !!env.MOVED }, away: false,
           lan: '192-168-1-53.maple-court.home.elyir.app', address: 'https://maple-court.elyir.app' }
       : { locked: !!env.LOCKED, paired: true, home: 'Maple Court', phone: null })
+    /* Being told things (design/notify/, B): the Houses app hands its subscription and key to every house, and the
+       phone the move handed over is Jordan's iPhone. Kept in memory, like everything here. */
+    if (p === '/phones/me/push' && req.method === 'POST') { let b = ''; req.on('data', c => { b += c }); req.on('end', () => {
+      let body = {}; try { body = JSON.parse(b) } catch {}
+      if (!body.subscription?.endpoint || !body.vapid?.publicKey || !body.vapid?.privateKey) { res.writeHead(400, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: "That isn't a way to reach this phone." })) }
+      phones.phones[1].push = true
+      json(res, { phone: { ...phones.phones[1], me: true } })
+    }); return }
+    if (p === '/phones/me/push' && req.method === 'DELETE') { phones.phones[1].push = false; return json(res, { phone: { ...phones.phones[1], me: true } }) }
     /* A wall screen saying which room it hangs in (design/companion/, C). The mock house has no passcode, so no record. */
     if (p === '/phones/me/room' && req.method === 'POST') { let b = ''; req.on('data', c => { b += c }); req.on('end', () => {
       let room = ''; try { room = JSON.parse(b).room } catch {}

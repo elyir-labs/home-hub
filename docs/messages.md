@@ -187,8 +187,9 @@ The first two are today's work and depend on nothing.
    0600, and the key never leaves it; on the drivers' half-minute look, an `attention` line that is new and still
    there on the next look goes once to every phone that holds keys and has push (a blip, such as things gone for a
    moment while the engine restarts, tells nobody), signed with that phone's key, `sub` the maker's, tagged with the
-   house's name as well as its id and subject, and held overnight until 07:00 in the phone's zone. Not yet: the Houses app's worker and its call to the route,
-   APNs and the sealed sender, and the switches in step 6 -- until they land, every owner's phone with push is told.*
+   house's name as well as its id and subject, and held overnight until 07:00 in the phone's zone. The Houses app's half landed 20 October 2026 (`design/notify/`, B: one
+   switch under the houses, `app/houses/src/push.ts` and its worker). Not yet: APNs and the sealed sender, so the store
+   app hides the switch, and the switches in step 6 -- until they land, every owner's phone with push is told.*
    **Push: the keypair, `POST /phones/me/push`, `pywebpush`.** `docs/away.md` step 6.
 6. **The switches on *People*** — per phone, `attention` off by default and `alert` off by default, landing with the
    `remote` switch in the same step for the same reason: the panel never shows a promise it cannot keep.
