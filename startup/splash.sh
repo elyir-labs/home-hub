@@ -13,7 +13,9 @@ log() { printf '[startup] %s\n' "$*"; }
 [ "$(id -u)" = 0 ] || { echo "run as root" >&2; exit 1; }
 
 export DEBIAN_FRONTEND=noninteractive
-apt-get install -y --no-install-recommends plymouth >/dev/null
+# fontconfig only because Ubuntu's initramfs hook copies its settings for any graphical theme, and stops the
+# boot image being built without them, though this theme draws its words as pictures.
+apt-get install -y --no-install-recommends plymouth fontconfig >/dev/null
 
 log "the splash"
 rm -rf "$THEME"; mkdir -p "$THEME"
