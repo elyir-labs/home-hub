@@ -1,0 +1,164 @@
+/* Shared by every board in this collection: the panel's tokens and first run's type at phone width
+   (app/src/panel.css, the .setup-* block and its 860px override), and the phone's own chrome. */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Instrument Sans", -apple-system, "SF Pro Text", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  --bg: #0c0d10; --surface: rgba(26,28,34,.68); --surface-hi: rgba(255,255,255,.08);
+  --edge: rgba(255,255,255,.1); --edge-hi: rgba(255,255,255,.18);
+  --ink: #f1eee8; --ink-2: #b9b5ad; --muted: #7f7d77;
+  --lamp-rgb: 233, 184, 114; --lamp: rgb(var(--lamp-rgb)); --lamp-ink: #2a1c07;
+  --live-rgb: 116, 198, 157; --live: rgb(var(--live-rgb));
+  --danger-rgb: 224, 138, 138; --danger: rgb(var(--danger-rgb));
+  --r-lg: 22px; --r-md: 16px; --r-sm: 12px;
+  background: var(--bg);
+}
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.abs { position: absolute; }
+.cap { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------------------------------------------------------------- the phone, 390 x 844 */
+.phone { position: relative; width: 390px; height: 844px; overflow: hidden; color: var(--ink); font-size: 16px; line-height: 1.4;
+         background: linear-gradient(#141a26 0%, #18202c 50%, #10141a 100%); }
+.status-bar { position: absolute; left: 0; right: 0; top: 0; height: 50px; display: flex; align-items: center; padding: 0 30px 0 34px;
+              font-size: 16px; font-weight: 600; color: var(--ink); z-index: 5; }
+.status-bar .r { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+.status-bar .r i { display: block; width: 3.5px; background: var(--ink); border-radius: 1px; }
+.status-bar .wifi { font-size: 12px; font-weight: 500; color: var(--ink-2); margin-right: 4px; }
+.home-ind { position: absolute; left: 50%; bottom: 8px; width: 134px; height: 5px; margin-left: -67px; border-radius: 3px; background: rgba(255,255,255,.7); z-index: 5; }
+
+/* first run's column at phone width: 18px gutters, 38px heading, 16px lede */
+.col { position: absolute; left: 18px; right: 18px; }
+.mark { width: 56px; height: 56px; border-radius: var(--r-lg); display: grid; place-items: center; background: var(--surface);
+        border: 1px solid var(--edge-hi); color: var(--lamp); margin-bottom: 22px; }
+.mark.done { background: var(--live); color: #0b2216; border-color: transparent; }
+h1 { margin: 0; font-size: 38px; line-height: 1.04; letter-spacing: -.025em; font-weight: 400; text-wrap: balance; }
+.lede { margin: 12px 0 22px; color: var(--ink-2); font-size: 16px; line-height: 1.4; }
+.step { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; min-height: 14px; }
+.cta { display: flex; align-items: center; justify-content: center; gap: 10px; height: 52px; border-radius: 999px; background: var(--ink); color: var(--bg);
+       font-weight: 500; font-size: 17px; }
+.cta.dim { opacity: .45; }
+.ghost { display: flex; align-items: center; justify-content: center; height: 48px; border-radius: 999px; background: var(--surface-hi);
+         border: 1px solid var(--edge); color: var(--ink); font-weight: 500; font-size: 16px; }
+.foot { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.foot u { color: var(--ink-2); text-underline-offset: 3px; }
+.status { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lamp); box-shadow: 0 0 0 4px rgba(var(--lamp-rgb), .18); flex: none; }
+.dot.live { background: var(--live); box-shadow: 0 0 0 4px rgba(var(--live-rgb), .18); }
+.note { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--edge);
+        color: var(--ink-2); font-size: 14px; line-height: 1.45; }
+.note svg { margin-top: 2px; color: var(--lamp); }
+.note.bad { border-color: rgba(var(--danger-rgb), .4); background: rgba(var(--danger-rgb), .08); }
+.note.bad svg { color: var(--danger); }
+.note.good svg { color: var(--live); }
+
+/* the networks the hub can hear */
+.nets { border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--edge); overflow: hidden; }
+.net { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; font-size: 16.5px; }
+.net + .net { border-top: 1px solid var(--edge); }
+.net .lock { color: var(--muted); }
+.net .bars { margin-left: auto; display: flex; align-items: flex-end; gap: 2.5px; height: 14px; }
+.net .bars i { display: block; width: 3.5px; border-radius: 1px; background: var(--ink-2); }
+.net .bars i.off { background: rgba(255,255,255,.18); }
+.net.on { background: rgba(var(--lamp-rgb), .12); }
+.net.other { color: var(--ink-2); }
+.field { height: 56px; border-radius: var(--r-sm); background: rgba(255,255,255,.05); border: 1px solid var(--edge-hi); display: flex; align-items: center;
+         padding: 0 16px; font-size: 20px; letter-spacing: .18em; color: var(--ink); }
+.field.at { border-color: rgba(var(--lamp-rgb), .8); box-shadow: 0 0 0 3px rgba(var(--lamp-rgb), .18); }
+.field.bad { border-color: rgba(var(--danger-rgb), .7); }
+.field .eye { margin-left: auto; color: var(--muted); letter-spacing: 0; }
+.field-label { font-size: 13.5px; color: var(--muted); margin-bottom: 8px; }
+.kb { position: absolute; left: 0; right: 0; bottom: 0; height: 290px; background: #24262b; border-top: 1px solid rgba(255,255,255,.06); padding: 10px 4px 0; }
+.kb .kr { display: flex; justify-content: center; gap: 6px; margin-bottom: 11px; }
+.kb .kr span { width: 33px; height: 44px; border-radius: 6px; background: #5a5c61; display: grid; place-items: center; font-size: 20px; color: #fff; }
+.kb .kr span.w { width: 46px; background: #3c3e43; font-size: 14px; }
+.kb .kr span.sp { width: 190px; font-size: 15px; }
+.kb .kr span.go { width: 88px; background: #3d7bf0; font-size: 15px; }
+
+/* the sheet a phone opens on joining a network that asks for a sign-in: the system's bar, our page */
+.sheet { position: absolute; left: 0; right: 0; top: 50px; bottom: 0; border-radius: 14px 14px 0 0; overflow: hidden;
+         background: linear-gradient(#151b27 0%, #19212d 55%, #11151b 100%); box-shadow: 0 -10px 40px rgba(0,0,0,.6); }
+.sheet-bar { height: 50px; display: flex; align-items: center; padding: 0 16px; background: rgba(40,42,48,.96); border-bottom: 1px solid rgba(255,255,255,.08);
+             font-size: 16px; }
+.sheet-bar b { position: absolute; left: 0; right: 0; text-align: center; font-weight: 600; font-size: 16px; pointer-events: none; }
+.sheet-bar .sys { color: #5d9cf5; position: relative; }
+.sheet-bar .sys.r { margin-left: auto; }
+
+/* a browser, at the top of the screen */
+.browser { position: absolute; left: 0; right: 0; bottom: 0; height: 92px; background: rgba(30,32,37,.97); border-top: 1px solid rgba(255,255,255,.08);
+           display: flex; align-items: flex-start; justify-content: center; padding-top: 12px; z-index: 4; }
+.browser .url { width: 358px; height: 44px; border-radius: 12px; background: rgba(255,255,255,.1); display: flex; align-items: center; justify-content: center; gap: 6px;
+                font-size: 15px; color: var(--ink); }
+.browser .url svg { color: var(--ink-2); }
+
+/* the phone's own question, raised over whatever is underneath */
+.ask { position: absolute; left: 12px; right: 12px; border-radius: 18px; background: rgba(46,48,54,.97); box-shadow: 0 24px 60px -12px rgba(0,0,0,.9);
+       color: #fff; z-index: 6; }
+
+/* ---------------------------------------------------------------- annotation, never screen */
+.ann { position: absolute; border: 1px dashed rgba(255,255,255,.28); border-radius: 16px; padding: 11px 14px 10px; background: rgba(8,9,12,.86);
+       font-size: 12.5px; line-height: 1.45; color: var(--ink-2); z-index: 9; }
+.ann b { color: var(--ink); font-weight: 500; }
+.ann .cap { display: block; margin-bottom: 6px; font-size: 10.5px; }
+.ring { position: absolute; border: 1.5px dashed rgba(255,255,255,.5); border-radius: 18px; pointer-events: none; z-index: 8; }
+
+/* ---------------------------------------------------------------- the label on the hub, enlarged */
+.label { position: relative; width: 400px; height: 400px; border-radius: 22px; background: #f3f1ec; color: #1b1c1f; padding: 30px 30px 26px;
+         box-shadow: 0 30px 70px -30px rgba(0,0,0,.9); }
+.label .brand { font-size: 22px; letter-spacing: -.02em; }
+.label .brand small { display: block; font-size: 12.5px; letter-spacing: .02em; color: #6b6a66; margin-top: 2px; }
+.label .qr { position: absolute; right: 30px; top: 30px; width: 150px; height: 150px; }
+.label .big { position: absolute; left: 30px; right: 30px; bottom: 26px; }
+.label .say { font-size: 19px; line-height: 1.25; letter-spacing: -.01em; }
+.label .small { font-size: 12.5px; color: #6b6a66; line-height: 1.45; margin-top: 10px; }
+.label .code { display: flex; gap: 24px; margin-top: 14px; padding-top: 12px; border-top: 1px solid #d9d6cf; font-size: 12px; color: #6b6a66; }
+.label .code b { display: block; font-size: 15px; color: #1b1c1f; font-weight: 600; letter-spacing: .04em; margin-top: 2px; }
+
+/* ---------------------------------------------------------------- this collection's own */
+/* the drive, as the hub can describe it: what it is, how big, and what is on it in a household's words */
+.drive { display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--edge); }
+.drive .ic { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; background: var(--surface-hi); color: var(--ink-2); flex: none; }
+.drive b { display: block; font-size: 16.5px; font-weight: 500; }
+.drive small { display: block; font-size: 14px; color: var(--ink-2); margin-top: 2px; line-height: 1.4; }
+.drive .on { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.drive .on span { font-size: 12.5px; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.07); border: 1px solid var(--edge); color: var(--ink-2); }
+/* two whole answers, one of them picked */
+.opt { position: relative; padding: 15px 16px 14px 48px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--edge); }
+.opt + .opt { margin-top: 10px; }
+.opt::before { content: ""; position: absolute; left: 16px; top: 17px; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--edge-hi); }
+.opt.on { border-color: rgba(var(--lamp-rgb), .6); background: rgba(var(--lamp-rgb), .08); }
+.opt.on::before { border-color: var(--lamp); box-shadow: inset 0 0 0 4px #161a22, inset 0 0 0 10px var(--lamp); }
+.opt b { display: block; font-size: 16px; font-weight: 500; }
+.opt small { display: block; font-size: 13.5px; color: var(--ink-2); margin-top: 3px; line-height: 1.4; }
+/* what erasing means, said before anybody can do it */
+.means { list-style: none; margin: 0; padding: 0; }
+.means li { display: flex; gap: 11px; align-items: flex-start; font-size: 15px; line-height: 1.45; color: var(--ink-2); padding: 9px 0; }
+.means li + li { border-top: 1px solid var(--edge); }
+.means li svg { margin-top: 2px; color: var(--muted); }
+.means li.hard { color: var(--ink); }
+.means li.hard svg { color: var(--danger); }
+.cta.danger { background: var(--danger); color: #2a0f0f; }
+.cta.danger.dim { opacity: .35; }
+.typed { height: 52px; border-radius: var(--r-sm); background: rgba(255,255,255,.05); border: 1px solid var(--edge-hi); display: flex; align-items: center; padding: 0 16px; font-size: 18px; color: var(--muted); }
+.typed.at { border-color: rgba(var(--lamp-rgb), .8); box-shadow: 0 0 0 3px rgba(var(--lamp-rgb), .18); color: var(--ink); }
+/* hold to erase: the fill is how long is left */
+.hold { position: relative; overflow: hidden; height: 54px; border-radius: 999px; border: 1px solid rgba(var(--danger-rgb), .55); display: grid; place-items: center; font-size: 16.5px; font-weight: 500; color: var(--danger); }
+.hold i { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(var(--danger-rgb), .22); }
+.hold span { position: relative; }
+.bar { height: 6px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 999px; background: var(--lamp); }
+/* the band along the foot of Home, as the panel already draws one (design/out-of-reach/) */
+.band { position: absolute; left: 16px; right: 16px; bottom: 26px; border-radius: 24px; padding: 16px 16px 14px; z-index: 4;
+        background: linear-gradient(rgba(var(--lamp-rgb),.12), rgba(var(--lamp-rgb),.12)), rgba(26,28,34,.94); border: 1px solid rgba(var(--lamp-rgb),.28);
+        box-shadow: 0 24px 60px -16px rgba(0,0,0,.9); }
+.band .top { display: flex; gap: 12px; align-items: flex-start; }
+.band .bi { width: 38px; height: 38px; border-radius: 12px; background: rgba(var(--lamp-rgb),.9); color: var(--lamp-ink); display: grid; place-items: center; flex: none; }
+.band b { display: block; font-size: 16px; font-weight: 500; line-height: 21px; }
+.band small { display: block; font-size: 13.5px; color: var(--ink-2); line-height: 19px; margin-top: 3px; }
+.band .btn { margin-top: 14px; height: 44px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid var(--edge); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; }
+/* a sheet over Home */
+.scrim { position: absolute; inset: 0; background: rgba(0,0,0,.55); z-index: 5; }
+.psheet { position: absolute; left: 0; right: 0; bottom: 0; top: 74px; border-radius: 26px 26px 0 0; background: #15181f; border-top: 1px solid var(--edge-hi); z-index: 6; padding: 22px 18px 0; }
+.psheet h2 { margin: 0; font-size: 26px; line-height: 1.12; letter-spacing: -.02em; font-weight: 400; }
+.grab { position: absolute; left: 50%; top: 8px; width: 40px; height: 5px; margin-left: -20px; border-radius: 3px; background: rgba(255,255,255,.25); }

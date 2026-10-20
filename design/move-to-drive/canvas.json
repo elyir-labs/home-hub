@@ -1,0 +1,48 @@
+{
+  "name": "Moving a hub off its USB stick",
+  "areas": ["First run"],
+  "reading": ["why", "Today.dc.html", "a", "AskA-1.dc.html", "AskA-2.dc.html", "AskA-3.dc.html", "AskA-4.dc.html",
+              "b", "LaterB-1.dc.html", "LaterB-2.dc.html", "LaterB-3.dc.html", "behind", "stick", "pick"],
+  "artboards": [
+    { "file": "Today.dc.html", "x": 0, "y": 0, "w": 390, "h": 844, "title": "Today: on the stick, saying nothing" },
+    { "file": "AskA-1.dc.html", "x": 510, "y": 0, "w": 390, "h": 844, "title": "A1: the drive isn't empty, and which way" },
+    { "file": "AskA-2.dc.html", "x": 1020, "y": 0, "w": 390, "h": 844, "title": "A2: what erasing means, then the word typed" },
+    { "file": "AskA-3.dc.html", "x": 1530, "y": 0, "w": 390, "h": 844, "title": "A3: moving" },
+    { "file": "AskA-4.dc.html", "x": 2040, "y": 0, "w": 390, "h": 844, "title": "A4: on its own drive, and the stick free" },
+    { "file": "LaterB-1.dc.html", "x": 510, "y": 1300, "w": 390, "h": 844, "title": "B1: set up first; a band on Home" },
+    { "file": "LaterB-2.dc.html", "x": 1020, "y": 1300, "w": 390, "h": 844, "title": "B2: the sheet, held, behind the passcode" },
+    { "file": "LaterB-3.dc.html", "x": 1530, "y": 1300, "w": 390, "h": 844, "title": "B3: the house moving" }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "x": -620, "y": 0, "w": 500,
+      "text": "WHY THIS EXISTS (20 OCTOBER 2026)\n\nThe x86 image (driver-layer/host/x86-image/) boots from a USB stick. With an empty internal drive it moves itself there without asking. With anything on the drive it never writes to it, and runs from the stick instead, which today it does in silence: nobody is told, the stick has to stay in for good, and a household that would happily have erased an old Windows install is never offered the choice.\n\nThe question is a real one, and it can only be asked on a screen, because erasing somebody's drive is not a thing the hub should ever decide by itself. These boards are where it is asked, and how a person is made to understand what they are agreeing to."
+    },
+    {
+      "id": "a",
+      "x": 510, "y": 900, "w": 1920,
+      "text": "A: ASK FIRST\n\nThe first thing the phone sees on a hub running from a stick, before Welcome home. A card names the drive and what is on it, read off the drive itself (its model, size, the system on it, how much is stored, when it was last used), and two whole answers: erase it and put the hub on it, or keep it and run from the stick. Erasing goes to a page that says what will be lost, by name, that it cannot be undone, how long it takes, and that the stick is free afterwards; the button wakes only once the word erase is typed. Then the moving page, the restart, and on.\n\nFOR: nothing about the house exists yet, so moving loses nothing, and the move is the same copy an empty drive already gets: the simplest thing to build and the safest to run. One decision, made once, at the moment somebody is already expecting to answer questions. No passcode yet, and none needed: the house has nothing to protect.\n\nAGAINST: the scariest question in the product is the first one a household sees, before it has seen the product do anything. Somebody who just wants the lights working has to stop and think about drives. And Keep is a choice somebody may regret later, so B's row on This hub is still needed for them."
+    },
+    {
+      "id": "b",
+      "x": 510, "y": 2200, "w": 1430,
+      "text": "B: SET UP FIRST, MOVE LATER\n\nFirst run as it is, from the stick. Then a band at the foot of Home, where the panel already puts something that needs a look, until it is answered; dismissed, it lives on This hub as a row. The sheet names the drive the same way, says the house comes with the hub, and erases on a hold, behind the passcode.\n\nFOR: the product works before it asks anything hard, and somebody who never wants to think about drives never has to. The same sheet serves the household that kept the drive at first and changes its mind a month later.\n\nAGAINST: the house is running, so it has to stop while it is copied (about four minutes, longer than A) and the copy has to carry a live system safely: the house shut down and the disk quiet first, which is new work on the host, not the copy that exists. A band on Home for something that is working fine can read as a fault. And the passcode means only somebody with keys can do it."
+    },
+    {
+      "id": "behind",
+      "x": 2550, "y": 0, "w": 520,
+      "text": "UNDER BOTH\n\nTHE HOST DECIDES, NOT THE PAGE. The panel asks for a move by the drive it was shown (its serial number), and host/ refuses unless the hub is running from a stick, the drive is not the one it is running on, and the serial still matches. A page left open for a week cannot erase a drive somebody swapped in since.\n\nWHAT IS ON IT, IN WORDS. The card reads the drive without changing it: the system's own name (Windows 11, Ubuntu 24.04), how much is stored, when it was last written. A drive the hub cannot read says so: 'Something the hub can't read, 240 GB'.\n\nWORDS. Drive and USB stick are household words; disk, partition and internal are not, so they stay in docs/. Erase, not overwrite or format: it is the word for what happens to the files."
+    },
+    {
+      "id": "stick",
+      "x": 2550, "y": 760, "w": 520,
+      "text": "AND THE STICK SETS UP THE NEXT ONE\n\nToday the move blanks the stick afterwards, which avoids two real problems: the firmware starting from the stick again, and two disks with the same identities. Both are now answered the proper way, in host/, separately from these boards: the copy gets its own filesystem and partition ids and its own machine id, and the firmware is told to start from the drive next. So one stick sets up unit after unit, on an empty drive without asking and on anything else by A or B."
+    },
+    {
+      "id": "pick",
+      "x": 2550, "y": 1300, "w": 520,
+      "text": "TO PICK\n\nA, B, A with B's row on This hub for whoever chose Keep, or something else (describe it).\n\nMy recommendation is A with B's row. The move is safest before the house exists, and it is the same copy the empty drive already gets. B's row covers the household that kept its drive and changes its mind; behind the passcode, and accepting B's longer stop, because by then there is a house to carry."
+    }
+  ]
+}
