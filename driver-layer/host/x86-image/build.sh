@@ -17,9 +17,11 @@ CLOUD="ubuntu-24.04-server-cloudimg-amd64.img"
 WORK="$(mktemp -d)"; ROOT="$WORK/root"; LOOP=""
 done_with() {
   set +e
-  for m in dev/pts dev proc sys run boot/efi boot ""; do mountpoint -q "$ROOT/$m" && umount "$ROOT/$m"; done
+  umount -R "$ROOT" 2>/dev/null || umount -R -l "$ROOT" 2>/dev/null
   [ -n "$LOOP" ] && losetup -d "$LOOP"
-  rm -rf "$WORK"
+  # Never delete through a mount that is still there: under $ROOT were this machine's own /dev and /sys.
+  if findmnt -rn -o TARGET | grep -q "^$ROOT"; then echo "still mounted under $ROOT; leaving $WORK alone" >&2
+  else rm -rf "$WORK"; fi
 }
 trap done_with EXIT
 
@@ -58,4 +60,9 @@ chroot "$ROOT" bash /tmp/inside.sh
 
 rm -f "$ROOT/tmp/inside.sh" "$ROOT/usr/sbin/policy-rc.d" "$ROOT/etc/resolv.conf"
 mv "$WORK/resolv.keep" "$ROOT/etc/resolv.conf"
+for m in dev/pts dev proc sys run; do umount "$ROOT/$m"; done
+# Blocks that held the downloaded packages still hold their bytes after the files are gone, and xz cannot
+# tell them from the system. Discarding them leaves zeros in the image file, which compress to nothing.
+fstrim -v "$ROOT/boot/efi" || true; mountpoint -q "$ROOT/boot" && { fstrim -v "$ROOT/boot" || true; }
+fstrim -v "$ROOT"
 echo "built $OUT"
