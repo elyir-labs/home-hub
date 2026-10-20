@@ -11,7 +11,7 @@
   /* The panel's own face, served from here so a visit asks nobody else for anything (fonts/OFL.txt). */
   @font-face { font-family: 'Instrument Sans'; src: url('/fonts/instrument-sans.woff2') format('woff2'); font-weight: 400 700; font-display: swap }
   /* hub.elyir.com: design/site, D (A with C's line). The panel's own colors and type; dark unless the visitor's
-     setting is light. The pretend house is not built yet, so Try it live opens a picture of it, said as such. */
+     setting is light. The pretend house (/try) starts when asked: inline on the wall on a computer, on its own page on a phone. */
   :root {
     --ground: #0c0d10;
     --surface: #15171c;
@@ -124,7 +124,10 @@
   .pretend .lines p:not(.label) { color: var(--quiet); font-size: 18px; max-width: 44ch }
   .pretend figure { margin: 0; position: relative; justify-self: end; width: min(600px, 100%) }
   .pretend figure .veil { position: absolute; inset: 12px; border-radius: 10px; background: rgba(8, 9, 12, .62); display: grid; place-items: center; text-align: center; padding: 16px }
+  .pretend figure .veil { text-decoration: none }
   .pretend figure .veil span { display: inline-flex; height: 44px; align-items: center; padding: 0 20px; border-radius: 999px; background: var(--lamp); color: var(--on-lamp); font-weight: 500 }
+  .pretend .live { position: relative; aspect-ratio: 1440 / 900; overflow: hidden; border-radius: 10px; background: var(--ground) }
+  .pretend .live iframe { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; border: 0; transform-origin: 0 0 }
   @media (max-width: 960px) { .pretend { grid-template-columns: minmax(0, 1fr); gap: 28px } .pretend figure { justify-self: stretch } }
 
   .ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 22px }
@@ -185,11 +188,11 @@
     <div class="lines">
       <p class="label">Try it</p>
       <h2>A pretend house, right here</h2>
-      <p>Soon you'll be able to tap through a whole house that isn't real: the lights, Bedtime, typing <i>kitchen lights off</i>. Until then, this is that house on the real panel.</p>
+      <p>A whole house that isn't real. Tap the lights, run Bedtime, type <i>kitchen lights off</i>. It starts when you ask, so the page stays quick.</p>
     </div>
     <figure>
       <div class="wall"><img src="/shots/wall-room.jpg" width="1440" height="900" loading="lazy" alt="A living room on the wall screen: the TV, routines like Movie and Sleep, a ceiling light, a floor lamp, the blinds and the thermostat."></div>
-      <div class="veil"><span>Coming soon</span></div>
+      <a class="veil" href="/try/"><span>Start the pretend house</span></a>
     </figure>
   </section>
 
@@ -241,6 +244,21 @@
     try { await navigator.clipboard.writeText(code.textContent); e.target.textContent = 'Copied' }
     catch { getSelection().selectAllChildren(code); e.target.textContent = 'Selected' }
     setTimeout(() => { e.target.textContent = 'Copy' }, 2000)
+  })
+
+  /* On a computer the pretend house starts in place of its picture, drawn at the wall's own size and shrunk to fit;
+     on a phone it is too small to use there, so the link opens it on its own page. */
+  const veil = document.querySelector('.pretend .veil')
+  veil.addEventListener('click', (e) => {
+    if (matchMedia('(max-width: 960px)').matches) return
+    e.preventDefault()
+    const live = document.createElement('div'), frame = document.createElement('iframe')
+    live.className = 'live'; frame.src = veil.getAttribute('href'); frame.title = 'A pretend house'
+    live.append(frame)
+    veil.previousElementSibling.querySelector('img').replaceWith(live)
+    veil.remove()
+    const fit = () => { frame.style.transform = `scale(${live.clientWidth / 1440})` }
+    fit(); addEventListener('resize', fit)
   })
 
   for (const form of document.querySelectorAll('form.list')) {

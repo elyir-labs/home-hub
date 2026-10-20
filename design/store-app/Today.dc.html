@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Instrument Sans", -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      /* the panel's light setup tokens, read off the running panel at 390x844 (?setup=1&page=address) */
+      --ink: rgb(30,27,36);
+      --ink-2: rgb(87,84,106);
+      --ink-3: rgb(116,112,126);
+      --paper: rgb(231,234,243);
+      --live: rgb(52,150,104);
+      --live-ink: rgb(11,34,22);
+    }
+    .phone { position: relative; width: 390px; height: 844px; overflow: hidden; color: var(--ink); font-size: 17px; line-height: 1.4; }
+    /* the sky behind setup at 5:54 pm, clear: blue overhead going to sand at the horizon */
+    .sky { position: absolute; inset: 0; background: linear-gradient(rgb(152,176,222) 0%, rgb(176,196,232) 34%, rgb(214,206,214) 62%, rgb(226,206,174) 80%, rgb(220,196,160) 100%); }
+    .sky::after { content: ""; position: absolute; left: 300px; top: 632px; width: 26px; height: 26px; border-radius: 50%;
+                  background: radial-gradient(circle, rgba(255,226,190,1) 0 30%, rgba(255,170,110,.55) 55%, transparent 72%); }
+    .hills { position: absolute; left: -20px; right: -20px; top: 618px; bottom: 0; border-radius: 60% 40% 0 0 / 70% 60% 0 0; background: rgba(214,190,150,.55); }
+    .page { position: absolute; left: 18px; top: 118px; width: 354px; }
+    .step { margin: 0; font-size: 11.5px; line-height: 16.1px; letter-spacing: 1.61px; text-transform: uppercase; color: var(--ink-3); }
+    .display { margin: 12px 0 0; font-size: 38px; line-height: 38.76px; letter-spacing: -.95px; font-weight: 400; }
+    .lede { margin: 14px 0 0; font-size: 16px; line-height: 22.4px; color: var(--ink-2); }
+    .form { margin-top: 26px; padding: 18px 20px 20px; border-radius: 22px; background: rgba(30,27,36,.035); border: 1px solid rgba(30,27,36,.18); }
+    .label { display: block; font-size: 13.5px; line-height: 18.9px; letter-spacing: .135px; color: var(--ink-2); }
+    .field { display: flex; margin-top: 4px; height: 50px; }
+    .field .in { width: 200px; display: flex; align-items: center; padding: 0 14px; border-radius: 14px 0 0 14px; background: rgba(30,27,36,.06); border: 1px solid rgba(30,27,36,.1); border-right: 0; }
+    .field .zone { display: flex; align-items: center; padding: 0 14px; border-radius: 0 14px 14px 0; background: rgba(30,27,36,.03); border: 1px solid rgba(30,27,36,.1); color: var(--ink-2); }
+    .said { font-size: 14px; line-height: 19px; color: var(--live); display: flex; align-items: center; gap: 5px; }
+    .cost { margin: 16px 0 0; font-size: 15px; line-height: 21px; color: var(--ink-2); }
+    .amount { font-size: 30px; letter-spacing: -.75px; color: var(--ink); margin-right: 6px; }
+    .stop { margin: 8px 0 0; font-size: 14px; line-height: 20.3px; color: var(--ink-3); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+    .big { display: inline-flex; align-items: center; gap: 9px; height: 54px; padding: 0 28px; border-radius: 999px; background: var(--ink); color: var(--paper); font-size: 17px; font-weight: 500; }
+    .ghost { display: inline-flex; align-items: center; height: 50px; padding: 0 20px; border-radius: 999px; background: rgba(30,27,36,.06); border: 1px solid rgba(30,27,36,.1); font-size: 17px; font-weight: 500; }
+    .foot { margin: 22px 0 0; font-size: 13px; line-height: 18.2px; color: var(--ink-3); }
+    .foot u { color: var(--ink-2); text-underline-offset: 3px; }
+    .mark { width: 64px; height: 64px; border-radius: 50%; background: var(--live); color: var(--live-ink); display: grid; place-items: center; }
+    .card { border-radius: 20px; background: rgba(255,255,255,.66); padding: 15px 15px 16px; font-size: 15px; line-height: 21px; color: var(--ink-2); }
+    .tip-ic { width: 36px; height: 36px; border-radius: 12px; background: rgba(30,27,36,.06); color: rgb(138,90,20); display: grid; place-items: center; flex: 0 0 auto; }
+    .fine { margin: 10px 0 0; font-size: 13px; line-height: 18.2px; color: var(--ink-3); }
+  </style>
+</helmet>
+<!-- TODAY -- the last step of setup, on a phone, inside the store app. Nothing knows it is inside one. -->
+<div class="phone">
+  <div class="sky"></div><div class="hills"></div>
+  <div class="page">
+    <p class="step">Optional</p>
+    <h1 class="display">Use it anywhere?</h1>
+    <p class="lede">The house already works fully at home. To use it on your phones when you are out, we connect it for you, through a service we run.</p>
+    <div class="form">
+      <span class="label">The house&rsquo;s web address</span>
+      <div style="position: relative;">
+      <div class="field"><span class="in">jordan</span><span class="zone">.elyir.app</span></div>
+      <div class="said" style="position: absolute; left: 345px; top: 0; width: 80px;">jordan.elyir.app is free</div>
+      </div>
+      <p class="cost"><span class="amount">$3</span>a month &middot; stop any time</p>
+      <p class="stop">If you stop, phones go back to Home only. Everything at home carries on as it is, and we keep the web address for you for 60 days.</p>
+      <div class="actions"><span class="big">Continue on your phone</span><span class="ghost">Not now</span></div>
+    </div>
+    <p class="foot">Have a server of your own? <u>Use it instead</u>, free.</p>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

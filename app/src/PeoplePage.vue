@@ -33,6 +33,7 @@ const day = (ts: number) => new Date(ts * 1000).toLocaleDateString(locale(), { w
 function phoneLine(p: Phone) {
   const bits = [`${HOW[p.how] ?? 'joined'} ${day(p.joined)}`, seen(p.last_seen)]   // seen: what tells five rows of the same name apart
   if (p.expires) bits.push(`until ${day(p.expires)}`)
+  if (p.push) bits.push('told when something needs it')    // read only: only the phone itself turns it on, in Houses (design/notify/, B)
   return bits.join(' · ')
 }
 const sure = ref(''), removing = ref('')

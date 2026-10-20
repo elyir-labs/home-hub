@@ -8,6 +8,7 @@ import { setupOwner, setupLogin, setupDone, addRoom, setPin, getAddress, getDriv
 import { firstPage } from './drive'
 import DriveStep from './DriveStep.vue'
 import { offersOutside } from './address'
+import { shell } from './inapp'
 import { remember } from './code'
 import { store, load } from './store'
 import Icon from './Icon.vue'
@@ -64,7 +65,7 @@ function next(after: Page) {
   if (after === 'code') return (page.value = 'location')
   if (after === 'location') return (page.value = 'rooms')
   if (after === 'rooms') return (page.value = 'devices')
-  if (after === 'devices') return (page.value = offersOutside(address.value) ? 'address' : 'done')
+  if (after === 'devices') return (page.value = offersOutside(address.value, shell) ? 'address' : 'done')
 }
 watch(driver, d => { if (d === 'ready' && page.value === 'starting') next('starting') })
 watch(() => store.status?.owner, o => { if (o && !name.value) name.value = o })

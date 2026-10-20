@@ -26,6 +26,7 @@ from . import notes as notes_mod
 from .updates import Updates
 from .address import Address, Unreachable
 from .health import Health
+from .glance import glance as glance_of
 from .happened import Happened, Changes
 from .healed import Healed
 from .backup import Backup
@@ -52,6 +53,7 @@ from .nightlight import Nightlight
 from .ears import Ears
 from .relay import Relay
 from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, from_setup, SETUP_OPEN, away_refused, away_refusal
+from .pusher import Pusher, checked as push_checked
 from . import camera
 
 log = logging.getLogger("hub")
@@ -145,6 +147,7 @@ class Hub:
         self.relay = Relay(self)           # two switches on one light: the hub carries the press across
         self.nightlight = Nightlight(self)  # a bridge's own light, lifted when somebody walks past it
         self.phones = Phones(self)                     # which phones belong to the house, once it has a code
+        self.pusher = Pusher(self)                     # what needs a look, told once to the phones that can act on it
         self.engine = Engine(self)                     # rules: signals in, room intents out
         self.signals = Signals(self)                   # what the lights tell you: arriving, leaving, a door left open
         self.presence = Presence(self)                 # who is home, from HA's persons and the alarm's mode
@@ -2560,6 +2563,33 @@ def phones_me_room(body: dict, request: Request):
     return {"room": room.id, "phone": hub.phones.place(phone["id"], room.id, room.name)}
 
 
+def _told(request: Request) -> dict:
+    """A phone of the house's own, and not a screen on its wall: a wall is in the room and is never pushed to.
+
+    `kind` "wall" alone is only a guess from the browser (an iPad says it is a Mac), so what counts as the wall is
+    a screen that said so (?screen=1) or the one that set the house up from a desktop browser."""
+    phone = request.state.phone
+    if not phone: raise HTTPException(409, "Only a phone that belongs to the house can be told things.")
+    if phone.get("kind") == "screen" or (phone.get("how") == "setup" and phone.get("kind") == "wall"):
+        raise HTTPException(403, "A screen on the wall isn't told things; it shows them.")
+    return phone
+
+
+@app.post("/phones/me/push")
+def phones_me_push(body: dict, request: Request):
+    """{subscription, vapid: {publicKey, privateKey}, tz}: this phone's way of being told things, signed with its own
+    key, the one it hands every house it joins (docs/apps.md, Decided). A new one replaces the old."""
+    phone = _told(request)
+    try: push = push_checked(body, time.time())
+    except ValueError as e: raise HTTPException(400, str(e))
+    return {"phone": hub.phones.set_push(phone["id"], push)}
+
+
+@app.delete("/phones/me/push")
+def phones_me_push_off(request: Request):
+    return {"phone": hub.phones.set_push(_told(request)["id"], None)}
+
+
 @app.post("/phones/move")
 def phones_move(request: Request):
     """A one-time code that carries this phone to the house's own name (design/away/, C). From inside the house,
@@ -2734,6 +2764,13 @@ async def retry_part(part_id: str):
 def health():
     """What needs a look, in plain words: [{"kind", "text", "since", "subject"}]. Empty is good news."""
     return {"notes": hub.health.notes() if hub.driver == "ready" else []}
+
+
+@app.get("/glance")
+def glance():
+    """How the house is, in a few words, for a phone's home screen: docs/apps.md, What the page gives the shell."""
+    hub.ready()
+    return glance_of(hub)
 
 
 # ---------- backup and restore ----------

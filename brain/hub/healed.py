@@ -24,6 +24,7 @@ import json, logging, re, time
 from datetime import datetime
 
 from .health import when
+from .messages import said, way
 from .settings import DATA
 
 log = logging.getLogger("hub.healed")
@@ -139,12 +140,7 @@ class Healed:
         parts = {h["service"] for h in week}
         name = named(next(iter(parts))) if len(parts) == 1 else None
         power = sum(1 for h in week if h.get("stopped") and h.get("boot") and abs(h["stopped"] - float(h["boot"])) < BOOT)
-        what = f"{lower(name)} did not start again by itself" if name else "part of the hub did not start again by itself"
-        if power == len(week):
-            text = f"The hub has lost power {len(week)} times this week, and each time {what}."
-            why = "A power cut can wear out the hub's memory card. A backup now means nothing is lost if it goes."
-        else:
-            text = f"{what[0].upper() + what[1:]} {len(week)} times this week, and the hub had to start it."
-            why = "Something is wrong that starting it again is not fixing. A backup now means nothing is lost if it gets worse."
-        return [{"kind": "healed", "subject": None, "since": week[-1]["ts"], "text": text, "more": why,
-                 "acts": [{"do": "Back up", "act": "backup", "to": None}]}]
+        mid = "hub.power_lost" if power == len(week) else "hub.part_restarted"
+        return [{"kind": "healed", "subject": None, "since": week[-1]["ts"],
+                 **said(mid, None if name else "several", part=lower(name) if name else None, count=len(week)),
+                 "acts": [way(mid, "backup", None)]}]
