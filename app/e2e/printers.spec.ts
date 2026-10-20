@@ -204,6 +204,11 @@ test.describe('on a phone (PhoneB, PhonePaneB)', () => {
     const block = page.locator('.block', { hasText: 'Printing' })
     await expect(block.locator('.print-card.compact')).toContainText('42%')
     await block.locator('.print-card').click()
+    await expect(page.locator('.print-pane-cam')).toBeVisible()
+    // measured while the sheet was still sliding up, the camera read below the screen about one run in ten
+    await page.evaluate(() => Promise.all(document.getAnimations()
+      .filter(a => a.effect?.getTiming().iterations !== Infinity)
+      .map(a => a.finished.catch(() => null))))
     const cam = await box(page, '.print-pane-cam'), name = await box(page, '.print-pane .opened-name')
     expect(cam.y).toBeLessThan(name.y)
     expect(cam.width).toBeGreaterThan(380)

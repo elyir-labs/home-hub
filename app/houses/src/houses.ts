@@ -11,6 +11,7 @@
  */
 import { reactive } from 'vue'
 import { all, put } from './db'
+import { handHouses } from './shell'
 
 export type HouseRecord = {
   id: string          // the house's label in the zone: `jordan` of jordan.elyir.app
@@ -158,18 +159,20 @@ function record(h: HouseRecord): HouseRecord {
   return { id, name, origin, lan, token, added, opened, push }
 }
 
-export async function save(h: HouseRecord) { await put(record(h)) }
+export async function save(h: HouseRecord) { await put(record(h)); handHouses(state.houses) }
 
 export async function load() {
   const got = await all<HouseRecord>()
   state.houses = got.map(h => ({ ...h, reach: 'checking' as Reach, glance: null }))
   state.loaded = true
+  handHouses(state.houses)
 }
 
 export async function add(h: HouseRecord) {
-  await save(h)
+  await put(record(h))
   const i = state.houses.findIndex(x => x.id === h.id)
   const live: House = { ...h, reach: 'checking', glance: null }
   if (i >= 0) state.houses[i] = live
   else state.houses.push(live)
+  handHouses(state.houses)
 }

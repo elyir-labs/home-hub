@@ -686,6 +686,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
     }) }
     if (p === '/bridge/forget') return json(res, { forgotten: 'The Hallway bridge' })
     if (p === '/health') return json(res, { notes: [...printerNotes(req, env), ...notes] })
+    if (p === '/glance') return json(res, glanceOf(req))
     /* What happened, and who changed what. The brain measures these off the event log (happened.py);
        here they are fixed, so the page can be drawn and argued about without a house that has actually
        been left alone all day. The wording is the brain's in production and copied here verbatim --
@@ -1104,6 +1105,19 @@ export function createHouse({ env = {}, qr = null } = {}) {
     if (PRETEND && req.method === 'POST' && pretendRoute(p, req, res)) return
     if (req.method === 'POST' || req.method === 'DELETE') return json(res, { ok: true })   // forgetting a thing, or a phone leaving, answer like every other change
     res.pass()
+  }
+
+  /* How the house is, for a phone's home screen, in brain/hub/glance.py's words: read off the rooms as they are now,
+     so in the pretend house a tap shows up here too. */
+  function glanceOf(req) {
+    const ACTIVE = ['on', 'playing', 'open', 'unlocked', 'cleaning', 'streaming', 'recording'], PASSIVE = ['sensor', 'motion', 'contact', 'camera', 'charger', 'appliance']
+    const on = rooms.filter(r => r.devices.some(d => ACTIVE.includes(d.state) && !PASSIVE.includes((d.kind || d.guess || d.capability).split('.')[0]) && !d.attrs?.off_home))
+    const said = [!on.length ? 'Everything is off' : on.length === 1 ? `On in the ${on[0].name}` : `On in ${on.length} rooms`]
+    const known = presence.people.filter(x => x.home !== null), here = known.filter(x => x.home).length
+    if (known.length) said.push(presence.somebody === false || !here ? 'Nobody home' : here === 1 ? '1 person home' : `${here} people home`)
+    const all = [...printerNotes(req, env), ...notes], w = ambient.weather
+    return { name: home.name, temp: typeof w?.temperature === 'number' ? `${Math.round(w.temperature)}°` : null, sky: w?.condition || null,
+             said, needs: all[0]?.text ?? null, count: all.length, at: Math.floor(Date.now() / 1000) }
   }
 
   /* ---- the pretend house: a tap is kept ----------------------------------------------------------

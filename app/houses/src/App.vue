@@ -8,7 +8,8 @@
  * adding one or trying a pretend one (design/pretend-in-app/, B). Otherwise a
  * house -- the one whose Wi-Fi this phone is on, else the one opened last (design/houses/, B) -- with Houses
  * over it when somebody taps the house's name. A notification tapped opens the house that sent it (public/sw.js):
- * as /?open=<label> when the app was closed, as a message from the worker when it was open.
+ * as /?open=<label> when the app was closed, as a message from the worker when it was open. The store app opens one
+ * its widget was tapped on the same way, /?shell=ios&store=US&open=<label>; only `open` comes off the address.
  */
 import { onMounted, onUnmounted, ref } from 'vue'
 import { houseToOpen, load, reach, state, type House } from './houses'

@@ -16,7 +16,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { baseOf, glance, reach, save, state, type House } from './houses'
 import { fineFor, lineFor, look, pushing, turnOff, turnOn } from './push'
-import { shell } from './shell'
+import { postToShell, shell } from './shell'
 
 const props = defineProps<{ id: string; base: string }>()
 const emit = defineEmits<{ switch: [id: string]; add: []; reached: [id: string, base: string] }>()
@@ -72,6 +72,7 @@ async function glanceAll() {
 onMounted(async () => {
   window.addEventListener('message', onMessage)
   house.value.opened = Date.now(); save(house.value)
+  postToShell({ type: 'houses:opened', id: props.id })
   if (!base.value) { const got = await reach(house.value); house.value.reach = got.reach; base.value = got.base; emit('reached', props.id, got.base) }
   glanceAll()
 })

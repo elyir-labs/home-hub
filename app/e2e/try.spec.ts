@@ -93,9 +93,23 @@ test('the pretend house: rooms from the page itself, a tap that stays, a still, 
 test("the pretend house names nobody else's show or brand", async ({ page }) => {
   await page.goto(`${SITE}/try/?at=20:10&wx=cloudy`, { waitUntil: 'networkidle' })
   const said = await page.evaluate(async () => {
-    const paths = ['/home', '/things', '/accounts', '/discovered', '/catalog', '/health', '/happened/changes', '/setup/status']
+    const paths = ['/home', '/things', '/accounts', '/discovered', '/catalog', '/health', '/glance', '/happened/changes', '/setup/status']
     return (await Promise.all(paths.map(p => fetch(p).then(r => r.text())))).join('\n') + document.body.innerText
   })
   for (const name of ['The Bear', 'Disney', 'Philips', 'Hue', 'Sonos', 'Chromecast', 'Miles Davis', 'Nest', 'Google', 'Ring', 'TP-Link', 'Samsung', 'Hunter', 'IKEA', 'Tesla'])
     expect(said, name).not.toContain(name)
+})
+
+test('the pretend house answers the widget as a house does, and a routine run there shows in it', async ({ page }) => {
+  await page.goto(`${SITE}/try/?at=20:10&wx=cloudy`, { waitUntil: 'networkidle' })
+  const [before, after] = await page.evaluate(async () => {
+    const glance = () => fetch('/glance').then(r => r.json())
+    const was = await glance()
+    await fetch('/home/intent/away', { method: 'POST', body: '{}' })
+    return [was, await glance()]
+  })
+  expect(Object.keys(before).sort()).toEqual(['at', 'count', 'name', 'needs', 'said', 'sky', 'temp'])
+  expect(before.said).toEqual(['On in 5 rooms', '2 people home'])
+  expect(before.temp).toBe('78°')
+  expect(after.said[0], 'Everything off reached the rooms it can').not.toBe(before.said[0])
 })
