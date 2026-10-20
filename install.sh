@@ -98,6 +98,8 @@ if [ -d "$DIR/.git" ]; then
     go_to_ref || exit 3
   else
     echo "  could not reach $REPO; keeping the code that is here"
+    # ...and the version it is, so the brain this image carries is the one compose asks for.
+    VERSION="$(git -C "$DIR" describe --tags --exact-match 2>/dev/null | sed -n 's/^v//p')" || true
   fi
 elif [ -f "$HERE/driver-layer/docker-compose.yml" ] && [ "$HERE" != "$DIR" ]; then
   mkdir -p "$DIR"; cp -R "$HERE/." "$DIR/"     # a first install from a copied checkout, without internet
@@ -269,6 +271,19 @@ HOME_HUB_DIR="$DIR" ./host/network.sh >/dev/null 2>&1 || true
 HOME_HUB_DIR="$DIR" ./host/channel.sh >/dev/null 2>&1 || true
 
 say "5/5  Starting the house"
+# No internet yet, on a box that brought the brain and the front door with it: start those two and stop.
+# That is all the Wi-Fi step needs (docs/network.md, piece 5). host/network.sh runs this again once the
+# hub is online, and the rest of the house downloads then, behind "Getting things ready".
+FINISH="${HUB_FINISH:-/var/lib/home-hub/finish-install}"
+if [ "$(curl -s -m 8 -o /dev/null -w '%{http_code}' https://ghcr.io/v2/ 2>/dev/null)" = 000 ] \
+   && docker image inspect "${HUB_BRAIN_IMAGE:-ghcr.io/elyir-labs/home-hub-brain:latest}" >/dev/null 2>&1 \
+   && docker image inspect "${HUB_IMG_CADDY:-caddy:2}" >/dev/null 2>&1; then
+  docker compose up -d --no-deps brain caddy
+  mkdir -p "$(dirname "$FINISH")" && echo "$CHANNEL" > "$FINISH"
+  say "Started without internet. The rest of the house downloads once the hub is online."
+  exit 0
+fi
+rm -f "$FINISH"
 phase downloading
 # Pre-pull everything the compose file pins. A tag that no longer exists on the registry would
 # otherwise surface as a wall of daemon errors from `up`, with none of the other images fetched and

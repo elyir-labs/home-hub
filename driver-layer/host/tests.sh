@@ -674,6 +674,17 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
 
   fresh; SAVED=Bluebell HOME_HUB_SETUP_LOST=300 PATH="$bin:$PATH" ROOT="$root" HUB_NET="$net" HUB_CONF="$root/conf" HOME_HUB_DIR="$dir" HOME_HUB_SETUP_FIRST=0 "$HERE/network.sh"
   is "a hub that had a Wi-Fi waits before offering its own: a router rebooting is not a reason" "$(grep -c 'con-name home-hub-setup' "$root/asked")" "0"
+
+  # A box that started without internet finishes installing once it is online.
+  printf '#!/usr/bin/env bash\necho "systemd-run $*" >> "$ROOT/asked"\n' > "$bin/systemd-run"; chmod +x "$bin/systemd-run"
+  finish() { PATH="$bin:$PATH" ROOT="$root" HUB_NET="$net" HUB_CONF="$root/conf" HOME_HUB_DIR="$dir" HUB_FINISH="$root/finish" HOME_HUB_FINISH_WAIT="${WAIT:-0}" "$HERE/network.sh"; }
+  fresh; echo development > "$root/finish"; finish
+  is "still on nothing, it waits" "$(grep -c 'systemd-run' "$root/asked")" "0"
+  fresh; ROUTE=wlp1s0 WAIT=600 finish
+  is "online, but only just tried: it waits" "$(grep -c 'systemd-run' "$root/asked")" "0"
+  fresh; ROUTE=wlp1s0 finish
+  is "online: the install is finished, on the channel it started on" "$(grep -c "systemd-run --no-block --collect --unit=home-hub-finish -E HOME_HUB_DIR=$dir -E HOME_HUB_CHANNEL=development $dir/install.sh" "$root/asked")" "1"
+  is "...once" "$([ -f "$root/finish" ] && echo still || echo gone)" "gone"
   rm -rf "$root"
 }
 

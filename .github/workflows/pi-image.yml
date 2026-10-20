@@ -37,6 +37,19 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /usr/share/swift /usr/local/share/boost /opt/hostedtoolcache/CodeQL /usr/local/lib/node_modules
           sudo docker image prune -af >/dev/null 2>&1 || true
           df -h /
+      - name: The containers a hub starts with before it has internet
+        # The brain and the front door serve the Wi-Fi step on a box with no cable (docs/network.md, piece 5),
+        # and the broker's image is what install.sh hashes its password with. Saved under the names compose
+        # will ask for on this version; firstboot.sh loads them. The brain is published by brain-image.yml from
+        # the same tag, so it may not be there yet.
+        run: |
+          F=driver-layer/host/pi-image/stage-hub/00-home-hub/files/preload; mkdir -p "$F"
+          case "$GITHUB_REF_NAME" in v*) B="ghcr.io/elyir-labs/home-hub-brain:${GITHUB_REF_NAME#v}" ;; *) B="ghcr.io/elyir-labs/home-hub-brain:latest" ;; esac
+          for i in $(seq 1 60); do docker pull -q --platform linux/arm64 "$B" && break; echo "waiting for $B"; sleep 30; done
+          docker pull -q --platform linux/arm64 caddy:2
+          docker pull -q --platform linux/arm64 eclipse-mosquitto:2
+          docker save "$B" -o "$F/brain.tar"; docker save caddy:2 -o "$F/caddy.tar"; docker save eclipse-mosquitto:2 -o "$F/mosquitto.tar"
+          ls -lh "$F"
       - uses: usimd/pi-gen-action@v1
         id: build
         with:

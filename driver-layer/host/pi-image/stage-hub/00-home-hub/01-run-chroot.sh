@@ -1,8 +1,8 @@
 #!/bin/bash -e
 # SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Runs inside the image. The code, Docker and the first-boot unit go in now; containers are pulled on the
-# first boot, when there is a network and a running Docker daemon.
+# Runs inside the image. The code, Docker and the first-boot unit go in now. The few containers the hub
+# needs before it has internet were saved by the workflow (00-run.sh); the rest are pulled once it is online.
 # shellcheck disable=SC1091
 . /etc/home-hub.conf
 REF="${HOME_HUB_REF:-main}"

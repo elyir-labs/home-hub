@@ -268,6 +268,20 @@ setup_tick() {
   [ $(( now - $(cat "$OFFLINE") )) -ge "$wait" ] && setup_up
 }
 
+# A hub that started without internet (install.sh) finishes installing once it is online. Not more
+# often than every two minutes: a route out is not proof the registry answers, and an install that
+# finds it still cannot reach it leaves the mark again.
+FINISH="${HUB_FINISH:-/var/lib/home-hub/finish-install}"
+finish_install() {
+  [ -f "$FINISH" ] && online || return 0
+  local age; age=$(( $(date +%s) - $(stat -c %Y "$FINISH" 2>/dev/null || stat -f %m "$FINISH") ))
+  [ "$age" -ge "${HOME_HUB_FINISH_WAIT:-120}" ] || return 0
+  local channel; channel="$(head -1 "$FINISH")"; rm -f "$FINISH"
+  say "online: finishing the install that started without internet"
+  have systemd-run && systemd-run --no-block --collect --unit=home-hub-finish \
+    -E HOME_HUB_DIR="$DIR" -E HOME_HUB_CHANNEL="${channel:-release}" "$DIR/install.sh" >/dev/null 2>&1
+}
+
 saved_wifi() { nmcli -t -f NAME,TYPE connection show 2>/dev/null | grep ':802-11-wireless$' | grep -qv "^$SETUP_CON:"; }
 
 # ---------------------------------------------------------------- moving this hub
@@ -380,6 +394,7 @@ if [ -f "$REQ" ]; then
   esac
 else
   setup_tick
+  finish_install
 fi
 
 write_state

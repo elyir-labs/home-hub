@@ -97,6 +97,16 @@ if screen_here && [ "${HUB_ROLE:-}" != hub ]; then
   log "no hub found: this unit will run the house"
 fi
 
+# The containers a flashed image carries (pi-image/, x86-image/): enough to serve the Wi-Fi step before
+# the hub has any internet (docs/network.md, piece 5). Loaded once and deleted, because the disk wants
+# the room more than a second copy.
+PRELOAD="${HUB_PRELOAD:-/var/lib/home-hub/preload}"
+if ls "$PRELOAD"/*.tar >/dev/null 2>&1 && command -v docker >/dev/null 2>&1; then
+  systemctl start docker >/dev/null 2>&1 || true
+  log "loading the containers this image carries, so it can start before it has internet"
+  for t in "$PRELOAD"/*.tar; do docker load -i "$t" >/dev/null 2>&1 && rm -f "$t"; done
+fi
+
 log "installing the hub"
 if [ -x "$DIR/install.sh" ]; then
   HOME_HUB_DIR="$DIR" "$DIR/install.sh"
