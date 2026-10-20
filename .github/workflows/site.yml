@@ -1,4 +1,4 @@
-# The site at https://hub.elyir.com (the front page, /install and the waitlist), deployed when something it's made of
+# The site at https://hub.elyir.com (the front page, /install, the waitlist and the pretend house at /try), deployed when something it's made of
 # changes on main. It is design/site's D; site/site.test.mjs pins it to the board and is run before anything goes up.
 #
 # Secrets (Settings > Secrets and variables > Actions):
@@ -14,7 +14,7 @@ on:
     paths:
       - "site/**"
       - "install.sh"                # https://hub.elyir.com/install serves it
-      - "app/public/favicon.svg"
+      - "app/**"                    # the pretend house at /try is the panel, built from here
       - ".github/workflows/site.yml"
   workflow_dispatch:
 
@@ -41,6 +41,10 @@ jobs:
 
       - name: The page still matches its board
         run: node --test site/site.test.mjs
+
+      - name: The pretend house
+        working-directory: app
+        run: npm ci && npm run build:try
 
       - name: Put it together
         run: site/build.sh
