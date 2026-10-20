@@ -42,10 +42,15 @@ jobs:
         # same tag by brain-image.yml, so it may not be there yet.
         run: |
           mkdir -p preload
-          # A branch's image carries that branch's brain (brain-image.yml publishes it under the branch's name), because
-          # it follows that branch (install.sh, HOME_HUB_BRANCH); a release carries the release's.
-          case "$REF" in v*) B="ghcr.io/elyir-labs/home-hub-brain:${REF#v}" ;; *) B="ghcr.io/elyir-labs/home-hub-brain:$(echo "$REF" | tr '/' '-')" ;; esac
-          for i in $(seq 1 60); do docker pull -q --platform linux/amd64 "$B" && break; echo "waiting for $B"; sleep 30; done
+          # A release carries the release's brain, published and signed by brain-image.yml from the same tag. A branch's
+          # image carries that branch's brain, because it follows that branch (install.sh, HOME_HUB_BRANCH), and builds it
+          # here from the checkout: natively and for this one platform, rather than waiting on a two-platform publish.
+          case "$REF" in
+            v*) B="ghcr.io/elyir-labs/home-hub-brain:${REF#v}"
+                for i in $(seq 1 60); do docker pull -q --platform linux/amd64 "$B" && break; echo "waiting for $B"; sleep 30; done ;;
+            *)  B="ghcr.io/elyir-labs/home-hub-brain:$(echo "$REF" | tr '/' '-')"
+                docker build -q -f brain/Dockerfile --build-arg HUB_VERSION="$REF-$(git rev-parse HEAD)" --build-arg HUB_COMMIT="$(git rev-parse HEAD)" -t "$B" . ;;
+          esac
           docker pull -q --platform linux/amd64 caddy:2
           docker pull -q --platform linux/amd64 eclipse-mosquitto:2
           docker save "$B" -o preload/brain.tar; docker save caddy:2 -o preload/caddy.tar; docker save eclipse-mosquitto:2 -o preload/mosquitto.tar

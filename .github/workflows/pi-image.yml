@@ -46,8 +46,13 @@ jobs:
         # the same tag, so it may not be there yet.
         run: |
           F=driver-layer/host/pi-image/stage-hub/00-home-hub/files/preload; mkdir -p "$F"
-          case "$GITHUB_REF_NAME" in v*) B="ghcr.io/elyir-labs/home-hub-brain:${GITHUB_REF_NAME#v}" ;; *) B="ghcr.io/elyir-labs/home-hub-brain:$(echo "$GITHUB_REF_NAME" | tr '/' '-')" ;; esac
-          for i in $(seq 1 60); do docker pull -q --platform linux/arm64 "$B" && break; echo "waiting for $B"; sleep 30; done
+          # As the x86 image does: a release pulls its published brain, a branch builds its own here (natively: this runner is arm64).
+          case "$GITHUB_REF_NAME" in
+            v*) B="ghcr.io/elyir-labs/home-hub-brain:${GITHUB_REF_NAME#v}"
+                for i in $(seq 1 60); do docker pull -q --platform linux/arm64 "$B" && break; echo "waiting for $B"; sleep 30; done ;;
+            *)  B="ghcr.io/elyir-labs/home-hub-brain:$(echo "$GITHUB_REF_NAME" | tr '/' '-')"
+                docker build -q -f brain/Dockerfile --build-arg HUB_VERSION="$GITHUB_REF_NAME-$GITHUB_SHA" --build-arg HUB_COMMIT="$GITHUB_SHA" -t "$B" . ;;
+          esac
           docker pull -q --platform linux/arm64 caddy:2
           docker pull -q --platform linux/arm64 eclipse-mosquitto:2
           docker save "$B" -o "$F/brain.tar"; docker save caddy:2 -o "$F/caddy.tar"; docker save eclipse-mosquitto:2 -o "$F/mosquitto.tar"
