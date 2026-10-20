@@ -2,39 +2,60 @@
 # SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # The flash-and-go image for x86 hosts: a NUC, a mini PC. Ubuntu 24.04's cloud image with the hub on it,
-# customized in place with libguestfs (no VM to drive, no installer to answer). See README.md.
+# changed the way pi-gen changes Raspberry Pi OS: mounted on a loop device and entered with chroot, using
+# this machine's own network. See README.md.
 #
-#   build.sh <ref> <out.img> [preload-dir]
+#   sudo build.sh <ref> <out.img> [preload-dir]
 #
-# Needs: virt-customize and virt-resize (libguestfs-tools), qemu-img, curl, sha256sum. Runs as any user who can read
-# /dev/kvm; without it libguestfs falls back to emulation and takes several times longer.
+# Needs root, qemu-img, growpart (cloud-guest-utils), curl and sha256sum, on an amd64 Linux machine.
 set -euo pipefail
 REF="${1:?which tag or branch the image carries}"; OUT="${2:?where the image goes}"; PRELOAD="${3:-}"
 REPO="${HOME_HUB_REPO:-https://github.com/elyir-labs/home-hub.git}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 BASE="${HUB_BASE_URL:-https://cloud-images.ubuntu.com/releases/24.04/release}"
 CLOUD="ubuntu-24.04-server-cloudimg-amd64.img"
-WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
+WORK="$(mktemp -d)"; ROOT="$WORK/root"; LOOP=""
+done_with() {
+  set +e
+  for m in dev/pts dev proc sys run boot/efi boot ""; do mountpoint -q "$ROOT/$m" && umount "$ROOT/$m"; done
+  [ -n "$LOOP" ] && losetup -d "$LOOP"
+  rm -rf "$WORK"
+}
+trap done_with EXIT
 
 curl -fsSL -o "$WORK/$CLOUD" "$BASE/$CLOUD"
 curl -fsSL -o "$WORK/SHA256SUMS" "$BASE/SHA256SUMS"
 (cd "$WORK" && grep " \*\?$CLOUD\$" SHA256SUMS | sha256sum -c -)
 
-# Raw, so it can be written to a disk as it is, and with room for a kernel that knows real hardware,
-# its firmware, Docker and the containers. first boot grows it to fill whatever disk it lands on.
-qemu-img create -f raw "$OUT" "${HUB_IMAGE_SIZE:-9G}"
-virt-resize --format qcow2 --output-format raw --expand /dev/sda1 "$WORK/$CLOUD" "$OUT"
+# Raw, so it can be written to a disk as it is, and with room for a kernel that knows real hardware, its
+# firmware, Docker and the containers. first boot grows it again to fill whatever disk it lands on.
+qemu-img convert -O raw "$WORK/$CLOUD" "$OUT"
+qemu-img resize -f raw "$OUT" "${HUB_IMAGE_SIZE:-9G}"
+LOOP="$(losetup -fP --show "$OUT")"
+growpart "$LOOP" 1
+e2fsck -pf "${LOOP}p1" || [ $? -le 1 ]   # 1 is "fixed something", which a fresh image may well need
+resize2fs "${LOOP}p1"
 
-printf 'HOME_HUB_REF=%s\nHOME_HUB_REPO=%s\nHUB_IMAGE=x86\n' "$REF" "$REPO" > "$WORK/home-hub.conf"
-ARGS=(--format raw -a "$OUT" --smp 2 --memsize 2048
-      --upload "$WORK/home-hub.conf:/etc/home-hub.conf"
-      # --run would hand the script to /bin/sh whatever its first line says; it is a bash script.
-      --upload "$HERE/inside.sh:/tmp/inside.sh"
-      --run-command "bash /tmp/inside.sh"
-      --delete /tmp/inside.sh)
+# The image's own partitions, by their labels on this loop device and nowhere else: the machine building
+# it is quite likely an Ubuntu cloud image itself, with partitions of the same names.
+part() { for p in "$LOOP"p*; do [ "$(blkid -o value -s LABEL "$p")" = "$1" ] && { echo "$p"; return; }; done; }
+mkdir -p "$ROOT"; mount "$(part cloudimg-rootfs)" "$ROOT"
+[ -n "$(part BOOT)" ] && mount "$(part BOOT)" "$ROOT/boot"
+mount "$(part UEFI)" "$ROOT/boot/efi"
+for m in dev dev/pts proc sys run; do mount --bind "/$m" "$ROOT/$m"; done
+
+printf 'HOME_HUB_REF=%s\nHOME_HUB_REPO=%s\nHUB_IMAGE=x86\n' "$REF" "$REPO" > "$ROOT/etc/home-hub.conf"
+install -m 755 "$HERE/inside.sh" "$ROOT/tmp/inside.sh"
 if [ -n "$PRELOAD" ] && ls "$PRELOAD"/*.tar >/dev/null 2>&1; then
-  ARGS+=(--mkdir /var/lib/home-hub/preload)
-  for t in "$PRELOAD"/*.tar; do ARGS+=(--copy-in "$t:/var/lib/home-hub/preload"); done
+  install -d "$ROOT/var/lib/home-hub/preload"
+  install -m 644 "$PRELOAD"/*.tar "$ROOT/var/lib/home-hub/preload/"
 fi
-virt-customize "${ARGS[@]}"
+# Packages must not start services in here, and names are looked up the way this machine looks them up.
+printf '#!/bin/sh\nexit 101\n' > "$ROOT/usr/sbin/policy-rc.d"; chmod 755 "$ROOT/usr/sbin/policy-rc.d"
+mv "$ROOT/etc/resolv.conf" "$WORK/resolv.keep"; cp -L /etc/resolv.conf "$ROOT/etc/resolv.conf"
+
+chroot "$ROOT" bash /tmp/inside.sh
+
+rm -f "$ROOT/tmp/inside.sh" "$ROOT/usr/sbin/policy-rc.d" "$ROOT/etc/resolv.conf"
+mv "$WORK/resolv.keep" "$ROOT/etc/resolv.conf"
 echo "built $OUT"

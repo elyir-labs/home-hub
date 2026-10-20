@@ -20,8 +20,9 @@ Wi‑Fi step works before the hub has any internet; the engine and the rest down
 no drivers for real Wi‑Fi cards; NetworkManager running every link; Docker; no cloud-init, no login and no SSH, like the
 Pi image; the hub's code at the tag and its first-boot unit. The machine id is emptied so every unit makes its own.
 
-To build one yourself, on Linux with `libguestfs-tools` and `qemu-utils`:
+To build one yourself, as root on amd64 Linux with `qemu-utils` and `cloud-guest-utils` (it mounts the image on a
+loop device and changes it from a chroot, the way pi-gen does):
 
 ```sh
-driver-layer/host/x86-image/build.sh v0.6.4 hub.img [dir-of-saved-container-tars]
+sudo driver-layer/host/x86-image/build.sh v0.6.4 hub.img [dir-of-saved-container-tars]
 ```

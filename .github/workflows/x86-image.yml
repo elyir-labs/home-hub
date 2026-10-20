@@ -32,17 +32,9 @@ jobs:
           echo "REF=$REF" >> "$GITHUB_ENV"
           echo "NAME=home-hub-$(echo "$REF" | tr '/' '-')-x86.img" >> "$GITHUB_ENV"
       - name: Room, and the tools
-        # libguestfs boots a small appliance with the host's own kernel, which Ubuntu keeps unreadable to users,
-        # and runs much faster with /dev/kvm, which the runner has but does not open to the runner's user.
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /usr/share/swift /usr/local/share/boost /opt/hostedtoolcache/CodeQL
-          sudo apt-get update -q && sudo apt-get install -yq --no-install-recommends libguestfs-tools qemu-utils xz-utils
-          # passt is libguestfs's network for the appliance when it is installed, and its AppArmor profile refuses the
-          # socket libguestfs gives it on this runner; without it libguestfs uses QEMU's own user network.
-          sudo apt-get remove -yq passt || true
-          sudo chmod 0644 /boot/vmlinuz-*
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+          sudo apt-get update -q && sudo apt-get install -yq --no-install-recommends qemu-utils cloud-guest-utils xz-utils
           df -h /
       - name: The containers a hub starts with before it has internet
         # The same three as the Pi image, for amd64: the brain and the front door serve the Wi-Fi step, and the
@@ -57,9 +49,9 @@ jobs:
           docker save "$B" -o preload/brain.tar; docker save caddy:2 -o preload/caddy.tar; docker save eclipse-mosquitto:2 -o preload/mosquitto.tar
           ls -lh preload
       - name: Build
-        env:
-          LIBGUESTFS_BACKEND: direct
-        run: driver-layer/host/x86-image/build.sh "$REF" "$NAME" preload
+        run: |
+          sudo driver-layer/host/x86-image/build.sh "$REF" "$NAME" preload
+          sudo chown "$(id -u):$(id -g)" "$NAME"
       - name: Compress and checksum
         run: |
           xz -T0 -6 "$NAME"
