@@ -253,7 +253,9 @@ const NO_PUSH_SERVICE = () => {
   PushManager.prototype.subscribe = async function (opts?: PushSubscriptionOptionsInit) {
     const key = new Uint8Array(opts!.applicationServerKey as Uint8Array)
     w.subscribedWith = btoa(String.fromCharCode(...key)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-    const json = { endpoint: 'https://push.example/this-phone', expirationTime: null, keys: { p256dh: 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM', auth: 'tBHItJI5svbpez7KI4CCXg' } }
+    // made up on each run: a fixed sample here reads as a credential to the secret scan
+    const b64 = (n: number) => btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(n)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    const json = { endpoint: 'https://push.example/this-phone', expirationTime: null, keys: { p256dh: b64(65), auth: b64(16) } }
     current = { endpoint: json.endpoint, options: { applicationServerKey: key.buffer, userVisibleOnly: true }, toJSON: () => json, unsubscribe: async () => { current = null; w.unsubscribed = true; return true } }
     return current
   }
