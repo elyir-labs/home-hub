@@ -291,7 +291,7 @@ Do not reopen these, and do not propose around them.
   printed under it, and gone once it is online. The phone's sign-in sheet opens on the panel's own Wi-Fi step, where
   a card that can do both tries the house's Wi-Fi without dropping the phone. Holding the label's password lets a phone
   give the hub a Wi-Fi and nothing else. B (the same over Bluetooth, no network switch) waits for an app, because
-  Safari has no Bluetooth. Pinned by `app/tests/wifi.test.ts`, `brain/tests/test_setup_wifi.py` and the
+  Safari has no Bluetooth. Pinned by `app/tests/wifi.test.ts`, `app/e2e/setup-wifi.spec.ts`, `brain/tests/test_setup_wifi.py` and the
   `setting_up` group in `driver-layer/host/tests.sh`; the host's half is `host/network.sh`.
 - **The hub's front page is Elyir Bench's shape, with one line for a hub ready to plug in** (16 October,
   `design/site/`, D). It lives at `hub.elyir.com`, as Bench lives at `bench.elyir.com`; never under `elyir.app`, where
