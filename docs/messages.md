@@ -174,7 +174,7 @@ The first two are today's work and depend on nothing.
 
 1. *Done 19 October 2026 (`app/e2e/note.spec.ts`).* **Wire the orphan.** A `message` branch in `connect()`, `notify()` on the far end of it, a test that a rule's note
    reaches a screen. Five lines against a documented outcome that has never worked.
-2. **`brain/hub/messages.py` and the classes.** Move the 19 `e.message` receipts and everything in `health.py` onto
+2. *Done 19 October 2026 (`brain/tests/test_messages.py`): Needs a look and a rule's note are on ids; the panel's receipts already carry the brain's sentence, and the few that glue one on are left for the wording pass.* **`brain/hub/messages.py` and the classes.** Move the 19 `e.message` receipts and everything in `health.py` onto
    ids. The panel keeps the receipts that describe its own hand and loses the rest. No delivery work at all in this
    step — it is a refactor whose output is a file you can read the house's whole voice out of.
 3. **The band and the log read the catalog** rather than each assembling its own sentence. *Recent* can then say
