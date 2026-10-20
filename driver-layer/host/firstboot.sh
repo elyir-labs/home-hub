@@ -17,11 +17,10 @@
 #   4. Run install.sh, which does everything a hand install would.
 #   5. On a unit with its own screen: startup/install.sh, the splash and the panel full screen.
 #
-# The x86 image (x86-image/) is written to a USB stick and booted on the NUC. Booted from the stick
-# with an empty internal drive, it moves itself there (host/move-to-drive.sh) and restarts from the
-# drive; the stick is never written, so it sets up the next hub. A drive with anything on it is never
-# touched: the hub runs from the stick instead (HUB_AUTO_INTERNAL=0 in /etc/home-hub.conf turns the move
-# off). Wherever it runs, the root filesystem is grown to fill its disk.
+# The x86 image (x86-image/) is written to a USB stick and booted on the NUC. Moving off the stick onto
+# the computer's drive happens before this runs (host/move-early.sh, at the start of the boot); by the
+# time first boot gets here the hub is wherever it is staying, and its root filesystem is grown to fill
+# that disk.
 set -euo pipefail
 MARK=${HUB_FIRSTBOOT_MARK:-/var/lib/home-hub/firstboot.done}
 CONF=${HUB_CONF:-/etc/home-hub.conf}
@@ -62,33 +61,6 @@ if [ "${HUB_IMAGE:-}" = x86 ]; then
   SYS_BLOCK="${HUB_SYS_BLOCK:-/sys/block}"
   ROOT_PART="$(findmnt -no SOURCE /)"
   ROOT_DISK="$(lsblk -no PKNAME "$ROOT_PART" | head -1)"
-  on_stick() { [ "$(lsblk -dno TRAN "/dev/$1" 2>/dev/null)" = usb ] || [ "$(cat "$SYS_BLOCK/$1/removable" 2>/dev/null)" = 1 ]; }
-  internal() { lsblk -dno NAME,TRAN,TYPE 2>/dev/null | awk -v r="$ROOT_DISK" '$3=="disk" && $1!=r && ($2=="nvme"||$2=="sata"||$2=="ata") {print $1}'; }
-  # An internal drive with no partitions and no signature of any kind: nothing anybody could lose.
-  empty() { [ -z "$(lsblk -no NAME "/dev/$1" | tail -n +2)" ] && [ -z "$(wipefs -n "/dev/$1" 2>/dev/null)" ]; }
-  holds_hub() { lsblk -no LABEL "/dev/$1" 2>/dev/null | grep -qx hub-root; }
-  if on_stick "$ROOT_DISK"; then
-    for d in $(internal); do
-      if holds_hub "$d"; then
-        # This stick already put its hub on the drive, and the firmware started from the stick anyway.
-        # Off, rather than a second hub: take the stick out and switch it back on.
-        log "the hub is already on $d and this computer started from the stick again: turning off, take the stick out"
-        poweroff; exit 0
-      fi
-    done
-    TARGET=""
-    for d in $(internal); do empty "$d" && { TARGET="$d"; break; }; done
-    if [ "${HUB_AUTO_INTERNAL:-1}" = 1 ] && [ -n "$TARGET" ]; then
-      log "running from a USB stick with an empty drive ($TARGET): moving the system there"
-      if "$DIR/driver-layer/host/move-to-drive.sh" "$ROOT_DISK" "$TARGET"; then
-        log "moved; restarting from the drive. The stick is untouched and can set up another hub."
-        reboot; exit 0
-      fi
-      log "could not move to $TARGET; carrying on from the stick"
-    elif [ -z "$TARGET" ]; then
-      log "running from a USB stick, and the drive has something on it: it is left alone"
-    fi
-  fi
   PARTN="$(cat "$SYS_BLOCK/$ROOT_DISK/$(basename "$ROOT_PART")/partition" 2>/dev/null || true)"
   if [ -n "$PARTN" ] && growpart "/dev/$ROOT_DISK" "$PARTN" >/dev/null 2>&1; then
     resize2fs "$ROOT_PART" >/dev/null 2>&1 || true

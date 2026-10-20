@@ -68,6 +68,8 @@ for f in "$M/etc/fstab" "$M/boot/grub/grub.cfg" "$M/boot/efi/EFI/ubuntu/grub.cfg
 done
 # The stick made a machine id when it booted here; the drive makes its own, so no two hubs from one stick share one.
 : > "$M/etc/machine-id"; rm -f "$M/var/lib/dbus/machine-id"
+# The drive knows it was moved onto (the panel says so once), and does not take the request that moved it as its own.
+mkdir -p "$M/var/lib/home-hub"; date +%s > "$M/var/lib/home-hub/moved"; rm -f "$M/var/lib/home-hub/move.request"
 umount -R "$M"
 
 # Start from the drive next, and from now on. Firmware that ignores this and prefers any USB stick boots the

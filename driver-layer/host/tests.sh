@@ -689,14 +689,13 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
 }
 
 
-# The x86 image boots from a USB stick and moves to the NUC's own drive, but only to one with nothing on
-# it, and never by writing the stick. Disks, partitions and signatures are scripts on PATH.
+# The x86 image boots from a USB stick and moves to the NUC's own drive at the start of a boot: on its own to an
+# empty drive, to any other only when asked for it by its serial, and never by writing the stick. Disks are
+# scripts on PATH; mount, reboot and poweroff write down what they were asked and do nothing.
 moving_in() {
-  group "the x86 image moves from its stick to an empty drive, never onto one with anything on it, and leaves the stick alone"
-  local root dir bin sys; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"
-  mkdir -p "$dir/driver-layer/host" "$bin" "$sys/sda/sda1" "$sys/nvme0n1/nvme0n1p1"
-  echo 1 > "$sys/sda/sda1/partition"; echo 1 > "$sys/nvme0n1/nvme0n1p1/partition"
-  printf '#!/usr/bin/env bash\ntouch "%s/hub-installed"\n' "$root" > "$dir/install.sh"
+  group "the x86 image moves off its stick onto an empty drive, onto any other only when asked, and never writes the stick"
+  local root dir bin sys var; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"; var="$root/var"
+  mkdir -p "$dir/driver-layer/host" "$bin" "$sys/sda" "$var"
   printf '#!/usr/bin/env bash\necho "move $*" >> "%s/asked"\n[ -z "${MOVE_FAILS:-}" ]\n' "$root" > "$dir/driver-layer/host/move-to-drive.sh"
   cat > "$bin/lsblk" <<'SH'
 #!/usr/bin/env bash
@@ -706,6 +705,7 @@ case "$*" in
   "-dno TRAN /dev/sda") echo "${TRAN:-usb}" ;;
   "-dno TRAN /dev/nvme0n1") echo nvme ;;
   "-dno NAME,TRAN,TYPE") printf 'sda %s disk\nnvme0n1 nvme disk\n' "${TRAN:-usb}" ;;
+  "-dno SERIAL /dev/nvme0n1") echo "S6P7NS0T" ;;
   "-no NAME /dev/nvme0n1") echo nvme0n1; [ -n "${USED:-}${MOVED:-}" ] && echo nvme0n1p1 ;;
   "-no LABEL /dev/nvme0n1") echo; [ -n "${MOVED:-}" ] && echo hub-root ;;
 esac
@@ -713,36 +713,112 @@ exit 0
 SH
   printf '#!/usr/bin/env bash\necho "${ROOTDEV:-/dev/sda1}"\n' > "$bin/findmnt"
   printf '#!/usr/bin/env bash\n[ "$1" = -n ] && { [ -n "${SIGNED:-}" ] && echo "nvme0n1 ntfs"; exit 0; }\necho "wipefs $*" >> "%s/asked"\n' "$root" > "$bin/wipefs"
-  for c in dd reboot poweroff growpart resize2fs sync; do printf '#!/usr/bin/env bash\necho "%s $*" >> "%s/asked"\n' "$c" "$root" > "$bin/$c"; done
-  for c in systemctl docker; do printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/$c"; done
-  chmod +x "$dir/install.sh" "$dir/driver-layer/host/move-to-drive.sh" "$bin"/*
-  boot() {
-    rm -f "$root"/hub-installed "$root/done" "$root/asked"; printf 'HUB_IMAGE=x86\n%s\n' "${EXTRA:-}" > "$root/conf"
-    echo "${REMOVABLE:-0}" > "$sys/sda/removable"
-    PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_FIRSTBOOT_MARK="$root/done" HUB_SYS_BLOCK="$sys" \
-      HUB_PRELOAD="$root/none" HUB_DRM="$root/drm" "$HERE/firstboot.sh" >/dev/null 2>&1
+  printf '#!/usr/bin/env bash\n[ "$2" = / ]\n' > "$bin/mountpoint"
+  for c in mount reboot poweroff systemctl sync; do printf '#!/usr/bin/env bash\necho "%s $*" >> "%s/asked"\n' "$c" "$root" > "$bin/$c"; done
+  chmod +x "$dir/driver-layer/host/move-to-drive.sh" "$bin"/*
+  early() {
+    rm -f "$root/asked"; printf 'HUB_IMAGE=x86\n%s\n' "${EXTRA:-}" > "$root/conf"; echo 0 > "$sys/sda/removable"
+    PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" "$HERE/move-early.sh" >/dev/null 2>&1
   }
-  asked() { grep -c "$1" "$root/asked" 2>/dev/null || true; }
-  installed() { [ -f "$root/hub-installed" ] && echo installed || echo "not installed"; }
+  ask() { printf '{"disk": "nvme0n1", "serial": "%s"}\n' "${1:-S6P7NS0T}" > "$var/move.request"; }
+  asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
 
-  boot
+  early
   is "on a stick, with an empty drive: the system moves there" "$(asked '^move sda nvme0n1$')" "1"
-  is "...and restarts from it, before installing anything" "$(asked '^reboot') $(installed)" "1 not installed"
-  is "...and the stick is never wiped" "$(asked 'wipefs -a')" "0"
-  USED=1 boot
-  is "a drive with a partition on it is never moved to" "$(asked '^move ')" "0"
-  is "...the hub runs from the stick instead, grown to fill it" "$(asked 'growpart /dev/sda 1') $(installed)" "1 installed"
-  SIGNED=1 boot
-  is "nor one with any signature on it, partitions or not" "$(asked '^move ')" "0"
-  EXTRA="HUB_AUTO_INTERNAL=0" boot
+  is "...with the disk read-only while it is copied, and writable again after" "$(asked 'mount -o remount,ro /') $(asked 'mount -o remount,rw /')" "1 1"
+  is "...and restarts from the drive" "$(asked 'systemctl --no-block reboot')" "1"
+  is "...without ever wiping the stick" "$(asked 'wipefs -a')" "0"
+  USED=1 early
+  is "a drive with a partition on it is never moved to on its own" "$(asked '^move ')" "0"
+  SIGNED=1 early
+  is "nor one with any signature on it" "$(asked '^move ')" "0"
+  EXTRA="HUB_AUTO_INTERNAL=0" early
   is "HUB_AUTO_INTERNAL=0 keeps it on the stick" "$(asked '^move ')" "0"
-  MOVE_FAILS=1 boot
-  is "a move that fails carries on from the stick" "$(asked '^reboot') $(installed)" "0 installed"
-  MOVED=1 boot
-  is "started from the stick again with its hub already on the drive: off, for the stick to come out" "$(asked '^poweroff') $(asked '^move ') $(installed)" "1 0 not installed"
-  TRAN=nvme ROOTDEV=/dev/nvme0n1p1 boot
-  is "already on the drive: nothing moves, the system grows to fill it, and the hub installs" \
-    "$(asked '^move ') $(asked 'growpart /dev/nvme0n1 1') $(installed)" "0 1 installed"
+  ask; USED=1 early
+  is "a drive with something on it, asked for by its serial: the system moves there" "$(asked '^move sda nvme0n1$')" "1"
+  is "...and the request is used up" "$([ -f "$var/move.request" ] && echo kept || echo gone)" "gone"
+  ask OTHER-SERIAL; USED=1 early
+  is "asked for by a serial that is not this drive's: nothing moves" "$(asked '^move ')" "0"
+  ask; USED=1 MOVE_FAILS=1 early
+  is "a move that was asked for and failed is said, and the hub carries on from the stick" "$([ -s "$var/move.failed" ] && echo said) $(asked 'reboot')" "said 0"
+  rm -f "$var/move.failed"; MOVED=1 early
+  is "started from the stick with its hub already on the drive: off, for the stick to come out" "$(asked '^poweroff') $(asked '^move ')" "1 0"
+  ask; TRAN=nvme ROOTDEV=/dev/nvme0n1p1 early
+  is "already on the drive: nothing moves, and a request copied over with it is dropped" "$(asked '^move ') $([ -f "$var/move.request" ] && echo kept || echo gone)" "0 gone"
+  printf 'HUB_IMAGE=\n' > "$root/conf"; rm -f "$root/asked"
+  PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" "$HERE/move-early.sh" >/dev/null 2>&1
+  is "anywhere but the x86 image, it does nothing at all" "$(asked '.')" "0"
+  rm -rf "$root"
+}
+
+# What the hub runs from, and the drive beside it, described for the screen; and a request to move checked
+# again on the host before anything restarts.
+describing() {
+  group "the drive is described in a household's words, and a request to erase it is checked again before anything happens"
+  local root dir bin sys var; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"; var="$root/var"
+  mkdir -p "$dir/driver-layer/brain-data" "$bin" "$sys/sda" "$var"
+  cat > "$bin/lsblk" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "-no PKNAME /dev/sda1") echo sda ;;
+  "-no PKNAME /dev/nvme0n1p1") echo nvme0n1 ;;
+  "-dno TRAN /dev/sda") echo "${TRAN:-usb}" ;;
+  "-dno NAME,TRAN,TYPE") printf 'sda %s disk\nnvme0n1 nvme disk\n' "${TRAN:-usb}" ;;
+  "-dno SERIAL /dev/nvme0n1") echo " S6P7NS0T " ;;
+  "-dno MODEL /dev/nvme0n1") echo "Samsung SSD 980 500GB" ;;
+  "-bdno SIZE /dev/nvme0n1") echo 500107862016 ;;
+  "-no NAME /dev/nvme0n1") printf 'nvme0n1\nnvme0n1p1\nnvme0n1p2\n' ;;
+  "-lno NAME /dev/nvme0n1") printf 'nvme0n1\nnvme0n1p1\nnvme0n1p2\n' ;;
+  "-no FSTYPE /dev/nvme0n1p1") echo vfat ;;
+  "-no FSTYPE /dev/nvme0n1p2") echo ext4 ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\necho "${ROOTDEV:-/dev/sda1}"\n' > "$bin/findmnt"
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/wipefs"
+  cat > "$bin/mount" <<'SH'
+#!/usr/bin/env bash
+echo "mount $*" >> "$FAKES/asked"
+[ "$3" = /dev/nvme0n1p2 ] && { mkdir -p "$4/etc" "$4/var/log"; printf 'NAME="Ubuntu"\nVERSION_ID="24.04"\nPRETTY_NAME="$(touch /tmp/should-not-run)Ubuntu 24.04.2 LTS"\n' > "$4/etc/os-release"; }
+exit 0
+SH
+  printf '#!/usr/bin/env bash\nrm -rf "${1:?}"/*\n' > "$bin/umount"
+  printf '#!/usr/bin/env bash\nprintf "Used\\n65498251264\\n"\n' > "$bin/df"
+  printf '#!/usr/bin/env bash\necho 1792400000\n' > "$bin/stat"
+  for c in reboot systemctl; do printf '#!/usr/bin/env bash\necho "%s $*" >> "$FAKES/asked"\n' "$c" > "$bin/$c"; done
+  chmod +x "$bin"/*
+  look() { rm -f "$root/asked"; echo 0 > "$sys/sda/removable"; printf 'HUB_IMAGE=%s\n' "${IMAGE-x86}" > "$root/conf"
+    PATH="$bin:$PATH" FAKES="$root" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" HUB_PEEK="$root/peek" "$HERE/drive.sh" >/dev/null 2>&1; }
+  ask() { printf '{"do": "%s", "disk": "%s", "serial": "%s"}' "${3:-move}" "$1" "$2" > "$dir/driver-layer/brain-data/drive.request"; look; }
+  field() { python3 -c 'import json,sys
+v=json.load(open(sys.argv[1]))
+for k in sys.argv[2].split("."): v = v[int(k)] if isinstance(v, list) else (v or {}).get(k)
+print("" if v is None else v)' "$dir/driver-layer/brain-data/drive.json" "$1"; }
+  asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
+
+  look
+  is "running from the stick, and says so" "$(field from)" "stick"
+  is "the drive by its own name and size" "$(field drives.0.model) $(field drives.0.bytes)" "Samsung SSD 980 500GB 500107862016"
+  is "...the system on it, by its own name, read and never run" "$(field drives.0.system) $([ -f /tmp/should-not-run ] && echo ran || echo read)" "Ubuntu 24.04 read"
+  is "...how much is stored, and when it was last written" "$(field drives.0.used) $(field drives.0.last)" "65498251264 1792400000"
+  is "...looked at read-only, without replaying its journal" "$(asked 'mount -o ro,noload /dev/nvme0n1p2')" "1"
+  is "...and not empty" "$(field drives.0.empty)" "False"
+
+  ask nvme0n1 S6P7NS0T
+  is "a move asked for by the drive and its serial: written down for the start of the next boot" "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["disk"])' "$var/move.request")" "nvme0n1"
+  is "...and the hub restarts to do it" "$(asked 'systemctl --no-block reboot')" "1"
+  rm -f "$var/move.request"
+  ask nvme0n1 SOMETHING-ELSE
+  is "a serial that is not this drive's is refused, in words" "$(field asked.refused)" "That isn't the drive the screen showed. Look again."
+  is "...and nothing is written or restarted" "$([ -f "$var/move.request" ] && echo written || echo nothing) $(asked reboot)" "nothing 0"
+  ask sda S6P7NS0T
+  is "the disk it is running from is never a drive to move onto" "$(field asked.refused)" "That drive isn't in this computer."
+  TRAN=nvme ROOTDEV=/dev/nvme0n1p1 ask nvme0n1 S6P7NS0T
+  is "already on its own drive: refused" "$(field asked.refused)" "This hub is already on its own drive."
+  IMAGE="" ask nvme0n1 S6P7NS0T
+  is "a hub not installed from the stick image: refused" "$(field asked.refused)" "This hub wasn't installed from a USB stick."
+  ask nvme0n1 S6P7NS0T wipe
+  is "a request for anything but a move is not a request" "$(field asked.refused)" "not a thing this hub knows how to do"
   rm -rf "$root"
 }
 
@@ -787,7 +863,7 @@ SH
   chmod +x "$bin"/*
   sed -i.bak 's|/dev/X|/dev/nvme0n1p|g' "$bin/sfdisk"
   move() { PATH="$bin:$PATH" FAKES="$root" "$HERE/move-to-drive.sh" sda nvme0n1 >"$root/out" 2>&1; }
-  asked() { grep -c -- "$1" "$root/asked" 2>/dev/null || true; }
+  asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
 
   move
   is "copies the stick onto the drive, as far as its last partition" "$(asked 'dd if=/dev/sda of=/dev/nvme0n1 bs=4M count=3122790400 iflag=count_bytes conv=fsync status=none')" "1"
@@ -807,6 +883,6 @@ SH
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; watchdog; away; finding; becoming; keeping; awake; setting_up; moving_in; moving
+signatures; holds; undo; radios; watchdog; away; finding; becoming; keeping; awake; setting_up; moving_in; moving; describing
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

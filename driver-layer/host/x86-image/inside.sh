@@ -61,8 +61,9 @@ sed -i 's/^127\.0\.1\.1.*/127.0.1.1\thub/' /etc/hosts; grep -q '^127\.0\.1\.1' /
 
 git clone --depth 1 --branch "$HOME_HUB_REF" "$HOME_HUB_REPO" /opt/home-hub
 chmod +x /opt/home-hub/install.sh /opt/home-hub/driver-layer/radios.sh /opt/home-hub/driver-layer/host/firstboot.sh /opt/home-hub/driver-layer/host/move-to-drive.sh
-install -m 644 /opt/home-hub/driver-layer/host/home-hub-firstboot.service /etc/systemd/system/home-hub-firstboot.service
-systemctl enable docker avahi-daemon NetworkManager home-hub-firstboot
+chmod +x /opt/home-hub/driver-layer/host/move-early.sh /opt/home-hub/driver-layer/host/drive.sh
+for u in home-hub-firstboot.service home-hub-move.service; do install -m 644 "/opt/home-hub/driver-layer/host/$u" "/etc/systemd/system/$u"; done
+systemctl enable docker avahi-daemon NetworkManager home-hub-firstboot home-hub-move
 
 # Every unit its own: a machine id made on first boot names the hub's setup Wi-Fi, among other things.
 du -sh /usr/lib/firmware /usr/lib/modules /var/lib/home-hub/preload /usr/bin/docker* /var 2>/dev/null || true
