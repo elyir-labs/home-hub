@@ -27,6 +27,7 @@ CONF=${HUB_CONF:-/etc/home-hub.conf}
 DIR="${HOME_HUB_DIR:-/opt/home-hub}"
 # shellcheck disable=SC1090
 [ -f "$CONF" ] && . "$CONF"
+[ -n "${HOME_HUB_BRANCH:-}" ] && export HOME_HUB_BRANCH    # an image built from a branch keeps following it (install.sh)
 [ -f "$MARK" ] && exit 0
 mkdir -p "$(dirname "$MARK")"
 log() { printf '[home-hub] %s\n' "$*"; }

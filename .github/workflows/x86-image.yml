@@ -42,7 +42,9 @@ jobs:
         # same tag by brain-image.yml, so it may not be there yet.
         run: |
           mkdir -p preload
-          case "$REF" in v*) B="ghcr.io/elyir-labs/home-hub-brain:${REF#v}" ;; *) B="ghcr.io/elyir-labs/home-hub-brain:latest" ;; esac
+          # A branch's image carries that branch's brain (brain-image.yml publishes it under the branch's name), because
+          # it follows that branch (install.sh, HOME_HUB_BRANCH); a release carries the release's.
+          case "$REF" in v*) B="ghcr.io/elyir-labs/home-hub-brain:${REF#v}" ;; *) B="ghcr.io/elyir-labs/home-hub-brain:$(echo "$REF" | tr '/' '-')" ;; esac
           for i in $(seq 1 60); do docker pull -q --platform linux/amd64 "$B" && break; echo "waiting for $B"; sleep 30; done
           docker pull -q --platform linux/amd64 caddy:2
           docker pull -q --platform linux/amd64 eclipse-mosquitto:2

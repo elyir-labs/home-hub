@@ -47,6 +47,8 @@ mount "$(part UEFI)" "$ROOT/boot/efi"
 for m in dev dev/pts proc sys run; do mount --bind "/$m" "$ROOT/$m"; done
 
 printf 'HOME_HUB_REF=%s\nHOME_HUB_REPO=%s\nHUB_IMAGE=x86\n' "$REF" "$REPO" > "$ROOT/etc/home-hub.conf"
+# Built from a branch, not a release tag: the hub follows that branch (install.sh, HOME_HUB_BRANCH).
+case "$REF" in v[0-9]*) ;; *) echo "HOME_HUB_BRANCH=$REF" >> "$ROOT/etc/home-hub.conf" ;; esac
 install -m 755 "$HERE/inside.sh" "$ROOT/tmp/inside.sh"
 if [ -n "$PRELOAD" ] && ls "$PRELOAD"/*.tar >/dev/null 2>&1; then
   install -d "$ROOT/var/lib/home-hub/preload"

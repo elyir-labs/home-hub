@@ -29,6 +29,8 @@ jobs:
           mkdir -p driver-layer/host/pi-image/stage-hub/00-home-hub/files
           printf 'HOME_HUB_REF=%s\nHOME_HUB_REPO=https://github.com/%s.git\n' "${GITHUB_REF_NAME}" "${GITHUB_REPOSITORY}" \
             > driver-layer/host/pi-image/stage-hub/00-home-hub/files/home-hub.conf
+          # Built from a branch by hand, not a tag: the hub follows that branch (install.sh, HOME_HUB_BRANCH).
+          case "$GITHUB_REF_NAME" in v[0-9]*) ;; *) echo "HOME_HUB_BRANCH=${GITHUB_REF_NAME}" >> driver-layer/host/pi-image/stage-hub/00-home-hub/files/home-hub.conf ;; esac
           cat driver-layer/host/pi-image/stage-hub/00-home-hub/files/home-hub.conf
       - name: Room on the runner
         # The action's own "increase-runner-disk-size" purges packages with apt and fails on today's runner image
@@ -44,7 +46,7 @@ jobs:
         # the same tag, so it may not be there yet.
         run: |
           F=driver-layer/host/pi-image/stage-hub/00-home-hub/files/preload; mkdir -p "$F"
-          case "$GITHUB_REF_NAME" in v*) B="ghcr.io/elyir-labs/home-hub-brain:${GITHUB_REF_NAME#v}" ;; *) B="ghcr.io/elyir-labs/home-hub-brain:latest" ;; esac
+          case "$GITHUB_REF_NAME" in v*) B="ghcr.io/elyir-labs/home-hub-brain:${GITHUB_REF_NAME#v}" ;; *) B="ghcr.io/elyir-labs/home-hub-brain:$(echo "$GITHUB_REF_NAME" | tr '/' '-')" ;; esac
           for i in $(seq 1 60); do docker pull -q --platform linux/arm64 "$B" && break; echo "waiting for $B"; sleep 30; done
           docker pull -q --platform linux/arm64 caddy:2
           docker pull -q --platform linux/arm64 eclipse-mosquitto:2

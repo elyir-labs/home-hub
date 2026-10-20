@@ -21,6 +21,14 @@ HOSTNAME_WANTED="${HOME_HUB_HOSTNAME:-hub}"
 # the panel offers the same one. Anything else is a typo, and a typo lands on releases.
 CHANNEL="${HOME_HUB_CHANNEL:-release}"
 case "$CHANNEL" in main|development) BRANCH="$CHANNEL" ;; *) CHANNEL="release"; BRANCH="main" ;; esac
+# An image built from a branch rather than a release tag (a test image: pi-image.yml, x86-image.yml writes this into
+# /etc/home-hub.conf) follows that branch, the way a development hub follows development. Otherwise its first install
+# would move it onto the newest release, which has never heard of what the image was built to test, and run that
+# release's brain. The Matter bridge is only published for releases and the two main branches, so it stays on latest.
+if [ -n "${HOME_HUB_BRANCH:-}" ]; then
+  CHANNEL="$HOME_HUB_BRANCH"; BRANCH="$HOME_HUB_BRANCH"
+  export HUB_BRIDGE_IMAGE="${HUB_BRIDGE_IMAGE:-ghcr.io/elyir-labs/home-hub-matter-bridge:latest}"
+fi
 
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 # Where this has got to, for the panel to draw. Only when update.sh asks for it: somebody running
