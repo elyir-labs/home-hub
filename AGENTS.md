@@ -270,6 +270,11 @@ Do not reopen these, and do not propose around them.
   them -- every one a sentence the grammar runs, never a guess. `app/src/Keys.vue`, `keys.ts`,
   `Commands.complete`; pinned by `app/tests/keys.test.ts` and `app/e2e/keyboard.touch.spec.ts`.
 
+- **The phone app is a native shell around the Houses app, never Capacitor and never a second panel** (19 October
+  2026, `docs/apps.md`, Decided). Swift on iOS, Kotlin beside `kiosk/` on Android; the panel always comes from the
+  hub. What the stores require -- the address offer left out where they say so, a demo house for review, the shell
+  licensed apart from this AGPL tree -- is listed there, and is settled before shell code.
+
 - **The Brilliant work lives in a repository of its own, and public code never reaches into it**
   (5 October 2026). This repository is public and every hub clones it whole. The bridge puck here (`puck/`) is
   the hub's own device -- cable, finding the hub, updates, the ear, errands, its light -- and it is whole

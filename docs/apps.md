@@ -4,6 +4,55 @@
 This is a plan for a decision, not a commitment to build. The decision itself waits on the relay in `docs/away.md`,
 and the reason it can wait is the whole of the first section below.*
 
+## Decided, 19 October 2026
+
+**Native, and thin: Swift on iOS, Kotlin on Android, each a web view onto the Houses app. Not Capacitor, and not a
+native panel.** Asked as "Capacitor, or native?", once the relay was carrying houses and the Houses app existed.
+
+- **Why not Capacitor.** Its model is a web app bundled inside the binary, and the one thing this plan rules out is a
+  panel that ships on the store's schedule instead of the hub's. Its remote-URL mode is documented as a development
+  aid, not a way to ship. And it does not reach what an app is for: widgets, lock-screen controls, Siri, the Watch,
+  Live Activities and critical alerts are WidgetKit and App Intents on iOS and Glance on Android whichever way the
+  shell is built. A JavaScript bridge between two native layers buys nothing here.
+- **What the shell opens is `houses.elyir.app`**, not a house. Since 3 October that is where every phone lives
+  (`design/houses/`, B): it already lists the houses, opens the one whose Wi-Fi the phone is on, and frames each
+  house's own panel. The shell adds the native pieces around it and nothing inside it.
+- **The fork below is closed by the certificate.** Every house gets a real one on `elyir.app` (`docs/away.md`, step
+  5), so the shell pins nothing and loads ordinary https like a browser does.
+- **Push is the Houses app's**, one key for every house (`app/houses/public/sw.js`): web push from its worker in a
+  browser, APNs and FCM from the shell. Not a worker per house -- the panel on a house's own name keeps no worker,
+  and the Houses app's caches nothing on purpose.
+- **Android starts from `kiosk/`.** It is already a Kotlin web view onto the hub with discovery and reconnecting
+  built in; the phone app is a second module in that project, not a new one.
+
+### What the stores will hold us to
+
+Settled before any shell code, because three of them change what gets built rather than what gets filled in:
+
+- **Selling the address inside the app.** Apple treats reaching your own house from away as a digital service used
+  in the app, which is in-app purchase if it is bought there -- and it reads the panel inside the web view as the
+  app. Outside the US the app may not even point at buying elsewhere. So the Houses app must know when it is inside
+  the store app, and on which storefront, and leave the offer out where the store requires it. In the US a link out
+  is allowed beside in-app purchase; Apple takes nothing on it today and asked the court in August 2026 for up to
+  15%, so price it as unsettled. Google Play allows the link in the US; its fees follow the Epic settlement. This
+  changes nothing about paying never happening on the wall.
+- **A house for the reviewers.** Review rejects an app it cannot use, and a reviewer has no hub. A demo house they
+  can reach -- the mock's, served for them -- has to exist before the first submission. It is also what keeps the
+  app from reading as a bare website wrapper (guideline 4.2), with the widget and push.
+- **The shell's license.** This repository is AGPL, and the App Store's terms have long been read as incompatible
+  with the GPL family. The panel is served by the hub and never ships in the binary, so it is untouched; the shell's
+  own code is licensed apart (`CLA.md` makes that possible) and takes no AGPL code from this tree.
+- **Asked for by hand:** Apple's critical-alert entitlement (home security can qualify; time-sensitive needs no
+  approval), the background-location declaration if phones ever report arriving (`docs/settings.md`), and on iOS the
+  local-network reason with `_home-hub._tcp` listed. On Android 14+, full-screen notifications are for calls and
+  alarms only.
+- **Paperwork:** both accounts as an organization (Apple needs a D-U-N-S number; a personal Play account must run a
+  closed test of 12 testers for 14 days first). Google's developer verification reaches `kiosk/` too, store or no
+  store, so its package and key go under the same account. A privacy policy, Apple's privacy labels and Play's data
+  safety form; in-app account deletion if the app ever creates an account. No *Home Assistant* or *Brilliant* in a
+  listing. Updating the panel without review is ordinary web content; switching on a purchase flow reviewers never
+  saw is not.
+
 ## The question, and the short answer
 
 One native shell, phones only, after the relay carries its first tap from outside. Not a second panel, not now, and
@@ -141,9 +190,14 @@ if it is ever built.
 
 ## Milestones
 
-1. **The kiosk launcher.** Independent of everything else here, and the wall stops being a browser.
-2. **A service worker in the panel**, and web push behind it once there is a trusted origin.
-3. **The relay running** (`docs/away.md` pieces 2 and 3 up to the name). The first tap from outside is the decision
-   point for the fork above; nothing about apps is settled before it.
-4. **The shell, if it is still wanted** — a web view, a push registration, a Bonjour lookup, a pinned CA, and one
-   widget. If the list grows past that in the planning, it has stopped being a shell and the plan is wrong.
+1. **The kiosk launcher.** Independent of everything else here, and the wall stops being a browser. *Built.*
+2. **Web push**, from the Houses app's worker rather than the panel's (decided 19 October, above), once the
+   certificate in `docs/away.md` step 5 is on every house.
+3. **The relay running** (`docs/away.md` pieces 2 and 3 up to the name). *Running since 2 October; this was the
+   decision point, and the decision is at the top.*
+4. **Before the shell, in the web:** the Houses app knowing it is inside the store app and on which storefront, and
+   a demo house the reviewers can reach.
+5. **The iOS shell** — a web view onto the Houses app, a push registration, a Bonjour lookup, and one widget with the
+   App Intents behind it. No pinned CA any more. If the list grows past that in the planning, it has stopped being a
+   shell and the plan is wrong.
+6. **The Android shell**, a second module beside `kiosk/`.
