@@ -52,7 +52,7 @@ from .nightlight import Nightlight
 from .ears import Ears
 from .relay import Relay
 from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, away_refused, away_refusal
-from .pusher import Pusher, checked as push_checked
+from .pusher import NEEDS_ADDRESS as PUSH_NEEDS_ADDRESS, Pusher, checked as push_checked
 from . import camera
 
 log = logging.getLogger("hub")
@@ -2509,8 +2509,10 @@ def phones_me(request: Request):
         return {"locked": True, "paired": False, "home": "the house", "phone": None, "away": True}   # no name, no way in
     paired = (not hub.lock.locked) or bool(phone)
     # The house's name at home, for the app to reach the hub directly on the Wi-Fi -- told to its own phones only.
+    me = hub.phones._public(phone) if phone else None
+    if me and ((phone.get("push") or {}).get("apns")) and not hub.address.secret(): me["push_note"] = PUSH_NEEDS_ADDRESS
     return {"locked": hub.lock.locked, "paired": paired, "home": hub.settings.get("home_name") or "Home",
-            "phone": hub.phones._public(phone) if phone else None, "away": request.state.away,
+            "phone": me, "away": request.state.away,
             "lan": hub.address.lan_name() if paired else None, "address": hub.address.public_origin() if paired else None}
 
 
@@ -2542,7 +2544,10 @@ def _told(request: Request) -> dict:
 @app.post("/phones/me/push")
 def phones_me_push(body: dict, request: Request):
     """{subscription, vapid: {publicKey, privateKey}, tz}: this phone's way of being told things, signed with its own
-    key, the one it hands every house it joins (docs/apps.md, Decided). A new one replaces the old."""
+    key, the one it hands every house it joins (docs/apps.md, Decided). A new one replaces the old.
+
+    Or {apns: {token, env, p256dh, auth}, tz} from the store app: its APNs token and the key the house seals to,
+    handed to the sender Elyir runs (pusher.py)."""
     phone = _told(request)
     try: push = push_checked(body, time.time())
     except ValueError as e: raise HTTPException(400, str(e))

@@ -901,11 +901,13 @@ export function createHouse({ env = {}, qr = null } = {}) {
       ? { locked: !!env.LOCKED, paired: true, home: 'Maple Court', phone: { ...phones.phones[1], me: true, moved: !!env.MOVED }, away: false,
           lan: '192-168-1-53.maple-court.home.elyir.app', address: 'https://maple-court.elyir.app' }
       : { locked: !!env.LOCKED, paired: true, home: 'Maple Court', phone: null })
-    /* Being told things (design/notify/, B): the Houses app hands its subscription and key to every house, and the
-       phone the move handed over is Jordan's iPhone. Kept in memory, like everything here. */
+    /* Being told things (design/notify/, B): the Houses app hands its subscription and key to every house, or in the
+       iOS app its APNs token and the key to seal to, and the phone the move handed over is Jordan's iPhone. Kept in
+       memory, like everything here. */
     if (p === '/phones/me/push' && req.method === 'POST') { let b = ''; req.on('data', c => { b += c }); req.on('end', () => {
       let body = {}; try { body = JSON.parse(b) } catch {}
-      if (!body.subscription?.endpoint || !body.vapid?.publicKey || !body.vapid?.privateKey) { res.writeHead(400, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: "That isn't a way to reach this phone." })) }
+      const apns = body.apns && /^[0-9a-f]{64,200}$/i.test(body.apns.token ?? '') && ['sandbox', 'production'].includes(body.apns.env) && body.apns.p256dh && body.apns.auth
+      if (!apns && (!body.subscription?.endpoint || !body.vapid?.publicKey || !body.vapid?.privateKey)) { res.writeHead(400, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: "That isn't a way to reach this phone." })) }
       phones.phones[1].push = true
       json(res, { phone: { ...phones.phones[1], me: true } })
     }); return }

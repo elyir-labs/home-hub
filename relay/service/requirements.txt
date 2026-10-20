@@ -1,3 +1,5 @@
 fastapi>=0.115
 uvicorn>=0.30
 dnslib>=0.9.26
+httpx[http2]==0.28.1     # the sender's way to Apple, which speaks only HTTP/2: push.py
+cryptography>=44         # ES256 for Apple's provider token

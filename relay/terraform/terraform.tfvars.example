@@ -30,3 +30,16 @@ admin_ssh_public_key = ""
 # }
 # Anything sent to an address not listed above. Empty drops it.
 # email_catch_all = []
+
+# The sender's key for Apple's push service (relay/service/push.py), so houses can tell phones in the store app.
+# The .p8 is shown once by Apple when it is made (Certificates, Identifiers & Profiles > Keys, with Apple Push
+# Notifications service on). Paste the whole file between the markers; never commit it. All three, or none:
+# left empty, the sender answers 503 and houses keep their phones until it is on. Changing them replaces the box
+# on the next `terraform apply`, like any change to what cloud-init writes; the volume carries every house across.
+# apns_key = <<-EOT
+#   -----BEGIN PRIVATE KEY-----
+#   ...
+#   -----END PRIVATE KEY-----
+# EOT
+# apns_key_id  = ""
+# apns_team_id = ""
