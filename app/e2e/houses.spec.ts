@@ -144,6 +144,37 @@ test('outside the app, nothing changes', async ({ page }) => {
   await expect(page.locator('.house-switch')).toHaveCount(0)
 })
 
+// ---- a phone with no house (design/pretend-in-app/, B, chosen 19 October 2026) -----------------------
+
+test('with no house the app says what it is and offers two ways on, stacked', async ({ page }) => {
+  await fresh(page)
+  await page.goto(`${APP}/`)
+  await expect(page.getByRole('heading', { name: 'Your house, on this phone.' })).toBeVisible()
+  const [add, pretend] = [page.getByRole('button', { name: 'Add a house' }), page.getByRole('button', { name: 'Try a pretend house' })]
+  const [a, p] = [(await add.boundingBox())!, (await pretend.boundingBox())!]
+  expect(p.y, 'Add a house first, the pretend house under it').toBeGreaterThan(a.y + a.height)
+  expect(Math.abs(a.width - p.width)).toBeLessThan(2)
+  expect(p.y + p.height).toBeLessThanOrEqual(844)
+
+  await add.click()
+  await expect(page.getByRole('heading', { name: 'Add a house' })).toBeVisible()
+  await page.getByRole('button', { name: 'Not now' }).click()
+  await expect(page.getByRole('heading', { name: 'Your house, on this phone.' })).toBeVisible()
+})
+
+test('the pretend house opens framed like a house, named so, and is never kept', async ({ page }) => {
+  await fresh(page)
+  await page.goto(`${APP}/?shell=ios&store=US`)
+  await page.getByRole('button', { name: 'Try a pretend house' }).click()
+  await expect(page.locator('.hs-frame')).toHaveAttribute('src', 'http://localhost:8399/?app=1&shell=ios&store=US')
+  const name = page.frameLocator('.hs-frame').locator('.house-switch')
+  await expect(name).toContainText('Pretend house')
+  await name.click()
+  await expect(page.getByRole('heading', { name: 'Your house, on this phone.' })).toBeVisible()
+  const kept = await page.evaluate(() => new Promise(r => { const q = indexedDB.open('houses', 1); q.onsuccess = () => { const db = q.result; if (!db.objectStoreNames.contains('houses')) return r(0); const g = db.transaction('houses').objectStore('houses').count(); g.onsuccess = () => r(g.result) } }))
+  expect(kept).toBe(0)
+})
+
 // ---- the store app around it (design/store-app/, C, chosen 19 October 2026) ------------------------
 
 test('the Houses app hands the store app\'s storefront on to the house it frames', async ({ page }) => {

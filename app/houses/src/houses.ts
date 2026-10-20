@@ -49,6 +49,11 @@ export function originOf(label: string, here: { hostname: string; protocol: stri
   return `https://${label}.${here.hostname.split('.').slice(1).join('.')}`
 }
 
+/** Where the pretend house is (design/pretend-in-app/, B): the hub's own site, never a name under elyir.app, which
+    are houses' own. On a developer's machine, the mock brain. */
+export const pretendAt = (here: { hostname: string }, dev = 'http://localhost:8399') =>
+  here.hostname === 'localhost' || here.hostname === '127.0.0.1' ? dev : 'https://hub.elyir.com/try'
+
 /** The house a house's address names: `jordan` of https://jordan.elyir.app or jordan.elyir.app. */
 export function labelOf(address: string): string {
   const host = address.replace(/^https?:\/\//, '').split('/')[0].toLowerCase()

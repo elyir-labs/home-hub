@@ -14,6 +14,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { add, addLink, claim, codeOf, iphoneSafari, labelOf, nearby, originOf, standalone, state } from './houses'
 
+defineProps<{ back?: boolean }>()
 const emit = defineEmits<{ added: [id: string]; cancel: [] }>()
 
 const mode = ref<'carry' | 'code' | 'name'>('code')
@@ -126,7 +127,7 @@ onMounted(async () => {
     <p class="hs-error" v-if="error">{{ error }}</p>
     <div class="hs-actions">
       <button class="hs-btn wide" :disabled="busy || codeOf(typed).length !== 8" @click="submit">Add it</button>
-      <button class="hs-btn ghost" v-if="state.houses.length" @click="emit('cancel')">Not now</button>
+      <button class="hs-btn ghost" v-if="state.houses.length || back" @click="emit('cancel')">Not now</button>
     </div>
   </main>
 
