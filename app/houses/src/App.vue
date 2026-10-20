@@ -4,16 +4,21 @@
 -->
 <script setup lang="ts">
 /*
- * Which screen the app is on. /add, or no houses yet: adding one (AppSafari, AppFirst, AppName). Otherwise a
+ * Which screen the app is on. /add: adding a house (AppSafari, AppFirst, AppName). No houses yet: the two doors,
+ * adding one or trying a pretend one (design/pretend-in-app/, B). Otherwise a
  * house -- the one whose Wi-Fi this phone is on, else the one opened last (design/houses/, B) -- with Houses
- * over it when somebody taps the house's name.
+ * over it when somebody taps the house's name. A notification tapped opens the house that sent it (public/sw.js):
+ * as /?open=<label> when the app was closed, as a message from the worker when it was open.
  */
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { houseToOpen, load, reach, state, type House } from './houses'
+import { askedFor } from './push'
 import AddView from './AddView.vue'
+import DoorsView from './DoorsView.vue'
+import PretendView from './PretendView.vue'
 import HouseView from './HouseView.vue'
 
-const view = ref<'loading' | 'add' | 'house'>('loading')
+const view = ref<'loading' | 'doors' | 'pretend' | 'add' | 'house'>('loading')
 const current = ref<string | null>(null)
 const bases = ref<Record<string, string>>({})
 
@@ -24,9 +29,22 @@ async function reachAll() {
   }))
 }
 
+function fromWorker(ev: MessageEvent) {
+  if (ev.data?.type !== 'houses:open-house') return
+  const id = askedFor(ev.data.label, state.houses)
+  if (id) open(id)
+}
+onUnmounted(() => navigator.serviceWorker?.removeEventListener('message', fromWorker))
+
 onMounted(async () => {
+  navigator.serviceWorker?.addEventListener('message', fromWorker)
   await load()
-  if (location.pathname.startsWith('/add') || !state.houses.length) { view.value = 'add'; return }
+  if (location.pathname.startsWith('/add')) { view.value = 'add'; return }
+  if (!state.houses.length) { view.value = 'doors'; return }
+  const q = new URLSearchParams(location.search)
+  const asked = askedFor(q.get('open'), state.houses)
+  if (q.has('open')) { q.delete('open'); history.replaceState(null, '', location.pathname + (q.size ? `?${q}` : '')) }
+  if (asked) { reachAll(); open(asked); return }
   // A house answering at home opens at once; otherwise the one opened last, once everybody has been asked.
   const all = reachAll()
   await Promise.race([all, new Promise(r => setTimeout(r, 1700))])
@@ -41,9 +59,12 @@ function open(id: string) {
   if (location.pathname !== '/') history.replaceState(null, '', '/')
 }
 function adding() { view.value = 'add'; history.pushState(null, '', '/add') }
+function backToDoors() { view.value = 'doors'; history.replaceState(null, '', '/') }
 </script>
 
 <template>
-  <AddView v-if="view === 'add'" @added="open" @cancel="state.houses.length && open(houseToOpen(state.houses)!)" />
+  <DoorsView v-if="view === 'doors'" @add="adding" @pretend="view = 'pretend'" />
+  <PretendView v-else-if="view === 'pretend'" @leave="view = 'doors'" />
+  <AddView v-else-if="view === 'add'" :back="!state.houses.length" @added="open" @cancel="state.houses.length ? open(houseToOpen(state.houses)!) : backToDoors()" />
   <HouseView v-else-if="view === 'house' && current" :key="current" :id="current" :base="bases[current] ?? ''" @switch="open" @add="adding" @reached="(id, b) => (bases[id] = b)" />
 </template>

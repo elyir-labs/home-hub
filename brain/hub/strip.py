@@ -42,6 +42,7 @@ is tested with a fake one, and nothing in here needs a strip on a desk to run.
 import asyncio, contextlib, json, logging, time
 
 from . import controller, roofline as rooflines
+from .messages import said as message, way
 
 log = logging.getLogger("hub.strip")
 
@@ -1788,8 +1789,8 @@ class Strips:
             room = home.rooms.get(d.room_id)
             where = " · ".join(x for x in ((room.name if room is not None and room.id != "unassigned" else None), "a light strip") if x)
             out.append({"kind": "held", "subject": lid, "since": None, "where": where, "name": d.name,
-                        "text": said["row"], "band": self._band(d, room, said),
-                        "acts": [{"do": "Show me", "act": "open", "to": lid}]})
+                        **message("strip.held", row=said["row"]), "band": self._band(d, room, said),
+                        "acts": [way("strip.held", "open", lid)]})
         return out
 
     @staticmethod

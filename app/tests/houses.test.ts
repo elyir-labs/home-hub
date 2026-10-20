@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { addLink, codeOf, houseToOpen, iphoneSafari, labelOf, nearby, originOf } from '../houses/src/houses'
+import { addLink, codeOf, houseToOpen, iphoneSafari, labelOf, nearby, originOf, pretendAt } from '../houses/src/houses'
 
 /* The Houses app's rules, pinned to design/houses/ (B, and The app). */
 
@@ -63,5 +63,14 @@ describe('the houses on this Wi-Fi', () => {
       return a()
     })
     expect(await nearby({ hostname: 'houses.elyir.app' })).toEqual(['maple-court'])
+  })
+})
+
+describe('the pretend house (design/pretend-in-app/, B)', () => {
+  it("is the hub's own site, never a name under elyir.app", () => {
+    expect(pretendAt({ hostname: 'houses.elyir.app' })).toBe('https://hub.elyir.com/try')
+  })
+  it('is the mock brain on a developer\'s machine', () => {
+    expect(pretendAt({ hostname: 'localhost' })).toBe('http://localhost:8399')
   })
 })

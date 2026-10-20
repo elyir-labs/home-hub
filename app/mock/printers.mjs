@@ -25,10 +25,10 @@ const ROOMS = { living: 'Living room', kitchen: 'Kitchen', bedroom: 'Bedroom', o
 
 /* What the page asked for, and the clock it is showing: ?at=14:47 means the print is done at 4:20 PM on
    that clock, the way the board says, rather than an hour and a half after whenever the test ran. */
-function asked(req) {
+function asked(req, env) {
   let q = new URLSearchParams()
   try { q = new URL(req.headers.referer || '').searchParams } catch { /* no page behind it: a curl, a test */ }
-  const scenario = q.get('printers') ?? process.env.PRINTERS ?? null
+  const scenario = q.get('printers') ?? env.PRINTERS ?? null
   const at = q.get('at')
   const now = new Date()
   if (at) { const [h, m] = at.split(':').map(Number); now.setHours(h || 0, m || 0, 0, 0) }
@@ -80,8 +80,8 @@ function seed(scenario, now) {
 }
 
 const houses = new Map()
-function house(req) {
-  const a = asked(req)
+function house(req, env) {
+  const a = asked(req, env)
   if (!a.scenario) return null
   if (!houses.has(a.key)) houses.set(a.key, { ...seed(a.scenario, a.now), now: a.now })
   return houses.get(a.key)
@@ -105,15 +105,15 @@ const status = h => ({ printers: h.printers, found: h.found.filter(f => !h.print
                        asks: Object.keys(h.asking).map(id => askWords(h, id)) })
 
 /** Needs a look's rows for a house with printers, in the brain's shape (Printers.notes). */
-export function printerNotes(req) {
-  const h = house(req)
+export function printerNotes(req, env = {}) {
+  const h = house(req, env)
   if (!h) return []
   return h.printers.filter(p => p.state === 'needs_you' || p.state === 'problem').map(p => ({
     kind: 'printer', subject: p.id, since: p.since, name: p.name, text: p.headline, more: p.detail,
     where: [p.room?.name, 'a 3D printer'].filter(Boolean).join(' · '), acts: [{ do: `Open ${p.name}`, act: 'printer', to: p.id }] }))
 }
 /** A page looking at printers is looking at the boards' house, which had nothing else found nearby. */
-export const printersAsked = req => !!house(req)
+export const printersAsked = (req, env = {}) => !!house(req, env)
 
 function send(res, body, code = 200) { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)) }
 function read(req, then) { let raw = ''; req.on('data', c => (raw += c)); req.on('end', () => { let b = {}; try { b = JSON.parse(raw) } catch { /* empty */ } then(b) }) }
@@ -141,9 +141,9 @@ const PART = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="236 130 190 190" 
 <polygon points="380,284 392,279 410,146 398,150" fill="#cfcac0"/></svg>`
 
 /** Every /printers route. Returns false when the page did not ask for printers and this is not one. */
-export function printersRoute(req, res, p) {
+export function printersRoute(req, res, p, env = {}) {
   if (!p.startsWith('/printers')) return false
-  const h = house(req)
+  const h = house(req, env)
   const m = p.match(/^\/printers\/([^/]+)(?:\/([^/]+))?$/)
   if (m && (m[2] === 'camera' || m[2] === 'thumbnail')) {
     res.writeHead(200, { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'no-store' })
@@ -163,7 +163,7 @@ export function printersRoute(req, res, p) {
       if (h.asking[id] !== 'waiting') return
       h.asking[id] = 'allowed'
       h.printers.push(printer(id, id === 'atlas' ? atlas('printing', h.now) : Vega()))
-    }, Number(process.env.PRINTER_ALLOWS_AFTER || 2500))
+    }, Number(env.PRINTER_ALLOWS_AFTER || 2500))
     send(res, status(h)); return true
   }
   if (what === 'add' && req.method === 'DELETE') { if (h.asking[id] === 'waiting') delete h.asking[id]; send(res, status(h)); return true }

@@ -80,7 +80,9 @@ def needs_code(method: str, path: str) -> bool:
     # and the same `remote`, carried to the house's own name (design/away/, C) -- nothing about who may do what
     # changes, and the page on the new name has no code yet to send with the claim. A screen saying which room it
     # hangs in changes only itself (design/companion/, C), and one let in from another screen has no code to send.
-    if path.startswith("/phones") and m != "GET": return path not in ("/phones/ask", "/phones/code", "/phones/move", "/phones/move/claim", "/phones/me/room")
+    # Nor is a phone asking to be told things, or to stop: it changes only how that one phone hears about the house.
+    if path.startswith("/phones") and m != "GET":
+        return path not in ("/phones/ask", "/phones/code", "/phones/move", "/phones/move/claim", "/phones/me/room", "/phones/me/push")
     return False
 
 

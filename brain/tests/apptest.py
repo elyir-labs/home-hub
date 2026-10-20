@@ -134,6 +134,21 @@ class FakeHA:
                 and (service is None or c[1] == service) and (entity_id is None or c[2] == entity_id)]
 
 
+def signing_key() -> dict:
+    """A phone's push signing key, as the phone sends it: {publicKey, privateKey}, raw P-256, base64url."""
+    import base64
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ec
+    k = ec.generate_private_key(ec.SECP256R1())
+    b = lambda raw: base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+    pub = k.public_key().public_bytes(serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint)
+    return {"publicKey": b(pub), "privateKey": b(k.private_numbers().private_value.to_bytes(32, "big"))}
+
+
+def subscription(endpoint="https://push.example/send/abc") -> dict:
+    return {"endpoint": endpoint, "keys": {"p256dh": "BPhone", "auth": "AuthAuth"}}
+
+
 def _no_service(*_a, **_k):
     raise address_mod.Unreachable("no service in tests")
 

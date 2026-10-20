@@ -111,6 +111,9 @@ class Provision:
                 if self.hub.driver == "ready": await self.refresh()
             except Exception:
                 log.exception("drivers")
+            # The house's half-minute look is also when what needs a look is told to the phones (pusher.py).
+            pusher = getattr(self.hub, "pusher", None)
+            if pusher and self.hub.driver == "ready": await pusher.look()
             await asyncio.sleep(30)
 
     async def refresh(self):

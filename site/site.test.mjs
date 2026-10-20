@@ -37,9 +37,12 @@ test('below the top: the pretend house, the three ways to get it, then the price
   assert.match(text(page), /Free at home\. \$3 a month to use it anywhere\./)
 })
 
-test("the command is the site's own, and the pretend house says it isn't built yet", () => {
+test("the command is the site's own, and the pretend house starts when asked, at /try", () => {
   assert.match(page, /curl -fsSL https:\/\/hub\.elyir\.com\/install \| sudo bash/)
-  assert.match(text(page.slice(at('id="try"'), at('id="get"'))), /Coming soon/)
+  const pretend = page.slice(at('id="try"'), at('id="get"'))
+  assert.match(text(pretend), /A whole house that isn't real\. Tap the lights, run Bedtime, type kitchen lights off ?\. It starts when you ask/)
+  assert.match(pretend, /<a class="veil" href="\/try\/"><span>Start the pretend house<\/span><\/a>/)
+  assert.ok(!pretend.includes('<iframe'), 'nothing of the house loads until somebody asks')
 })
 
 test("the page shows nobody else's show or brand, and names Home Assistant once", () => {

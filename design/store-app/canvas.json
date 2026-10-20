@@ -1,0 +1,125 @@
+{
+ "name": "In the store app",
+ "areas": [
+  "Phones and away"
+ ],
+ "pages": [
+  {
+   "id": "page-1",
+   "name": "The offer, inside the store app"
+  },
+  {
+   "id": "page-2",
+   "name": "The offer, inside the store app, and why: not chosen"
+  }
+ ],
+ "artboards": [
+  {
+   "file": "Today.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "Today — setup's offer on a phone inside the store app, unchanged",
+   "page": "page-1"
+  },
+  {
+   "file": "LinkC.dc.html",
+   "x": 560,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "C — US storefront: the offer, its button opening Safari",
+   "page": "page-1"
+  },
+  {
+   "file": "LinkC-back.dc.html",
+   "x": 1020,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "C — back from Safari, waiting for the payment",
+   "page": "page-1"
+  },
+  {
+   "file": "LeaveA.dc.html",
+   "x": 1480,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "C — every other storefront: no step, setup ends at ready (A)",
+   "page": "page-1"
+  },
+  {
+   "file": "SayB.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 390,
+   "h": 844,
+   "title": "B — Said, not sold: the step stays as a fact",
+   "page": "page-2"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "why",
+   "page": "page-1",
+   "x": -620,
+   "y": 0,
+   "w": 500,
+   "text": "WHY THIS EXISTS\n\nThe phone app will be a native shell around the Houses app (docs/apps.md, Decided, 19 October 2026), and both stores read whatever the web view shows as the app.\n\nApple: reaching your own house from away is a digital service used in the app, so selling it there means in-app purchase. Outside the US the app may not carry a button, link or other call to action toward buying it elsewhere. In the US a link out has been allowed since May 2025, with no commission today; Apple asked the court in August 2026 for up to 15%, and the Supreme Court has the contempt ruling behind it, so that number is not settled. Google Play allows the link in the US too.\n\nThe offer lives in three places (AddressStep.vue in setup, PeopleB's ask once a phone is set to Anywhere, chosen but not built, and the Web address row on The hub). The row only says how things stand, which every store allows, so these boards are about the other two. They are drawn on setup's step; whichever is chosen, PeopleB follows it the same way.\n\nNot touched by any of this: the wall, which is not the store app and keeps its offer and its code for a phone exactly as chosen in design/address/; and a phone in a browser."
+  },
+  {
+   "id": "today",
+   "page": "page-1",
+   "x": 0,
+   "y": -560,
+   "w": 390,
+   "text": "TODAY\n\nTraced off the running panel at 390x844 (?setup=1&page=address on the mock). Inside the store app this screen would ship as it is: $3, and a button toward paying outside the app. That is the one thing review rejects outright.\n\nTwo things wrong here regardless of any store, both from the step only ever having been drawn at wall size: \"Continue on your phone\" while you are holding it (the next screen is a code for your own camera), and \"jordan.elyir.app is free\" running off the right edge."
+  },
+  {
+   "id": "c",
+   "page": "page-1",
+   "x": 560,
+   "y": -560,
+   "w": 390,
+   "text": "C — BY STOREFRONT  ·  CHOSEN, 19 OCTOBER 2026\n\nThe shell tells the Houses app its storefront; the Houses app tells the house's panel (inapp.ts already carries messages from its parent). On the US storefront the offer is the one chosen in design/address/, and its button opens the payment page in Safari, which is where paying happens anyway. Every other storefront gets A.\n\nThe same screen fixes what Today gets wrong on any phone: \"is free\" goes under the field, and a phone that is the phone opens the page itself instead of showing a code for its own camera. That half is right in a browser too.\n\nFOR: the US household, the likely first customers, can buy from the app. Nothing anywhere else that review could read as steering.\n\nAGAINST: two behaviors to keep tested, and it follows a court case. If Apple's 15% is approved, the US link starts costing what the web does not."
+  },
+  {
+   "id": "back",
+   "page": "page-1",
+   "x": 1020,
+   "y": -560,
+   "w": 390,
+   "text": "AFTER THE TAP\n\nAdded once C was picked, because the step had to say something when the person comes back from Safari. It is \"Finish on your phone.\" said for the app: the same three parts (what is open and where, that the screen moves on by itself, waiting) and Not now the same size as the button beside it. Open it again is for the person who closed Safari before paying.\n\nOn Android the words are \"Finish in your browser.\" and \"Continue in your browser\", because there is no one browser to name."
+  },
+  {
+   "id": "a",
+   "page": "page-1",
+   "x": 1480,
+   "y": -560,
+   "w": 390,
+   "text": "EVERYWHERE ELSE, C IS A — LEFT OUT\n\nInside the store app, setup behaves as if the service were closed: after devices comes ready. People shows no Anywhere switch until the house has an address, which is how it works today, and PeopleB's ask is not shown in the app either.\n\nFOR: nothing for review to read as steering, in any country. Smallest change: offersOutside() gains one condition. The wall still asks at the end of its own setup, so most houses still hear the offer once.\n\nAGAINST: a household with no wall, setting the house up from the app, never hears there is such a thing. It reaches them only if they open the house in a browser.\n\nDrawn as A, and kept as C's other half: every storefront but the US gets exactly this."
+  },
+  {
+   "id": "else",
+   "page": "page-1",
+   "x": 1960,
+   "y": 0,
+   "w": 420,
+   "text": "NOT DRAWN: IN-APP PURCHASE\n\nThe fourth way is selling it through Apple and Google: StoreKit and Play Billing in the shell, the relay trusting their receipts, and 15 to 30% of $3. It is the only way to sell inside the app outside the US. It is real work on the relay and the shell, and it is a business decision more than a screen. Say so if it is the one, and it gets boards of its own.\n\nOr something else. Describe it."
+  },
+  {
+   "id": "b",
+   "page": "page-2",
+   "x": 0,
+   "y": -560,
+   "w": 390,
+   "text": "B — SAID, NOT SOLD\n\nThe step stays, without a price or a button toward paying: what the service is, that it is separate, where it is set up, and that a house which already has it needs nothing done here.\n\nFOR: nobody is left not knowing it exists. Honest about why the app is quiet.\n\nAGAINST: \"set up from the house's own screen\" points at a screen that does sell it, and Apple has rejected wording that tells people where to buy, outside the US. It is the riskiest of the three at review, for the least revenue. Drawn so the trade is visible, not because it is safe.\n\nNOT CHOSEN, 19 October 2026: C, which leaves the step out everywhere this would have been risky and sells where it is allowed."
+  }
+ ],
+ "decided": {
+  "on": "2026-10-19",
+  "chose": "C: the US opens Safari, every other storefront leaves the step out"
+ }
+}

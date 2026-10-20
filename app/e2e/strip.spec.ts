@@ -31,6 +31,10 @@ async function openStrip(page: Page) {
   await expect(page.locator('.pane-rig')).toHaveCount(1, { timeout: 10_000 })
   await page.mouse.up()
   await expect(page.locator('.rig-ask')).toBeVisible()
+  // measured while the pane was still opening, the row read up to 11px high about one run in five
+  await page.evaluate(() => Promise.all(document.getAnimations()
+    .filter(a => a.effect?.getTiming().iterations !== Infinity)
+    .map(a => a.finished.catch(() => null))))
 }
 
 const box = (page: Page, sel: string) => page.locator(sel).first().boundingBox()

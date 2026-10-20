@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, time as dtime
 from pathlib import Path
 from . import sun
 from .intents import RoomState, SERVICE
+from .messages import stream as message
 from .presence import word as presence_word
 from .settings import DATA
 from .signals import KINDS as SIGNAL_KINDS, TOWARD as SIGNAL_TOWARD
@@ -415,7 +416,7 @@ class Engine:
                     await self.hub.signals.outcome(rule, then, why, set_aside=bool(why.get("set_aside")))
                 elif "notify" in then:
                     self.hub.log.add("notify", rule["room"], None, then["notify"], source="rule", detail=why)
-                    self.hub._broadcast(json.dumps({"type": "notify", "text": then["notify"], "rule": rule["id"]}))
+                    self.hub._broadcast(message("rule.note", rule["id"], note=then["notify"]))
             except Exception as e:
                 log.warning("rule %s failed: %s", rule["id"], e)
                 self.hub.log.add("failed", rule["room"], None, str(e), source="rule", detail=why)

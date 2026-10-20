@@ -21,6 +21,7 @@ saying the bed is clear needs.
 """
 import asyncio, http.client, ipaddress, json, logging, os, re, socket, ssl, time
 
+from .messages import said, way
 from .settings import DATA
 
 log = logging.getLogger("hub.printers")
@@ -222,8 +223,8 @@ class Printers:
             if v["state"] in ("needs_you", "problem"):
                 where = " · ".join(x for x in ((v["room"] or {}).get("name"), "a 3D printer") if x)
                 out.append({"kind": "printer", "subject": pid, "since": self.live[pid].get("since"),
-                            "where": where, "name": v["name"], "text": v["headline"] or "", "more": v["detail"],
-                            "acts": [{"do": f"Open {v['name']}", "act": "printer", "to": pid}]})
+                            "where": where, "name": v["name"], **said("printer.needs_you", headline=v["headline"] or ""), "more": v["detail"],
+                            "acts": [way("printer.needs_you", "open", pid, name=v["name"])]})
         return out
 
     # ---- where it lives ----

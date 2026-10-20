@@ -13,10 +13,10 @@
 
    ?at=14:47 sets the clock the day's curve ends at, as the boards do. */
 
-function asked(req) {
+function asked(req, env) {
   let q = new URLSearchParams()
   try { q = new URL(req.headers.referer || '').searchParams } catch { /* no page behind it */ }
-  const scenario = q.get('power') ?? process.env.POWER ?? null
+  const scenario = q.get('power') ?? env.POWER ?? null
   const now = new Date(), at = q.get('at')
   if (at) { const [h, m] = at.split(':').map(Number); now.setHours(h || 0, m || 0, 0, 0) }
   return { scenario: scenario === '1' ? 'afternoon' : scenario, now: now.getTime() / 1000 }
@@ -48,9 +48,9 @@ function day(now) {
   return { made: 24.6, used: 9.8, peak: 7.9, since, curve }
 }
 
-export function powerRoute(req, res, p) {
+export function powerRoute(req, res, p, env = {}) {
   if (p !== '/power' && p !== '/power/day') return false
-  const { scenario, now } = asked(req)
+  const { scenario, now } = asked(req, env)
   const body = !power(scenario, now) ? null : p === '/power' ? power(scenario, now) : day(now)
   res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' })
   res.end(JSON.stringify(body))
