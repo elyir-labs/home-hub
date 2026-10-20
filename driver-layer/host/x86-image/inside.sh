@@ -65,6 +65,12 @@ chmod +x /opt/home-hub/driver-layer/host/move-early.sh /opt/home-hub/driver-laye
 for u in home-hub-firstboot.service home-hub-move.service; do install -m 644 "/opt/home-hub/driver-layer/host/$u" "/etc/systemd/system/$u"; done
 systemctl enable docker avahi-daemon NetworkManager home-hub-firstboot home-hub-move
 
+# The cloud image sends the kernel's and systemd's messages to a serial port, which a cloud VM has and a NUC does not:
+# the screen stays on the boot loader's last line until the login prompt, and writing to a port nobody is listening
+# on slows the boot. The screen is the only console here, and an update to GRUB keeps it so.
+sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="console=tty1"/' /etc/default/grub.d/50-cloudimg-settings.cfg
+update-grub
+
 # A USB stick is started through the firmware's removable-media path, EFI/BOOT/BOOTX64.EFI, which is shim. The cloud
 # image puts Ubuntu's fallback beside it and no GRUB, so shim runs the fallback, which writes a boot entry into the
 # firmware and resets the computer -- on a NUC that already has an Ubuntu entry, over and over. So GRUB and its menu
