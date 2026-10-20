@@ -7,6 +7,13 @@ set -euxo pipefail
 export DEBIAN_FRONTEND=noninteractive
 . /etc/home-hub.conf
 
+# The build's own name lookups. QEMU's user network answers them, and drops some under the burst of a large
+# download, so a second resolver backs it up and apt retries. Put back as it was at the end.
+cp -P /etc/resolv.conf /tmp/resolv.keep 2>/dev/null || true
+rm -f /etc/resolv.conf
+printf 'nameserver 10.0.2.3\nnameserver 1.1.1.1\noptions attempts:5 timeout:3\n' > /etc/resolv.conf
+echo 'Acquire::Retries "10";' > /etc/apt/apt.conf.d/80-build-retries
+
 # The cloud image's kernel is the virtual flavor, which leaves out the drivers for real Wi-Fi cards and
 # the firmware they load. NetworkManager runs every link, cable and Wi-Fi alike, because host/network.sh
 # is the one thing that talks to the network and it speaks nmcli. iw and dnsmasq are the hub's own
@@ -35,5 +42,6 @@ install -m 644 /opt/home-hub/driver-layer/host/home-hub-firstboot.service /etc/s
 systemctl enable docker avahi-daemon NetworkManager home-hub-firstboot
 
 # Every unit its own: a machine id made on first boot names the hub's setup Wi-Fi, among other things.
-apt-get clean; rm -rf /var/lib/apt/lists/*
+apt-get clean; rm -rf /var/lib/apt/lists/* /etc/apt/apt.conf.d/80-build-retries
+rm -f /etc/resolv.conf; cp -P /tmp/resolv.keep /etc/resolv.conf 2>/dev/null || ln -s ../run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 truncate -s 0 /etc/machine-id; rm -f /var/lib/dbus/machine-id
