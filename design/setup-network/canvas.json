@@ -14,6 +14,7 @@
     "OwnWiFiA-2.dc.html",
     "OwnWiFiA-3.dc.html",
     "OwnWiFiA-4.dc.html",
+    "OwnWiFiA-4-alone.dc.html",
     "b",
     "NearbyB-1.dc.html",
     "NearbyB-iPhone.dc.html",
@@ -70,6 +71,14 @@
       "w": 390,
       "h": 844,
       "title": "A4: back to your own Wi-Fi, carrying one address"
+    },
+    {
+      "file": "OwnWiFiA-4-alone.dc.html",
+      "x": 2040,
+      "y": 1400,
+      "w": 390,
+      "h": 844,
+      "title": "A4, on a card that can't do both: said before it tries"
     },
     {
       "file": "NearbyB-1.dc.html",
@@ -142,14 +151,14 @@
     },
     {
       "id": "behind",
-      "x": 2040,
+      "x": 2550,
       "y": 1400,
       "w": 520,
       "text": "UNDER BOTH\n\nTHE BOX ARRIVES WITH THE HUB ON IT. An image for x86 boxes, built the way driver-layer/host/pi-image/ builds the Pi's, and written to the disk before it ships. The engine and the brain are already in it, not downloaded on first start: with no network there is nothing to download from, and the setup screen has to be served before the hub is online.\n\nA CABLE STILL WINS. Plugged into the router, the hub never offers its own way in, and the Wi-Fi question is skipped. Piece 4 keeps the cable as the recommendation.\n\nIT IS THERE ONLY WHEN NOTHING ELSE IS, and it comes back on its own when the hub loses its network: a new router, a changed password. Same label, same steps, months later. That is the second reason the label is on the hub.\n\nNOT OPEN. Piece 5 says the setup network has no password. These boards give it one, unique to the hub and printed under it, so a neighbor can't get onto a hub that is waiting to be set up. Whichever is picked, piece 5 changes to match.\n\nWORDS. Elyir Hub and the label's four characters are the only new names. Wi-Fi and Bluetooth are words households already use. Access point, captive portal, provisioning and mDNS stay in docs/.\n\nTO CHECK BEFORE BUILDING: whether this NUC's card can run its own network and join another at the same time (iw list, valid interface combinations). A3 assumes it can, and says what happens if it can't."
     },
     {
       "id": "pick",
-      "x": 2040,
+      "x": 2550,
       "y": 2700,
       "w": 520,
       "text": "DECIDED 19 OCTOBER 2026\n\nA now, B once there is an app. The hub makes a Wi-Fi of its own, and the code on its label joins it. B's boards stay on this page because they are the next step, not a loser: when an Elyir app exists, it finds the same hub by the same label over Bluetooth, and the phone never has to leave its own Wi-Fi.\n\nWhy A first: it works on every phone without an app, it depends on nothing of ours being online, and it is the floor docs/network.md already promised. B is better on the screen but waits on an iPhone app the product does not have."
