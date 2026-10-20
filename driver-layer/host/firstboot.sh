@@ -18,10 +18,10 @@
 #   5. On a unit with its own screen: startup/install.sh, the splash and the panel full screen.
 #
 # The x86 image (x86-image/) is written to a USB stick and booted on the NUC. Booted from the stick
-# with an empty internal disk, it copies itself there, blanks the stick so the firmware cannot start
-# from it again, and restarts from the internal disk. A disk with anything on it is never touched: the
-# hub runs from the stick instead (HUB_AUTO_INTERNAL=0 in /etc/home-hub.conf turns the copy off).
-# Wherever it runs, the root filesystem is grown to fill its disk.
+# with an empty internal drive, it moves itself there (host/move-to-drive.sh) and restarts from the
+# drive; the stick is never written, so it sets up the next hub. A drive with anything on it is never
+# touched: the hub runs from the stick instead (HUB_AUTO_INTERNAL=0 in /etc/home-hub.conf turns the move
+# off). Wherever it runs, the root filesystem is grown to fill its disk.
 set -euo pipefail
 MARK=${HUB_FIRSTBOOT_MARK:-/var/lib/home-hub/firstboot.done}
 CONF=${HUB_CONF:-/etc/home-hub.conf}
@@ -63,34 +63,30 @@ if [ "${HUB_IMAGE:-}" = x86 ]; then
   ROOT_PART="$(findmnt -no SOURCE /)"
   ROOT_DISK="$(lsblk -no PKNAME "$ROOT_PART" | head -1)"
   on_stick() { [ "$(lsblk -dno TRAN "/dev/$1" 2>/dev/null)" = usb ] || [ "$(cat "$SYS_BLOCK/$1/removable" 2>/dev/null)" = 1 ]; }
-  # An internal disk with no partitions and no signature of any kind: nothing anybody could lose.
-  empty_disk() {
-    lsblk -dno NAME,TRAN,TYPE 2>/dev/null | awk -v r="$ROOT_DISK" '$3=="disk" && $1!=r && ($2=="nvme"||$2=="sata"||$2=="ata") {print $1}' \
-      | while read -r d; do
-          [ -z "$(lsblk -no NAME "/dev/$d" | tail -n +2)" ] && [ -z "$(wipefs -n "/dev/$d" 2>/dev/null)" ] && { echo "$d"; break; }
-        done
-  }
-  if [ "${HUB_AUTO_INTERNAL:-1}" = 1 ] && on_stick "$ROOT_DISK"; then
-    TARGET="$(empty_disk)" || TARGET=""
-    if [ -n "$TARGET" ]; then
-      # Only as far as the last partition: the stick may be far bigger than the image on it.
-      BYTES="$(sfdisk -J "/dev/$ROOT_DISK" | python3 -c 'import json,sys
-p=json.load(sys.stdin)["partitiontable"]; print(max(x["start"]+x["size"] for x in p["partitions"])*p.get("sectorsize",512))')" || BYTES=""
-      if [ -n "$BYTES" ] && [ "$(blockdev --getsize64 "/dev/$TARGET")" -ge "$BYTES" ]; then
-        log "running from a USB stick with an empty internal disk ($TARGET): copying the system across"
-        if dd if="/dev/$ROOT_DISK" of="/dev/$TARGET" bs=4M count="$BYTES" iflag=count_bytes conv=fsync status=none \
-           && sfdisk --relocate gpt-bak-std "/dev/$TARGET" >/dev/null 2>&1; then
-          # The copy has the same filesystems, by the same ids, as the stick. Two of each would leave the
-          # next boot choosing between them, so the stick stops being a disk with partitions on it.
-          wipefs -a -f "/dev/$ROOT_DISK" >/dev/null 2>&1 || true
-          sync
-          log "copied; restarting from the internal disk. The stick is blank now and can be written again."
-          reboot; exit 0
-        fi
-        log "could not copy to $TARGET; carrying on from the stick"
+  internal() { lsblk -dno NAME,TRAN,TYPE 2>/dev/null | awk -v r="$ROOT_DISK" '$3=="disk" && $1!=r && ($2=="nvme"||$2=="sata"||$2=="ata") {print $1}'; }
+  # An internal drive with no partitions and no signature of any kind: nothing anybody could lose.
+  empty() { [ -z "$(lsblk -no NAME "/dev/$1" | tail -n +2)" ] && [ -z "$(wipefs -n "/dev/$1" 2>/dev/null)" ]; }
+  holds_hub() { lsblk -no LABEL "/dev/$1" 2>/dev/null | grep -qx hub-root; }
+  if on_stick "$ROOT_DISK"; then
+    for d in $(internal); do
+      if holds_hub "$d"; then
+        # This stick already put its hub on the drive, and the firmware started from the stick anyway.
+        # Off, rather than a second hub: take the stick out and switch it back on.
+        log "the hub is already on $d and this computer started from the stick again: turning off, take the stick out"
+        poweroff; exit 0
       fi
-    else
-      log "running from a USB stick, and the internal disk has something on it: it is left alone"
+    done
+    TARGET=""
+    for d in $(internal); do empty "$d" && { TARGET="$d"; break; }; done
+    if [ "${HUB_AUTO_INTERNAL:-1}" = 1 ] && [ -n "$TARGET" ]; then
+      log "running from a USB stick with an empty drive ($TARGET): moving the system there"
+      if "$DIR/driver-layer/host/move-to-drive.sh" "$ROOT_DISK" "$TARGET"; then
+        log "moved; restarting from the drive. The stick is untouched and can set up another hub."
+        reboot; exit 0
+      fi
+      log "could not move to $TARGET; carrying on from the stick"
+    elif [ -z "$TARGET" ]; then
+      log "running from a USB stick, and the drive has something on it: it is left alone"
     fi
   fi
   PARTN="$(cat "$SYS_BLOCK/$ROOT_DISK/$(basename "$ROOT_PART")/partition" 2>/dev/null || true)"

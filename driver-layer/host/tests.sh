@@ -689,15 +689,15 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
 }
 
 
-# The x86 image boots from a USB stick and moves to the NUC's own disk, but only to one with nothing on
-# it. Disks, partitions and signatures are scripts on PATH; dd, wipefs and reboot write down what they
-# were asked, and do nothing.
+# The x86 image boots from a USB stick and moves to the NUC's own drive, but only to one with nothing on
+# it, and never by writing the stick. Disks, partitions and signatures are scripts on PATH.
 moving_in() {
-  group "the x86 image moves from its stick to an empty internal disk, and never onto one with anything on it"
+  group "the x86 image moves from its stick to an empty drive, never onto one with anything on it, and leaves the stick alone"
   local root dir bin sys; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"
-  mkdir -p "$dir/driver-layer" "$bin" "$sys/sda/sda1" "$sys/nvme0n1/nvme0n1p1"
+  mkdir -p "$dir/driver-layer/host" "$bin" "$sys/sda/sda1" "$sys/nvme0n1/nvme0n1p1"
   echo 1 > "$sys/sda/sda1/partition"; echo 1 > "$sys/nvme0n1/nvme0n1p1/partition"
   printf '#!/usr/bin/env bash\ntouch "%s/hub-installed"\n' "$root" > "$dir/install.sh"
+  printf '#!/usr/bin/env bash\necho "move $*" >> "%s/asked"\n[ -z "${MOVE_FAILS:-}" ]\n' "$root" > "$dir/driver-layer/host/move-to-drive.sh"
   cat > "$bin/lsblk" <<'SH'
 #!/usr/bin/env bash
 case "$*" in
@@ -706,18 +706,16 @@ case "$*" in
   "-dno TRAN /dev/sda") echo "${TRAN:-usb}" ;;
   "-dno TRAN /dev/nvme0n1") echo nvme ;;
   "-dno NAME,TRAN,TYPE") printf 'sda %s disk\nnvme0n1 nvme disk\n' "${TRAN:-usb}" ;;
-  "-no NAME /dev/nvme0n1") echo nvme0n1; [ -n "${USED:-}" ] && echo nvme0n1p1 ;;
+  "-no NAME /dev/nvme0n1") echo nvme0n1; [ -n "${USED:-}${MOVED:-}" ] && echo nvme0n1p1 ;;
+  "-no LABEL /dev/nvme0n1") echo; [ -n "${MOVED:-}" ] && echo hub-root ;;
 esac
 exit 0
 SH
   printf '#!/usr/bin/env bash\necho "${ROOTDEV:-/dev/sda1}"\n' > "$bin/findmnt"
   printf '#!/usr/bin/env bash\n[ "$1" = -n ] && { [ -n "${SIGNED:-}" ] && echo "nvme0n1 ntfs"; exit 0; }\necho "wipefs $*" >> "%s/asked"\n' "$root" > "$bin/wipefs"
-  printf '#!/usr/bin/env bash\n[ "$1" = -J ] && echo %s && exit 0\necho "sfdisk $*" >> "%s/asked"\n' \
-    "'{\"partitiontable\": {\"sectorsize\": 512, \"partitions\": [{\"start\": 2048, \"size\": 12000000}, {\"start\": 227328, \"size\": 2048}]}}'" "$root" > "$bin/sfdisk"
-  printf '#!/usr/bin/env bash\necho "${SIZE:-512110190592}"\n' > "$bin/blockdev"
-  for c in dd reboot growpart resize2fs sync; do printf '#!/usr/bin/env bash\necho "%s $*" >> "%s/asked"\n' "$c" "$root" > "$bin/$c"; done
+  for c in dd reboot poweroff growpart resize2fs sync; do printf '#!/usr/bin/env bash\necho "%s $*" >> "%s/asked"\n' "$c" "$root" > "$bin/$c"; done
   for c in systemctl docker; do printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/$c"; done
-  chmod +x "$dir/install.sh" "$bin"/*
+  chmod +x "$dir/install.sh" "$dir/driver-layer/host/move-to-drive.sh" "$bin"/*
   boot() {
     rm -f "$root"/hub-installed "$root/done" "$root/asked"; printf 'HUB_IMAGE=x86\n%s\n' "${EXTRA:-}" > "$root/conf"
     echo "${REMOVABLE:-0}" > "$sys/sda/removable"
@@ -725,32 +723,90 @@ SH
       HUB_PRELOAD="$root/none" HUB_DRM="$root/drm" "$HERE/firstboot.sh" >/dev/null 2>&1
   }
   asked() { grep -c "$1" "$root/asked" 2>/dev/null || true; }
+  installed() { [ -f "$root/hub-installed" ] && echo installed || echo "not installed"; }
 
   boot
-  is "on a stick, with an empty internal disk: the system is copied there, as far as its last partition" \
-    "$(asked 'dd if=/dev/sda of=/dev/nvme0n1 bs=4M count=6145048576 iflag=count_bytes conv=fsync status=none')" "1"
-  is "...the copy's backup partition table is moved to the end of the bigger disk" "$(asked 'sfdisk --relocate gpt-bak-std /dev/nvme0n1')" "1"
-  is "...the stick is blanked, so the next start cannot come from it, or find two of everything" "$(asked 'wipefs -a -f /dev/sda')" "1"
-  is "...and it restarts, from the internal disk, before installing anything" "$(asked '^reboot')$([ -f "$root/hub-installed" ] && echo ' installed')" "1"
+  is "on a stick, with an empty drive: the system moves there" "$(asked '^move sda nvme0n1$')" "1"
+  is "...and restarts from it, before installing anything" "$(asked '^reboot') $(installed)" "1 not installed"
+  is "...and the stick is never wiped" "$(asked 'wipefs -a')" "0"
   USED=1 boot
-  is "an internal disk with a partition on it is never written" "$(asked '^dd ')" "0"
-  is "...the hub runs from the stick instead, grown to fill it" "$(asked 'growpart /dev/sda 1')$([ -f "$root/hub-installed" ] && echo ' installed')" "1 installed"
+  is "a drive with a partition on it is never moved to" "$(asked '^move ')" "0"
+  is "...the hub runs from the stick instead, grown to fill it" "$(asked 'growpart /dev/sda 1') $(installed)" "1 installed"
   SIGNED=1 boot
-  is "nor one with any signature on it, partitions or not" "$(asked '^dd ')" "0"
-  SIZE=1000 boot
-  is "nor one too small to hold the system" "$(asked '^dd ')" "0"
+  is "nor one with any signature on it, partitions or not" "$(asked '^move ')" "0"
   EXTRA="HUB_AUTO_INTERNAL=0" boot
-  is "HUB_AUTO_INTERNAL=0 keeps it on the stick" "$(asked '^dd ')" "0"
+  is "HUB_AUTO_INTERNAL=0 keeps it on the stick" "$(asked '^move ')" "0"
+  MOVE_FAILS=1 boot
+  is "a move that fails carries on from the stick" "$(asked '^reboot') $(installed)" "0 installed"
+  MOVED=1 boot
+  is "started from the stick again with its hub already on the drive: off, for the stick to come out" "$(asked '^poweroff') $(asked '^move ') $(installed)" "1 0 not installed"
   TRAN=nvme ROOTDEV=/dev/nvme0n1p1 boot
-  is "already on the internal disk: nothing is copied, the system grows to fill it, and the hub installs" \
-    "$(asked '^dd ') $(asked 'growpart /dev/nvme0n1 1')$([ -f "$root/hub-installed" ] && echo ' installed')" "0 1 installed"
+  is "already on the drive: nothing moves, the system grows to fill it, and the hub installs" \
+    "$(asked '^move ') $(asked 'growpart /dev/nvme0n1 1') $(installed)" "0 1 installed"
   rm -rf "$root"
 }
 
+# The move itself. Partitions, filesystems and their ids are a table the fakes read and write; mount copies a
+# prepared system in and umount copies it out again, so what the move did to the copy's own files can be read.
+moving() {
+  group "the move gives the copy its own identity, and every file that names one follows"
+  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin" "$root/system/etc" "$root/system/boot/grub" "$root/system/boot/efi/EFI/ubuntu"
+  printf 'LABEL=cloudimg-rootfs / ext4 discard 0 1\nLABEL=BOOT /boot ext4 defaults 0 2\nLABEL=UEFI /boot/efi vfat umask=0077 0 1\n' > "$root/system/etc/fstab"
+  printf 'search --no-floppy --fs-uuid --set=root bbbb-boot\nlinux /vmlinuz root=PARTUUID=pppp-root ro\n' > "$root/system/boot/grub/grub.cfg"
+  printf 'search.fs_uuid bbbb-boot root hd0,gpt16\n' > "$root/system/boot/efi/EFI/ubuntu/grub.cfg"
+  echo stick-made-this > "$root/system/etc/machine-id"
+  cat > "$root/table" <<'T'
+/dev/sda1 PARTUUID pppp-root
+/dev/sda15 PARTUUID pppp-efi
+/dev/sda16 PARTUUID pppp-boot
+/dev/nvme0n1p1 LABEL cloudimg-rootfs
+/dev/nvme0n1p1 UUID rrrr-root
+/dev/nvme0n1p15 LABEL UEFI
+/dev/nvme0n1p16 LABEL BOOT
+/dev/nvme0n1p16 UUID bbbb-boot
+T
+  local parts='{"partitiontable": {"sectorsize": 512, "partitions": [{"node": "/dev/X1", "start": 2099200, "size": 4000000}, {"node": "/dev/X15", "start": 10240, "size": 217088}, {"node": "/dev/X16", "start": 227328, "size": 1869825}]}}'
+  printf '#!/usr/bin/env bash\necho "sfdisk $*" >> "$FAKES/asked"\n[ "$1" = -J ] && echo %q\nexit 0\n' "$parts" > "$bin/sfdisk"
+  cat > "$bin/blkid" <<'SH'
+#!/usr/bin/env bash
+awk -v d="$5" -v k="$4" '$1==d && $2==k {v=$3} END {print v}' "$FAKES/table"
+SH
+  cat > "$bin/tune2fs" <<'SH'
+#!/usr/bin/env bash
+echo "tune2fs $*" >> "$FAKES/asked"; d="$3"; grep -v "^$d UUID " "$FAKES/table" > "$FAKES/t"; echo "$d UUID new-${d##*/}" >> "$FAKES/t"; mv "$FAKES/t" "$FAKES/table"
+SH
+  cat > "$bin/e2label" <<'SH'
+#!/usr/bin/env bash
+echo "e2label $*" >> "$FAKES/asked"; grep -v "^$1 LABEL " "$FAKES/table" > "$FAKES/t"; echo "$1 LABEL $2" >> "$FAKES/t"; mv "$FAKES/t" "$FAKES/table"
+SH
+  printf '#!/usr/bin/env bash\nn=$(( $(cat "$FAKES/n" 2>/dev/null || echo 0) + 1 )); echo $n > "$FAKES/n"; echo "uuid-$n"\n' > "$bin/uuidgen"
+  printf '#!/usr/bin/env bash\n[ "$1" = /dev/nvme0n1p1 ] && cp -R "$FAKES/system/." "$2/"\nexit 0\n' > "$bin/mount"
+  printf '#!/usr/bin/env bash\n[ "$1" = -R ] && [ -d "$2/etc" ] && { rm -rf "$FAKES/after"; cp -R "$2" "$FAKES/after"; rm -rf "${2:?}"/*; }\nexit 0\n' > "$bin/umount"
+  printf '#!/usr/bin/env bash\necho "${SIZE:-512110190592}"\n' > "$bin/blockdev"
+  for c in dd fatlabel e2fsck partx udevadm efibootmgr; do printf '#!/usr/bin/env bash\necho "%s $*" >> "$FAKES/asked"\n' "$c" > "$bin/$c"; done
+  chmod +x "$bin"/*
+  sed -i.bak 's|/dev/X|/dev/nvme0n1p|g' "$bin/sfdisk"
+  move() { PATH="$bin:$PATH" FAKES="$root" "$HERE/move-to-drive.sh" sda nvme0n1 >"$root/out" 2>&1; }
+  asked() { grep -c -- "$1" "$root/asked" 2>/dev/null || true; }
+
+  move
+  is "copies the stick onto the drive, as far as its last partition" "$(asked 'dd if=/dev/sda of=/dev/nvme0n1 bs=4M count=3122790400 iflag=count_bytes conv=fsync status=none')" "1"
+  is "...and never writes the stick" "$(grep -E -c '(sfdisk --(disk-id|part-uuid|relocate)|tune2fs|e2label|fatlabel|wipefs).* /dev/sda' "$root/asked")" "0"
+  is "the copy gets its own partition ids" "$(asked 'sfdisk --part-uuid /dev/nvme0n1 ')" "3"
+  is "...its own filesystem ids" "$(asked 'tune2fs -U random /dev/nvme0n1p')" "2"
+  is "...and its own labels" "$(asked 'e2label /dev/nvme0n1p1 hub-root') $(asked 'e2label /dev/nvme0n1p16 hub-boot') $(asked 'fatlabel /dev/nvme0n1p15 HUB-EFI')" "1 1 1"
+  is "its fstab finds its own filesystems, not the stick's" "$(cut -d' ' -f1 "$root/after/etc/fstab" | tr '\n' ' ')" "LABEL=hub-root LABEL=hub-boot LABEL=HUB-EFI "
+  is "...and so does its boot menu" "$(cat "$root/after/boot/grub/grub.cfg" | tr '\n' ' ')" "search --no-floppy --fs-uuid --set=root new-nvme0n1p16 linux /vmlinuz root=PARTUUID=uuid-2 ro "
+  is "...on both copies of it" "$(cat "$root/after/boot/efi/EFI/ubuntu/grub.cfg")" "search.fs_uuid new-nvme0n1p16 root hd0,gpt16"
+  is "it makes its own machine id, rather than the one the stick made" "$(wc -c < "$root/after/etc/machine-id" | tr -d ' ')" "0"
+  rm -f "$root/asked"; SIZE=1000 move
+  is "a drive too small for the system is refused before anything is written" "$(asked '^dd ')" "0"
+  rm -rf "$root"
+}
 
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; watchdog; away; finding; becoming; keeping; awake; setting_up; moving_in
+signatures; holds; undo; radios; watchdog; away; finding; becoming; keeping; awake; setting_up; moving_in; moving
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

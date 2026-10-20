@@ -6,11 +6,14 @@ The NUC and mini-PC image: Ubuntu Server 24.04 with the hub already on it, built
 **To set up a NUC:** write the image to a USB stick (balenaEtcher, or Raspberry Pi Imager's *Use custom*), plug the
 stick into the NUC with nothing else, and power it on.
 
-- With an **empty internal disk**, the hub copies itself there, blanks the stick, and restarts from the internal disk.
-  Take the stick out whenever you like; write the image to it again to set up another.
-- With **anything on the internal disk** (Windows, an old install), the disk is left exactly as it is and the hub
-  runs from the stick. To move it across, empty the disk first. `HUB_AUTO_INTERNAL=0` in `/etc/home-hub.conf` keeps
-  it on the stick even when the disk is empty.
+- With an **empty internal drive**, the hub moves itself there (`host/move-to-drive.sh`) and restarts from the drive.
+  The stick is never written, so the same one sets up the next hub: plug it into the next NUC and power on. The copy
+  gets its own disk ids, labels and machine id, so it is never confused with the stick, and the firmware is told to
+  start from the drive. Firmware that starts from any USB stick regardless finds its hub already on the drive and
+  turns the computer off: take the stick out and switch it back on.
+- With **anything on the internal drive** (Windows, an old install), the drive is left exactly as it is and the hub
+  runs from the stick. Asking on the screen whether to erase it is drawn in `design/move-to-drive/`.
+  `HUB_AUTO_INTERNAL=0` in `/etc/home-hub.conf` keeps it on the stick even when the drive is empty.
 
 Then it is the same as every hub: with a cable it is at `http://hub.local`; without one it offers a Wi‑Fi of its own,
 named on its label (docs/network.md, piece 5). The image carries the brain, the front door and the broker, so the

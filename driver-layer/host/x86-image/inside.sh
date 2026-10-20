@@ -32,7 +32,7 @@ rm -rf /var/lib/snapd /snap /var/snap /var/cache/snapd
 
 apt-get update
 apt-get install -y --no-install-recommends linux-image-generic linux-firmware wireless-regdb network-manager wpasupplicant \
-  iw dnsmasq-base avahi-daemon git curl ca-certificates python3 cloud-guest-utils
+  iw dnsmasq-base avahi-daemon git curl ca-certificates python3 cloud-guest-utils efibootmgr dosfstools uuid-runtime
 # One kernel: the newest generic one just installed. The cloud image's own and every header package go, because
 # nothing on a hub builds a kernel module. And the extras that only make sense in somebody's cloud. Only what is
 # installed is named, because apt refuses a whole purge over one name it does not know.
@@ -60,7 +60,7 @@ echo hub > /etc/hostname
 sed -i 's/^127\.0\.1\.1.*/127.0.1.1\thub/' /etc/hosts; grep -q '^127\.0\.1\.1' /etc/hosts || printf '127.0.1.1\thub\n' >> /etc/hosts
 
 git clone --depth 1 --branch "$HOME_HUB_REF" "$HOME_HUB_REPO" /opt/home-hub
-chmod +x /opt/home-hub/install.sh /opt/home-hub/driver-layer/radios.sh /opt/home-hub/driver-layer/host/firstboot.sh
+chmod +x /opt/home-hub/install.sh /opt/home-hub/driver-layer/radios.sh /opt/home-hub/driver-layer/host/firstboot.sh /opt/home-hub/driver-layer/host/move-to-drive.sh
 install -m 644 /opt/home-hub/driver-layer/host/home-hub-firstboot.service /etc/systemd/system/home-hub-firstboot.service
 systemctl enable docker avahi-daemon NetworkManager home-hub-firstboot
 
