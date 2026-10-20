@@ -135,7 +135,7 @@ per send is enough — pushes are a handful per day, not a stream. The alternati
 `httpx` already in dev requirements, is roughly eighty lines of our own and native async; it is the right trade only
 if `requests` in the image is judged worse than owning the encoding, and it is not.
 
-**The keypair is the hub's, made once**, kept beside `phones.json` in the data directory so it **rides the backup** —
+*Changed 19 October 2026: the key is the phone's, one for every house it has joined, as the printer app does it, and the store app's are carried by a sender Elyir runs, sealed (`docs/apps.md`, Decided).* **The keypair is the hub's, made once**, kept beside `phones.json` in the data directory so it **rides the backup** —
 a house restored onto a new box keeps its phones' subscriptions working, which is the same property pairing already
 has and for the same reason. The VAPID `sub:` claim must be the maker's address, never the household's: it is sent to
 Apple and Google on every message and it is not the house's business to identify itself to them.

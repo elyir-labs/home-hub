@@ -22,6 +22,19 @@ native panel.** Asked as "Capacitor, or native?", once the relay was carrying ho
 - **Push is the Houses app's**, one key for every house (`app/houses/public/sw.js`): web push from its worker in a
   browser, APNs and FCM from the shell. Not a worker per house -- the panel on a house's own name keeps no worker,
   and the Houses app's caches nothing on purpose.
+- **The key is the phone's, as the printer app does it** (astromech's `docs/door.md`, *One push subscription for
+  every printer*). A browser allows one subscription per worker, and the Houses app's one worker serves every house,
+  so the phone makes the signing key once, subscribes with it, and hands each house it joins the subscription and
+  the key. Each house keeps them in that phone's record in `phones.json` (0600), and Remove takes them with it. Two
+  things follow, and *This hub* says them plainly: any house the phone has joined can notify it, and each such house
+  holds that phone's key. This replaces `docs/messages.md`'s *the keypair is the hub's*.
+- **The store app's notifications come through a sender Elyir runs, and it only ever carries sealed ones**
+  (decided 19 October 2026). A web view inside an app has no web push, and APNs only takes notifications signed with
+  Elyir's own key, which cannot sit on every house. So a small sender beside the relay (Terraform, like the rest)
+  holds that key; a house hands it a notification already encrypted to a key only the phone has, with the phone's
+  APNs token, and a Notification Service Extension in the app opens it on the phone. The sender and Apple see that a
+  house sent something to a phone, and when, never what: the same as web push, and said the same way on *This hub*.
+  A house proves itself to the sender with the secret it already holds for the relay. Android's FCM, later, the same.
 - **The shells live in a repository of their own, `elyir-labs/home-hub-apps`, under Apache-2.0.** Not proprietary:
   there is nothing in a web view and four native pieces worth hiding, and what stops a lookalike in the store is the
   name and the icon, which are trademarks and are not licensed with the code. Not AGPL, for the store terms below.
