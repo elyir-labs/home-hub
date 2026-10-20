@@ -50,7 +50,7 @@ from .share import Share
 from .nightlight import Nightlight
 from .ears import Ears
 from .relay import Relay
-from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, away_refused, away_refusal
+from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, from_setup, SETUP_OPEN, away_refused, away_refusal
 from . import camera
 
 log = logging.getLogger("hub")
@@ -776,7 +776,10 @@ async def settings_lock(request: Request, call_next):
     """
     request.state.phone = None
     request.state.away = from_away(request.headers)   # off the Wi-Fi, or in through the relay: docs/away.md piece 2
+    request.state.setup = from_setup(request.headers)  # on the hub's own setup Wi-Fi: docs/network.md piece 5
     m, path = request.method, request.url.path
+    if request.state.setup and ((m, path) in SETUP_OPEN or open_to_strangers(m, path)):
+        return await call_next(request)
     phone = hub.phones.identify(_phone_token(request)) if hub.lock.locked else None
     # Who is asking, for anything this request writes down. Set before call_next so the copy the
     # endpoint's task starts with has it, and only ever read for source="user" (events.py). A house
@@ -1890,7 +1893,9 @@ async def network_hub(body: dict, request: Request):
     reached. Doing it the other way round would mean the hub changing networks and only then
     discovering it can no longer tell anybody.
     """
-    hub.ready()
+    # From the setup Wi-Fi the house may not have started yet -- it may have nothing to start with --
+    # and the one thing being asked is which Wi-Fi to use, which needs nothing from it.
+    if not getattr(request.state, "setup", False): hub.ready()
     if request.state.away:
         # The one refusal this design makes that restarting does not. A restart away from home is
         # caught by a watchdog on the machine; a wrong network away from home can be right and still
@@ -1898,7 +1903,7 @@ async def network_hub(body: dict, request: Request):
         raise HTTPException(403, "Changing the network has to be done in the house.")
     ssid, password = str(body.get("ssid") or ""), str(body.get("password") or "")
     try:
-        if sum(1 for p in hub.bridge.pucks.values() if p.get("online")):
+        if hub.driver == "ready" and sum(1 for p in hub.bridge.pucks.values() if p.get("online")):
             await hub.bridge.move(ssid, password)
         return hub.net.join(ssid, password)
     except ValueError as e: raise HTTPException(400, str(e))

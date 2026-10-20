@@ -576,9 +576,111 @@ becoming() {
 }
 
 
+# A hub with no cable and no Wi-Fi makes one of its own for a phone to set it up from (docs/network.md,
+# piece 5; design/setup-network/, A). NetworkManager, the kernel's radio and the routing table are
+# scripts on PATH; each says what this house looks like and writes down what it was asked.
+setting_up() {
+  group "a hub on nothing offers a Wi-Fi of its own, and gives it up once it is on the house's"
+  local root bin dir data net; root=$(mktemp -d); bin="$root/bin"; dir="$root/hub"; data="$dir/driver-layer/brain-data"; net="$root/net"
+  mkdir -p "$bin" "$data" "$net/wlp1s0/phy80211" "$net/enp3s0/device"
+  echo phy0 > "$net/wlp1s0/phy80211/name"; echo 1 > "$net/enp3s0/carrier"
+  cat > "$bin/nmcli" <<'SH'
+#!/usr/bin/env bash
+echo "nmcli $*" >> "$ROOT/asked"
+case "$*" in
+  "-t -f DEVICE,TYPE,STATE,CONNECTION device") printf 'wlp1s0:wifi:%s:\n' "$([ -f "$ROOT/up" ] && echo connected || echo disconnected)"
+    [ -n "${CABLE:-}" ] && printf 'enp3s0:ethernet:unmanaged:\n'; [ -f "$ROOT/ap" ] && printf 'hubsetup0:wifi:connected:home-hub-setup\n' ;;
+  "-t -f DEVICE,TYPE device") printf 'wlp1s0:wifi\n'; [ -f "$ROOT/ap" ] && printf 'hubsetup0:wifi\n' ;;
+  *"BSSID,CHAN device wifi list"*) printf '%s\n' 'Bluebell:90:5180 MHz:WPA2:AA\:BB\:CC\:00\:00\:02:36' 'Bluebell:70:2462 MHz:WPA2:AA\:BB\:CC\:00\:00\:01:11' \
+    'Elyir Hub 4F2A:99:2412 MHz:WPA2:DE\:AD\:00\:00\:00\:01:1' 'Bluebell Guest:60:2412 MHz:WPA2:AA\:BB\:CC\:00\:00\:03:1' ;;
+  "-t -f NAME,TYPE connection show") [ -n "${SAVED:-}" ] && echo "$SAVED:802-11-wireless" ;;
+  "-t -f NAME,DEVICE connection show --active") ;;
+  "-t -f NAME connection show --active") [ -f "$ROOT/ap" ] && echo home-hub-setup ;;
+  "connection up home-hub-setup") touch "$ROOT/ap" ;;
+  "connection delete home-hub-setup") rm -f "$ROOT/ap" ;;
+  *"device wifi connect"*) if [ -n "${WRONG:-}" ]; then echo "Error: Connection activation failed: Secrets were required, but not provided."; exit 4; fi
+    touch "$ROOT/up" ;;
+  "-t -g GENERAL.STATE device show wlp1s0") [ -f "$ROOT/up" ] && echo "100 (connected)" ;;
+  "-t -g IP4.ADDRESS device show wlp1s0") [ -f "$ROOT/up" ] && echo "192.168.1.20/24" ;;
+  "-t -g IP4.GATEWAY device show wlp1s0") [ -f "$ROOT/up" ] && echo "192.168.1.1" ;;
+esac
+exit 0
+SH
+  cat > "$bin/ip" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "route show default") [ -n "${ROUTE:-}" ] && echo "default via 192.168.1.1 dev $ROUTE" ;;
+  "link show hubsetup0") [ -f "$ROOT/iface" ] ;;
+  "-4 -o addr show dev enp3s0") [ -n "${CABLE:-}" ] && echo "2: enp3s0    inet 192.168.1.9/24 brd 192.168.1.255 scope global enp3s0" ;;
+  *) exit 0 ;;
+esac
+SH
+  cat > "$bin/iw" <<'SH'
+#!/usr/bin/env bash
+echo "iw $*" >> "$ROOT/asked"
+case "$*" in
+  "phy phy0 info") [ -n "${BOTH:-}" ] && printf '\tvalid interface combinations:\n\t\t * #{ managed } <= 1, #{ AP, P2P-client, P2P-GO } <= 1,\n\t\t   total <= 2, #channels <= 1\n\tHT Capability overrides:\n' ;;
+  "dev wlp1s0 interface add hubsetup0 type __ap") touch "$ROOT/iface" ;;
+  "dev hubsetup0 del") rm -f "$ROOT/iface" ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/sleep"; cp "$bin/sleep" "$bin/ping"
+  chmod +x "$bin"/*
+  conf() { printf 'HUB_SETUP_SSID="Elyir Hub 4F2A"\nHUB_SETUP_PASS="kite-maple-41"\n' > "$root/conf"; }
+  tick() { PATH="$bin:$PATH" ROOT="$root" HUB_NET="$net" HUB_CONF="$root/conf" HOME_HUB_DIR="$dir" HOME_HUB_SETUP_FIRST=0 HOME_HUB_NETWORK_SETTLE=5 "$HERE/network.sh"; }
+  ask() { printf '%s' "$1" > "$data/network.request"; tick; }
+  field() { python3 -c 'import json,sys
+v=json.load(open(sys.argv[1]))
+for k in sys.argv[2].split("."): v=v.get(k) if isinstance(v,dict) else None
+print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
+  fresh() { rm -f "$root"/asked "$root"/ap "$root"/iface "$root"/up "$data"/network.*; }
+
+  printf '' > "$root/conf"; fresh; tick
+  is "with no password to put on it, it is never started" "$(grep -c 'con-name home-hub-setup' "$root/asked")" "0"
+
+  conf; fresh; tick
+  is "on nothing, with a password: its own Wi-Fi, by the name and password on the label" \
+    "$(grep -c 'con-name home-hub-setup autoconnect no ssid Elyir Hub 4F2A 802-11-wireless.mode ap' "$root/asked")" "1"
+  is "...on the house's strongest 2.4 GHz channel, handing out addresses" "$(grep -c 'channel 11 ipv4.method shared ipv4.addresses 10.42.0.1/24' "$root/asked")" "1"
+  is "...said in the hub's picture, for the panel" "$(field setup.ssid)" "elyir hub 4f2a"
+  is "...on the card itself, which cannot do both" "$(field setup.both)" "false"
+  is "its own Wi-Fi is not one of the house's choices" "$(python3 -c 'import json,sys; print(",".join(n["ssid"] for n in json.load(open(sys.argv[1]))))' "$data/network.scan")" "Bluebell,Bluebell Guest"
+
+  fresh; BOTH=1 tick
+  is "a card that can do both gets a second interface for it" "$(grep -c 'iw dev wlp1s0 interface add hubsetup0 type __ap' "$root/asked")" "1"
+  is "...and says so" "$(field setup.both)" "true"
+  BOTH=1 ask '{"do": "join", "ssid": "Bluebell", "password": "right"}'
+  is "the house's Wi-Fi is tried on its 2.4 GHz side, so the phone on the hub's stays on" \
+    "$(grep -c 'device wifi connect Bluebell password right ifname wlp1s0 bssid AA:BB:CC:00:00:01' "$root/asked")" "1"
+  is "...and once it is on, the phone is told which" "$(field joined.ssid)" "bluebell"
+  ROUTE=wlp1s0 BOTH=1 tick
+  is "online, its own Wi-Fi stays a little while so the phone can be told" "$(field setup.ssid)" "elyir hub 4f2a"
+  python3 -c 'import json,sys; json.dump({"ssid":"Bluebell","at":1},open(sys.argv[1],"w"))' "$data/network.joined"
+  ROUTE=wlp1s0 BOTH=1 tick
+  is "...and then goes" "$(field setup.ssid)" ""
+  is "...taking its interface with it" "$(grep -c 'iw dev hubsetup0 del' "$root/asked")" "1"
+  is "...and lets the house's Wi-Fi choose its own band again" "$(grep -c 'connection modify Bluebell 802-11-wireless.bssid' "$root/asked")" "1"
+
+  fresh; BOTH=1 tick; rm -f "$root/asked"
+  WRONG=1 BOTH=1 ask '{"do": "join", "ssid": "Bluebell", "password": "wrong"}'
+  is "a wrong password is said as one, at once" "$(field reverted_why)" "password"
+  is "...naming the network" "$(field reverted)" "bluebell"
+  is "...and the hub's own Wi-Fi was never dropped" "$(grep -c 'connection up home-hub-setup' "$root/asked")" "0"
+
+  fresh; ROUTE=enp3s0 CABLE=1 tick
+  is "plugged into the router, it never offers its own" "$(grep -c 'con-name home-hub-setup' "$root/asked")" "0"
+  is "a cable NetworkManager does not manage is still a cable" "$(python3 -c 'import json,sys; print([l["up"] for l in json.load(open(sys.argv[1]))["links"] if l["kind"]=="ethernet"])' "$data/network.json")" "[True]"
+
+  fresh; SAVED=Bluebell HOME_HUB_SETUP_LOST=300 PATH="$bin:$PATH" ROOT="$root" HUB_NET="$net" HUB_CONF="$root/conf" HOME_HUB_DIR="$dir" HOME_HUB_SETUP_FIRST=0 "$HERE/network.sh"
+  is "a hub that had a Wi-Fi waits before offering its own: a router rebooting is not a reason" "$(grep -c 'con-name home-hub-setup' "$root/asked")" "0"
+  rm -rf "$root"
+}
+
+
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; watchdog; away; finding; becoming; keeping; awake
+signatures; holds; undo; radios; watchdog; away; finding; becoming; keeping; awake; setting_up
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

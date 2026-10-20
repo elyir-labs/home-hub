@@ -174,6 +174,9 @@ export type NetState = {
   stale?: true                             // the host's picture has not been refreshed lately
   moving?: { ssid: string; since: number }  // the hub is being moved right now, and the host is watching it
   reverted?: string                        // ...and one did not take, so this is the name that failed
+  reverted_why?: 'password' | 'unreachable' // ...and why, when the router said
+  setup?: { ssid: string; both: boolean }   // the hub's own Wi-Fi is up, for a phone to set it up from (design/setup-network/)
+  joined?: string                          // ...and the house's Wi-Fi it joined from there, before it goes
   bridges: { ssid: string; checked: boolean; known: boolean; count: number }
   bridges_moving?: NetMove | null          // the pucks' journey; `moving` above is the hub's own
 }

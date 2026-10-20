@@ -72,6 +72,9 @@ const PATHS: Record<string, string> = {
   'wifi-mid': 'M6.1 12.5a10 10 0 0 1 11.8 0M9.5 16.3a5 5 0 0 1 5 0M12 19.9h.01',
   'wifi-low': 'M9.5 16.3a5 5 0 0 1 5 0M12 19.9h.01',
   alert: 'M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17zM12 7.8v5M12 16.2h.01',
+  eye: 'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 14.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6z',
+  'eye-off': 'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 14.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6zM4 4l16 16',
+  copy: 'M8.5 8.5h11v11h-11zM15.5 8.5v-3a1 1 0 0 0-1-1h-9a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3',
   share: 'M8.5 12a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0zM20.5 6a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0zM20.5 18a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0zM8.3 10.8l7-3.5M8.3 13.2l7 3.5',
   /* A strip the controller is keeping dark to protect it (design/controller-panel/InRoomA.dc.html):
      being looked after rather than broken, so a shield and never a warning sign. */

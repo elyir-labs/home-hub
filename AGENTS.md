@@ -286,6 +286,13 @@ Do not reopen these, and do not propose around them.
   touched says Still on rather than flipping back. A request that never arrived names the hub; only one the hub
   answered with a failure names the light. The band replaces the Reconnecting banner. Pinned by
   `app/tests/reach.test.ts` and `app/e2e/reach.spec.ts`; the rules and words are `app/src/reach.ts`.
+- **A hub with no cable makes a Wi-Fi of its own, and the code on its label joins it** (19 October,
+  `design/setup-network/`, A now, B once there is an app). Only while it is on nothing, never without the password
+  printed under it, and gone once it is online. The phone's sign-in sheet opens on the panel's own Wi-Fi step, where
+  a card that can do both tries the house's Wi-Fi without dropping the phone. Holding the label's password lets a phone
+  give the hub a Wi-Fi and nothing else. B (the same over Bluetooth, no network switch) waits for an app, because
+  Safari has no Bluetooth. Pinned by `app/tests/wifi.test.ts`, `brain/tests/test_setup_wifi.py` and the
+  `setting_up` group in `driver-layer/host/tests.sh`; the host's half is `host/network.sh`.
 - **The hub's front page is Elyir Bench's shape, with one line for a hub ready to plug in** (16 October,
   `design/site/`, D). It lives at `hub.elyir.com`, as Bench lives at `bench.elyir.com`; never under `elyir.app`, where
   names are houses' own. On a computer, Put it on a computer you have leads; on a phone, Try it live. Under the two

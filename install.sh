@@ -156,6 +156,30 @@ mkdir -p /etc/avahi/services 2>/dev/null && cat > /etc/avahi/services/home-hub.s
 MDNS
 systemctl enable --now avahi-daemon >/dev/null 2>&1 || true
 systemctl reload-or-restart avahi-daemon >/dev/null 2>&1 || true
+# A Wi-Fi of its own, for a hub with no cable and nobody to type its Wi-Fi in (docs/network.md, piece 5).
+# host/network.sh starts it only while the hub is on nothing. Its name and password are this hub's
+# alone and go on its label; a flashed unit has them written in before it ships, and anything else gets
+# a pair made here. `iw` asks whether the card can hold it and join the house's at once; NetworkManager
+# hands out addresses on it with dnsmasq, which also answers every name with the hub so a phone that
+# joins is sent straight to the setup screen.
+SETUP_CONF="${HUB_CONF:-/etc/home-hub.conf}"
+if command -v nmcli >/dev/null 2>&1; then
+  pkg iw 2>/dev/null || true
+  command -v dnsmasq >/dev/null 2>&1 || pkg dnsmasq-base 2>/dev/null || pkg dnsmasq 2>/dev/null || true
+  mkdir -p /etc/NetworkManager/dnsmasq-shared.d
+  echo "address=/#/10.42.0.1" > /etc/NetworkManager/dnsmasq-shared.d/home-hub-setup.conf
+  if ! grep -q '^HUB_SETUP_PASS=' "$SETUP_CONF" 2>/dev/null; then
+    python3 - "$SETUP_CONF" <<'PY' || true
+import hashlib, secrets, sys
+words = "amber birch cedar cloud coral daisy delta ember fable fern frost glade harbor hazel indigo ivory juniper kite lark linen maple meadow mint moss nectar oak opal orchid pebble pine plum quartz quill rain reed river robin sage shell slate sparrow spruce stone sun tide tulip velvet willow wren".split()
+unit = hashlib.sha256(open("/etc/machine-id").read().encode()).hexdigest()[:4].upper()
+with open(sys.argv[1], "a") as f:
+    f.write(f'HUB_SETUP_SSID="Elyir Hub {unit}"\n')
+    f.write(f'HUB_SETUP_PASS="{secrets.choice(words)}-{secrets.choice(words)}-{secrets.randbelow(90) + 10}"\n')
+PY
+    chmod 0600 "$SETUP_CONF" 2>/dev/null || true
+  fi
+fi
 
 say "4/5  Settings"
 # The host as an appliance: watchdog, a cap on container logs, a cap on the journal. Exit 10 means
@@ -325,3 +349,11 @@ IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 say "Done. On a phone or tablet on the same Wi‑Fi open:"
 echo "    http://$HOSTNAME_WANTED.local      (or http://$IP)"
 echo "The screen walks you through the rest. The first start takes a minute or two."
+if grep -q '^HUB_SETUP_PASS=' "$SETUP_CONF" 2>/dev/null; then
+  S_SSID="$(sed -n 's/^HUB_SETUP_SSID=//p' "$SETUP_CONF" | tail -1 | tr -d '"')"
+  S_PASS="$(sed -n 's/^HUB_SETUP_PASS=//p' "$SETUP_CONF" | tail -1 | tr -d '"')"
+  echo
+  echo "With no cable, this hub makes a Wi-Fi of its own for a phone to set it up from:"
+  echo "    $S_SSID    password $S_PASS"
+  echo "    for its label: WIFI:T:WPA;S:$S_SSID;P:$S_PASS;;"
+fi
