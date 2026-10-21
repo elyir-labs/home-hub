@@ -6,7 +6,7 @@
 // check what is committed without drawing anything; render.mjs draws the images and writes these.
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST, GLYPHS, WORDS } from './sequence.mjs'
+import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST, GLYPHS, WORDS, SCAN } from './sequence.mjs'
 
 export const THEME = 'elyir'
 export const DIR = `/usr/share/plymouth/themes/${THEME}`
@@ -42,6 +42,10 @@ const n = (v) => +(+v).toFixed(4)
 
 // A letter's picture is named for its character code, so a space or a dot is an ordinary file name.
 export const glyphFile = (c) => `g-${c.charCodeAt(0)}.png`
+// The same letters, smaller, for the line under a code to scan.
+export const smallFile = (c) => `q-${c.charCodeAt(0)}.png`
+// Where startup/say.sh leaves this hub's code, reached from the theme's folder: Plymouth only opens images relative to it.
+export const CODE = '../../../../../run/elyir/code.png'
 const quote = (c) => (c === '"' || c === '\\' ? '\\' + c : c)
 
 export function script() {
@@ -122,7 +126,7 @@ slow.SetPosition(Math.Int((screen_w - slow_image.GetWidth()) / 2), Math.Int(oy +
 # at a time as elyir:c:<character>, drawn from the letters below. A first start never shows the slow sentence.
 ${Object.entries(FIRST).map(([id, w]) => `global.step_line["${id}"] = fit(Image("step-${id}.png"));` +
   (w.quiet ? ` global.step_quiet["${id}"] = fit(Image("quiet-${id}.png"));` : '')).join('\n')}
-${[...GLYPHS].map((c) => `global.glyph["${quote(c)}"] = fit(Image("${glyphFile(c)}")); global.char_of["elyir:c:${quote(c)}"] = "${quote(c)}";`).join('\n')}
+${[...GLYPHS].map((c) => `global.glyph["${quote(c)}"] = fit(Image("${glyphFile(c)}")); global.small["${quote(c)}"] = fit(Image("${smallFile(c)}")); global.char_of["elyir:c:${quote(c)}"] = "${quote(c)}";`).join('\n')}
 ready_image = fit(Image("ready.png"));
 where_image["addr"] = fit(Image("where-cable.png"));
 where_image["wifi"] = fit(Image("where-wifi.png"));
@@ -131,6 +135,20 @@ line = Sprite(); line.SetZ(30); line.SetOpacity(0);
 quiet = Sprite(); quiet.SetZ(30); quiet.SetOpacity(0);
 ready = Sprite(ready_image); ready.SetZ(30); ready.SetOpacity(0);
 ready.SetPosition(Math.Int((screen_w - ready_image.GetWidth()) / 2), Math.Int(oy + ${WORDS.ready.top} * s), 30);
+
+# Ready with a code to scan (E): elyir:code says startup/say.sh has left this hub's code where CODE points. The house
+# rises and gets small, the code takes the middle on its light tile, and the words go under it, smaller.
+tile_image = fit(Image("tile.png"));
+scan_image["wifi"] = fit(Image("scan-wifi.png"));
+scan_image["addr"] = fit(Image("scan-addr.png"));
+or_image["wifi"] = fit(Image("or-wifi.png"));
+or_image["pass"] = fit(Image("or-password.png"));
+or_image["addr"] = fit(Image("or-addr.png"));
+or_image["after"] = fit(Image("or-addr-after.png"));
+tile = Sprite(tile_image); tile.SetZ(29); tile.SetOpacity(0);
+tile.SetPosition(Math.Int(ox + ${SCAN.tile.left} * s), Math.Int(oy + ${SCAN.tile.top} * s), 29);
+code = Sprite(); code.SetZ(30); code.SetOpacity(0);
+scan_line = Sprite(); scan_line.SetZ(30); scan_line.SetOpacity(0);
 
 global.frame = 0;
 global.name_shown = -1;
@@ -143,6 +161,7 @@ global.hello_at = -1;
 global.field = "";
 global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0;
 global.shown_n = 0;
+global.coded = 0;
 
 fun centered(sprite, image, top) {
   sprite.SetImage(image);
@@ -165,21 +184,34 @@ fun piece(image) {
 # called field, and the first character overwrote it.
 fun letters(which) {
   i = 0;
-  while (i < global.n[which]) { piece(global.glyph[global.chars[which + "-" + i]]); i = i + 1; }
+  while (i < global.n[which]) {
+    if (global.coded) { piece(global.small[global.chars[which + "-" + i]]); }
+    else { piece(global.glyph[global.chars[which + "-" + i]]); }
+    i = i + 1;
+  }
 }
 
 # Where to go next, as one line: the words and this hub's own, side by side and centered together.
 fun where() {
   global.piece_n = 0;
-  if (global.n["wifi"] > 0) { piece(where_image["wifi"]); letters("wifi"); piece(where_image["pass"]); letters("pass"); }
-  else { piece(where_image["addr"]); letters("addr"); }
+  top = ${WORDS.where.top};
+  if (global.coded) {
+    top = ${WORDS.or.top};
+    if (global.n["wifi"] > 0) { piece(or_image["wifi"]); letters("wifi"); piece(or_image["pass"]); letters("pass"); centered(scan_line, scan_image["wifi"], ${WORDS.scan.top}); }
+    else { piece(or_image["addr"]); letters("addr"); piece(or_image["after"]); centered(scan_line, scan_image["addr"], ${WORDS.scan.top}); }
+    centered(ready, ready_image, ${WORDS.scanReady.top});
+  }
+  else {
+    if (global.n["wifi"] > 0) { piece(where_image["wifi"]); letters("wifi"); piece(where_image["pass"]); letters("pass"); }
+    else { piece(where_image["addr"]); letters("addr"); }
+  }
   w = 0; i = 0;
   while (i < global.piece_n) { w = w + global.pieces[i].GetWidth(); i = i + 1; }
   x = Math.Int((screen_w - w) / 2); i = 0;
   while (i < global.piece_n) {
     if (!global.where_sprite[i]) { global.where_sprite[i] = Sprite(); global.where_sprite[i].SetOpacity(0); }
     global.where_sprite[i].SetImage(global.pieces[i]);
-    global.where_sprite[i].SetPosition(x, Math.Int(oy + ${WORDS.where.top} * s), 31);
+    global.where_sprite[i].SetPosition(x, Math.Int(oy + top * s), 31);
     x = x + global.pieces[i].GetWidth(); i = i + 1;
   }
   while (i < global.shown_n) { global.where_sprite[i].SetOpacity(0); i = i + 1; }
@@ -190,6 +222,16 @@ fun status(text) {
   if (text == "elyir:ready" && global.ready_at < 0) { global.ready_at = global.frame / 50; }
 ${Object.keys(FIRST).map((id) => `  if (text == "elyir:step:${id}") { step("${id}"); }`).join('\n')}
   if (text == "elyir:hello") { global.first = 1; global.hello_at = global.frame / 50; }
+  if (text == "elyir:code") {
+    made = Image("${CODE}");
+    if (made && made.GetWidth() > 0) {
+      w = Math.Int(${SCAN.tile.size - 2 * SCAN.tile.pad} * s);
+      code.SetImage(made.Scale(w, w));
+      code.SetPosition(Math.Int(ox + ${SCAN.tile.left + SCAN.tile.pad} * s), Math.Int(oy + ${SCAN.tile.top + SCAN.tile.pad} * s), 30);
+      global.coded = 1;
+      where();
+    }
+  }
   if (text == "elyir:addr") { global.field = "addr"; global.n["addr"] = 0; }
   if (text == "elyir:wifi") { global.field = "wifi"; global.n["wifi"] = 0; }
   if (text == "elyir:pass") { global.field = "pass"; global.n["pass"] = 0; }
@@ -225,8 +267,12 @@ fun refresh() {
 
   inn = ease(ramp(t, house_in - 0.2, house_in + 0.8));
   grow = (0.96 + 0.04 * inn) * (1 + 0.18 * out);
+  # With a code, the house rises to the top and gets small (E); everything of it is moved by rise.
+  rise = hello * global.coded;
+  hs = 1 + (${n(SCAN.house.size / HOUSE.size)} - 1) * rise;
+  hy = house_cy + (oy + ${SCAN.house.center[1]} * s - house_cy) * rise;
   house.SetOpacity(inn * (1 - out));
-  if (inn > 0) { place("house", house, house_image, house_cx, house_cy, house_size * s * grow); }
+  if (inn > 0) { place("house", house, house_image, house_cx, hy, house_size * s * grow * hs); }
 
   appear = ease(ramp(t, dotted, dotted + 0.3)) * (1 - out);
   k = ease(ramp(t, lit_at, lit_at + 0.8)) * (low + (1 - low) * breath(t));
@@ -237,7 +283,9 @@ fun refresh() {
   y = oy + (tittle_y + (lamp_y - tittle_y) * move) * s;
   x = house_cx + (x - house_cx) * (1 + 0.18 * out);
   y = house_cy + (y - house_cy) * (1 + 0.18 * out);
-  size = (tittle_size + (lamp_size - tittle_size) * move) * s * (1 + 0.18 * out);
+  size = (tittle_size + (lamp_size - tittle_size) * move) * s * (1 + 0.18 * out) * hs;
+  x = house_cx + (x - house_cx) * hs;
+  y = hy + (y - house_cy) * hs;
   if (appear > 0) {
     place("unlit", unlit, unlit_image, x, y, size);
     place("dot", dot, dot_image, x, y, size);
@@ -250,7 +298,7 @@ fun refresh() {
   landed = ramp(t, land, land + 0.6);
   dot_glow.SetOpacity(appear * k * (1 - landed));
   house_glow.SetOpacity(k * landed * inn * (1 - out));
-  if (landed > 0) { place("house_glow", house_glow, house_glow_image, x, y, house_size * 1.1 * s * (1 + 3 * out)); }
+  if (landed > 0) { place("house_glow", house_glow, house_glow_image, x, y, house_size * 1.1 * s * (1 + 3 * out) * hs); }
 
   gone = 1 - out;
   if (global.ready_at >= 0) { gone = 0; }
@@ -264,6 +312,9 @@ fun refresh() {
   line.SetOpacity(said);
   quiet.SetOpacity(said * global.quiet_on);
   ready.SetOpacity(hello * after_house);
+  tile.SetOpacity(rise * after_house);
+  code.SetOpacity(rise * after_house);
+  scan_line.SetOpacity(rise * after_house);
   i = 0;
   while (i < global.shown_n) { global.where_sprite[i].SetOpacity(hello * after_house); i = i + 1; }
 }

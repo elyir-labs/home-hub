@@ -23,6 +23,7 @@
   "Ready-2.dc.html",
   "detail",
   "pick",
+  "scan-decided",
   "scan-why",
   "d",
   "ScanBesideD-1.dc.html",
@@ -130,7 +131,7 @@
    "w": 1440,
    "h": 900,
    "title": "D1: no cable, the code beside the words",
-   "page": "scan"
+   "page": "scan-rejected"
   },
   {
    "file": "ScanBesideD-2.dc.html",
@@ -139,7 +140,7 @@
    "w": 1440,
    "h": 900,
    "title": "D2: on a cable, the code beside the words",
-   "page": "scan"
+   "page": "scan-rejected"
   },
   {
    "file": "ScanCenterE-1.dc.html",
@@ -243,7 +244,7 @@
   },
   {
    "id": "d",
-   "page": "scan",
+   "page": "scan-rejected",
    "x": -620,
    "y": 0,
    "w": 500,
@@ -264,6 +265,14 @@
    "y": 0,
    "w": 520,
    "text": "WHICH ONE\n\nRecommendation: E. The whole point of this screen is the next step, and E gives the next step the middle of the screen at a size that scans from across a room. The house rising is one small motion, at the moment the startup is over anyway.\n\nOr keep Ready as built, words only, or something else: describe it."
+  },
+  {
+   "id": "scan-decided",
+   "page": "scan",
+   "x": -1240,
+   "y": -760,
+   "w": 500,
+   "text": "DECIDED 20 OCTOBER 2026\n\nE. When the hub is ready the house rises and gets small, and a code to scan takes the middle of the screen, made on the unit from that hub's own Wi-Fi (or, on a cable, its address), with the name and password small under it for a phone that won't scan. It replaces the words-only Ready on the first page. D is on the next page with its case."
   }
  ],
  "pages": [
@@ -282,7 +291,16 @@
   },
   {
    "id": "scan",
-   "name": "Ready, with a code to scan"
+   "name": "Ready, with a code to scan",
+   "decided": {
+    "on": "2026-10-20",
+    "chose": "E",
+    "board": "ScanCenterE-1.dc.html"
+   }
+  },
+  {
+   "id": "scan-rejected",
+   "name": "Ready, with a code to scan: not chosen"
   }
  ]
 }

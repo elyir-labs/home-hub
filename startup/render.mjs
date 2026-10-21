@@ -9,8 +9,8 @@
 // It borrows the panel's Playwright (app/node_modules) to draw; PLAYWRIGHT=<path to the package's
 // index.mjs> points it at another copy.
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { COLOR, NAME, HOUSE, TIME, SLOW, FIRST, READY, GLYPHS, WORDS } from './sequence.mjs'
-import { THEME, K, NAME_FRAMES, fingerprint, themeFile, timingSh, script, glyphFile } from './plymouth.mjs'
+import { COLOR, NAME, HOUSE, TIME, SLOW, FIRST, READY, GLYPHS, WORDS, SCAN } from './sequence.mjs'
+import { THEME, K, NAME_FRAMES, fingerprint, themeFile, timingSh, script, glyphFile, smallFile } from './plymouth.mjs'
 
 const OUT = new URL(`plymouth/${THEME}/`, import.meta.url)
 const from = process.env.PLAYWRIGHT ?? new URL('../app/node_modules/playwright/index.mjs', import.meta.url).href
@@ -90,7 +90,7 @@ await across('ready.png', WORDS.ready, READY.line)
 
 // Where to go next is set on the unit from pieces laid side by side: the words, and this hub's own address, Wi-Fi
 // and password a letter at a time. Each piece is exactly as wide as its text, so the pieces meet as the line would.
-const wide = (text, weight) => page.evaluate(([text, f]) => {
+const wide = (text, weight, w = WORDS.where) => page.evaluate(([text, f]) => {
   const span = document.createElement('span')
   span.style.cssText = `${f};white-space:pre;position:absolute`
   span.textContent = text
@@ -98,14 +98,25 @@ const wide = (text, weight) => page.evaluate(([text, f]) => {
   const w = span.getBoundingClientRect().width
   span.remove()
   return w
-}, [text, font(WORDS.where, weight)])
-const piece = async (file, text, color, weight) =>
-  shoot(file, Math.max(1, Math.round(await wide(text, weight))), WORDS.where.size * 1.3 * K,
-    `<div style="white-space:pre;${font(WORDS.where, weight)};color:${color}">${text}</div>`)
+}, [text, font(w, weight)])
+const piece = async (file, text, color, weight, w = WORDS.where) =>
+  shoot(file, Math.max(1, Math.round(await wide(text, weight, w))), w.size * 1.3 * K,
+    `<div style="white-space:pre;${font(w, weight)};color:${color}">${text}</div>`)
 await piece('where-cable.png', READY.cable, WORDS.where.color, 400)
 await piece('where-wifi.png', READY.wifi, WORDS.where.color, 400)
 await piece('where-password.png', READY.password, WORDS.where.color, 400)
 for (const c of GLYPHS) await piece(glyphFile(c), c, WORDS.where.value, WORDS.where.weight)
+
+// Ready with a code (E): the light tile the code sits on, the line over the words, and the words, smaller.
+const ts = SCAN.tile.size * K
+await shoot('tile.png', ts, ts, `<div style="width:${ts}px;height:${ts}px;border-radius:${SCAN.tile.radius * K}px;background:${SCAN.tile.color}"></div>`)
+await across('scan-wifi.png', WORDS.scan, SCAN.wifi)
+await across('scan-addr.png', WORDS.scan, SCAN.addr)
+await piece('or-wifi.png', SCAN.orWifi, WORDS.or.color, 400, WORDS.or)
+await piece('or-password.png', SCAN.orPassword, WORDS.or.color, 400, WORDS.or)
+await piece('or-addr.png', SCAN.orAddr, WORDS.or.color, 400, WORDS.or)
+await piece('or-addr-after.png', SCAN.orAddrAfter, WORDS.or.color, 400, WORDS.or)
+for (const c of GLYPHS) await piece(smallFile(c), c, WORDS.or.value, WORDS.or.weight, WORDS.or)
 
 await browser.close()
 

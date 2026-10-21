@@ -76,71 +76,71 @@ global.step_line["preparing"] = fit(Image("step-preparing.png"));
 global.step_line["moving"] = fit(Image("step-moving.png")); global.step_quiet["moving"] = fit(Image("quiet-moving.png"));
 global.step_line["downloading"] = fit(Image("step-downloading.png"));
 global.step_line["starting"] = fit(Image("step-starting.png"));
-global.glyph["a"] = fit(Image("g-97.png")); global.char_of["elyir:c:a"] = "a";
-global.glyph["b"] = fit(Image("g-98.png")); global.char_of["elyir:c:b"] = "b";
-global.glyph["c"] = fit(Image("g-99.png")); global.char_of["elyir:c:c"] = "c";
-global.glyph["d"] = fit(Image("g-100.png")); global.char_of["elyir:c:d"] = "d";
-global.glyph["e"] = fit(Image("g-101.png")); global.char_of["elyir:c:e"] = "e";
-global.glyph["f"] = fit(Image("g-102.png")); global.char_of["elyir:c:f"] = "f";
-global.glyph["g"] = fit(Image("g-103.png")); global.char_of["elyir:c:g"] = "g";
-global.glyph["h"] = fit(Image("g-104.png")); global.char_of["elyir:c:h"] = "h";
-global.glyph["i"] = fit(Image("g-105.png")); global.char_of["elyir:c:i"] = "i";
-global.glyph["j"] = fit(Image("g-106.png")); global.char_of["elyir:c:j"] = "j";
-global.glyph["k"] = fit(Image("g-107.png")); global.char_of["elyir:c:k"] = "k";
-global.glyph["l"] = fit(Image("g-108.png")); global.char_of["elyir:c:l"] = "l";
-global.glyph["m"] = fit(Image("g-109.png")); global.char_of["elyir:c:m"] = "m";
-global.glyph["n"] = fit(Image("g-110.png")); global.char_of["elyir:c:n"] = "n";
-global.glyph["o"] = fit(Image("g-111.png")); global.char_of["elyir:c:o"] = "o";
-global.glyph["p"] = fit(Image("g-112.png")); global.char_of["elyir:c:p"] = "p";
-global.glyph["q"] = fit(Image("g-113.png")); global.char_of["elyir:c:q"] = "q";
-global.glyph["r"] = fit(Image("g-114.png")); global.char_of["elyir:c:r"] = "r";
-global.glyph["s"] = fit(Image("g-115.png")); global.char_of["elyir:c:s"] = "s";
-global.glyph["t"] = fit(Image("g-116.png")); global.char_of["elyir:c:t"] = "t";
-global.glyph["u"] = fit(Image("g-117.png")); global.char_of["elyir:c:u"] = "u";
-global.glyph["v"] = fit(Image("g-118.png")); global.char_of["elyir:c:v"] = "v";
-global.glyph["w"] = fit(Image("g-119.png")); global.char_of["elyir:c:w"] = "w";
-global.glyph["x"] = fit(Image("g-120.png")); global.char_of["elyir:c:x"] = "x";
-global.glyph["y"] = fit(Image("g-121.png")); global.char_of["elyir:c:y"] = "y";
-global.glyph["z"] = fit(Image("g-122.png")); global.char_of["elyir:c:z"] = "z";
-global.glyph["A"] = fit(Image("g-65.png")); global.char_of["elyir:c:A"] = "A";
-global.glyph["B"] = fit(Image("g-66.png")); global.char_of["elyir:c:B"] = "B";
-global.glyph["C"] = fit(Image("g-67.png")); global.char_of["elyir:c:C"] = "C";
-global.glyph["D"] = fit(Image("g-68.png")); global.char_of["elyir:c:D"] = "D";
-global.glyph["E"] = fit(Image("g-69.png")); global.char_of["elyir:c:E"] = "E";
-global.glyph["F"] = fit(Image("g-70.png")); global.char_of["elyir:c:F"] = "F";
-global.glyph["G"] = fit(Image("g-71.png")); global.char_of["elyir:c:G"] = "G";
-global.glyph["H"] = fit(Image("g-72.png")); global.char_of["elyir:c:H"] = "H";
-global.glyph["I"] = fit(Image("g-73.png")); global.char_of["elyir:c:I"] = "I";
-global.glyph["J"] = fit(Image("g-74.png")); global.char_of["elyir:c:J"] = "J";
-global.glyph["K"] = fit(Image("g-75.png")); global.char_of["elyir:c:K"] = "K";
-global.glyph["L"] = fit(Image("g-76.png")); global.char_of["elyir:c:L"] = "L";
-global.glyph["M"] = fit(Image("g-77.png")); global.char_of["elyir:c:M"] = "M";
-global.glyph["N"] = fit(Image("g-78.png")); global.char_of["elyir:c:N"] = "N";
-global.glyph["O"] = fit(Image("g-79.png")); global.char_of["elyir:c:O"] = "O";
-global.glyph["P"] = fit(Image("g-80.png")); global.char_of["elyir:c:P"] = "P";
-global.glyph["Q"] = fit(Image("g-81.png")); global.char_of["elyir:c:Q"] = "Q";
-global.glyph["R"] = fit(Image("g-82.png")); global.char_of["elyir:c:R"] = "R";
-global.glyph["S"] = fit(Image("g-83.png")); global.char_of["elyir:c:S"] = "S";
-global.glyph["T"] = fit(Image("g-84.png")); global.char_of["elyir:c:T"] = "T";
-global.glyph["U"] = fit(Image("g-85.png")); global.char_of["elyir:c:U"] = "U";
-global.glyph["V"] = fit(Image("g-86.png")); global.char_of["elyir:c:V"] = "V";
-global.glyph["W"] = fit(Image("g-87.png")); global.char_of["elyir:c:W"] = "W";
-global.glyph["X"] = fit(Image("g-88.png")); global.char_of["elyir:c:X"] = "X";
-global.glyph["Y"] = fit(Image("g-89.png")); global.char_of["elyir:c:Y"] = "Y";
-global.glyph["Z"] = fit(Image("g-90.png")); global.char_of["elyir:c:Z"] = "Z";
-global.glyph["0"] = fit(Image("g-48.png")); global.char_of["elyir:c:0"] = "0";
-global.glyph["1"] = fit(Image("g-49.png")); global.char_of["elyir:c:1"] = "1";
-global.glyph["2"] = fit(Image("g-50.png")); global.char_of["elyir:c:2"] = "2";
-global.glyph["3"] = fit(Image("g-51.png")); global.char_of["elyir:c:3"] = "3";
-global.glyph["4"] = fit(Image("g-52.png")); global.char_of["elyir:c:4"] = "4";
-global.glyph["5"] = fit(Image("g-53.png")); global.char_of["elyir:c:5"] = "5";
-global.glyph["6"] = fit(Image("g-54.png")); global.char_of["elyir:c:6"] = "6";
-global.glyph["7"] = fit(Image("g-55.png")); global.char_of["elyir:c:7"] = "7";
-global.glyph["8"] = fit(Image("g-56.png")); global.char_of["elyir:c:8"] = "8";
-global.glyph["9"] = fit(Image("g-57.png")); global.char_of["elyir:c:9"] = "9";
-global.glyph["-"] = fit(Image("g-45.png")); global.char_of["elyir:c:-"] = "-";
-global.glyph["."] = fit(Image("g-46.png")); global.char_of["elyir:c:."] = ".";
-global.glyph[" "] = fit(Image("g-32.png")); global.char_of["elyir:c: "] = " ";
+global.glyph["a"] = fit(Image("g-97.png")); global.small["a"] = fit(Image("q-97.png")); global.char_of["elyir:c:a"] = "a";
+global.glyph["b"] = fit(Image("g-98.png")); global.small["b"] = fit(Image("q-98.png")); global.char_of["elyir:c:b"] = "b";
+global.glyph["c"] = fit(Image("g-99.png")); global.small["c"] = fit(Image("q-99.png")); global.char_of["elyir:c:c"] = "c";
+global.glyph["d"] = fit(Image("g-100.png")); global.small["d"] = fit(Image("q-100.png")); global.char_of["elyir:c:d"] = "d";
+global.glyph["e"] = fit(Image("g-101.png")); global.small["e"] = fit(Image("q-101.png")); global.char_of["elyir:c:e"] = "e";
+global.glyph["f"] = fit(Image("g-102.png")); global.small["f"] = fit(Image("q-102.png")); global.char_of["elyir:c:f"] = "f";
+global.glyph["g"] = fit(Image("g-103.png")); global.small["g"] = fit(Image("q-103.png")); global.char_of["elyir:c:g"] = "g";
+global.glyph["h"] = fit(Image("g-104.png")); global.small["h"] = fit(Image("q-104.png")); global.char_of["elyir:c:h"] = "h";
+global.glyph["i"] = fit(Image("g-105.png")); global.small["i"] = fit(Image("q-105.png")); global.char_of["elyir:c:i"] = "i";
+global.glyph["j"] = fit(Image("g-106.png")); global.small["j"] = fit(Image("q-106.png")); global.char_of["elyir:c:j"] = "j";
+global.glyph["k"] = fit(Image("g-107.png")); global.small["k"] = fit(Image("q-107.png")); global.char_of["elyir:c:k"] = "k";
+global.glyph["l"] = fit(Image("g-108.png")); global.small["l"] = fit(Image("q-108.png")); global.char_of["elyir:c:l"] = "l";
+global.glyph["m"] = fit(Image("g-109.png")); global.small["m"] = fit(Image("q-109.png")); global.char_of["elyir:c:m"] = "m";
+global.glyph["n"] = fit(Image("g-110.png")); global.small["n"] = fit(Image("q-110.png")); global.char_of["elyir:c:n"] = "n";
+global.glyph["o"] = fit(Image("g-111.png")); global.small["o"] = fit(Image("q-111.png")); global.char_of["elyir:c:o"] = "o";
+global.glyph["p"] = fit(Image("g-112.png")); global.small["p"] = fit(Image("q-112.png")); global.char_of["elyir:c:p"] = "p";
+global.glyph["q"] = fit(Image("g-113.png")); global.small["q"] = fit(Image("q-113.png")); global.char_of["elyir:c:q"] = "q";
+global.glyph["r"] = fit(Image("g-114.png")); global.small["r"] = fit(Image("q-114.png")); global.char_of["elyir:c:r"] = "r";
+global.glyph["s"] = fit(Image("g-115.png")); global.small["s"] = fit(Image("q-115.png")); global.char_of["elyir:c:s"] = "s";
+global.glyph["t"] = fit(Image("g-116.png")); global.small["t"] = fit(Image("q-116.png")); global.char_of["elyir:c:t"] = "t";
+global.glyph["u"] = fit(Image("g-117.png")); global.small["u"] = fit(Image("q-117.png")); global.char_of["elyir:c:u"] = "u";
+global.glyph["v"] = fit(Image("g-118.png")); global.small["v"] = fit(Image("q-118.png")); global.char_of["elyir:c:v"] = "v";
+global.glyph["w"] = fit(Image("g-119.png")); global.small["w"] = fit(Image("q-119.png")); global.char_of["elyir:c:w"] = "w";
+global.glyph["x"] = fit(Image("g-120.png")); global.small["x"] = fit(Image("q-120.png")); global.char_of["elyir:c:x"] = "x";
+global.glyph["y"] = fit(Image("g-121.png")); global.small["y"] = fit(Image("q-121.png")); global.char_of["elyir:c:y"] = "y";
+global.glyph["z"] = fit(Image("g-122.png")); global.small["z"] = fit(Image("q-122.png")); global.char_of["elyir:c:z"] = "z";
+global.glyph["A"] = fit(Image("g-65.png")); global.small["A"] = fit(Image("q-65.png")); global.char_of["elyir:c:A"] = "A";
+global.glyph["B"] = fit(Image("g-66.png")); global.small["B"] = fit(Image("q-66.png")); global.char_of["elyir:c:B"] = "B";
+global.glyph["C"] = fit(Image("g-67.png")); global.small["C"] = fit(Image("q-67.png")); global.char_of["elyir:c:C"] = "C";
+global.glyph["D"] = fit(Image("g-68.png")); global.small["D"] = fit(Image("q-68.png")); global.char_of["elyir:c:D"] = "D";
+global.glyph["E"] = fit(Image("g-69.png")); global.small["E"] = fit(Image("q-69.png")); global.char_of["elyir:c:E"] = "E";
+global.glyph["F"] = fit(Image("g-70.png")); global.small["F"] = fit(Image("q-70.png")); global.char_of["elyir:c:F"] = "F";
+global.glyph["G"] = fit(Image("g-71.png")); global.small["G"] = fit(Image("q-71.png")); global.char_of["elyir:c:G"] = "G";
+global.glyph["H"] = fit(Image("g-72.png")); global.small["H"] = fit(Image("q-72.png")); global.char_of["elyir:c:H"] = "H";
+global.glyph["I"] = fit(Image("g-73.png")); global.small["I"] = fit(Image("q-73.png")); global.char_of["elyir:c:I"] = "I";
+global.glyph["J"] = fit(Image("g-74.png")); global.small["J"] = fit(Image("q-74.png")); global.char_of["elyir:c:J"] = "J";
+global.glyph["K"] = fit(Image("g-75.png")); global.small["K"] = fit(Image("q-75.png")); global.char_of["elyir:c:K"] = "K";
+global.glyph["L"] = fit(Image("g-76.png")); global.small["L"] = fit(Image("q-76.png")); global.char_of["elyir:c:L"] = "L";
+global.glyph["M"] = fit(Image("g-77.png")); global.small["M"] = fit(Image("q-77.png")); global.char_of["elyir:c:M"] = "M";
+global.glyph["N"] = fit(Image("g-78.png")); global.small["N"] = fit(Image("q-78.png")); global.char_of["elyir:c:N"] = "N";
+global.glyph["O"] = fit(Image("g-79.png")); global.small["O"] = fit(Image("q-79.png")); global.char_of["elyir:c:O"] = "O";
+global.glyph["P"] = fit(Image("g-80.png")); global.small["P"] = fit(Image("q-80.png")); global.char_of["elyir:c:P"] = "P";
+global.glyph["Q"] = fit(Image("g-81.png")); global.small["Q"] = fit(Image("q-81.png")); global.char_of["elyir:c:Q"] = "Q";
+global.glyph["R"] = fit(Image("g-82.png")); global.small["R"] = fit(Image("q-82.png")); global.char_of["elyir:c:R"] = "R";
+global.glyph["S"] = fit(Image("g-83.png")); global.small["S"] = fit(Image("q-83.png")); global.char_of["elyir:c:S"] = "S";
+global.glyph["T"] = fit(Image("g-84.png")); global.small["T"] = fit(Image("q-84.png")); global.char_of["elyir:c:T"] = "T";
+global.glyph["U"] = fit(Image("g-85.png")); global.small["U"] = fit(Image("q-85.png")); global.char_of["elyir:c:U"] = "U";
+global.glyph["V"] = fit(Image("g-86.png")); global.small["V"] = fit(Image("q-86.png")); global.char_of["elyir:c:V"] = "V";
+global.glyph["W"] = fit(Image("g-87.png")); global.small["W"] = fit(Image("q-87.png")); global.char_of["elyir:c:W"] = "W";
+global.glyph["X"] = fit(Image("g-88.png")); global.small["X"] = fit(Image("q-88.png")); global.char_of["elyir:c:X"] = "X";
+global.glyph["Y"] = fit(Image("g-89.png")); global.small["Y"] = fit(Image("q-89.png")); global.char_of["elyir:c:Y"] = "Y";
+global.glyph["Z"] = fit(Image("g-90.png")); global.small["Z"] = fit(Image("q-90.png")); global.char_of["elyir:c:Z"] = "Z";
+global.glyph["0"] = fit(Image("g-48.png")); global.small["0"] = fit(Image("q-48.png")); global.char_of["elyir:c:0"] = "0";
+global.glyph["1"] = fit(Image("g-49.png")); global.small["1"] = fit(Image("q-49.png")); global.char_of["elyir:c:1"] = "1";
+global.glyph["2"] = fit(Image("g-50.png")); global.small["2"] = fit(Image("q-50.png")); global.char_of["elyir:c:2"] = "2";
+global.glyph["3"] = fit(Image("g-51.png")); global.small["3"] = fit(Image("q-51.png")); global.char_of["elyir:c:3"] = "3";
+global.glyph["4"] = fit(Image("g-52.png")); global.small["4"] = fit(Image("q-52.png")); global.char_of["elyir:c:4"] = "4";
+global.glyph["5"] = fit(Image("g-53.png")); global.small["5"] = fit(Image("q-53.png")); global.char_of["elyir:c:5"] = "5";
+global.glyph["6"] = fit(Image("g-54.png")); global.small["6"] = fit(Image("q-54.png")); global.char_of["elyir:c:6"] = "6";
+global.glyph["7"] = fit(Image("g-55.png")); global.small["7"] = fit(Image("q-55.png")); global.char_of["elyir:c:7"] = "7";
+global.glyph["8"] = fit(Image("g-56.png")); global.small["8"] = fit(Image("q-56.png")); global.char_of["elyir:c:8"] = "8";
+global.glyph["9"] = fit(Image("g-57.png")); global.small["9"] = fit(Image("q-57.png")); global.char_of["elyir:c:9"] = "9";
+global.glyph["-"] = fit(Image("g-45.png")); global.small["-"] = fit(Image("q-45.png")); global.char_of["elyir:c:-"] = "-";
+global.glyph["."] = fit(Image("g-46.png")); global.small["."] = fit(Image("q-46.png")); global.char_of["elyir:c:."] = ".";
+global.glyph[" "] = fit(Image("g-32.png")); global.small[" "] = fit(Image("q-32.png")); global.char_of["elyir:c: "] = " ";
 ready_image = fit(Image("ready.png"));
 where_image["addr"] = fit(Image("where-cable.png"));
 where_image["wifi"] = fit(Image("where-wifi.png"));
@@ -149,6 +149,20 @@ line = Sprite(); line.SetZ(30); line.SetOpacity(0);
 quiet = Sprite(); quiet.SetZ(30); quiet.SetOpacity(0);
 ready = Sprite(ready_image); ready.SetZ(30); ready.SetOpacity(0);
 ready.SetPosition(Math.Int((screen_w - ready_image.GetWidth()) / 2), Math.Int(oy + 620 * s), 30);
+
+# Ready with a code to scan (E): elyir:code says startup/say.sh has left this hub's code where CODE points. The house
+# rises and gets small, the code takes the middle on its light tile, and the words go under it, smaller.
+tile_image = fit(Image("tile.png"));
+scan_image["wifi"] = fit(Image("scan-wifi.png"));
+scan_image["addr"] = fit(Image("scan-addr.png"));
+or_image["wifi"] = fit(Image("or-wifi.png"));
+or_image["pass"] = fit(Image("or-password.png"));
+or_image["addr"] = fit(Image("or-addr.png"));
+or_image["after"] = fit(Image("or-addr-after.png"));
+tile = Sprite(tile_image); tile.SetZ(29); tile.SetOpacity(0);
+tile.SetPosition(Math.Int(ox + 580 * s), Math.Int(oy + 355 * s), 29);
+code = Sprite(); code.SetZ(30); code.SetOpacity(0);
+scan_line = Sprite(); scan_line.SetZ(30); scan_line.SetOpacity(0);
 
 global.frame = 0;
 global.name_shown = -1;
@@ -161,6 +175,7 @@ global.hello_at = -1;
 global.field = "";
 global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0;
 global.shown_n = 0;
+global.coded = 0;
 
 fun centered(sprite, image, top) {
   sprite.SetImage(image);
@@ -183,21 +198,34 @@ fun piece(image) {
 # called field, and the first character overwrote it.
 fun letters(which) {
   i = 0;
-  while (i < global.n[which]) { piece(global.glyph[global.chars[which + "-" + i]]); i = i + 1; }
+  while (i < global.n[which]) {
+    if (global.coded) { piece(global.small[global.chars[which + "-" + i]]); }
+    else { piece(global.glyph[global.chars[which + "-" + i]]); }
+    i = i + 1;
+  }
 }
 
 # Where to go next, as one line: the words and this hub's own, side by side and centered together.
 fun where() {
   global.piece_n = 0;
-  if (global.n["wifi"] > 0) { piece(where_image["wifi"]); letters("wifi"); piece(where_image["pass"]); letters("pass"); }
-  else { piece(where_image["addr"]); letters("addr"); }
+  top = 678;
+  if (global.coded) {
+    top = 721;
+    if (global.n["wifi"] > 0) { piece(or_image["wifi"]); letters("wifi"); piece(or_image["pass"]); letters("pass"); centered(scan_line, scan_image["wifi"], 673); }
+    else { piece(or_image["addr"]); letters("addr"); piece(or_image["after"]); centered(scan_line, scan_image["addr"], 673); }
+    centered(ready, ready_image, 275);
+  }
+  else {
+    if (global.n["wifi"] > 0) { piece(where_image["wifi"]); letters("wifi"); piece(where_image["pass"]); letters("pass"); }
+    else { piece(where_image["addr"]); letters("addr"); }
+  }
   w = 0; i = 0;
   while (i < global.piece_n) { w = w + global.pieces[i].GetWidth(); i = i + 1; }
   x = Math.Int((screen_w - w) / 2); i = 0;
   while (i < global.piece_n) {
     if (!global.where_sprite[i]) { global.where_sprite[i] = Sprite(); global.where_sprite[i].SetOpacity(0); }
     global.where_sprite[i].SetImage(global.pieces[i]);
-    global.where_sprite[i].SetPosition(x, Math.Int(oy + 678 * s), 31);
+    global.where_sprite[i].SetPosition(x, Math.Int(oy + top * s), 31);
     x = x + global.pieces[i].GetWidth(); i = i + 1;
   }
   while (i < global.shown_n) { global.where_sprite[i].SetOpacity(0); i = i + 1; }
@@ -211,6 +239,16 @@ fun status(text) {
   if (text == "elyir:step:downloading") { step("downloading"); }
   if (text == "elyir:step:starting") { step("starting"); }
   if (text == "elyir:hello") { global.first = 1; global.hello_at = global.frame / 50; }
+  if (text == "elyir:code") {
+    made = Image("../../../../../run/elyir/code.png");
+    if (made && made.GetWidth() > 0) {
+      w = Math.Int(236 * s);
+      code.SetImage(made.Scale(w, w));
+      code.SetPosition(Math.Int(ox + 602 * s), Math.Int(oy + 377 * s), 30);
+      global.coded = 1;
+      where();
+    }
+  }
   if (text == "elyir:addr") { global.field = "addr"; global.n["addr"] = 0; }
   if (text == "elyir:wifi") { global.field = "wifi"; global.n["wifi"] = 0; }
   if (text == "elyir:pass") { global.field = "pass"; global.n["pass"] = 0; }
@@ -246,8 +284,12 @@ fun refresh() {
 
   inn = ease(ramp(t, house_in - 0.2, house_in + 0.8));
   grow = (0.96 + 0.04 * inn) * (1 + 0.18 * out);
+  # With a code, the house rises to the top and gets small (E); everything of it is moved by rise.
+  rise = hello * global.coded;
+  hs = 1 + (0.3824 - 1) * rise;
+  hy = house_cy + (oy + 180 * s - house_cy) * rise;
   house.SetOpacity(inn * (1 - out));
-  if (inn > 0) { place("house", house, house_image, house_cx, house_cy, house_size * s * grow); }
+  if (inn > 0) { place("house", house, house_image, house_cx, hy, house_size * s * grow * hs); }
 
   appear = ease(ramp(t, dotted, dotted + 0.3)) * (1 - out);
   k = ease(ramp(t, lit_at, lit_at + 0.8)) * (low + (1 - low) * breath(t));
@@ -258,7 +300,9 @@ fun refresh() {
   y = oy + (tittle_y + (lamp_y - tittle_y) * move) * s;
   x = house_cx + (x - house_cx) * (1 + 0.18 * out);
   y = house_cy + (y - house_cy) * (1 + 0.18 * out);
-  size = (tittle_size + (lamp_size - tittle_size) * move) * s * (1 + 0.18 * out);
+  size = (tittle_size + (lamp_size - tittle_size) * move) * s * (1 + 0.18 * out) * hs;
+  x = house_cx + (x - house_cx) * hs;
+  y = hy + (y - house_cy) * hs;
   if (appear > 0) {
     place("unlit", unlit, unlit_image, x, y, size);
     place("dot", dot, dot_image, x, y, size);
@@ -271,7 +315,7 @@ fun refresh() {
   landed = ramp(t, land, land + 0.6);
   dot_glow.SetOpacity(appear * k * (1 - landed));
   house_glow.SetOpacity(k * landed * inn * (1 - out));
-  if (landed > 0) { place("house_glow", house_glow, house_glow_image, x, y, house_size * 1.1 * s * (1 + 3 * out)); }
+  if (landed > 0) { place("house_glow", house_glow, house_glow_image, x, y, house_size * 1.1 * s * (1 + 3 * out) * hs); }
 
   gone = 1 - out;
   if (global.ready_at >= 0) { gone = 0; }
@@ -285,6 +329,9 @@ fun refresh() {
   line.SetOpacity(said);
   quiet.SetOpacity(said * global.quiet_on);
   ready.SetOpacity(hello * after_house);
+  tile.SetOpacity(rise * after_house);
+  code.SetOpacity(rise * after_house);
+  scan_line.SetOpacity(rise * after_house);
   i = 0;
   while (i < global.shown_n) { global.where_sprite[i].SetOpacity(hello * after_house); i = i + 1; }
 }

@@ -249,6 +249,7 @@ jobs:
         startup/install.sh
         startup/splash.sh
         startup/say.sh
+        startup/look.sh
         startup/wall.sh
         startup/find-hub.sh
         startup/keep-hub.sh

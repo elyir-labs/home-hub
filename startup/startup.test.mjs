@@ -7,9 +7,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
-import { NAME, HOUSE, TIME, BREATH, FIRST, READY, GLYPHS, WORDS } from './sequence.mjs'
+import { NAME, HOUSE, TIME, BREATH, FIRST, READY, GLYPHS, WORDS, SCAN } from './sequence.mjs'
 import { json } from './json.mjs'
-import { THEME, NAME_FRAMES, fingerprint, themeFile, timingSh, script } from './plymouth.mjs'
+import { THEME, NAME_FRAMES, CODE, fingerprint, themeFile, timingSh, script } from './plymouth.mjs'
 
 const theme = (f) => new URL(`plymouth/${THEME}/${f}`, import.meta.url)
 const read = (u) => readFileSync(u, 'utf8')
@@ -30,7 +30,7 @@ test('the numbers the phone apps draw from are this sequence', () => {
 })
 
 test('every image the script asks for is there', () => {
-  const names = [...script().matchAll(/Image\("([^"]+)"\)/g)].map((m) => m[1]).filter((f) => !f.startsWith('name-'))
+  const names = [...script().matchAll(/Image\("([^"]+)"\)/g)].map((m) => m[1]).filter((f) => !f.startsWith('name-') && f !== CODE)  // CODE is made on the unit
   for (let i = 0; i < NAME_FRAMES; i++) names.push(`name-${String(i).padStart(2, '0')}.png`)
   for (const f of names) assert.ok(existsSync(theme(f)), `missing ${f}`)
 })
@@ -59,7 +59,7 @@ test('the moments come in order', () => {
 
 // design/first-start/ (A with B's quieter line, and Ready) is the spec for what a first start says.
 const first = (f) => read(new URL(`../design/first-start/${f}`, import.meta.url))
-const said = (html, cls) => [...html.matchAll(new RegExp(`class="say ${cls}">(.*?)</div>`, 'g'))].map((m) => m[1])
+const said = (html, cls) => [...html.matchAll(new RegExp(`class="say ${cls}"[^>]*>(.*?)</div>`, 'g'))].map((m) => m[1])
 
 test('a first start says what the boards say, where they say it', () => {
   assert.deepEqual(said(first('LineA-1.dc.html'), 'line'), [FIRST.moving.line])
@@ -97,4 +97,22 @@ test('no function in the splash shares a name with a global, which would overwri
   const funs = [...sc.matchAll(/^fun (\w+)\(/gm)].map((m) => m[1])
   const globals = new Set([...sc.matchAll(/global\.(\w+)/g)].map((m) => m[1]))
   for (const f of funs) assert.ok(!globals.has(f), `fun ${f} and global.${f}: Plymouth keeps both in one place, so the second replaces the first`)
+})
+
+test('Ready with a code is where E puts it, and says what E says', () => {
+  const e1 = first('ScanCenterE-1.dc.html'), e2 = first('ScanCenterE-2.dc.html'), css = first('first.css')
+  const top = (html, cls) => +html.match(new RegExp(`class="say ${cls}" style="top: (\\d+)px"`))[1]
+  assert.equal(top(e1, 'ready'), WORDS.scanReady.top)
+  assert.equal(top(e1, 'line'), WORDS.scan.top)
+  assert.equal(top(e1, 'quiet'), WORDS.or.top)
+  assert.deepEqual(said(e1, 'line'), [SCAN.wifi])
+  assert.deepEqual(said(e2, 'line'), [SCAN.addr])
+  assert.deepEqual(said(e1, 'quiet'), [`${SCAN.orWifi}<b>Elyir Hub 4F2A</b>${SCAN.orPassword}<b>kite-maple-41</b>`])
+  assert.deepEqual(said(e2, 'quiet'), [`${SCAN.orAddr}<b>hub.local</b>${SCAN.orAddrAfter}`])
+  const [, l, t, w, h, pad] = e1.match(/class="tile" style="left: (\d+)px; top: (\d+)px; width: (\d+)px; height: (\d+)px; padding: (\d+)px"/).map(Number)
+  assert.deepEqual([l, t, w, h, pad], [SCAN.tile.left, SCAN.tile.top, SCAN.tile.size, SCAN.tile.size, SCAN.tile.pad])
+  assert.equal(+css.match(/\.tile \{[^}]*border-radius: (\d+)px/)[1], SCAN.tile.radius)
+  const [, hl, ht, hw] = css.match(/\.house\.small \{ left: (\d+)px; top: (\d+)px; width: (\d+)px/).map(Number)
+  assert.deepEqual([hl + hw / 2, ht + hw / 2, hw], [...SCAN.house.center, SCAN.house.size])
+  assert.equal(+css.match(/\.quiet \{[^}]*font-size: (\d+)px/)[1], WORDS.or.size)
 })
