@@ -98,5 +98,8 @@ recording need a bigger hub." It never shows a tier name or a list of capabiliti
 
 - Built: `driver-layer/host-tier.sh`, run by `install.sh` on every install and update, with its rules pinned in the
   "what a machine is big enough for" group of `driver-layer/host/tests.sh`; the `x-extra` block in
-  `driver-layer/docker-compose.yml`, used by nothing yet.
-- Not built: anything that reads `HOST_CAN`, the extras themselves, the drive question in setup, the This hub line.
+  `driver-layer/docker-compose.yml`.
+- Built, the first extra: music (`docs/music.md`). `host-tier.sh` turns the `music` profile on wherever `HOST_CAN`
+  says music, which is every hub, and leaves every other profile on the shared line alone. The service takes the
+  `x-extra` caps and its 768 MB ceiling.
+- Not built: films (`design/media/`, which will take the same block), the drive question in setup, the This hub line.

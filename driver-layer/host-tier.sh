@@ -48,8 +48,24 @@ if [ "${1:-}" = "which" ]; then
   exit 0
 fi
 
+# What the house is offered becomes which extras run. COMPOSE_PROFILES is one line everybody shares
+# (radios.sh owns zigbee and zwave, host/away.sh owns away); only the extras' own names are touched here.
+EXTRAS="music"
+extras() {
+  local can p out=""
+  can="$(grep '^HOST_CAN=' .env | cut -d= -f2- || true)"
+  for p in $(grep '^COMPOSE_PROFILES=' .env | cut -d= -f2- | tr ',' ' '); do
+    case " $EXTRAS none " in *" $p "*) ;; *) out="${out:+$out,}$p" ;; esac
+  done
+  for p in $EXTRAS; do
+    case ",$can," in *",$p,"*) out="${out:+$out,}$p" ;; esac
+  done
+  sed -i '/^COMPOSE_PROFILES=/d' .env
+  echo "COMPOSE_PROFILES=${out:-none}" >> .env
+}
+
 touch .env
-if grep -q '^HOST_PINNED=1' .env; then exit 0; fi
+if grep -q '^HOST_PINNED=1' .env; then extras; exit 0; fi
 
 ARCH="$(uname -m)"
 CORES="$(nproc)"
@@ -93,4 +109,5 @@ sed -i '/^HOST_TIER=/d; /^HOST_CAN=/d; /^HOST_ENCODER=/d; /^HOST_ACCEL=/d; /^HUB
   echo "HOST_ACCEL=$ACCEL"
   echo "HUB_EXTRAS_CPUS=$EXTRAS_CPUS"
 } >> .env
+extras
 echo "  this hub: $TIER ($CAN)"
