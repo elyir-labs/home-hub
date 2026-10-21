@@ -57,6 +57,13 @@ want_ref() {
   [ "$CHANNEL" != "release" ] && { echo "origin/$BRANCH"; return; }
   git -C "$DIR" tag -l 'v*' --sort=-v:refname | head -1
 }
+# A hub runs driver-layer/ and pulls the rest as images, so the drawings in design/ (half the
+# repository) and the website in site/ never land on it. driver-layer/host/pi-image clones with the
+# same list. A git too old for this keeps the whole checkout, which still works.
+trim_checkout() {
+  git -C "$DIR" sparse-checkout set --no-cone '/*' '!/design/' '!/site/' 2>/dev/null \
+    || git -C "$DIR" sparse-checkout set '/*' '!/design/' '!/site/' 2>/dev/null || true
+}
 # Whether a release is what the maker says it is, and what it says to run. host/verify.sh comes from
 # the checkout as it is *now* -- the one the last verified update left behind -- and is read before
 # anything moves, so the code doing the checking is never the code being installed.
@@ -93,6 +100,7 @@ if [ -d "$DIR/.git" ]; then
   # `fetch origin development` lands in FETCH_HEAD only, origin/development never exists, and a
   # development hub's checkout stood still through every update.
   if git -C "$DIR" fetch -q --tags --force origin "+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" 2>/dev/null; then
+    trim_checkout
     # 3, not 1: a release that could not be checked is a different thing from an install that broke,
     # and a household tapping Try again cannot fix it. host/update.sh tells the two apart.
     go_to_ref || exit 3
@@ -107,9 +115,12 @@ else
   # experiment on one of them would land in every house installed while it existed. The single
   # branch carries only the tags inside its own history, and a release can be tagged off it (v0.5.0
   # was on development, not main), so every tag is fetched straight after. Without that fetch a new
-  # hub would install the release before the newest one.
+  # hub would install the release before the newest one. Without file contents, though
+  # (--filter=blob:none): git fetches those only for what is checked out, so the history of the
+  # trimmed folders never arrives either.
   command -v git >/dev/null 2>&1 || pkg git
-  git clone -q --single-branch --branch "$BRANCH" "$REPO" "$DIR" \
+  git clone -q --filter=blob:none --no-checkout --single-branch --branch "$BRANCH" "$REPO" "$DIR" \
+    && trim_checkout \
     && git -C "$DIR" fetch -q --tags --force origin \
     && { go_to_ref || exit 3; }
 fi
