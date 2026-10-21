@@ -1,0 +1,74 @@
+{
+  "name": "Films, shows and music on the hub",
+  "areas": ["Watching and listening", "Phones and away"],
+  "pages": [
+    { "id": "q", "name": "What watching is like" }
+  ],
+  "artboards": [
+    { "file": "Today.dc.html", "page": "q", "x": 0, "y": 0, "w": 1920, "h": 1080, "title": "Today — Jellyfin's own screens, and the one card the hub has" },
+    { "file": "TonightA.dc.html", "page": "q", "x": 0, "y": 1400, "w": 1920, "h": 1080, "title": "A — Tonight: the TV opens on the evening, not the library", "is_interactive": true },
+    { "file": "PhoneA.dc.html", "page": "q", "x": 2040, "y": 1400, "w": 390, "h": 844, "title": "A on the phone — the remote, and what's next" },
+    { "file": "ShelvesB.dc.html", "page": "q", "x": 0, "y": 3000, "w": 1920, "h": 1080, "title": "B — Shelves: who's watching, then the collection to browse", "is_interactive": true },
+    { "file": "PhoneB.dc.html", "page": "q", "x": 2040, "y": 3000, "w": 390, "h": 844, "title": "B on the phone — the same shelves, and where to play it", "is_interactive": true },
+    { "file": "RoomC.dc.html", "page": "q", "x": 0, "y": 4600, "w": 1920, "h": 1080, "title": "C — The room: the TV is part of the living room, and the lamps answer it", "is_interactive": true },
+    { "file": "PhoneC.dc.html", "page": "q", "x": 2040, "y": 4600, "w": 390, "h": 844, "title": "C on the phone — the room's TV, and choosing for it", "is_interactive": true }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "q",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\nThe hub put a household's own screen over Home Assistant, and it works. This collection asks whether the same can be done for the household's films, shows, home videos and music, with Jellyfin as the rented engine: open source, a complete API, and its own screens made for whoever runs the server.\n\nIt is one product, not a second box. The hub already has the people, the passcode, pairing, the web address, updates and setup as a conversation, and a household should not pair twice. Media is something the hub does if the household wants it, the way the web address is.\n\nThe wall is already settled: What is playing (design/player, A) shows a TV as one more card, and a Jellyfin TV is one more player there. No tab is added; the tab row stays three. So the question here is the TV and the phone, drawn at 1920x1080 and 390x844."
+    },
+    {
+      "id": "same",
+      "page": "q",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "THE SAME IN EVERY DIRECTION\n\nTHE LIGHTS COME FIRST. Jellyfin runs in its own container beside Home Assistant, capped and at lower priority, so a film converting for a slow TV never makes a switch slow.\n\nIT IS OFFERED BY THE BOX. Setup asks 'Do you have films, shows or music?' once, after the rooms. A NUC is offered everything; a Pi 5 has no video encoder, so it is offered music and what the TV can already play, and says so in a sentence.\n\nADDING FILMS IS PLUGGING IN A DRIVE. The hub sees the drive and asks one thing: 'Films and shows on this drive -- add them?' Never a folder path, a content type or a database to download from.\n\nTHE HOUSE'S PEOPLE ARE ITS VIEWERS. Every person in People is quietly a Jellyfin user. Nobody signs in to watch on their own TV.\n\nIT FAILS IN OUR WORDS. 'This one is too big for the hub to play on this TV. It plays on the living room TV, or as a smaller copy in about ten minutes.'\n\nTHE TV APPS ARE THEIR OWN REPOSITORY, like the phone shell: Apple TV and Google TV first. Away from home goes direct first, and the relay only when it must, because a film through a relay we run costs real bandwidth.\n\nNOT DRAWN, ON PURPOSE: anything that fetches films from the internet. The ecosystem around Jellyfin leans on tools for that; the hub ships none of them and suggests none."
+    },
+    {
+      "id": "today",
+      "page": "q",
+      "x": 0,
+      "y": 1120,
+      "w": 1920,
+      "text": "TODAY. Left: Jellyfin's TV app on a weekday evening. It opens on where the films are kept, and the film you were in the middle of is second. Right: the first thing it asks, in a server's words. Below: what it does not know, and the one card the hub already has."
+    },
+    {
+      "id": "a",
+      "page": "q",
+      "x": 0,
+      "y": 2520,
+      "w": 2430,
+      "text": "A — TONIGHT. The TV opens on one thing: what you were in the middle of, the whole screen, with Keep watching already under the remote. Under it, one row called Next mixes the new episode, what somebody added, a home video and something like the last one finished. Everything else is a quiet line at the foot: Films, Shows, Home videos, Music, and a name said or typed. With nothing in progress, the newest thing takes the screen. On the phone, the TV is a thing in the living room: tap it for Keep watching, Next, and a pad to move on the TV.\n\nFOR: most evenings are a continuation, and this is one press from the sofa. It is the least like every other streaming app, and the least to learn.\n\nAGAINST: the person who wants to browse is one step further away, and a household that shares one TV sees one person's evening unless the house can tell who is in the room."
+    },
+    {
+      "id": "b",
+      "page": "q",
+      "x": 0,
+      "y": 4120,
+      "w": 2430,
+      "text": "B — SHELVES. The TV asks who's watching, with the house's own people from People and Everyone, then lays out the collection: what's new across the top, then Keep watching, then a shelf each for Films, Shows, Home videos and Music. Tabs along the top. The phone carries the same shelves, and a film tapped there asks where to play it: a TV in the house, or the phone.\n\nFOR: everybody already knows how to use it. The collection is the household's own, and browsing it is part of the pleasure. Separate people mean separate Keep watching, and a kids' shelf that stays a kids' shelf.\n\nAGAINST: it is every streaming app, so it looks like one, and nothing about it says it belongs to this house. Who's watching is a question every time the TV comes on."
+    },
+    {
+      "id": "c",
+      "page": "q",
+      "x": 0,
+      "y": 5720,
+      "w": 2430,
+      "text": "C — THE ROOM. The TV is part of the living room, and the house is in it. Switched on with nothing playing, it is a picture from the house's own home videos, the time, and the room as it is. A film picked offers 'Lamps down while it plays', on by default once a household says yes the first time; paused, the lamps come up and the screen says so. On the phone, the living room shows the TV beside its lamps and blinds, and choosing happens there: a search for a film, a show or a day, and Play on the TV, lamps down.\n\nFOR: it is the reason this is part of the hub and not a Jellyfin app. Nobody else can dim the room when the film starts, and a TV at rest showing last summer is a thing people will keep switched on.\n\nAGAINST: browsing on the TV is thin by design, so the phone is needed for anything but the next thing. A room with no lamps the hub can reach gets none of what makes it different."
+    },
+    {
+      "id": "ask",
+      "page": "q",
+      "x": 2560,
+      "y": 1400,
+      "w": 500,
+      "text": "THE PICK\n\nA, B or C, or a mix: B's people and shelves behind A's front page, with C's lamps, is a whole answer too. Or something else, described.\n\nWhatever is picked: the brain gains a media module that speaks Jellyfin's API the way it speaks Home Assistant's, the engine joins the hub's containers pinned to a version, and the TV apps start with Apple TV and Google TV in a repository of their own."
+    }
+  ]
+}
