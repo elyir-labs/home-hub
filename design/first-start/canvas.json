@@ -22,7 +22,15 @@
   "Ready-1.dc.html",
   "Ready-2.dc.html",
   "detail",
-  "pick"
+  "pick",
+  "scan-why",
+  "d",
+  "ScanBesideD-1.dc.html",
+  "ScanBesideD-2.dc.html",
+  "e",
+  "ScanCenterE-1.dc.html",
+  "ScanCenterE-2.dc.html",
+  "scan-pick"
  ],
  "artboards": [
   {
@@ -114,6 +122,42 @@
    "h": 900,
    "title": "Ready, with no cable: where to go next",
    "page": "first"
+  },
+  {
+   "file": "ScanBesideD-1.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "D1: no cable, the code beside the words",
+   "page": "scan"
+  },
+  {
+   "file": "ScanBesideD-2.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "D2: on a cable, the code beside the words",
+   "page": "scan"
+  },
+  {
+   "file": "ScanCenterE-1.dc.html",
+   "x": 0,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "E1: no cable, the code in the middle",
+   "page": "scan"
+  },
+  {
+   "file": "ScanCenterE-2.dc.html",
+   "x": 1560,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "E2: on a cable, the code in the middle",
+   "page": "scan"
   }
  ],
  "annotations": [
@@ -188,6 +232,38 @@
    "y": 760,
    "w": 520,
    "text": "WHICH ONE\n\nRecommendation: A, with B's quieter line under it where there is something to know (\"Leave it plugged in. It restarts by itself when this is done.\"). And Ready, in every case.\n\nA says what is happening in the fewest words, and it is the smallest step away from J, which was chosen for being simple. B's count is true on one unit and wrong on the next, and it implies an evenness the steps do not have. C answers the ask most literally, and I would build it if the line alone still feels stuck when it is watched on the NUC. The amounts can be added under A later without changing anything else here.\n\nOr something else: describe it, and I'll draw it."
+  },
+  {
+   "id": "scan-why",
+   "page": "scan",
+   "x": -1240,
+   "y": 0,
+   "w": 500,
+   "text": "WHY (20 OCTOBER 2026)\n\nReady, as built, names the hub's Wi-Fi and its password, and somebody types both into a phone. The question asked on the day: is this the moment to let the phone do it instead, with a code to scan?\n\nIt is. A phone's camera reads a Wi-Fi code and offers to join in one tap, on iPhone and Android alike, and the hub's Wi-Fi then sends the phone straight to setup. On a cable, the same code opens the hub's address. The name and password stay, smaller, for a phone that won't scan, which is also how somebody joins from a laptop.\n\nThe code is drawn on the unit, from that hub's own Wi-Fi, so it is never a picture prepared in advance. Dark on a light tile, because that is the way round every camera reads; a light code on the dark screen is not reliably read."
+  },
+  {
+   "id": "d",
+   "page": "scan",
+   "x": -620,
+   "y": 0,
+   "w": 500,
+   "text": "D: THE CODE BESIDE THE WORDS\n\nThe house stays exactly where every start leaves it, and the code and its words go under it, side by side.\n\nThe case for it: nothing moves. The startup ends the way it always ends, and Ready is added under the house.\n\nThe cost: the house holds the middle of the screen, so the code is small and pushed to the bottom edge, about 200 px on this space. Close up it scans; across a room it may not."
+  },
+  {
+   "id": "e",
+   "page": "scan",
+   "x": -620,
+   "y": 1300,
+   "w": 500,
+   "text": "E: THE CODE IN THE MIDDLE\n\nWhen the hub is ready, the house rises and gets small, and the code takes the middle of the screen, with the words under it.\n\nThe case for it: the code is the thing to do now, so it gets the place on the screen where the eye already is, at nearly half again D's size, which a phone reads from a chair. The house is still there, lit, saying whose screen this is.\n\nThe cost: one more motion at the end of the startup, the house moving up, which J does not have."
+  },
+  {
+   "id": "scan-pick",
+   "page": "scan",
+   "x": 3120,
+   "y": 0,
+   "w": 520,
+   "text": "WHICH ONE\n\nRecommendation: E. The whole point of this screen is the next step, and E gives the next step the middle of the screen at a size that scans from across a room. The house rising is one small motion, at the moment the startup is over anyway.\n\nOr keep Ready as built, words only, or something else: describe it."
   }
  ],
  "pages": [
@@ -203,6 +279,10 @@
   {
    "id": "first-rejected",
    "name": "Words on the first start: not chosen"
+  },
+  {
+   "id": "scan",
+   "name": "Ready, with a code to scan"
   }
  ]
 }
