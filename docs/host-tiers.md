@@ -89,10 +89,8 @@ recording need a bigger hub." It never shows a tier name or a list of capabiliti
 
 ## Open
 
-- **Selling Hub Plus changes `docs/shipping.md`.** That document says x86 is bring-your-own until an ODM run makes
-  sense. Hub Plus does not need an ODM: it is an off-the-shelf N100/N150 mini PC, 16 GB and 512 GB, flashed with the
-  x86 image. That is the same process as the CM5's partner carrier, with one supplier's part number. It still
-  needs a supplier, and a decision.
+- **Hub Plus is sold** (decided 20 October): an off-the-shelf N100/N150 mini PC, 16 GB and 512 GB, flashed with the
+  x86 image, with no ODM. `docs/shipping.md` records it. Which supplier and part number is still open.
 - **The brain does not read `HOST_CAN` yet.** It will once something offers an extra: music first
   (`design/music/`), then films (`design/media/`).
 
