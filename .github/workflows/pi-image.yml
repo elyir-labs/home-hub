@@ -73,6 +73,8 @@ jobs:
           username: hub
           password: ${{ steps.pass.outputs.value }}
           disable-first-boot-user-rename: 1
+          # Without a country pi-gen ships the Wi-Fi switched off, so a Pi with no cable could not offer its own setup Wi-Fi.
+          wpa-country: US
           enable-ssh: 0
           locale: en_US.UTF-8
           keyboard-layout: English (US)
