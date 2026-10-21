@@ -346,7 +346,22 @@ class Commands:
             for d in r.devices:
                 if kind_of(d) == "lock": out += [f"lock the {d.name.lower()}", f"is the {d.name.lower()} locked?"]
                 if kind_of(d) == "cover": out += [f"open the {d.name.lower()}", f"close the {d.name.lower()}"]
-        return out + ["is anything on?"]
+        return out + self._music_sentences(here) + ["is anything on?"]
+
+    def _music_sentences(self, here) -> list[str]:
+        """Music by the house's own names: what it has played, here, everywhere, and in each room with a speaker. Only
+        things the house has played before are offered -- a name it has never heard is not a completion, it is a guess."""
+        m = getattr(self.hub, "music", None)
+        if not m or not m.players(): return []
+        rooms = [self.hub.home.rooms[r] for r in m.rooms() if r in self.hub.home.rooms]
+        out = []
+        for item in m.known()[:3]:
+            name = item["name"]
+            if here and here.id in m.rooms(): out.append(f"play {name} here")
+            out.append(f"play {name} everywhere")
+            out += [f"play {name} in the {r.name.lower()}" for r in rooms if r is not here]
+        if any(m.playing_in(r.id) for r in rooms): out += ["stop the music", "music everywhere"]
+        return out
 
     def _log(self, said, here, detail):
         self.hub.log.add("said", here.id if here else "home", None, said, source="user", detail=detail)
@@ -398,6 +413,9 @@ class Commands:
         if question: return await self._question(t, said, room, scope, devices, everywhere)
         # a sound on a speaker
         out = await self._sound(t, said, room, scope, devices)
+        if out: return out
+        # music: "play Dinner in the kitchen", "music everywhere" (design/music/, A with C's sentences)
+        out = await self._music(t, said, room, everywhere)
         if out: return out
         # a scene for a room, or the house
         for pat, state in SCENES:
@@ -579,6 +597,43 @@ class Commands:
         if failed: text = f"{text[:-1]}; {', '.join(failed)} didn't answer."
         return {"kind": "done", "text": text, "devices": [d.id for d in targets], "action": action, "count": len(targets) - len(failed)}
 
+    # ---- music ----
+    async def _music(self, t, said, room, everywhere):
+        """Play something by name, in a room, here or everywhere; or take what is playing here everywhere. A device named
+        in full was dealt with before this ("play the Sonos" carries on what it was playing)."""
+        from .music import MusicError
+        m = getattr(self.hub, "music", None)
+        if not m or not m.players(): return None
+        rooms = m.rooms()
+        if everywhere and re.fullmatch(r"((play|put|put on|start|turn on) )?(the |some )?music( on)?", t):
+            here = room.id if room else None
+            source = next((d for d in (m.in_room(here) if here else []) if d.state in ("playing", "paused")), None) \
+                or next((m.playing_in(r) for r in rooms if m.playing_in(r)), None)
+            try:
+                if source:
+                    for r in rooms:
+                        if r != source.room_id and not m.playing_in(r): await m.join(r, source.room_id)
+                    return {"kind": "done", "text": f"{source.attrs.get('media_title') or 'The music'}, everywhere.", "devices": [source.id], "action": "music"}
+                last = m.again(None, 1)
+                if not last: raise NotUnderstood("Nothing is playing. Say what to play: \"play jazz everywhere\".")
+                await m.play(last[0], rooms, said=said)
+                return {"kind": "done", "text": f"{last[0]['name']}, everywhere.", "action": "music"}
+            except MusicError as e: raise NotUnderstood(str(e))
+        g = re.fullmatch(r"(play|put on|listen to)( some| the)? (.+?)( here| in here)?", t)
+        if not g: return None
+        name = g.group(3).strip()
+        if re.fullmatch(r"(the )?(music|something|anything|radio|speakers?|it)", name): return None   # carrying on, not choosing
+        where = rooms if everywhere else [room.id] if room else []
+        if not where: raise NotUnderstood(f"Where should {name} play? Say the room, or \"everywhere\".")
+        if room and not everywhere and room.id not in rooms: raise NotUnderstood(f"There's no speaker in the {room.name} that can play music.")
+        try:
+            item = await m.resolve(name)
+            if not item: raise NotUnderstood(f"The house couldn't find \u201c{name}\u201d to play.")
+            await m.play(item, where, said=said)
+        except MusicError as e: raise NotUnderstood(str(e))
+        place = "everywhere" if everywhere else f"in the {room.name}"
+        return {"kind": "done", "text": f"{item['name']}, {place}.", "spoken": f"Playing {item['name']} {place}.", "action": "music"}
+
     # ---- sounds on a speaker ----
     def _sound_in(self, t) -> bool:
         return _has("noise", t) or any(_has(re.escape(n), t) for s in self.hub.sounds.catalog() for n in (norm(s["name"]), norm(s["id"].replace("-", " "))) if n)
@@ -587,8 +642,13 @@ class Commands:
         catalog = self.hub.sounds.catalog()
         if re.fullmatch(r"((stop|turn off|switch off|kill|end|no more) (the |that )?(sound|noise|rain|music|it)|sound off|noise off|(quiet|silence|shh+)( please)?)", t):
             playing = [d for d in devices if d.id in self.hub.sounds.sessions]
-            if not playing: raise NotUnderstood("Nothing is playing from the hub right now.")
+            m = getattr(self.hub, "music", None)
+            music = [r.id for r in scope if m and m.playing_in(r.id)]
+            if not playing and not music: raise NotUnderstood("Nothing is playing from the hub right now.")
             for d in playing: await self.hub.act(d, "sound_off", {}, source="user", said=said)
+            stopped = await m.stop(music, said=said) if music else []
+            if not playing:
+                return {"kind": "done", "text": "Music off.", "devices": [d.id for d in stopped], "action": "music_stop", "count": len(stopped)}
             return {"kind": "done", "text": f"{_plural(len(playing), 'Sound', 'Sounds')} off.", "devices": [d.id for d in playing], "action": "sound_off", "count": len(playing)}
         minutes, t2 = _minutes(t)
         best = None

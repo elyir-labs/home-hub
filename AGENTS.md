@@ -287,6 +287,12 @@ Do not reopen these, and do not propose around them.
   hub nor a puck ever hands one to the other (`Bridges.kind()`, `fwupdate.cpp`). A house's own names, keys
   and network scans never come into this tree either: the secret scan in CI and `tools/hooks/pre-commit`
   are there for that.
+- **There are two hubs, one image, and the house always comes first** (20 October, `docs/host-tiers.md`). **Hub**
+  (CM5 or Pi 5) runs the house, the voice and music to the speakers. **Hub Plus** is an off-the-shelf N100/N150 mini
+  PC, 16 GB and 512 GB, flashed with our image, with no ODM. It adds films, camera recording and the assistant. A box is
+  offered what `driver-layer/host-tier.sh` measures (`HOST_CAN`), never what it is sold as. Films need a video
+  encoder, so a Pi never gets them. Every extra runs under the `x-extra` caps in `driver-layer/docker-compose.yml`, and
+  a light never waits on a film. Pinned by the tiers group in `driver-layer/host/tests.sh`.
 - **A screen that can't reach the hub says so before anyone taps** (9 October, `design/out-of-reach/`, C with
   B's card). An open live connection is not proof: the screen makes a fresh request every half minute, and two
   misses put a band along the foot ("Changes made here aren't reaching the hub", since when, the switches on the
@@ -300,6 +306,16 @@ Do not reopen these, and do not propose around them.
   buttons, one quiet email box for anyone who wants one ready to plug in, writing to the one Elyir waitlist. Its
   pictures are the panel on the pretend house with `NAMES=plain` (`npm run site-shots`), never somebody else's show or
   brand. `site/`, pinned by `site/site.test.mjs`; made by `site/terraform/`, deployed by `.github/workflows/site.yml`.
+- **Music lives on the speaker's card, and every hub plays it** (20 October, `design/music/`, A with C's sentences).
+  A quiet speaker offers Play something and its last two things again; one pane chooses what (left) and which rooms
+  (right, this room ticked); music in several rooms plays in step and is a row of rooms on the card; the command box
+  plays by name ("play Dinner in the kitchen") from a fixed grammar, completing only what the house has played. The
+  wall's tabs stay three. Music is on every hub, a Pi included; films are Hub Plus's (`design/media/`). Music has no
+  lamps rule. A player is a room, a name and a kind, the kind is open, and the panel never branches on it. **Spotify
+  plays only on speakers that have it built in**: the music engine's Spotify parts and AirPlay receiver are never
+  switched on and nothing on screen offers them, until there is a partnership. Pinned by `app/tests/music.test.ts`,
+  `app/e2e/music.spec.ts` and `brain/tests/test_music.py`; the engine and its setup are `brain/hub/music.py` and
+  `docs/music.md`.
 - **The Elyir account pays for a house's address, and the house belongs to it; nobody signs in to use the house**
   (21 October, `design/account/`, B). It is the same account as Elyir Bench, at `account.elyir.com`. The code at the end
   of the address step opens it instead of a bare payment page, and it pays the relay as a ticket payer beside Bench

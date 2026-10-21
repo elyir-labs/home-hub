@@ -13,11 +13,18 @@ Each phone signs with its own key, the one it handed every house it joined (docs
 phone with three houses holds one subscription. Apple, Google and Mozilla carry a message they cannot
 read; what they see is that a house sent something to a phone, and when, which is why the house stays
 quiet: overnight, in the phone's own time zone, an `attention` line waits for seven in the morning.
+
+A phone in the store app has no web push. It hands each house its APNs token and a key of its own instead,
+and the house seals the same payload to that key (RFC 8291, as web push does) and hands it to the sender
+Elyir runs beside the relay, proving itself with the secret it already holds for the relay. The sender and
+Apple see that a house sent a phone something, and when, never what. A house with no web address holds no
+such secret, so its store-app phones stay recorded and are told nothing until it has one.
 """
-import asyncio, base64, hashlib, json, logging, os, time
+import asyncio, base64, hashlib, json, logging, os, re, time, urllib.error, urllib.request
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from . import address
 from .phones import holds_keys
 
 log = logging.getLogger("hub.pusher")
@@ -28,10 +35,19 @@ TTL = 12 * 3600
 URGENCY = {"attention": "normal", "alert": "high"}
 QUIET = (22, 7)
 GONE = (404, 410)
+APNS_TOKEN = re.compile(r"^[0-9a-fA-F]{64,200}$")
+B64URL = re.compile(r"^[A-Za-z0-9_-]+=*$")
+ENVS = ("sandbox", "production")
+NEEDS_ADDRESS = "This house needs its web address to tell this phone."
 
 
 def b64(raw: bytes) -> str:
     return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+
+
+def unb64(text: str) -> bytes:
+    if not B64URL.match(text or ""): raise ValueError("not base64url")
+    return base64.urlsafe_b64decode(text.rstrip("=") + "=" * (-len(text.rstrip("=")) % 4))
 
 
 def public_of(private_b64: str) -> str:
@@ -50,8 +66,24 @@ def zone(name) -> str | None:
     return name
 
 
+def checked_apns(apns: dict) -> dict:
+    """A store-app phone's way of being told things: its APNs token, and the key the house seals to."""
+    token, env = str(apns.get("token") or ""), str(apns.get("env") or "")
+    try:
+        point, auth = unb64(str(apns.get("p256dh") or "")), unb64(str(apns.get("auth") or ""))
+        from cryptography.hazmat.primitives.asymmetric import ec
+        ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), point)
+        ok = len(point) == 65 and point[0] == 4 and len(auth) == 16
+    except Exception:
+        ok = False
+    if not ok or not APNS_TOKEN.match(token) or env not in ENVS: raise ValueError("That isn't a way to reach this phone.")
+    return {"token": token.lower(), "env": env, "p256dh": b64(point), "auth": b64(auth)}
+
+
 def checked(body: dict, now: float) -> dict:
     """What a phone sent to be told things, as its record keeps it. ValueError names what is wrong."""
+    if isinstance(body.get("apns"), dict):
+        return {"apns": checked_apns(body["apns"]), "tz": zone(body.get("tz")), "since": now}
     sub = body.get("subscription") if isinstance(body.get("subscription"), dict) else {}
     keys = sub.get("keys") if isinstance(sub.get("keys"), dict) else {}
     endpoint = str(sub.get("endpoint") or "")
@@ -78,13 +110,35 @@ def send(subscription: dict, data: str, headers: dict, ttl: int, private_key: st
         return e.response.status_code if e.response is not None else 0
 
 
+def seal(data: str, p256dh: str, auth: str) -> str:
+    """The payload encrypted to the phone's key exactly as web push encrypts it (RFC 8291, aes128gcm), base64url."""
+    import http_ece
+    from cryptography.hazmat.primitives.asymmetric import ec
+    return b64(http_ece.encrypt(data.encode(), private_key=ec.generate_private_key(ec.SECP256R1()), dh=unb64(p256dh),
+                                auth_secret=unb64(auth), version="aes128gcm"))
+
+
+def hand(body: dict, secret: str) -> int:
+    """One sealed notification to the sender, as the house it is. The sender's answer, or 0 if there was none."""
+    req = urllib.request.Request(address.API.rstrip("/") + "/push", method="POST", data=json.dumps(body).encode(),
+                                 headers={"Content-Type": "application/json", "User-Agent": "home-hub", "Authorization": f"Bearer {secret}"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:   # noqa: S310 -- the maker's own https API
+            return r.status
+    except urllib.error.HTTPError as e:
+        return e.code
+    except (urllib.error.URLError, TimeoutError, OSError):
+        return 0
+
+
 def key(line: dict) -> str:
     return f"{line['id']}|{line.get('subject') or ''}"
 
 
 class Pusher:
-    def __init__(self, hub, sender=send, now=time.time):
-        self.hub, self.sender, self.now = hub, sender, now
+    def __init__(self, hub, sender=send, hand=hand, now=time.time):
+        self.hub, self.sender, self.hand, self.now = hub, sender, hand, now
+        self.told_once: set[str] = set()
         self.path = hub.phones.path.with_name("pushed.json")
         try:
             d = json.loads(self.path.read_text())
@@ -162,11 +216,45 @@ class Pusher:
             if not p or not p.get("push") or h["expires"] <= self.now(): continue
             if h["urgency"] != "high" and self.quiet(p):
                 keep.append(h); continue
-            sent += await self._deliver(p, h)
+            done, again = await (self._hand(p, h) if p["push"].get("apns") else self._deliver(p, h))
+            sent += done
+            if again: keep.append(h)
         self.held = keep
         return sent
 
-    async def _deliver(self, p: dict, h: dict) -> int:
+    def _once(self, what: str, message: str):
+        if what not in self.told_once:
+            self.told_once.add(what)
+            log.info(message)
+
+    async def _hand(self, p: dict, h: dict) -> tuple[int, bool]:
+        """A store-app phone, through the sender. (sent, try again on the next look)."""
+        house, secret = self.label(), self.hub.address.secret()
+        if not house or not secret:
+            self._once("address", "push: this house has no web address, so phones in the store app are not told yet")
+            return 0, False
+        apns = p["push"]["apns"]
+        try:
+            body = {"house": house, "token": apns["token"], "env": apns["env"], "sealed": seal(json.dumps(h["payload"]), apns["p256dh"], apns["auth"]),
+                    "urgency": h["urgency"], "collapse": h["topic"], "ttl": max(0, int(h["expires"] - self.now()))}
+            status = await asyncio.to_thread(self.hand, body, secret)
+        except Exception:
+            log.info("push: the sender could not be reached for %s", p.get("name"), exc_info=True)
+            return 0, True
+        if 200 <= status < 300:
+            self.told_once.discard("sender")
+            return 1, False
+        if status == 410:
+            log.info("push: %s's app is gone, dropping it", p.get("name"))
+            self.hub.phones.set_push(p["id"], None)
+            return 0, False
+        if status in (404, 503):   # 404: a relay box from before the sender, which answers no /push at all
+            self._once("sender", "push: the sender is not set up to reach phones in the store app yet")
+            return 0, False
+        log.info("push: the sender answered %s for %s; trying again on the next look", status, p.get("name"))
+        return 0, True
+
+    async def _deliver(self, p: dict, h: dict) -> tuple[int, bool]:
         push = p["push"]
         headers = {"Urgency": h["urgency"], "Topic": h["topic"]}
         ttl = max(0, int(h["expires"] - self.now()))
@@ -175,12 +263,12 @@ class Pusher:
                                              (push.get("vapid") or {}).get("privateKey"))
         except Exception:
             log.warning("push: %s could not be reached", p.get("name"), exc_info=True)
-            return 0
+            return 0, False
         if status in GONE:
             log.info("push: %s's subscription is gone, dropping it", p.get("name"))
             self.hub.phones.set_push(p["id"], None)
-            return 0
+            return 0, False
         if not 200 <= status < 300:
             log.warning("push: %s answered %s", p.get("name"), status)
-            return 0
-        return 1
+            return 0, False
+        return 1, False

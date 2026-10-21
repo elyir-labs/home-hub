@@ -3,8 +3,9 @@
 # remembered. Four things, each a container with a systemd unit:
 #
 #   frps            the relay itself, on 443: carries every house's bytes and reads none of them
-#   relay-service   the registration service: names, entitlements, frps's yes or no, and the nameserver
-#                   for home.elyir.app on 53 -- each house's name at home (relay/service)
+#   relay-service   the registration service: names, entitlements, frps's yes or no, the nameserver
+#                   for home.elyir.app on 53 -- each house's name at home -- and the sender that hands
+#                   houses' sealed notifications to Apple (relay/service, push.py)
 #   relay-api-door  a Caddy holding api.elyir.app's certificate, so hubs can reach the service
 #   relay-api-frpc  how that Caddy is reached: through frps, exactly the way a house's door is
 #   relay-printers-frpc  the same for printers.elyir.app, the printer app's static files, which that
@@ -157,6 +158,16 @@ write_files:
       localPort = 9443
       transport.proxyProtocolVersion = "v2"
 
+  # The sender's key (relay/service/push.py): Apple's .p8, as one line of base64, with its key id and team id. Read
+  # by the service alone; empty until the operator puts the key in terraform.tfvars, and the sender answers 503 until then.
+  - path: /etc/relay/apns.env
+    permissions: '0600'
+    owner: root:root
+    content: |
+      RELAY_APNS_KEY=${apns_key_b64}
+      RELAY_APNS_KEY_ID=${apns_key_id}
+      RELAY_APNS_TEAM_ID=${apns_team_id}
+
   # api.elyir.app's door. The certificate is proved over TLS-ALPN-01 through frps, the same way every
   # house proves its own, so no port opens for it and no DNS credential exists on this box. Only the
   # hub-facing routes are passed on; the plugin route answers frps on loopback and nobody else.
@@ -184,7 +195,7 @@ write_files:
             alt_tlsalpn_port 9443
           }
         }
-        @public path /alive /offer /names/* /houses /houses/* /acme/*
+        @public path /alive /offer /names/* /houses /houses/* /acme/* /push
         handle @public {
           reverse_proxy 127.0.0.1:7100
         }
@@ -322,6 +333,7 @@ write_files:
         -e RELAY_OFFER_OPEN=${offer_open} \
         -e RELAY_DNS_PORT=53 \
         -e RELAY_NS=ns1.${zone} \
+        --env-file /etc/relay/apns.env \
         relay-service:${service_ref}
       ExecStop=/usr/bin/docker stop relay-service
 

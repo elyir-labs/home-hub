@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>D, Tonight with the lamps: A's front page, C's lamps</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap">
+<link rel="stylesheet" href="media.css">
+<style>
+  .hero { position: absolute; inset: 0; }
+  .next { position: absolute; left: 96px; right: 0; top: 640px; }
+  .next .row { display: flex; gap: 28px; margin-top: 18px; }
+  .next .c { width: 344px; flex: none; }
+  .next .c .still { height: 190px; }
+  .badge { position: absolute; left: 14px; top: 14px; padding: 5px 12px; border-radius: 999px; font-size: 15px; font-weight: 600; letter-spacing: .06em;
+           background: rgba(var(--lamp-rgb), .92); color: var(--lamp-ink); }
+  .index { position: absolute; left: 96px; right: 96px; bottom: 70px; display: flex; gap: 44px; font-size: 22px; color: var(--muted); align-items: baseline; }
+  .index b { color: var(--ink-2); font-weight: 500; }
+  .full { position: absolute; inset: 0; }
+  .lamp { display: inline-grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: rgba(var(--lamp-rgb), .18); color: var(--lamp); flex: none; }
+  .toggle { width: 70px; height: 40px; border-radius: 999px; background: var(--lamp); position: relative; flex: none; }
+  .toggle::after { content: ""; position: absolute; right: 4px; top: 4px; width: 32px; height: 32px; border-radius: 50%; background: var(--lamp-ink); }
+  .bar { position: absolute; left: 96px; right: 96px; bottom: 74px; border-radius: 30px; padding: 30px 40px 32px; }
+  .lampbtn { gap: 16px; padding-right: 14px; }
+  .lampbtn .toggle { width: 60px; height: 36px; } .lampbtn .toggle::after { width: 28px; height: 28px; }
+</style>
+</head>
+<body>
+<div class="tv">
+  <div class="hero s-field" data-when="evening"></div>
+  <div class="hero s-ember" data-when="nothing" style="bottom: 240px; left: 500px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 35%); mask-image: linear-gradient(90deg, transparent, #000 35%);"></div>
+  <div class="shade-l" data-when="evening nothing"></div><div class="shade-b" data-when="evening nothing"></div>
+
+  <div data-when="evening nothing" style="position: absolute; left: 96px; right: 96px; top: 54px; display: flex; align-items: center; gap: 16px; font-size: 22px;">
+    <span class="house"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg></span>
+    <span class="ink2">Maple Court</span><span style="flex: 1"></span>
+    <span class="ink2" style="font-size: 26px;">8:42</span>
+  </div>
+
+  <div data-when="evening" style="position: absolute; left: 96px; top: 196px; width: 1400px;">
+    <div class="eyebrow">Keep watching &middot; 1 h 12 min left</div>
+    <h1 class="title" style="font-size: 116px; margin: 18px 0 20px;">The Long Field</h1>
+    <p class="ink2" style="margin: 0 0 26px; font-size: 26px;">You stopped on Tuesday, 48 minutes in, with Jordan.</p>
+    <div class="line" style="width: 520px; margin-bottom: 36px;"><i style="width: 40%"></i></div>
+    <span class="btn focus">&#9654;&ensp;Keep watching</span>&ensp;<span class="btn">From the start</span>&ensp;<span class="btn lampbtn"><span style="color: var(--lamp); display: inline-flex;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></span>Lamps down while it plays<span class="toggle"></span></span>
+  </div>
+
+  <div data-when="nothing" style="position: absolute; left: 96px; top: 196px; width: 1400px;">
+    <div class="eyebrow" style="color: var(--lamp);">New &middot; Jordan added it yesterday</div>
+    <h1 class="title" style="font-size: 116px; margin: 18px 0 20px;">Salt &amp; Ember</h1>
+    <p class="ink2" style="margin: 0 0 26px; font-size: 26px; max-width: 34ch;">A cook, a fire, and the one winter the restaurant stayed open. 1 h 58 min.</p>
+    <div style="height: 42px;"></div>
+    <span class="btn focus">&#9654;&ensp;Watch</span>&ensp;<span class="btn">Something else</span>&ensp;<span class="btn lampbtn"><span style="color: var(--lamp); display: inline-flex;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></span>Lamps down while it plays<span class="toggle"></span></span>
+  </div>
+
+  <div class="next" data-when="evening nothing">
+    <div class="eyebrow">Next</div>
+    <div class="row">
+      <div class="c" data-when="evening"><div class="still s-harbor"><span class="badge">NEW</span></div><div class="cardname">Harbor Lights</div><div class="cardsub">Episode 4 came in this morning</div></div>
+      <div class="c" data-when="evening"><div class="still s-ember"><span class="badge">NEW</span></div><div class="cardname">Salt &amp; Ember</div><div class="cardsub">Jordan added it yesterday</div></div>
+      <div class="c" data-when="nothing"><div class="still s-harbor"><span class="badge">NEW</span></div><div class="cardname">Harbor Lights</div><div class="cardsub">Episode 4 came in this morning</div></div>
+      <div class="c"><div class="still s-lake"></div><div class="cardname">The lake, August</div><div class="cardsub">38 clips from Jordan&rsquo;s phone</div></div>
+      <div class="c"><div class="still s-north"></div><div class="cardname">Northbound</div><div class="cardsub">2 h 4 min &middot; like The Quiet Year</div></div>
+      <div class="c" data-when="nothing"><div class="still s-tide"></div><div class="cardname">Low Tide</div><div class="cardsub">1 h 41 min &middot; Riley&rsquo;s pick, still unwatched</div></div>
+      <div class="c"><div class="still s-moons"><div class="line"><i style="width: 8%"></i></div></div><div class="cardname">Paper Moons</div><div class="cardsub">Episode 2 of 8</div></div>
+    </div>
+  </div>
+
+  <div class="index" data-when="evening nothing"><b>Everything</b><span>Films 214</span><span>Shows 31</span><span>Home videos 1,206</span><span>Music</span><span style="flex: 1"></span><span>&#9906;&ensp;Say or type a name</span></div>
+
+  <!-- paused: the room answers -->
+  <div data-when="paused">
+    <div class="full s-field" style="filter: brightness(.82);"></div>
+    <div class="full" style="background: linear-gradient(180deg, rgba(8,9,12,.35) 0%, transparent 30%, transparent 55%, rgba(8,9,12,.75) 100%);"></div>
+    <div class="glass" style="position: absolute; right: 96px; top: 54px; border-radius: 26px; padding: 16px 24px 16px 16px; display: flex; align-items: center; gap: 16px;">
+      <span class="lamp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></span>
+      <span><span style="display: block; font-size: 23px; font-weight: 500;">Lamps up to 40%</span><span class="ink2" style="font-size: 19px;">while it&rsquo;s paused &middot; back down when it plays</span></span>
+    </div>
+    <div class="bar glass">
+      <div style="display: flex; align-items: baseline; gap: 20px;"><span style="font-family: var(--display); font-size: 44px;">The Long Field</span><span class="ink2" style="font-size: 22px;">Paused by Riley&rsquo;s phone</span><span style="flex: 1"></span><span class="ink2" style="font-size: 22px;">1:00:21 &middot; 1 h 12 min left</span></div>
+      <div class="line" style="margin: 22px 0 26px;"><i style="width: 46%"></i></div>
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <span class="btn focus">&#9654;&ensp;Play</span><span class="btn">Back 10 s</span><span class="btn">Subtitles</span><span style="flex: 1"></span><span class="btn">Living room lamps &middot; 40%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flips"><span style="padding: 6px 4px;">Showing</span>
+    <span class="flip on" data-to="evening">in the middle of something</span><span class="flip" data-to="nothing">nothing in progress</span><span class="flip" data-to="paused">paused</span></div>
+</div>
+<script src="flips.js"></script>
+</body>
+</html>

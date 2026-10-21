@@ -576,9 +576,40 @@ becoming() {
 }
 
 
+tiers() {
+  group "what a machine is big enough for"
+  local t="$HERE/../host-tier.sh"
+  gets() { "$t" which "$@"; }
+
+  is "a 4 GB Pi runs the house and plays music" "$(gets aarch64 4 3900000 none none)" "small music"
+  is "an 8 GB Pi is medium, and still no films" "$(gets aarch64 4 7900000 none none)" "medium music"
+  # Its render node is the 3D core, not an encoder; an AI board makes it accelerated, never a film player.
+  is "a Pi with an AI board records cameras but plays no films" \
+     "$(gets aarch64 4 7900000 none hailo)" "accelerated music,cameras"
+  is "an 8 GB N100 is Hub Plus without the assistant" \
+     "$(gets x86_64 4 7900000 intel none)" "large music,films,cameras"
+  is "a 16 GB N100 is everything" "$(gets x86_64 4 16200000 intel none)" "large music,films,cameras,assistant"
+  is "an old two-core box with 4 GB is a small hub" "$(gets x86_64 2 3900000 intel none)" "small music"
+  is "a mini PC with no encoder plays no films" "$(gets x86_64 4 7900000 none none)" "large music"
+
+  local d; d="$(mktemp -d)"
+  cp "$t" "$d/"; echo "HOST_PINNED=1" > "$d/.env"; echo "HOST_TIER=small" >> "$d/.env"
+  "$d/host-tier.sh" >/dev/null 2>&1
+  is "a pinned hub keeps what somebody wrote" "$(grep -c '^HOST_' "$d/.env")" "2"
+  printf 'HOST_PINNED=1\nHOST_CAN=music,films\nCOMPOSE_PROFILES=zigbee,voice\n' > "$d/.env"
+  "$d/host-tier.sh" >/dev/null 2>&1
+  is "music runs where the house can play it, beside the radios and the voice" "$(grep '^COMPOSE_PROFILES=' "$d/.env")" "COMPOSE_PROFILES=zigbee,voice,music"
+  "$d/host-tier.sh" >/dev/null 2>&1
+  is "...once, however often it is measured" "$(grep '^COMPOSE_PROFILES=' "$d/.env")" "COMPOSE_PROFILES=zigbee,voice,music"
+  printf 'HOST_PINNED=1\nHOST_CAN=films\nCOMPOSE_PROFILES=music\n' > "$d/.env"
+  "$d/host-tier.sh" >/dev/null 2>&1
+  is "...and stops where it cannot, leaving none rather than nothing" "$(grep '^COMPOSE_PROFILES=' "$d/.env")" "COMPOSE_PROFILES=none"
+  rm -rf "$d"
+}
+
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; watchdog; away; finding; becoming; keeping; awake
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; keeping; awake
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

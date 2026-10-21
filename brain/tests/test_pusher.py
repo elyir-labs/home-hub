@@ -15,7 +15,7 @@ from cryptography.hazmat.primitives import serialization
 from hub import provision, pusher
 from hub.messages import said
 from hub.phones import Phones
-from tests.apptest import signing_key, subscription
+from tests.apptest import apns_identity, signing_key, subscription
 
 CHICAGO = ZoneInfo("America/Chicago")
 
@@ -38,8 +38,9 @@ class FakeHealth:
 
 
 class FakeAddress:
-    def __init__(self): self.label = "maple"
+    def __init__(self): self.label, self.key = "maple", "the-houses-relay-secret"
     def house(self): return self.label
+    def secret(self): return self.key
 
 
 class FakeHub:
@@ -289,7 +290,164 @@ class PusherTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.sender.to(), ["https://push.example/setup"])
 
 
+class Sealed:
+    """Stands where the sender Elyir runs stands: opens nothing, records what a house handed it, answers as told."""
+    def __init__(self): self.calls, self.answers = [], []
+    def __call__(self, body, secret):
+        self.calls.append({"body": body, "secret": secret})
+        answer = self.answers.pop(0) if self.answers else 200
+        if isinstance(answer, Exception): raise answer
+        return answer
+
+
+class SealedTests(unittest.IsolatedAsyncioTestCase):
+    """A phone in the store app: the same news, sealed to its own key and handed to the sender."""
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory(); self.addCleanup(self.dir.cleanup)
+        self.hub = FakeHub(Path(self.dir.name))
+        self.clock = [at(12)]
+        self.web, self.sealed = Sender(), Sealed()
+        self.pusher = pusher.Pusher(self.hub, sender=self.web, hand=self.sealed, now=lambda: self.clock[0])
+        self.apns, self.private = apns_identity()
+        self.app = self.hub.phones._admit("Sam's iPhone", "phone", "code")[0]
+        self.hub.phones.set_push(self.app["id"], {"apns": self.apns, "tz": "America/Chicago", "since": 0})
+        self.browser = self.hub.phones._admit("Robin's phone", "phone", "code")[0]
+        self.hub.phones.set_push(self.browser["id"], {"subscription": subscription("https://push.example/robin"), "vapid": signing_key(), "tz": "America/Chicago", "since": 0})
+
+    def open(self, sealed: str) -> dict:
+        import base64, http_ece
+        raw = lambda t: base64.urlsafe_b64decode(t + "=" * (-len(t) % 4))
+        return json.loads(http_ece.decrypt(raw(sealed), private_key=self.private, auth_secret=raw(self.apns["auth"]), version="aes128gcm"))
+
+    async def settle(self, *lines):
+        self.hub.health.lines = list(lines)
+        return await self.pusher.look() + await self.pusher.look()
+
+    async def test_it_is_sealed_to_the_phones_key_and_handed_over_as_the_house(self):
+        await self.pusher.look()
+        self.assertEqual(await self.settle(line()), 2)
+        self.assertEqual(self.web.to(), ["https://push.example/robin"])                 # the browser's way is unchanged
+        [call] = self.sealed.calls
+        self.assertEqual(call["secret"], "the-houses-relay-secret")
+        body = call["body"]
+        self.assertEqual(set(body), {"house", "token", "env", "sealed", "urgency", "collapse", "ttl"})
+        self.assertEqual((body["house"], body["token"], body["env"], body["urgency"], body["ttl"]), ("maple", self.apns["token"], "sandbox", "normal", 12 * 3600))
+        self.assertEqual(body["collapse"], self.web.calls[0]["headers"]["Topic"])
+        self.assertEqual(len(body["collapse"]), 32)
+        self.assertRegex(body["sealed"], r"^[A-Za-z0-9_-]+$")
+        self.assertEqual(self.open(body["sealed"]), self.web.calls[0]["payload"])         # the very payload web push carries
+        self.assertNotIn("storage", json.dumps({k: v for k, v in body.items() if k != "sealed"}))
+
+    async def test_each_seal_is_new(self):
+        a = pusher.seal('{"x": 1}', self.apns["p256dh"], self.apns["auth"])
+        b = pusher.seal('{"x": 1}', self.apns["p256dh"], self.apns["auth"])
+        self.assertNotEqual(a, b)
+        self.assertEqual(self.open(a), {"x": 1})
+
+    async def test_an_alert_is_high(self):
+        await self.pusher.look()
+        await self.settle({"id": "door.unlocked", "class": "alert", "text": "The front door unlocked.", "subject": "lock.front"})
+        self.assertEqual(self.sealed.calls[0]["body"]["urgency"], "high")
+
+    async def test_an_app_that_is_gone_is_dropped(self):
+        await self.pusher.look()
+        self.sealed.answers = [410]
+        self.assertEqual(await self.settle(line()), 1)
+        self.assertNotIn("push", self.hub.phones.get(self.app["id"]))
+        self.assertTrue(self.hub.phones.get(self.browser["id"])["push"])
+
+    async def test_slow_down_and_failures_are_tried_again_on_the_next_look_within_the_ttl(self):
+        await self.pusher.look()
+        self.sealed.answers = [429, 502, OSError("no route"), 0]
+        self.assertEqual(await self.settle(line()), 1)                                   # the browser's
+        for _ in range(3): self.assertEqual(await self.pusher.look(), 0)
+        self.assertEqual(await self.pusher.look(), 1)
+        self.assertEqual(len(self.sealed.calls), 5)
+        self.assertEqual(await self.pusher.look(), 0)                                    # and once is once
+        self.assertTrue(self.hub.phones.get(self.app["id"])["push"])
+        self.assertLess(self.sealed.calls[-1]["body"]["ttl"], 12 * 3600 + 1)
+
+    async def test_nothing_is_tried_after_the_ttl(self):
+        await self.pusher.look()
+        self.sealed.answers = [429]
+        await self.settle(line())
+        self.clock[0] += 12 * 3600
+        self.assertEqual(await self.pusher.look(), 0)
+        self.assertEqual(len(self.sealed.calls), 1)
+
+    async def test_a_sender_with_no_key_yet_keeps_the_phone_and_says_so_once(self):
+        await self.pusher.look()
+        self.sealed.answers = [503, 503]
+        with self.assertLogs("hub.pusher", "INFO") as said:
+            await self.settle(line())
+            self.hub.health.lines = [line(), line("hub.restarted_itself", when="3:10 am")]
+            await self.pusher.look(); await self.pusher.look()
+        self.assertEqual(len(self.sealed.calls), 2)                                      # not tried again
+        self.assertEqual(sum("not set up" in m for m in said.output), 1)
+        self.assertTrue(self.hub.phones.get(self.app["id"])["push"])
+
+    async def test_a_relay_from_before_the_sender_is_not_asked_every_half_minute(self):
+        await self.pusher.look()
+        self.sealed.answers = [404, 404]
+        await self.settle(line())
+        self.hub.health.lines = [line(), line("hub.restarted_itself", when="3:10 am")]
+        await self.pusher.look(); await self.pusher.look()
+        self.assertEqual(len(self.sealed.calls), 2)                                      # one try each, not one per look
+        self.assertTrue(self.hub.phones.get(self.app["id"])["push"])
+
+    async def test_a_house_with_no_address_tells_the_app_nothing_and_keeps_it(self):
+        await self.pusher.look()
+        self.hub.address.key = None
+        self.assertEqual(await self.settle(line()), 1)
+        self.assertEqual(self.sealed.calls, [])
+        self.assertTrue(self.hub.phones.get(self.app["id"])["push"])
+        self.hub.address.key, self.hub.address.label = "the-houses-relay-secret", None
+        await self.settle(line(), line("hub.restarted_itself", when="3:10 am"))
+        self.assertEqual(self.sealed.calls, [])
+
+    async def test_overnight_it_waits_like_any_phone(self):
+        await self.pusher.look()
+        self.clock[0] = at(23)
+        await self.settle(line())
+        self.assertEqual(self.sealed.calls, [])
+        self.clock[0] = at(7, day=20)
+        self.hub.health.lines = [line()]
+        await self.pusher.look()
+        self.assertEqual(len(self.sealed.calls), 1)
+
+
+class HandTests(unittest.TestCase):
+    """The real hand-over, with the network taken away at urllib's door."""
+    def test_it_posts_to_the_makers_api_as_the_house(self):
+        seen = {}
+
+        class Answer:
+            status = 200
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+
+        def fake(req, timeout):
+            seen.update(url=req.full_url, auth=req.get_header("Authorization"), body=json.loads(req.data), timeout=timeout)
+            return Answer()
+        with mock.patch.object(pusher.address, "API", "https://api.example"), mock.patch("urllib.request.urlopen", fake):
+            self.assertEqual(pusher.hand({"house": "maple"}, "secret-1"), 200)
+        self.assertEqual(seen, {"url": "https://api.example/push", "auth": "Bearer secret-1", "body": {"house": "maple"}, "timeout": 15})
+
+        import io, urllib.error
+        def gone(req, timeout): raise urllib.error.HTTPError(req.full_url, 410, "gone", {}, io.BytesIO(b"{}"))
+        with mock.patch("urllib.request.urlopen", gone):
+            self.assertEqual(pusher.hand({}, "s"), 410)
+        def down(req, timeout): raise urllib.error.URLError("no route")
+        with mock.patch("urllib.request.urlopen", down):
+            self.assertEqual(pusher.hand({}, "s"), 0)
+
+
 class KeyTests(unittest.TestCase):
+    def test_what_the_store_app_sends_is_kept_as_its_record_keeps_it(self):
+        apns, _ = apns_identity("production")
+        got = pusher.checked({"apns": {**apns, "extra": 1, "auth": apns["auth"] + "=="}, "tz": "Europe/London", "subscription": subscription()}, 5)
+        self.assertEqual(got, {"apns": apns, "tz": "Europe/London", "since": 5})
+
     def test_a_phones_key_and_its_public_half(self):
         k = signing_key()
         self.assertEqual(pusher.public_of(k["privateKey"]), k["publicKey"])

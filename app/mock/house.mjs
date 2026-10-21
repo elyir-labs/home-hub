@@ -40,7 +40,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
       dev('l3', 'Reading lamp', 'living', 'light', 'off', { supported_color_modes: ['onoff'] }),
 
       dev('m1', 'Living room TV', 'living', 'media', 'playing', { media_title: 'The Bear', media_artist: 'Season 3, Episode 4', app_name: 'Disney+', volume_level: 0.35, entity_picture: '/x.jpg', media_position: 1421, media_duration: 3740 }),
-      dev('s1', 'Sonos', 'living', 'media', 'paused', { media_title: 'Blue in Green', media_artist: 'Miles Davis', volume_level: 0.2 }),
+      dev('s1', 'Sonos', 'living', 'media', env.MUSIC === 'quiet' ? 'idle' : 'paused', { ...(env.MUSIC === 'quiet' ? {} : { media_title: 'Blue in Green', media_artist: 'Miles Davis' }), volume_level: 0.2, music: true }),
       dev('c1', 'Blinds', 'living', 'cover', 'open', { current_position: 70 }, 'IKEA'),
       dev('t1', 'Thermostat', 'living', 'climate', 'cool', { current_temperature: 74, temperature: 71, hvac_action: 'cooling', hvac_modes: ['heat', 'cool', 'heat_cool', 'off'], fan_modes: ['on', 'auto'], fan_mode: 'auto', current_humidity: 48 }),
       dev('mo1', 'Motion', 'living', 'motion', 'on', {}),
@@ -61,7 +61,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
       feature('k10', 'Refrigerator Power Freeze', 'kitchen', 'on', 'hw-fridge', 'Refrigerator'),
       feature('k11', 'Dishwasher Sanitize', 'kitchen', 'off', 'hw-dw', 'Dishwasher'),
       feature('k12', 'Dishwasher Delay Start', 'kitchen', 'off', 'hw-dw', 'Dishwasher'),
-      dev('k4', 'Kitchen speaker', 'kitchen', 'media', 'off', {}),
+      dev('k4', 'Kitchen speaker', 'kitchen', 'media', 'off', { music: true }),   // music: the hub can start music on it (hub/music.py)
       dev('k5', 'Back door', 'kitchen', 'contact', 'off', {}),
       dev('k6', 'Humidity', 'kitchen', 'sensor.humidity', '51', { unit_of_measurement: '%' }),
     ] },
@@ -381,6 +381,13 @@ export function createHouse({ env = {}, qr = null } = {}) {
      for pictures that go somewhere public (site/shots.mjs). A real house shows its own names; a page we publish must not
      show somebody else's. */
   const PRETEND = env.PRETEND === '1'
+  const station = (id, name) => ({ uri: `radiobrowser://radio/${id}`, name, kind: 'radio', by: null, art: null })
+  const MUSIC_SHELF = {
+    again_by_room: { living: [{ uri: 'library://playlist/7', name: 'Dinner', kind: 'playlist', by: "Jordan's playlist", art: null }, station('jazz', 'Late-night jazz')],
+                     kitchen: [station('jazz', 'Late-night jazz'), station('news', 'Morning news')] },
+    again: [{ uri: 'library://playlist/7', name: 'Dinner', kind: 'playlist', by: "Jordan's playlist", art: null }, station('jazz', 'Late-night jazz')],
+    radio: [station('jazz', 'Late-night jazz'), station('news', 'Morning news'), station('classical', 'Classical'), station('soul', 'Soul and funk')],
+  }
   const PLAIN = env.NAMES === 'plain' || PRETEND ? [['The Bear', 'Harbor Lights'], ['Disney+', 'Streaming'], ['Philips Hue bridge', 'Light bridge'],
     ['Philips Hue', 'Brightway'], ['Sonos Roam', 'Kitchen speaker'], ['Sonos', 'Speaker'], ['Chromecast (Den)', 'Den TV'],
     ['Blue in Green', 'Late Light'], ['Miles Davis', 'The Quiet Hours']] : []
@@ -752,6 +759,26 @@ export function createHouse({ env = {}, qr = null } = {}) {
       playing: {},
       folder: '/data/sounds',
     })
+    /* Music in every room (hub/music.py, design/music/): a fixed shelf, the way /sounds is. Each room's last plays, a few
+       stations, and none of the household's own -- the mock house has no drive of music. MUSIC=quiet puts the Sonos at
+       rest, so the living room's card shows Play something. */
+    if (p === '/music' || p === '/music/find') {
+      const shelf = MUSIC_SHELF, q = (url.searchParams.get('q') || '').toLowerCase()
+      if (p === '/music/find') return json(res, { items: q.length < 2 ? [] : [...shelf.radio, ...shelf.again].filter(i => i.name.toLowerCase().includes(q)) })
+      const here = url.searchParams.get('room')
+      const able = rooms.filter(r => r.devices.some(d => d.attrs?.music))
+      return json(res, { ready: true, again: here ? shelf.again_by_room[here] ?? [] : [], radio: shelf.radio, own: [],
+                         rooms: able.map(r => ({ id: r.id, name: r.name, here: r.id === here, playing: null })), again_by_room: shelf.again_by_room })
+    }
+    if (PRETEND && p === '/music/play' && req.method === 'POST') { let raw = ''; req.on('data', c => (raw += c)); return req.on('end', () => {
+      let b = {}; try { b = JSON.parse(raw) } catch {}
+      const ids = (b.everywhere ? rooms.map(r => r.id) : b.rooms || []).map(r => rooms.find(x => x.id === r)?.devices.find(d => d.attrs?.music)).filter(Boolean)
+      for (const d of ids) {
+        Object.assign(d, { state: 'playing' }); Object.assign(d.attrs, { media_title: b.item?.name, media_artist: b.item?.by ?? null, together: ids.filter(x => x !== d).map(x => x.id) })
+        push({ type: 'device', device: d })
+      }
+      json(res, { ok: true, rooms: ids.map(d => d.room_id) })
+    }) }
     /* Never on Home (design/home-keep/): the house's answer, carried on the thing as the brain carries it */
     if (p.startsWith('/devices/') && p.endsWith('/home') && req.method === 'POST') { let raw = ''; req.on('data', c => (raw += c)); return req.on('end', () => {
       let b = {}; try { b = JSON.parse(raw) } catch {}
@@ -901,11 +928,13 @@ export function createHouse({ env = {}, qr = null } = {}) {
       ? { locked: !!env.LOCKED, paired: true, home: 'Maple Court', phone: { ...phones.phones[1], me: true, moved: !!env.MOVED }, away: false,
           lan: '192-168-1-53.maple-court.home.elyir.app', address: 'https://maple-court.elyir.app' }
       : { locked: !!env.LOCKED, paired: true, home: 'Maple Court', phone: null })
-    /* Being told things (design/notify/, B): the Houses app hands its subscription and key to every house, and the
-       phone the move handed over is Jordan's iPhone. Kept in memory, like everything here. */
+    /* Being told things (design/notify/, B): the Houses app hands its subscription and key to every house, or in the
+       iOS app its APNs token and the key to seal to, and the phone the move handed over is Jordan's iPhone. Kept in
+       memory, like everything here. */
     if (p === '/phones/me/push' && req.method === 'POST') { let b = ''; req.on('data', c => { b += c }); req.on('end', () => {
       let body = {}; try { body = JSON.parse(b) } catch {}
-      if (!body.subscription?.endpoint || !body.vapid?.publicKey || !body.vapid?.privateKey) { res.writeHead(400, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: "That isn't a way to reach this phone." })) }
+      const apns = body.apns && /^[0-9a-f]{64,200}$/i.test(body.apns.token ?? '') && ['sandbox', 'production'].includes(body.apns.env) && body.apns.p256dh && body.apns.auth
+      if (!apns && (!body.subscription?.endpoint || !body.vapid?.publicKey || !body.vapid?.privateKey)) { res.writeHead(400, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: "That isn't a way to reach this phone." })) }
       phones.phones[1].push = true
       json(res, { phone: { ...phones.phones[1], me: true } })
     }); return }
