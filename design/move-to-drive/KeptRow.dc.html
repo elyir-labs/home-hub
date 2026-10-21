@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Kept: a row on This hub</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="move.css">
+<style>
+  /* This hub's rows at phone width, at their shipped values (.hub-rows, .hub-k, .hub-v, .hub-sub in app/src/panel.css) */
+  .rows { list-style: none; margin: 0; padding: 0; }
+  .rows li { display: grid; grid-template-columns: 90px 1fr auto; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--edge); }
+  .k { font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .v { font-size: 14.5px; line-height: 1.4; }
+  .sub { display: block; margin-top: 3px; color: var(--muted); font-size: 13px; }
+  .small { padding: 8px 14px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 500; white-space: nowrap; }
+  .small.ghost { background: var(--surface-hi); color: var(--ink); border: 1px solid var(--edge); }
+  .tog { width: 46px; height: 28px; border-radius: 999px; background: var(--live); position: relative; }
+  .tog::after { content: ""; position: absolute; right: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar"><span>8:05 PM</span><span class="r"><span class="wifi">Bluebell</span><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i></span></div>
+  <div class="col" style="top: 64px;">
+    <div style="display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 15px; margin-bottom: 12px;"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Robin&rsquo;s house</div>
+    <h1 style="font-size: 34px;">This hub</h1>
+    <ul class="rows" style="margin-top: 14px;">
+      <li style="background: linear-gradient(90deg, rgba(var(--lamp-rgb),.07), transparent); margin: 0 -18px; padding-left: 18px; padding-right: 18px;">
+        <span class="k">Runs from</span>
+        <span class="v">The USB stick.<span class="sub">It works, but it&rsquo;s slower, and the stick has to stay in. This computer&rsquo;s drive has Ubuntu 24.04 on it.</span></span>
+        <span class="small">Move&hellip;</span>
+      </li>
+      <li><span class="k">Network</span><span class="v">On Bluebell, strong.<span class="sub">The bridges use it too.</span></span><span class="small ghost">Change</span></li>
+      <li><span class="k">Language</span><span class="v">English (US)</span><span class="small ghost">Change</span></li>
+      <li><span class="k">Updates</span><span class="v">Installed overnight, on their own.</span><span class="tog"></span></li>
+      <li><span class="k">Backup</span><span class="v">Everything the house knows, in one file.</span><span class="small">Back up</span></li>
+    </ul>
+  </div>
+  <div class="home-ind"></div>
+  <div class="ring" style="left: 6px; right: 6px; top: 150px; height: 128px; border-radius: 16px;"></div>
+  <div class="ann" style="left: 14px; right: 14px; top: 640px;"><span class="cap">For whoever chose Keep</span>The first row on This hub until the hub is on its drive. <b>Move&hellip;</b> opens B&rsquo;s sheet: the drive named, what is lost, and a hold behind the passcode. No band on Home: the question was answered once already.</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B on an iPhone: an app first</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="setup-network.css">
+<style>
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.5); z-index: 5; }
+  .card { bottom: 24px; overflow: hidden; }
+  .card .art { height: 200px; background: linear-gradient(160deg, #22344e, #2c3c50 55%, #141d18); display: grid; place-items: center; color: var(--lamp); }
+  .card .body { padding: 18px 20px 20px; }
+  .card .t { font-size: 20px; font-weight: 600; }
+  .card .s { font-size: 14.5px; color: rgba(255,255,255,.65); margin-top: 4px; }
+  .card .open { margin-top: 18px; height: 50px; border-radius: 14px; background: #3d7bf0; display: grid; place-items: center; font-size: 17px; font-weight: 600; }
+  .card .from { margin-top: 12px; font-size: 12.5px; color: rgba(255,255,255,.5); text-align: center; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar"><span>9:41</span><span class="r"><span class="wifi">Bluebell</span><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i>
+    <svg width="26" height="13" viewBox="0 0 26 13" style="margin-left: 6px"><rect x=".5" y=".5" width="22" height="12" rx="3.5" fill="none" stroke="rgba(255,255,255,.5)"/><rect x="2.5" y="2.5" width="15" height="8" rx="2" fill="#fff"/><rect x="24" y="4.5" width="1.6" height="4" rx=".8" fill="rgba(255,255,255,.5)"/></svg></span></div>
+
+  <div class="col" style="top: 96px; opacity: .55;">
+    <div class="mark"><svg class="i" width="26" height="26" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg></div>
+    <h1>Your hub is nearby.</h1>
+    <p class="lede">On an iPhone, setting it up needs the Elyir app for a minute.</p>
+  </div>
+
+  <div class="scrim"></div>
+  <div class="ask card">
+    <div class="art"><svg class="i" width="64" height="64" viewBox="0 0 24 24" style="stroke-width: 1.4"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg></div>
+    <div class="body">
+      <div class="t">Set up your hub</div>
+      <div class="s">Elyir &middot; gives the hub your Wi&#8209;Fi</div>
+      <div class="open">Open</div>
+      <div class="from">Runs without installing the whole app</div>
+    </div>
+  </div>
+  <div class="home-ind"></div>
+
+  <div class="ann" style="left: 14px; right: 14px; top: 282px;">
+    <span class="cap">B&rsquo;s real cost: Safari can&rsquo;t use Bluetooth</span>
+    An iPhone web page can&rsquo;t talk to a device nearby, so B needs something of ours from Apple&rsquo;s store: <b>a small app the code opens without a full install</b> (an App Clip), or the whole app. That&rsquo;s native code, a review and an Apple account, in a product that is one web app today.
+  </div>
+</div>
+</body>
+</html>

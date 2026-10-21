@@ -44,6 +44,7 @@ const PATHS: Record<string, string> = {
   film: 'M3.5 5.5h17v13h-17zM3.5 9h17M3.5 15h17M7.5 5.5v13M16.5 5.5v13',
   sparkle: 'M12 3.5l1.8 5.2 5.2 1.8-5.2 1.8L12 17.5l-1.8-5.2L5 10.5l5.2-1.8zM5 17.5l.7 1.8 1.8.7-1.8.7L5 22.5l-.7-1.8-1.8-.7 1.8-.7z',
   leave: 'M9.5 20.5h-5v-17h5M9.5 12h11M17 8.5l3.5 3.5-3.5 3.5',
+  opens: 'M14 5h5v5M19 5l-8 8M17 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h4',
   music: 'M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z',
   thermometer: 'M10 13.8V4.5a2 2 0 0 1 4 0v9.3a4 4 0 1 1-4 0zM12 11v5',
   clock: 'M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17zM12 7.5v5l3 2',
@@ -72,6 +73,9 @@ const PATHS: Record<string, string> = {
   'wifi-mid': 'M6.1 12.5a10 10 0 0 1 11.8 0M9.5 16.3a5 5 0 0 1 5 0M12 19.9h.01',
   'wifi-low': 'M9.5 16.3a5 5 0 0 1 5 0M12 19.9h.01',
   alert: 'M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17zM12 7.8v5M12 16.2h.01',
+  eye: 'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 14.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6z',
+  'eye-off': 'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 14.8a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6zM4 4l16 16',
+  copy: 'M8.5 8.5h11v11h-11zM15.5 8.5v-3a1 1 0 0 0-1-1h-9a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3',
   share: 'M8.5 12a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0zM20.5 6a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0zM20.5 18a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0zM8.3 10.8l7-3.5M8.3 13.2l7 3.5',
   /* A strip the controller is keeping dark to protect it (design/controller-panel/InRoomA.dc.html):
      being looked after rather than broken, so a shield and never a warning sign. */

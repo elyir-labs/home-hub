@@ -255,8 +255,14 @@ export async function collectionDirs(design) {
   const out = []
   if (await exists(path.join(design, 'canvas.json'))) out.push('')
   for (const e of await readdir(design, { withFileTypes: true })) {
-    // A linked directory counts: the wall's boards are linked in from the hardware repository.
-    if ((e.isDirectory() || e.isSymbolicLink()) && await exists(path.join(design, e.name, 'canvas.json'))) out.push(e.name)
+    // A linked directory counts: the wall's boards are linked in from the hardware repository, and
+    // its collections are folders inside it (wall/desk-stand), so a link is read one level deeper.
+    if (!e.isDirectory() && !e.isSymbolicLink()) continue
+    if (await exists(path.join(design, e.name, 'canvas.json'))) out.push(e.name)
+    if (!e.isSymbolicLink()) continue
+    for (const f of await readdir(path.join(design, e.name), { withFileTypes: true })) {
+      if (f.isDirectory() && await exists(path.join(design, e.name, f.name, 'canvas.json'))) out.push(`${e.name}/${f.name}`)
+    }
   }
   return out
 }
@@ -319,7 +325,7 @@ export async function describe(design, dir, dates) {
     const first = (canvas.annotations || [])[0]
     if (first) { const { head, body } = splitNote(first.text); blurb = body[0] || head }
   }
-  const linked = dir ? (await lstat(base)).isSymbolicLink() : false
+  const linked = dir ? (await lstat(path.join(design, dir.split('/')[0]))).isSymbolicLink() : false
   const areas = canvas.areas?.length ? canvas.areas : [linked ? 'Hardware' : 'Not sorted yet']
   const gitDate = !linked ? dates?.get(dir) : null
   const fileDate = gitDate ? null : await touched(base)

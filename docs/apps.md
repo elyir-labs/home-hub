@@ -4,6 +4,173 @@
 This is a plan for a decision, not a commitment to build. The decision itself waits on the relay in `docs/away.md`,
 and the reason it can wait is the whole of the first section below.*
 
+## Decided, 19 October 2026
+
+**Native, and thin: Swift on iOS, Kotlin on Android, each a web view onto the Houses app. Not Capacitor, and not a
+native panel.** Asked as "Capacitor, or native?", once the relay was carrying houses and the Houses app existed.
+
+- **Why not Capacitor.** Its model is a web app bundled inside the binary, and the one thing this plan rules out is a
+  panel that ships on the store's schedule instead of the hub's. Its remote-URL mode is documented as a development
+  aid, not a way to ship. And it does not reach what an app is for: widgets, lock-screen controls, Siri, the Watch,
+  Live Activities and critical alerts are WidgetKit and App Intents on iOS and Glance on Android whichever way the
+  shell is built. A JavaScript bridge between two native layers buys nothing here.
+- **What the shell opens is `houses.elyir.app`**, not a house. Since 3 October that is where every phone lives
+  (`design/houses/`, B): it already lists the houses, opens the one whose Wi-Fi the phone is on, and frames each
+  house's own panel. The shell adds the native pieces around it and nothing inside it.
+- **The fork below is closed by the certificate.** Every house gets a real one on `elyir.app` (`docs/away.md`, step
+  5), so the shell pins nothing and loads ordinary https like a browser does.
+- **Push is the Houses app's**, one key for every house (`app/houses/public/sw.js`): web push from its worker in a
+  browser, APNs and FCM from the shell. Not a worker per house -- the panel on a house's own name keeps no worker,
+  and the Houses app's caches nothing on purpose.
+- **The key is the phone's, as the printer app does it** (astromech's `docs/door.md`, *One push subscription for
+  every printer*). A browser allows one subscription per worker, and the Houses app's one worker serves every house,
+  so the phone makes the signing key once, subscribes with it, and hands each house it joins the subscription and
+  the key. Each house keeps them in that phone's record in `phones.json` (0600), and Remove takes them with it. Two
+  things follow, and *This hub* says them plainly: any house the phone has joined can notify it, and each such house
+  holds that phone's key. This replaces `docs/messages.md`'s *the keypair is the hub's*.
+- **The store app's notifications come through a sender Elyir runs, and it only ever carries sealed ones**
+  (decided 19 October 2026). A web view inside an app has no web push, and APNs only takes notifications signed with
+  Elyir's own key, which cannot sit on every house. So a small sender beside the relay (Terraform, like the rest)
+  holds that key; a house hands it a notification already encrypted to a key only the phone has, with the phone's
+  APNs token, and a Notification Service Extension in the app opens it on the phone. The sender and Apple see that a
+  house sent something to a phone, and when, never what: the same as web push, and said the same way on *This hub*.
+  A house proves itself to the sender with the secret it already holds for the relay. Android's FCM, later, the same.
+- **The shells live in a repository of their own, `elyir-labs/home-hub-apps`, under Apache-2.0.** Not proprietary:
+  there is nothing in a web view and four native pieces worth hiding, and what stops a lookalike in the store is the
+  name and the icon, which are trademarks and are not licensed with the code. Not AGPL, for the store terms below.
+  Not in this tree, because every hub clones it whole (the reason hardware moved out) and because one license per
+  repository keeps the line obvious. Android still starts from `kiosk/`: its discovery and reconnecting are the
+  maintainer's own code, so they can be carried over under the new license; the kiosk itself stays here.
+- **One pretend house, in the browser, at `hub.elyir.com/try`.** (The site's word and address, decided 16 October
+  in `design/site/`.) The panel built against the mock house running inside
+  the page, no server behind it: each visitor gets a house of their own, and a reload puts it back. It lives on the
+  hub's own site and ships with it (`site/`, Cloudflare Pages under Terraform), not on `elyir.app`: that zone is one
+  flat list of names shared by houses, printers, Elyir Bench and whatever comes next, so a product's page has no
+  business taking one of them, and not on `houses.elyir.app` either, the origin that holds every phone's passes. It
+  serves three people at once: the website, which shows the real panel rather than a picture of it; App Review,
+  which reaches it from the Houses app with no houses in it; and somebody who installs the app before the box
+  arrives. Not bundled into the shell: that would put this AGPL panel inside the binary, and a copy in the binary
+  is a panel that falls behind. The work is the mock's handler made runnable in a page (it is a Node server today,
+  `app/mock/brain.mjs`) and a build of it `site/build.sh` copies in; the Houses app's way into it is a screen change,
+  so it starts as a board.
+
+### What the shell owes the page
+
+Decided with `design/store-app/` (C, 19 October 2026), so the web half could be built before the shell exists:
+
+- **It opens `https://houses.elyir.app/?shell=ios&store=US`**: `shell` is `ios` or `android`, `store` is the
+  storefront as two letters (StoreKit gives three; the shell converts). The Houses app keeps both for the session
+  and hands them to every house it frames (`app/houses/src/shell.ts`), and the panel reads them only when it is
+  framed by the app (`readShell` in `app/src/inapp.ts`). A storefront nobody could read counts as not the US.
+- **A `window.open` or `target="_blank"` to anywhere but a house goes to the system browser**, from any frame, and
+  the shell allows it without a fresh tap (`javaScriptCanOpenWindowsAutomatically` on iOS): the panel opens the
+  payment page right after the claim comes back, which is a beat after the tap. Paying never happens inside the
+  app.
+
+### What the page gives the shell
+
+**The widget is one widget in two sizes** (`design/widget/`, decided 20 October 2026): small is A, one house's
+name, its weather and its line, a tap opening that house; medium is C, the same line with **Bedtime** and
+**Everything off** under it, the two routines the panel's own row has, run without opening anything. B, one thing
+with a button that opens or unlocks it, waits for a rule about such a button on a home screen. The widget asks the
+house itself, with the phone's own pass, at the house's Wi-Fi name at home and its own address away, never a
+server of ours. So the page hands the shell what it needs for that, and the house answers it in its own words:
+
+- **The houses.** Inside the store app (`shell` is `ios` or `android`), the Houses app posts its list whenever it
+  loads or changes -- a house added, removed or renamed, a pass or a Wi-Fi name that changed -- and never outside
+  it (`handHouses` in `app/houses/src/shell.ts`):
+  iOS `window.webkit.messageHandlers.houses.postMessage({type: 'houses:list', houses: [...]})`, Android
+  `window.HousesShell.postMessage(JSON.stringify({type: 'houses:list', houses: [...]}))`. Each house is
+  `{id, name, origin, lan, token}`: `id` its label (`jordan` of `jordan.elyir.app`), `name` this phone's name for
+  it, `origin` its https address, `lan` its Wi-Fi name or `null`, `token` its pass. The shell keeps them in the
+  keychain for the widget.
+- **The house opened.** `{type: 'houses:opened', id}`, the same two ways, each time a house is opened. The widget
+  starts on the house opened last.
+- **Opening a house from the widget.** The shell loads `https://houses.elyir.app/?shell=ios&store=XX&open=<id>`.
+  `open` is the same label a notification uses; it comes off the address once read, and `shell` and `store` stay.
+- **`GET /glance`** on the house, with the pass as `Authorization: Bearer` (or the cookie), behind the same door as
+  `/health`: refused to a stranger, and from away answered only for a phone set to Anywhere. A starting hub
+  answers 503. Otherwise:
+  `{"name", "temp": "78°" | null, "sky": <the condition the panel draws its weather from> | null, "said": [...],
+  "needs": <the first line of Needs a look, as it says it> | null, "count": <how many lines need a look>, "at": <epoch seconds>}`.
+  `said` is one or two lines, written once in the brain (`brain/hub/glance.py`) from what it already holds, so
+  nothing is asked of a device: *Everything is off*, *On in the Kitchen* or *On in 5 rooms*, counted the way the
+  panel's "on right now" counts; then, only when the house can see its people, *Nobody home*, *1 person home* or
+  *2 people home*.
+- **The two routines** are the panel's own: `POST /home/intent/asleep` (Bedtime) and `POST /home/intent/away`
+  (Everything off), with the same pass. Neither needs the passcode; from away, a phone set to Anywhere.
+
+**Notifications in the iOS app** (built 20 October 2026; the app's half is in `elyir-labs/home-hub-apps`). The web view
+has no web push, so Houses' one Notifications switch asks the app instead, and is shown in the iOS app as in a
+browser; on Android it stays hidden until FCM. The fine print names Apple, as it does on an iPhone in Safari.
+
+- **The page asks, inside the tap**: `window.webkit.messageHandlers.houses.postMessage({type: 'houses:push-identity'})`.
+  The app asks the phone's permission and answers with
+  `window.dispatchEvent(new CustomEvent('houses:push-identity', {detail}))`, where `detail` is the identity, or
+  `{denied: true}`, or `{error: '...'}`. The identity is
+  `{kind: "apns", token: <hex device token>, env: "sandbox"|"production", p256dh: <base64url uncompressed P-256 public key, 65 bytes>, auth: <base64url, 16 random bytes>}`;
+  the private half of that key never leaves the phone. No answer in two minutes counts as an error. A refusal reads
+  *This phone is set not to allow them. You can change that in Settings.*; an error, *This phone couldn't turn them
+  on just now. Try again in a moment.*, with the switch still there to try again (`app/houses/src/push.ts`).
+- **Turning it off** posts `{type: 'houses:push-off'}`; the app forgets nothing, and the page `DELETE`s
+  `/phones/me/push` at each house, as in a browser. The page keeps the identity it was handed (in its own storage,
+  never the private half), so a house added later, or one that missed it, is handed it without asking the app again.
+- **Each house is handed** `POST /phones/me/push {apns: {token, env, p256dh, auth}, tz}`, under the same rules as the
+  web variant: a phone of the house's own, never a wall. The house checks the token is 64 to 200 hex characters,
+  the environment one of the two, the key a real point on P-256 and the secret 16 bytes, and keeps
+  `push = {apns, tz, since}` on the phone's record; `/phones/me` says `push: true` as for web push.
+- **The house seals and hands it over** (`brain/hub/pusher.py`). The same payload web push carries, encrypted to
+  (p256dh, auth) exactly as web push is (RFC 8291, aes128gcm, one record), is posted to `https://api.elyir.app/push`
+  with the house's relay secret as `Authorization: Bearer`:
+  `{house: <its label>, token, env, sealed: <base64url>, urgency: "normal"|"high", collapse: <the 32-character topic web push uses>, ttl: <seconds>}`.
+  200 `{sent: true}` is done; 410 `{gone: true}` drops the phone's push, as a web push 404 or 410 does; 429, any
+  other answer, or none at all is tried again on the next look while the TTL lasts; 503 means the sender has no
+  key yet, and the house keeps the phone, logs it once, and does not try that one again. Quiet hours, the two-look
+  rule and the tags are web push's.
+- **A house with no web address** holds no relay secret, so it cannot use the sender: the phone's push stays
+  recorded and unsent, and `/phones/me` adds `push_note: "This house needs its web address to tell this phone."`
+  beside `push: true`. Nothing in the page shows it yet.
+- **The sender** (`relay/service/push.py`, `POST /push` on the registration service) takes a notification only from
+  a house that proves itself with its secret and is carried, at most ten a minute and sixty an hour per house,
+  counted in memory. It checks the fields (the sealed body at most 3 KB, `collapse` at most 64 characters, `ttl` at
+  most a day) and hands Apple, with Elyir's key (ES256 provider token, kept 50 minutes), topic `app.elyir.houses`,
+  push type `alert`, priority 10 for high and 5 for normal, the expiry and the collapse id:
+  `{"aps": {"alert": {"title": "Houses", "body": "One of your houses needs a look."}, "mutable-content": 1, "thread-id": <house>}, "h": <house>, "s": <sealed>}`.
+  The app's Notification Service Extension opens `s` with the phone's key and shows the house's own words, titled
+  with this phone's name for the house. Apple's 410, or 400 `BadDeviceToken` or `DeviceTokenNotForTopic`, is
+  answered 410; Apple's 429 is 429; anything else 502; with no key configured, 503. It logs nothing of what it
+  carries and keeps no token past the request. The key is Terraform's like the rest (`relay/README.md`, *Turning
+  the sender on*); until the operator adds it, every house keeps its phones for when it is on.
+
+### What the stores will hold us to
+
+Settled before any shell code, because three of them change what gets built rather than what gets filled in:
+
+- **Selling the address inside the app.** Apple treats reaching your own house from away as a digital service used
+  in the app, which is in-app purchase if it is bought there -- and it reads the panel inside the web view as the
+  app. Outside the US the app may not even point at buying elsewhere. So the Houses app must know when it is inside
+  the store app, and on which storefront, and leave the offer out where the store requires it. In the US a link out
+  is allowed beside in-app purchase; Apple takes nothing on it today and asked the court in August 2026 for up to
+  15%, so price it as unsettled. Google Play allows the link in the US; its fees follow the Epic settlement. This
+  changes nothing about paying never happening on the wall.
+- **A house for the reviewers.** Review rejects an app it cannot use, and a reviewer has no hub. The pretend house
+  above has to exist before the first submission. It is also what keeps the
+  app from reading as a bare website wrapper (guideline 4.2), with the widget and push.
+- **The shell's license.** This repository is AGPL, and the App Store's terms have long been read as incompatible
+  with the GPL family. The panel is served by the hub and never ships in the binary, so it is untouched; the shell's
+  own code is licensed apart (Apache-2.0, above; `CLA.md` section 3 makes that possible) and takes no AGPL code from
+  this tree.
+- **Asked for by hand:** Apple's critical-alert entitlement (home security can qualify; time-sensitive needs no
+  approval), the background-location declaration if phones ever report arriving (`docs/settings.md`), and on iOS the
+  local-network reason with `_home-hub._tcp` listed. On Android 14+, full-screen notifications are for calls and
+  alarms only.
+- **Paperwork:** both accounts as an organization (Apple needs a D-U-N-S number; a personal Play account must run a
+  closed test of 12 testers for 14 days first). Google's developer verification reaches `kiosk/` too, store or no
+  store, so its package and key go under the same account. A privacy policy, Apple's privacy labels and Play's data
+  safety form; in-app account deletion if the app ever creates an account. No *Home Assistant* or *Brilliant* in a
+  listing. Updating the panel without review is ordinary web content; switching on a purchase flow reviewers never
+  saw is not.
+
 ## The question, and the short answer
 
 One native shell, phones only, after the relay carries its first tap from outside. Not a second panel, not now, and
@@ -141,9 +308,15 @@ if it is ever built.
 
 ## Milestones
 
-1. **The kiosk launcher.** Independent of everything else here, and the wall stops being a browser.
-2. **A service worker in the panel**, and web push behind it once there is a trusted origin.
-3. **The relay running** (`docs/away.md` pieces 2 and 3 up to the name). The first tap from outside is the decision
-   point for the fork above; nothing about apps is settled before it.
-4. **The shell, if it is still wanted** — a web view, a push registration, a Bonjour lookup, a pinned CA, and one
-   widget. If the list grows past that in the planning, it has stopped being a shell and the plan is wrong.
+1. **The kiosk launcher.** Independent of everything else here, and the wall stops being a browser. *Built.*
+2. **Web push**, from the Houses app's worker rather than the panel's (decided 19 October, above), once the
+   certificate in `docs/away.md` step 5 is on every house.
+3. **The relay running** (`docs/away.md` pieces 2 and 3 up to the name). *Running since 2 October; this was the
+   decision point, and the decision is at the top.*
+4. **Before the shell, in the web:** the Houses app knowing it is inside the store app and on which storefront
+   (`design/store-app/`), and the pretend house at `hub.elyir.com/try`, with the app's way into it
+   (`design/pretend-in-app/`).
+5. **The iOS shell** — a web view onto the Houses app, a push registration, a Bonjour lookup, and one widget with the
+   App Intents behind it. No pinned CA any more. If the list grows past that in the planning, it has stopped being a
+   shell and the plan is wrong.
+6. **The Android shell**, in the same repository, starting from `kiosk/`'s discovery.

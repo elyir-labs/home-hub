@@ -13,7 +13,7 @@ repeat them, it points at them and says what sits between.*
 | **Change direction?** | No. The three rules that make this sellable are already the ones the code keeps: the house works without the maker, the panel never needs Home Assistant's UI, and the driver layer is pinned. What is thin is the appliance under the product, not the product. |
 | **Is the Pi still first?** | Yes. Raspberry Pi has committed to keep both the Pi 5 and the Compute Module 5 in production until at least January 2036, and the whole image, first-boot and NVMe path already exists for it. |
 | **Pi 5 or Compute Module?** | Sell a CM5, not a Pi 5. The reasons are storage, supply and radios, and none of them is about speed. A Pi 5 stays the developer and early-adopter kit. |
-| **x86?** | Bring-your-own, as today. It is the right box for local speech and the wrong box to put a name on before an ODM run makes sense. |
+| **x86?** | Sold, as **Hub Plus** (decided 20 October): an off-the-shelf N100/N150 mini PC with 16 GB and 512 GB, flashed with the x86 image. No ODM run; the box is somebody else's and the image is ours. What it adds over the Hub is `docs/host-tiers.md`. Any other x86 box stays bring-your-own. |
 
 ## Rules that do not change
 
@@ -53,7 +53,8 @@ that justifies it.
 | **Now, tens** | Pi 5, 4 GB minimum, NVMe in an Argon ONE V3 style case or the official case plus M.2 HAT+, official 27 W supply, active cooler, RTC battery | Nothing new: the image and `firstboot.sh` already copy to an empty NVMe | An early-adopter kit, assembled by hand, and nothing more |
 | **v1, hundreds** | CM5 with 4 or 8 GB and 32 GB eMMC on a partner carrier and enclosure (Waveshare, EDATEC, Seeed and others sell CM5 boxes with RTC, metal case, often PoE) | The image built for eMMC rather than SD; the *Powered by Raspberry Pi* program for the logo; a Part 15B test on the assembled unit | A product with a serial on it |
 | **v2, if it takes off** | Custom carrier with an integrated Zigbee/Thread module | Board design, tooling, and the compliance that comes with a radio | Not before the numbers |
-| **Bring-your-own** | An Intel N100-class mini PC or NUC, as `install.sh` supports today | Nothing | The voice tier: faster-whisper *small* or *medium* on the hub itself |
+| **Hub Plus, beside v1** | An off-the-shelf Intel N100/N150 mini PC, 16 GB, 512 GB NVMe, flashed with the x86 image | One supplier and part number; the x86 image's first boot | The large tier: films, camera recording, the assistant, the large voice (`docs/host-tiers.md`) |
+| **Bring-your-own** | Any other N100-class mini PC or NUC, as `install.sh` supports today | Nothing | Whatever `host-tier.sh` measures |
 
 **Memory.** 4 GB is the floor: Home Assistant Core, Zigbee2MQTT, Z-Wave JS UI, the Matter server, Mosquitto, Caddy and
 the brain fit with room; 2 GB does not. 8 GB is what the small voice tier in `docs/voice.md` wants.
@@ -86,9 +87,11 @@ upstream, so it is two radios or no Thread. Decide it for v1 rather than discove
 
 ### What was considered and set aside
 
-- **Selling an x86 box.** An N100 mini PC is the right host for local speech and costs less than the Pi kit above,
-  but selling one means a white-label box with somebody else's sticker or an ODM order with a minimum quantity and a
-  BIOS nobody controls. It stays the supported bring-your-own tier.
+- **Selling an x86 box through an ODM.** An order with a minimum quantity and a BIOS nobody controls is still set
+  aside. Selling one off the shelf was set aside here too, until 20 October: films and camera recording made the
+  bigger box worth naming, and a stock mini PC with our image needs no ODM. The cost accepted with it is somebody
+  else's case and BIOS, so the supplier is chosen for a BIOS that boots our image unattended and a part number that
+  holds still.
 - **A Rockchip board** like the one in Home Assistant Green: cheaper per unit, and it comes with the kernel and
   bootloader as your problem. Nabu Casa needed a hardware partner for that, and this is not the stage for it.
 - **Selling the wall tablet.** Consumer tablets churn faster than they can be stocked. The kiosk is an Android
@@ -147,9 +150,11 @@ was found:
   that person gets locked out of it.
 - **The recorder is at Home Assistant's defaults.** Ten days of history and a commit every second. Fine on NVMe,
   unkind to eMMC; a longer commit interval and the exclusion of chatty sensors is configuration, not code.
-- **Wi-Fi onboarding.** Wi-Fi is set at flash time. A customer whose router has no free port needs the hub to raise
-  a setup network of its own and take the home Wi-Fi from a phone. Ethernet first, access point as the fallback.
-  This one needs hardware in hand and is not a today item.
+- **Wi-Fi onboarding.** Built (docs/network.md, piece 5; design/setup-network/, A): a hub on nothing raises a Wi-Fi of
+  its own, the code on its label joins it, and the phone gives it the house's Wi-Fi. The Pi and x86 images carry the
+  brain, the front door and the broker, so that step works before the hub has internet; the rest downloads once it
+  is online (`driver-layer/host/x86-image/`). Still open: writing each unit's name and password at the bench and
+  printing its label.
 - **Per-unit identity.** A serial, a claim code printed on the box, a hub identifier that rides the backup. Two hubs
   on one Wi-Fi collide on `hub.local` today: avahi renames the second one and nothing tells the panel, so the code
   on the wall points at the wrong house. *This hub* should show the name the hub actually answers to.
@@ -205,7 +210,7 @@ enough to land with a test. The order is by what it closes.
 10. **A consent sentence where the key is pasted.** One line on the Routines sheet, and the privacy policy it points
     at.
 
-Not today, and why: Wi-Fi onboarding and the physical reset need the unit in hand; remote support and the maker's key
+Not today, and why: the physical reset needs the unit in hand; remote support and the maker's key
 wait on the relay; the hardware-in-the-loop bench in CI needs one hub per tier on a shelf; and everything about
 updates is `docs/updates.md`.
 

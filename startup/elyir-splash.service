@@ -1,0 +1,21 @@
+# The startup splash on a hub with no wall of its own (a NUC with a monitor plugged in): it stays up past the end
+# of boot until the hub answers, plays its ending, and leaves the screen dark rather than at a login nobody has.
+# The x86 image enables it; startup/install.sh turns it off on a unit that becomes a wall, whose own service
+# ends the splash onto the panel. If this fails, plymouth-quit takes the splash down as it would anyway.
+[Unit]
+Description=Elyir's startup, on a hub without a wall
+After=plymouth-start.service network-online.target
+Wants=network-online.target
+Conflicts=plymouth-quit.service getty@tty1.service
+After=plymouth-quit.service getty@tty1.service
+OnFailure=plymouth-quit.service
+ConditionPathExists=/dev/tty0
+
+[Service]
+Type=simple
+RemainAfterExit=yes
+ExecStart=/opt/home-hub/startup/wall.sh wait
+TimeoutStartSec=infinity
+
+[Install]
+WantedBy=multi-user.target

@@ -576,9 +576,345 @@ becoming() {
 }
 
 
+# A hub with no cable and no Wi-Fi makes one of its own for a phone to set it up from (docs/network.md,
+# piece 5; design/setup-network/, A). NetworkManager, the kernel's radio and the routing table are
+# scripts on PATH; each says what this house looks like and writes down what it was asked.
+setting_up() {
+  group "a hub on nothing offers a Wi-Fi of its own, and gives it up once it is on the house's"
+  local root bin dir data net; root=$(mktemp -d); bin="$root/bin"; dir="$root/hub"; data="$dir/driver-layer/brain-data"; net="$root/net"
+  mkdir -p "$bin" "$data" "$net/wlp1s0/phy80211" "$net/enp3s0/device"
+  echo phy0 > "$net/wlp1s0/phy80211/name"; echo 1 > "$net/enp3s0/carrier"
+  cat > "$bin/nmcli" <<'SH'
+#!/usr/bin/env bash
+echo "nmcli $*" >> "$ROOT/asked"
+case "$*" in
+  "-t -f DEVICE,TYPE,STATE,CONNECTION device") printf 'wlp1s0:wifi:%s:\n' "$([ -f "$ROOT/up" ] && echo connected || echo disconnected)"
+    [ -n "${CABLE:-}" ] && printf 'enp3s0:ethernet:unmanaged:\n'; [ -f "$ROOT/ap" ] && printf 'hubsetup0:wifi:connected:home-hub-setup\n' ;;
+  "-t -f DEVICE,TYPE device") printf 'wlp1s0:wifi\n'; [ -f "$ROOT/ap" ] && printf 'hubsetup0:wifi\n' ;;
+  *"BSSID,CHAN device wifi list"*) printf '%s\n' 'Bluebell:90:5180 MHz:WPA2:AA\:BB\:CC\:00\:00\:02:36' 'Bluebell:70:2462 MHz:WPA2:AA\:BB\:CC\:00\:00\:01:11' \
+    'Elyir Hub 4F2A:99:2412 MHz:WPA2:DE\:AD\:00\:00\:00\:01:1' 'Bluebell Guest:60:2412 MHz:WPA2:AA\:BB\:CC\:00\:00\:03:1' ;;
+  "-t -f NAME,TYPE connection show") [ -n "${SAVED:-}" ] && echo "$SAVED:802-11-wireless" ;;
+  "-t -f NAME,DEVICE connection show --active") ;;
+  "-t -f NAME connection show --active") [ -f "$ROOT/ap" ] && echo home-hub-setup ;;
+  "connection up home-hub-setup") touch "$ROOT/ap" ;;
+  "connection delete home-hub-setup") rm -f "$ROOT/ap" ;;
+  *"device wifi connect"*) if [ -n "${WRONG:-}" ]; then echo "Error: Connection activation failed: Secrets were required, but not provided."; exit 4; fi
+    touch "$ROOT/up" ;;
+  "-t -g GENERAL.STATE device show wlp1s0") [ -f "$ROOT/up" ] && echo "100 (connected)" ;;
+  "-t -g IP4.ADDRESS device show wlp1s0") [ -f "$ROOT/up" ] && echo "192.168.1.20/24" ;;
+  "-t -g IP4.GATEWAY device show wlp1s0") [ -f "$ROOT/up" ] && echo "192.168.1.1" ;;
+esac
+exit 0
+SH
+  cat > "$bin/ip" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "route show default") [ -n "${ROUTE:-}" ] && echo "default via 192.168.1.1 dev $ROUTE" ;;
+  "link show hubsetup0") [ -f "$ROOT/iface" ] ;;
+  "-4 -o addr show dev enp3s0") [ -n "${CABLE:-}" ] && echo "2: enp3s0    inet 192.168.1.9/24 brd 192.168.1.255 scope global enp3s0" ;;
+  *) exit 0 ;;
+esac
+SH
+  cat > "$bin/iw" <<'SH'
+#!/usr/bin/env bash
+echo "iw $*" >> "$ROOT/asked"
+case "$*" in
+  "phy phy0 info") [ -n "${BOTH:-}" ] && printf '\tvalid interface combinations:\n\t\t * #{ managed } <= 1, #{ AP, P2P-client, P2P-GO } <= 1,\n\t\t   total <= 2, #channels <= 1\n\tHT Capability overrides:\n' ;;
+  "dev wlp1s0 interface add hubsetup0 type __ap") touch "$ROOT/iface" ;;
+  "dev hubsetup0 del") rm -f "$ROOT/iface" ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/sleep"; cp "$bin/sleep" "$bin/ping"
+  chmod +x "$bin"/*
+  conf() { printf 'HUB_SETUP_SSID="Elyir Hub 4F2A"\nHUB_SETUP_PASS="kite-maple-41"\n' > "$root/conf"; }
+  tick() { PATH="$bin:$PATH" ROOT="$root" HUB_NET="$net" HUB_CONF="$root/conf" HOME_HUB_DIR="$dir" HOME_HUB_SETUP_FIRST=0 HOME_HUB_NETWORK_SETTLE=5 "$HERE/network.sh"; }
+  ask() { printf '%s' "$1" > "$data/network.request"; tick; }
+  field() { python3 -c 'import json,sys
+v=json.load(open(sys.argv[1]))
+for k in sys.argv[2].split("."): v=v.get(k) if isinstance(v,dict) else None
+print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
+  fresh() { rm -f "$root"/asked "$root"/ap "$root"/iface "$root"/up "$data"/network.*; }
+
+  printf '' > "$root/conf"; fresh; tick
+  is "with no password to put on it, it is never started" "$(grep -c 'con-name home-hub-setup' "$root/asked")" "0"
+
+  conf; fresh; tick
+  is "on nothing, with a password: its own Wi-Fi, by the name and password on the label" \
+    "$(grep -c 'con-name home-hub-setup autoconnect no ssid Elyir Hub 4F2A 802-11-wireless.mode ap' "$root/asked")" "1"
+  is "...on the house's strongest 2.4 GHz channel, handing out addresses" "$(grep -c 'channel 11 ipv4.method shared ipv4.addresses 10.42.0.1/24' "$root/asked")" "1"
+  is "...said in the hub's picture, for the panel" "$(field setup.ssid)" "elyir hub 4f2a"
+  is "...on the card itself, which cannot do both" "$(field setup.both)" "false"
+  is "its own Wi-Fi is not one of the house's choices" "$(python3 -c 'import json,sys; print(",".join(n["ssid"] for n in json.load(open(sys.argv[1]))))' "$data/network.scan")" "Bluebell,Bluebell Guest"
+
+  fresh; BOTH=1 tick
+  is "a card that can do both gets a second interface for it" "$(grep -c 'iw dev wlp1s0 interface add hubsetup0 type __ap' "$root/asked")" "1"
+  is "...and says so" "$(field setup.both)" "true"
+  BOTH=1 ask '{"do": "join", "ssid": "Bluebell", "password": "right"}'
+  is "the house's Wi-Fi is tried on its 2.4 GHz side, so the phone on the hub's stays on" \
+    "$(grep -c 'device wifi connect Bluebell password right ifname wlp1s0 bssid AA:BB:CC:00:00:01' "$root/asked")" "1"
+  is "...and once it is on, the phone is told which" "$(field joined.ssid)" "bluebell"
+  ROUTE=wlp1s0 BOTH=1 tick
+  is "online, its own Wi-Fi stays a little while so the phone can be told" "$(field setup.ssid)" "elyir hub 4f2a"
+  python3 -c 'import json,sys; json.dump({"ssid":"Bluebell","at":1},open(sys.argv[1],"w"))' "$data/network.joined"
+  ROUTE=wlp1s0 BOTH=1 tick
+  is "...and then goes" "$(field setup.ssid)" ""
+  is "...taking its interface with it" "$(grep -c 'iw dev hubsetup0 del' "$root/asked")" "1"
+  is "...and lets the house's Wi-Fi choose its own band again" "$(grep -c 'connection modify Bluebell 802-11-wireless.bssid' "$root/asked")" "1"
+
+  fresh; BOTH=1 tick; rm -f "$root/asked"
+  WRONG=1 BOTH=1 ask '{"do": "join", "ssid": "Bluebell", "password": "wrong"}'
+  is "a wrong password is said as one, at once" "$(field reverted_why)" "password"
+  is "...naming the network" "$(field reverted)" "bluebell"
+  is "...and the hub's own Wi-Fi was never dropped" "$(grep -c 'connection up home-hub-setup' "$root/asked")" "0"
+
+  fresh; ROUTE=enp3s0 CABLE=1 tick
+  is "plugged into the router, it never offers its own" "$(grep -c 'con-name home-hub-setup' "$root/asked")" "0"
+  is "a cable NetworkManager does not manage is still a cable" "$(python3 -c 'import json,sys; print([l["up"] for l in json.load(open(sys.argv[1]))["links"] if l["kind"]=="ethernet"])' "$data/network.json")" "[True]"
+
+  fresh; SAVED=Bluebell HOME_HUB_SETUP_LOST=300 PATH="$bin:$PATH" ROOT="$root" HUB_NET="$net" HUB_CONF="$root/conf" HOME_HUB_DIR="$dir" HOME_HUB_SETUP_FIRST=0 "$HERE/network.sh"
+  is "a hub that had a Wi-Fi waits before offering its own: a router rebooting is not a reason" "$(grep -c 'con-name home-hub-setup' "$root/asked")" "0"
+
+  # A box that started without internet finishes installing once it is online.
+  printf '#!/usr/bin/env bash\necho "systemd-run $*" >> "$ROOT/asked"\n' > "$bin/systemd-run"; chmod +x "$bin/systemd-run"
+  finish() { PATH="$bin:$PATH" ROOT="$root" HUB_NET="$net" HUB_CONF="$root/conf" HOME_HUB_DIR="$dir" HUB_FINISH="$root/finish" HOME_HUB_FINISH_WAIT="${WAIT:-0}" "$HERE/network.sh"; }
+  fresh; echo development > "$root/finish"; finish
+  is "still on nothing, it waits" "$(grep -c 'systemd-run' "$root/asked")" "0"
+  fresh; ROUTE=wlp1s0 WAIT=600 finish
+  is "online, but only just tried: it waits" "$(grep -c 'systemd-run' "$root/asked")" "0"
+  fresh; ROUTE=wlp1s0 finish
+  is "online: the install is finished, on the channel it started on" "$(grep -c "systemd-run --no-block --collect --unit=home-hub-finish -E HOME_HUB_DIR=$dir -E HOME_HUB_CHANNEL=development $dir/install.sh" "$root/asked")" "1"
+  is "...once" "$([ -f "$root/finish" ] && echo still || echo gone)" "gone"
+  rm -rf "$root"
+}
+
+
+# The x86 image boots from a USB stick and moves to the NUC's own drive at the start of a boot: on its own to an
+# empty drive, to any other only when asked for it by its serial, and never by writing the stick. Disks are
+# scripts on PATH; mount, reboot and poweroff write down what they were asked and do nothing.
+moving_in() {
+  group "the x86 image moves off its stick onto an empty drive, onto any other only when asked, and never writes the stick"
+  local root dir bin sys var; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"; var="$root/var"
+  mkdir -p "$dir/driver-layer/host" "$bin" "$sys/sda" "$var"
+  printf '#!/usr/bin/env bash\necho "move $*" >> "%s/asked"\n[ -z "${MOVE_FAILS:-}" ]\n' "$root" > "$dir/driver-layer/host/move-to-drive.sh"
+  cat > "$bin/lsblk" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "-no PKNAME /dev/sda1") echo sda ;;
+  "-no PKNAME /dev/nvme0n1p1") echo nvme0n1 ;;
+  "-dno TRAN /dev/sda") echo "${TRAN:-usb}" ;;
+  "-dno TRAN /dev/nvme0n1") echo nvme ;;
+  "-dno NAME,TRAN,TYPE") printf 'sda %s disk\nnvme0n1 nvme disk\n' "${TRAN:-usb}" ;;
+  "-dno SERIAL /dev/nvme0n1") echo "S6P7NS0T" ;;
+  "-no NAME /dev/nvme0n1") echo nvme0n1; [ -n "${USED:-}${MOVED:-}" ] && echo nvme0n1p1 ;;
+  "-no LABEL /dev/nvme0n1") echo; [ -n "${MOVED:-}" ] && echo hub-root ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\necho "${ROOTDEV:-/dev/sda1}"\n' > "$bin/findmnt"
+  printf '#!/usr/bin/env bash\n[ "$1" = -n ] && { [ -n "${SIGNED:-}" ] && echo "nvme0n1 ntfs"; exit 0; }\necho "wipefs $*" >> "%s/asked"\n' "$root" > "$bin/wipefs"
+  printf '#!/usr/bin/env bash\n[ "$2" = / ]\n' > "$bin/mountpoint"
+  for c in mount reboot poweroff systemctl sync; do printf '#!/usr/bin/env bash\necho "%s $*" >> "%s/asked"\n' "$c" "$root" > "$bin/$c"; done
+  chmod +x "$dir/driver-layer/host/move-to-drive.sh" "$bin"/*
+  early() {
+    rm -f "$root/asked"; printf 'HUB_IMAGE=x86\n%s\n' "${EXTRA:-}" > "$root/conf"; echo 0 > "$sys/sda/removable"
+    PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" "$HERE/move-early.sh" >/dev/null 2>&1
+  }
+  ask() { printf '{"disk": "nvme0n1", "serial": "%s"}\n' "${1:-S6P7NS0T}" > "$var/move.request"; }
+  asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
+
+  early
+  is "on a stick, with an empty drive: the system moves there" "$(asked '^move sda nvme0n1$')" "1"
+  is "...with the disk read-only while it is copied, and writable again after" "$(asked 'mount -o remount,ro /') $(asked 'mount -o remount,rw /')" "1 1"
+  is "...and restarts from the drive" "$(asked 'systemctl --no-block reboot')" "1"
+  is "...without ever wiping the stick" "$(asked 'wipefs -a')" "0"
+  USED=1 early
+  is "a drive with a partition on it is never moved to on its own" "$(asked '^move ')" "0"
+  SIGNED=1 early
+  is "nor one with any signature on it" "$(asked '^move ')" "0"
+  EXTRA="HUB_AUTO_INTERNAL=0" early
+  is "HUB_AUTO_INTERNAL=0 keeps it on the stick" "$(asked '^move ')" "0"
+  ask; USED=1 early
+  is "a drive with something on it, asked for by its serial: the system moves there" "$(asked '^move sda nvme0n1$')" "1"
+  is "...and the request is used up" "$([ -f "$var/move.request" ] && echo kept || echo gone)" "gone"
+  ask OTHER-SERIAL; USED=1 early
+  is "asked for by a serial that is not this drive's: nothing moves" "$(asked '^move ')" "0"
+  ask; USED=1 MOVE_FAILS=1 early
+  is "a move that was asked for and failed is said, and the hub carries on from the stick" "$([ -s "$var/move.failed" ] && echo said) $(asked 'reboot')" "said 0"
+  rm -f "$var/move.failed"; MOVED=1 early
+  is "started from the stick with its hub already on the drive: off, for the stick to come out" "$(asked '^poweroff') $(asked '^move ')" "1 0"
+  ask; TRAN=nvme ROOTDEV=/dev/nvme0n1p1 early
+  is "already on the drive: nothing moves, and a request copied over with it is dropped" "$(asked '^move ') $([ -f "$var/move.request" ] && echo kept || echo gone)" "0 gone"
+  printf 'HUB_IMAGE=\n' > "$root/conf"; rm -f "$root/asked"
+  PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" "$HERE/move-early.sh" >/dev/null 2>&1
+  is "anywhere but the x86 image, it does nothing at all" "$(asked '.')" "0"
+  rm -rf "$root"
+}
+
+# What the hub runs from, and the drive beside it, described for the screen; and a request to move checked
+# again on the host before anything restarts.
+describing() {
+  group "the drive is described in a household's words, and a request to erase it is checked again before anything happens"
+  local root dir bin sys var; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"; var="$root/var"
+  mkdir -p "$dir/driver-layer/brain-data" "$bin" "$sys/sda" "$var"
+  cat > "$bin/lsblk" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "-no PKNAME /dev/sda1") echo sda ;;
+  "-no PKNAME /dev/nvme0n1p1") echo nvme0n1 ;;
+  "-dno TRAN /dev/sda") echo "${TRAN:-usb}" ;;
+  "-dno NAME,TRAN,TYPE") printf 'sda %s disk\nnvme0n1 nvme disk\n' "${TRAN:-usb}" ;;
+  "-dno SERIAL /dev/nvme0n1") echo " S6P7NS0T " ;;
+  "-dno MODEL /dev/nvme0n1") echo "Samsung SSD 980 500GB" ;;
+  "-bdno SIZE /dev/nvme0n1") echo 500107862016 ;;
+  "-no NAME /dev/nvme0n1") printf 'nvme0n1\nnvme0n1p1\nnvme0n1p2\n' ;;
+  "-lno NAME /dev/nvme0n1") printf 'nvme0n1\nnvme0n1p1\nnvme0n1p2\n' ;;
+  "-no FSTYPE /dev/nvme0n1p1") echo vfat ;;
+  "-no FSTYPE /dev/nvme0n1p2") echo ext4 ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\necho "${ROOTDEV:-/dev/sda1}"\n' > "$bin/findmnt"
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/wipefs"
+  cat > "$bin/mount" <<'SH'
+#!/usr/bin/env bash
+echo "mount $*" >> "$FAKES/asked"
+[ "$3" = /dev/nvme0n1p2 ] && { mkdir -p "$4/etc" "$4/var/log"; printf 'NAME="Ubuntu"\nVERSION_ID="24.04"\nPRETTY_NAME="$(touch /tmp/should-not-run)Ubuntu 24.04.2 LTS"\n' > "$4/etc/os-release"; }
+exit 0
+SH
+  printf '#!/usr/bin/env bash\nrm -rf "${1:?}"/*\n' > "$bin/umount"
+  printf '#!/usr/bin/env bash\nprintf "Used\\n65498251264\\n"\n' > "$bin/df"
+  printf '#!/usr/bin/env bash\necho 1792400000\n' > "$bin/stat"
+  for c in reboot systemctl; do printf '#!/usr/bin/env bash\necho "%s $*" >> "$FAKES/asked"\n' "$c" > "$bin/$c"; done
+  chmod +x "$bin"/*
+  look() { rm -f "$root/asked"; echo 0 > "$sys/sda/removable"; printf 'HUB_IMAGE=%s\n' "${IMAGE-x86}" > "$root/conf"
+    PATH="$bin:$PATH" FAKES="$root" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" HUB_PEEK="$root/peek" "$HERE/drive.sh" >/dev/null 2>&1; }
+  ask() { printf '{"do": "%s", "disk": "%s", "serial": "%s"}' "${3:-move}" "$1" "$2" > "$dir/driver-layer/brain-data/drive.request"; look; }
+  field() { python3 -c 'import json,sys
+v=json.load(open(sys.argv[1]))
+for k in sys.argv[2].split("."): v = v[int(k)] if isinstance(v, list) else (v or {}).get(k)
+print("" if v is None else v)' "$dir/driver-layer/brain-data/drive.json" "$1"; }
+  asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
+
+  look
+  is "running from the stick, and says so" "$(field from)" "stick"
+  is "the drive by its own name and size" "$(field drives.0.model) $(field drives.0.bytes)" "Samsung SSD 980 500GB 500107862016"
+  is "...the system on it, by its own name, read and never run" "$(field drives.0.system) $([ -f /tmp/should-not-run ] && echo ran || echo read)" "Ubuntu 24.04 read"
+  is "...how much is stored, and when it was last written" "$(field drives.0.used) $(field drives.0.last)" "65498251264 1792400000"
+  is "...looked at read-only, without replaying its journal" "$(asked 'mount -o ro,noload /dev/nvme0n1p2')" "1"
+  is "...and not empty" "$(field drives.0.empty)" "False"
+
+  ask nvme0n1 S6P7NS0T
+  is "a move asked for by the drive and its serial: written down for the start of the next boot" "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["disk"])' "$var/move.request")" "nvme0n1"
+  is "...and the hub restarts to do it" "$(asked 'systemctl --no-block reboot')" "1"
+  rm -f "$var/move.request"
+  ask nvme0n1 SOMETHING-ELSE
+  is "a serial that is not this drive's is refused, in words" "$(field asked.refused)" "That isn't the drive the screen showed. Look again."
+  is "...and nothing is written or restarted" "$([ -f "$var/move.request" ] && echo written || echo nothing) $(asked reboot)" "nothing 0"
+  ask sda S6P7NS0T
+  is "the disk it is running from is never a drive to move onto" "$(field asked.refused)" "That drive isn't in this computer."
+  TRAN=nvme ROOTDEV=/dev/nvme0n1p1 ask nvme0n1 S6P7NS0T
+  is "already on its own drive: refused" "$(field asked.refused)" "This hub is already on its own drive."
+  IMAGE="" ask nvme0n1 S6P7NS0T
+  is "a hub not installed from the stick image: refused" "$(field asked.refused)" "This hub wasn't installed from a USB stick."
+  ask nvme0n1 S6P7NS0T wipe
+  is "a request for anything but a move is not a request" "$(field asked.refused)" "not a thing this hub knows how to do"
+  rm -rf "$root"
+}
+
+# The move itself. Partitions, filesystems and their ids are a table the fakes read and write; mount copies a
+# prepared system in and umount copies it out again, so what the move did to the copy's own files can be read.
+moving() {
+  group "the move gives the copy its own identity, and every file that names one follows"
+  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin" "$root/system/etc" "$root/system/boot/grub" "$root/system/boot/efi/EFI/ubuntu"
+  printf 'LABEL=cloudimg-rootfs / ext4 discard 0 1\nLABEL=BOOT /boot ext4 defaults 0 2\nLABEL=UEFI /boot/efi vfat umask=0077 0 1\n' > "$root/system/etc/fstab"
+  printf 'search --no-floppy --fs-uuid --set=root bbbb-boot\nlinux /vmlinuz root=PARTUUID=pppp-root ro\n' > "$root/system/boot/grub/grub.cfg"
+  printf 'search.fs_uuid bbbb-boot root hd0,gpt16\n' > "$root/system/boot/efi/EFI/ubuntu/grub.cfg"
+  mkdir -p "$root/system/boot/efi/EFI/BOOT"; cp "$root/system/boot/efi/EFI/ubuntu/grub.cfg" "$root/system/boot/efi/EFI/BOOT/grub.cfg"
+  echo stick-made-this > "$root/system/etc/machine-id"
+  cat > "$root/table" <<'T'
+/dev/sda1 PARTUUID pppp-root
+/dev/sda15 PARTUUID pppp-efi
+/dev/sda16 PARTUUID pppp-boot
+/dev/nvme0n1p1 LABEL cloudimg-rootfs
+/dev/nvme0n1p1 UUID rrrr-root
+/dev/nvme0n1p15 LABEL UEFI
+/dev/nvme0n1p16 LABEL BOOT
+/dev/nvme0n1p16 UUID bbbb-boot
+T
+  local parts='{"partitiontable": {"sectorsize": 512, "partitions": [{"node": "/dev/X1", "start": 2099200, "size": 4000000}, {"node": "/dev/X15", "start": 10240, "size": 217088}, {"node": "/dev/X16", "start": 227328, "size": 1869825}]}}'
+  printf '#!/usr/bin/env bash\necho "sfdisk $*" >> "$FAKES/asked"\n[ "$1" = -J ] && echo %q\nexit 0\n' "$parts" > "$bin/sfdisk"
+  cat > "$bin/blkid" <<'SH'
+#!/usr/bin/env bash
+awk -v d="$5" -v k="$4" '$1==d && $2==k {v=$3} END {print v}' "$FAKES/table"
+SH
+  cat > "$bin/tune2fs" <<'SH'
+#!/usr/bin/env bash
+echo "tune2fs $*" >> "$FAKES/asked"; d="$3"; grep -v "^$d UUID " "$FAKES/table" > "$FAKES/t"; echo "$d UUID new-${d##*/}" >> "$FAKES/t"; mv "$FAKES/t" "$FAKES/table"
+SH
+  cat > "$bin/e2label" <<'SH'
+#!/usr/bin/env bash
+echo "e2label $*" >> "$FAKES/asked"; grep -v "^$1 LABEL " "$FAKES/table" > "$FAKES/t"; echo "$1 LABEL $2" >> "$FAKES/t"; mv "$FAKES/t" "$FAKES/table"
+SH
+  printf '#!/usr/bin/env bash\nn=$(( $(cat "$FAKES/n" 2>/dev/null || echo 0) + 1 )); echo $n > "$FAKES/n"; echo "uuid-$n"\n' > "$bin/uuidgen"
+  printf '#!/usr/bin/env bash\n[ "$1" = /dev/nvme0n1p1 ] && cp -R "$FAKES/system/." "$2/"\nexit 0\n' > "$bin/mount"
+  printf '#!/usr/bin/env bash\n[ "$1" = -R ] && [ -d "$2/etc" ] && { rm -rf "$FAKES/after"; cp -R "$2" "$FAKES/after"; rm -rf "${2:?}"/*; }\nexit 0\n' > "$bin/umount"
+  printf '#!/usr/bin/env bash\necho "${SIZE:-512110190592}"\n' > "$bin/blockdev"
+  for c in dd fatlabel e2fsck partx udevadm efibootmgr; do printf '#!/usr/bin/env bash\necho "%s $*" >> "$FAKES/asked"\n' "$c" > "$bin/$c"; done
+  chmod +x "$bin"/*
+  sed -i.bak 's|/dev/X|/dev/nvme0n1p|g' "$bin/sfdisk"
+  move() { PATH="$bin:$PATH" FAKES="$root" "$HERE/move-to-drive.sh" sda nvme0n1 >"$root/out" 2>&1; }
+  asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
+
+  move
+  is "copies the stick onto the drive, as far as its last partition" "$(asked 'dd if=/dev/sda of=/dev/nvme0n1 bs=4M count=3122790400 iflag=count_bytes conv=fsync status=none')" "1"
+  is "...and never writes the stick" "$(grep -E -c '(sfdisk --(disk-id|part-uuid|relocate)|tune2fs|e2label|fatlabel|wipefs).* /dev/sda' "$root/asked")" "0"
+  is "the copy gets its own partition ids" "$(asked 'sfdisk --part-uuid /dev/nvme0n1 ')" "3"
+  is "...its own filesystem ids" "$(asked 'tune2fs -U random /dev/nvme0n1p')" "2"
+  is "...and its own labels" "$(asked 'e2label /dev/nvme0n1p1 hub-root') $(asked 'e2label /dev/nvme0n1p16 hub-boot') $(asked 'fatlabel /dev/nvme0n1p15 HUB-EFI')" "1 1 1"
+  is "its fstab finds its own filesystems, not the stick's" "$(cut -d' ' -f1 "$root/after/etc/fstab" | tr '\n' ' ')" "LABEL=hub-root LABEL=hub-boot LABEL=HUB-EFI "
+  is "...and so does its boot menu" "$(cat "$root/after/boot/grub/grub.cfg" | tr '\n' ' ')" "search --no-floppy --fs-uuid --set=root new-nvme0n1p16 linux /vmlinuz root=PARTUUID=uuid-2 ro "
+  is "...on every copy of it, the removable-media one included" "$(cat "$root/after/boot/efi/EFI/ubuntu/grub.cfg" "$root/after/boot/efi/EFI/BOOT/grub.cfg" | sort -u)" "search.fs_uuid new-nvme0n1p16 root hd0,gpt16"
+  is "it makes its own machine id, rather than the one the stick made" "$(wc -c < "$root/after/etc/machine-id" | tr -d ' ')" "0"
+  rm -f "$root/asked"; SIZE=1000 move
+  is "a drive too small for the system is refused before anything is written" "$(asked '^dd ')" "0"
+  rm -rf "$root"
+}
+
+tiers() {
+  group "what a machine is big enough for"
+  local t="$HERE/../host-tier.sh"
+  gets() { "$t" which "$@"; }
+
+  is "a 4 GB Pi runs the house and plays music" "$(gets aarch64 4 3900000 none none)" "small music"
+  is "an 8 GB Pi is medium, and still no films" "$(gets aarch64 4 7900000 none none)" "medium music"
+  # Its render node is the 3D core, not an encoder; an AI board makes it accelerated, never a film player.
+  is "a Pi with an AI board records cameras but plays no films" \
+     "$(gets aarch64 4 7900000 none hailo)" "accelerated music,cameras"
+  is "an 8 GB N100 is Hub Plus without the assistant" \
+     "$(gets x86_64 4 7900000 intel none)" "large music,films,cameras"
+  is "a 16 GB N100 is everything" "$(gets x86_64 4 16200000 intel none)" "large music,films,cameras,assistant"
+  is "an old two-core box with 4 GB is a small hub" "$(gets x86_64 2 3900000 intel none)" "small music"
+  is "a mini PC with no encoder plays no films" "$(gets x86_64 4 7900000 none none)" "large music"
+
+  local d; d="$(mktemp -d)"
+  cp "$t" "$d/"; echo "HOST_PINNED=1" > "$d/.env"; echo "HOST_TIER=small" >> "$d/.env"
+  "$d/host-tier.sh" >/dev/null 2>&1
+  is "a pinned hub keeps what somebody wrote" "$(grep -c '^HOST_' "$d/.env")" "2"
+  printf 'HOST_PINNED=1\nHOST_CAN=music,films\nCOMPOSE_PROFILES=zigbee,voice\n' > "$d/.env"
+  "$d/host-tier.sh" >/dev/null 2>&1
+  is "music runs where the house can play it, beside the radios and the voice" "$(grep '^COMPOSE_PROFILES=' "$d/.env")" "COMPOSE_PROFILES=zigbee,voice,music"
+  "$d/host-tier.sh" >/dev/null 2>&1
+  is "...once, however often it is measured" "$(grep '^COMPOSE_PROFILES=' "$d/.env")" "COMPOSE_PROFILES=zigbee,voice,music"
+  printf 'HOST_PINNED=1\nHOST_CAN=films\nCOMPOSE_PROFILES=music\n' > "$d/.env"
+  "$d/host-tier.sh" >/dev/null 2>&1
+  is "...and stops where it cannot, leaving none rather than nothing" "$(grep '^COMPOSE_PROFILES=' "$d/.env")" "COMPOSE_PROFILES=none"
+  rm -rf "$d"
+}
+
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; watchdog; away; finding; becoming; keeping; awake
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; keeping; awake; setting_up; moving_in; moving; describing
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

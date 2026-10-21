@@ -132,6 +132,17 @@ class Network:
             out["moving"] = host["moving"]          # a change is in flight, and the host is watching it
         if host.get("reverted"):
             out["reverted"] = host["reverted"]      # ...and one came back, so say which
+            if host.get("reverted_why") in ("password", "unreachable"):
+                out["reverted_why"] = host["reverted_why"]   # ...and why, when the router said
+        # The hub's own Wi-Fi, while it has no other: what it is called, and whether the card can keep it
+        # up while it tries the house's (docs/network.md, piece 5). And once it has joined, which one --
+        # the phone on the setup Wi-Fi is told before the hub takes it down.
+        setup = host.get("setup")
+        if isinstance(setup, dict) and setup.get("ssid"):
+            out["setup"] = {"ssid": setup["ssid"], "both": bool(setup.get("both"))}
+        joined = host.get("joined")
+        if isinstance(joined, dict) and joined.get("ssid"):
+            out["joined"] = joined["ssid"]
         return out
 
     def seen(self) -> list:
@@ -144,7 +155,8 @@ class Network:
             out.append({"ssid": n["ssid"], "signal": words(n.get("signal")),
                         "band": n.get("band") or None, "secure": bool(n.get("secure", True))})
         out.sort(key=lambda n: {"strong": 0, "ok": 1, "faint": 2}.get(n["signal"], 3))
-        seen, uniq = set(), []
+        own = (host.get("setup") or {}).get("ssid") if isinstance(host.get("setup"), dict) else None
+        seen, uniq = {own} if own else set(), []
         for n in out:
             if n["ssid"] in seen: continue
             seen.add(n["ssid"]); uniq.append(n)

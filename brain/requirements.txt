@@ -8,3 +8,4 @@ esptool>=5
 bleak>=0.22
 protobuf>=4
 cryptography>=42
+pywebpush==2.5.0    # a phone told what needs a look, signed with its own key: hub/pusher.py

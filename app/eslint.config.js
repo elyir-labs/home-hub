@@ -10,7 +10,7 @@ import ts from 'typescript-eslint'
 import vue from 'eslint-plugin-vue'
 
 export default ts.config(
-  { ignores: ['dist/**', 'dist-houses/**', 'node_modules/**', 'mock/shots/**'] },
+  { ignores: ['dist/**', 'dist-houses/**', 'dist-try/**', 'node_modules/**', 'mock/shots/**'] },
   js.configs.recommended,
   ...ts.configs.recommended,
   ...vue.configs['flat/recommended'],

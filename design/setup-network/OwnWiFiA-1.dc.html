@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A1: point the camera at the hub</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="setup-network.css">
+<style>
+  .finder { position: absolute; inset: 0; background: radial-gradient(80% 60% at 50% 45%, #3a3833, #1a1916 70%, #0d0d0c); }
+  .table { position: absolute; left: -40px; right: -40px; top: 300px; bottom: -40px; background: linear-gradient(#4b4238, #2e2822); transform: perspective(600px) rotateX(18deg); }
+  .hubshot { position: absolute; left: 58px; top: 236px; width: 274px; height: 274px; border-radius: 30px; background: #1d1f24; transform: rotate(-4deg);
+             box-shadow: 0 30px 50px -20px rgba(0,0,0,.8); }
+  .hubshot .lbl { position: absolute; left: 30px; top: 30px; width: 214px; height: 214px; border-radius: 12px; background: #eceae4; }
+  .hubshot img { position: absolute; right: 16px; top: 16px; width: 92px; height: 92px; }
+  .hubshot .w1 { position: absolute; left: 16px; top: 20px; width: 60px; height: 9px; border-radius: 3px; background: #1b1c1f; }
+  .hubshot .w2 { position: absolute; left: 16px; bottom: 50px; width: 170px; height: 8px; border-radius: 3px; background: #8b8984; }
+  .hubshot .w3 { position: absolute; left: 16px; bottom: 34px; width: 130px; height: 8px; border-radius: 3px; background: #8b8984; }
+  .bracket { position: absolute; width: 26px; height: 26px; border: 3.5px solid #f5cf3d; }
+  .pill { position: absolute; left: 50%; top: 168px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px;
+          border-radius: 999px; background: #f5cf3d; color: #1b1a14; font-size: 15px; font-weight: 600; white-space: nowrap; box-shadow: 0 10px 30px -8px rgba(0,0,0,.7); }
+  .shutter { position: absolute; left: 50%; bottom: 52px; width: 72px; height: 72px; margin-left: -36px; border-radius: 50%; border: 4px solid #fff; }
+  .shutter::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: #fff; }
+  .modes { position: absolute; left: 0; right: 0; bottom: 146px; display: flex; justify-content: center; gap: 22px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.7); }
+  .modes b { color: #f5cf3d; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="finder"></div>
+  <div class="table"></div>
+  <div class="hubshot"><div class="lbl"><div class="w1"></div><img src="qr-wifi.svg" alt=""><div class="w2"></div><div class="w3"></div></div></div>
+  <div class="bracket" style="left: 196px; top: 248px; border-right: 0; border-bottom: 0; border-radius: 8px 0 0 0;"></div>
+  <div class="bracket" style="left: 300px; top: 240px; border-left: 0; border-bottom: 0; border-radius: 0 8px 0 0;"></div>
+  <div class="bracket" style="left: 204px; top: 350px; border-right: 0; border-top: 0; border-radius: 0 0 0 8px;"></div>
+  <div class="bracket" style="left: 308px; top: 342px; border-left: 0; border-top: 0; border-radius: 0 0 8px 0;"></div>
+  <div class="pill"><svg class="i" width="17" height="17" viewBox="0 0 24 24" style="stroke-width: 2.2"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r=".9" fill="currentColor"/></svg>Join &ldquo;Elyir Hub 4F2A&rdquo; network</div>
+  <div class="status-bar"><span>9:41</span><span class="r"><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i>
+    <svg width="26" height="13" viewBox="0 0 26 13" style="margin-left: 6px"><rect x=".5" y=".5" width="22" height="12" rx="3.5" fill="none" stroke="rgba(255,255,255,.5)"/><rect x="2.5" y="2.5" width="15" height="8" rx="2" fill="#fff"/><rect x="24" y="4.5" width="1.6" height="4" rx=".8" fill="rgba(255,255,255,.5)"/></svg></span></div>
+  <div class="modes"><span>Video</span><b>Photo</b><span>Portrait</span></div>
+  <div class="shutter"></div>
+  <div class="home-ind"></div>
+
+  <div class="ann" style="left: 14px; right: 14px; top: 560px;">
+    <span class="cap">The phone&rsquo;s own camera, no app</span>
+    The code on the hub is a standard Wi&#8209;Fi code. Every recent iPhone and Android offers to join it the moment it is in frame. <b>One tap, and nothing typed.</b> Everything after this is our screen.
+  </div>
+</div>
+</body>
+</html>

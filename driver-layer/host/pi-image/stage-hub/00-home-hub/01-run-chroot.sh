@@ -1,14 +1,17 @@
 #!/bin/bash -e
 # SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Runs inside the image. The code, Docker and the first-boot unit go in now; containers are pulled on the
-# first boot, when there is a network and a running Docker daemon.
+# Runs inside the image. The code, Docker and the first-boot unit go in now. The few containers the hub
+# needs before it has internet were saved by the workflow (00-run.sh); the rest are pulled once it is online.
 # shellcheck disable=SC1091
 . /etc/home-hub.conf
 REF="${HOME_HUB_REF:-main}"
 REPO="${HOME_HUB_REPO:-https://github.com/elyir-labs/home-hub.git}"
 
-git clone --depth 1 --branch "$REF" "$REPO" /opt/home-hub
+# Without design/ and site/, the same list as trim_checkout in install.sh.
+git clone --depth 1 --filter=blob:none --no-checkout --branch "$REF" "$REPO" /opt/home-hub
+git -C /opt/home-hub sparse-checkout set --no-cone '/*' '!/design/' '!/site/'
+git -C /opt/home-hub reset -q --hard
 chmod +x /opt/home-hub/install.sh /opt/home-hub/driver-layer/radios.sh /opt/home-hub/driver-layer/host/firstboot.sh
 
 # get.docker.com ends by starting the daemon, which cannot happen in a chroot; the packages are what matter.

@@ -267,6 +267,14 @@
       "w": 600,
       "text": "HOW TO READ THESE\n\nThe four wall boards play the startup on a loop: the first sixteen seconds at 1.5x, the long wait at 8x, and the panel arriving at real speed. The yellow chip is the real time since power and is not part of the screen. Click it to pause.\n\nThe sheet holds the same seven moments still. The times are a hub unit's, estimated until a unit is on the bench. A wall that is only a wall reaches Ready in about twenty seconds.\n\nThe panel in the last columns is a screenshot of the mock house, taken 5 October.",
       "page": "page-2"
+    },
+    {
+      "id": "phone-app",
+      "page": "page-1",
+      "x": -620,
+      "y": -1460,
+      "w": 500,
+      "text": "DECIDED 19 OCTOBER 2026: THE PHONE APP\n\nThe phone app (docs/apps.md) starts with J too, drawn by the app itself from startup/sequence.json, which startup/json.mjs writes from sequence.mjs and startup.test.mjs keeps current. Asked because J never ends before 6.2 seconds, which suits a wall that starts once and not a phone opened many times a day.\n\nThe first time the app opens, the whole of J. Every start after that opens on the house with its lamp breathing, the same frame J lands on, with no minimum, and opens onto the app the moment it is ready. The app's mark is the hub's house.\n\nIts one sentence is its own, because the wall's is about unplugging: \"Can't reach your houses right now. Check that this phone is online.\" It comes up as soon as loading fails, not after three minutes, and the app keeps trying by itself. Drawn at the phone's own reading size under the house, not scaled with the boards' space, where it would be six points tall."
     }
   ],
   "launch": {

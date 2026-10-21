@@ -8,6 +8,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { NAME, HOUSE, TIME, BREATH } from './sequence.mjs'
+import { json } from './json.mjs'
 import { THEME, NAME_FRAMES, fingerprint, themeFile, timingSh, script } from './plymouth.mjs'
 
 const theme = (f) => new URL(`plymouth/${THEME}/${f}`, import.meta.url)
@@ -22,6 +23,10 @@ test('the committed theme is what the sequence generates', () => {
   assert.equal(read(theme(`${THEME}.script`)), script())
   assert.equal(read(theme(`${THEME}.plymouth`)), themeFile())
   assert.equal(read(theme('timing.sh')), timingSh())
+})
+
+test('the numbers the phone apps draw from are this sequence', () => {
+  assert.equal(read(new URL('sequence.json', import.meta.url)), json(), 'run node startup/json.mjs')
 })
 
 test('every image the script asks for is there', () => {

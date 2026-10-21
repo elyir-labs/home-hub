@@ -12,6 +12,8 @@ until the product is ready, when it opens onto the product. Chosen 7 October 202
 | `render.mjs` | Draws the splash's images and writes the theme into `plymouth/elyir/` |
 | `plymouth/elyir/` | The theme that ships, generated; do not edit by hand |
 | `wall.sh`, `elyir-wall.service` | Keep the splash up until the product answers, let it end, then the panel full screen |
+| `splash.sh` | The splash and a quiet boot around it, on a Pi's boot settings or a PC's GRUB |
+| `elyir-splash.service` | On a hub with no wall (a NUC's monitor): the splash held until the hub answers, then its ending |
 | `install.sh` | Sets all of it up on a unit with its own screen; first boot runs it when a DSI screen is connected |
 
 **Changing it** goes board, then sequence, then render, the order AGENTS.md §1 sets:
@@ -22,6 +24,10 @@ until the product is ready, when it opens onto the product. Chosen 7 October 202
 node startup/render.mjs              # needs the panel's Playwright: cd app && npm ci
 node --test startup/startup.test.mjs # fails while the three disagree; CI runs it
 ```
+
+**A phone app** draws it itself, from `sequence.json` (`node startup/json.mjs` writes it; the test fails when it
+is stale): all of J the first time it opens, the house breathing on every start after, and its own sentence when it
+cannot reach anything (design/boot/, decided 19 October 2026).
 
 **For another product**, the name and the lamp are the shared part, frame for frame. What the
 product brings is where the dot lands (the hub's is the house) and the moment it is ready: its

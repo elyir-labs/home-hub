@@ -105,6 +105,10 @@ resource "hcloud_server" "relay" {
     houses_secret = sha256("houses:${var.relay_auth_token}")
     # And the name that answers "which printers are on this Wi-Fi", the same way again.
     nearby_secret = sha256("nearby:${var.relay_auth_token}")
+    # The sender's key for Apple, one line so it fits the env file; empty leaves the sender off.
+    apns_key_b64 = base64encode(var.apns_key)
+    apns_key_id  = var.apns_key_id
+    apns_team_id = var.apns_team_id
   })
 
   labels = {
@@ -115,6 +119,10 @@ resource "hcloud_server" "relay" {
     precondition {
       condition     = var.admin_ssh_public_key != ""
       error_message = "admin_ssh_public_key is required to make a box: a relay you cannot log in to is a relay you cannot fix. Set relay_ipv4 instead if the box is already yours."
+    }
+    precondition {
+      condition     = (var.apns_key == "") == (var.apns_key_id == "") && (var.apns_key == "") == (var.apns_team_id == "")
+      error_message = "apns_key, apns_key_id and apns_team_id go together: all three for the sender to reach Apple, or none to leave it off."
     }
     precondition {
       condition     = var.relay_auth_token != ""

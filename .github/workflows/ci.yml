@@ -176,6 +176,7 @@ jobs:
       # The mock brain serves ../dist, so the panel has to exist before a browser can be pointed at it.
       - run: cd app && npm run build
       - run: cd app && npm run build:houses     # the Houses app, which e2e/houses.spec.ts serves itself
+      - run: cd app && npm run build:try        # the pretend house, which e2e/try.spec.ts serves itself
       # The browser is the same download every run until Playwright itself moves, so key it on the
       # version the lockfile pins. The system libraries it needs are not in the cache and are
       # installed either way.
@@ -230,6 +231,7 @@ jobs:
         tools/hooks/pre-commit
         tools/release.sh
         driver-layer/radios.sh
+        driver-layer/host-tier.sh
         driver-layer/mqtt-auth.sh
         driver-layer/host/harden.sh
         driver-layer/host/firstboot.sh
@@ -246,6 +248,7 @@ jobs:
         driver-layer/host/pi-image/stage-hub/prerun.sh
         driver-layer/host/pi-image/stage-hub/00-home-hub/*.sh
         startup/install.sh
+        startup/splash.sh
         startup/wall.sh
         startup/find-hub.sh
         startup/keep-hub.sh
@@ -295,7 +298,10 @@ jobs:
             "$RUNNER_TEMP/gitleaks" git . -c .gitleaks.toml --redact --no-banner --log-opts="$BASE..$HEAD"
           fi
       - name: private words
-        # no person's name or email, real printer or home network: the repository is public (scripts/private-words.sh)
+        # no person's name or email, real printer or home network: the repository is public (scripts/private-words.sh).
+        # The words are a secret so the list does not publish them; a fork's pull request runs without it.
+        env:
+          PRIVATE_WORDS: ${{ secrets.PRIVATE_WORDS }}
         run: scripts/private-words.sh
 
   kiosk:

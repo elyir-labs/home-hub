@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { request, plainError } from './code'
+import type { MusicItem } from './music'
 import { apiUrl, withToken, wsProtocols, wsUrl } from './door'
 /* `capability` is the driver's word for what this is and it picks the Home Assistant service; `kind` is
    the owner's, where they have given one. Read the two together through cap() in store.ts, never the raw
@@ -47,7 +48,13 @@ export type Act = { do: string; act: 'flow' | 'entry' | 'part' | 'check' | 'forg
   yes?: string        // the words that answer it, with the name in them
   no?: string }       // ...and the ones that decline, where "Keep it" is not what is being kept
 export type Quiet = { id: string; name: string; where: string }
+/* Something the house said, as brain/hub/messages.py says it. The class decides where it goes, never the
+   screen that hears it (docs/messages.md). */
+export type MessageClass = 'receipt' | 'house' | 'attention' | 'alert'
+export type Message = { id: string; class: MessageClass; text: string; subject: string | null; at: number }
 export type Note = { kind: 'offline' | 'storage' | 'driver' | 'update' | 'restart' | 'bridge' | 'healed' | 'held' | 'printer'; text: string; since: number | null; subject: string | null
+  id?: string         // the message it is, from the brain's catalog (brain/hub/messages.py)
+  class?: MessageClass
   band?: string       // a strip held dark: the band's few words for it ("The kitchen strip is staying off")
   more?: string       // the second sentence, quieter: what a pattern means, under the line that names it
   where?: string      // an offline thing: which room, and what sort of thing it is -- enough to go and look at it
@@ -174,6 +181,9 @@ export type NetState = {
   stale?: true                             // the host's picture has not been refreshed lately
   moving?: { ssid: string; since: number }  // the hub is being moved right now, and the host is watching it
   reverted?: string                        // ...and one did not take, so this is the name that failed
+  reverted_why?: 'password' | 'unreachable' // ...and why, when the router said
+  setup?: { ssid: string; both: boolean }   // the hub's own Wi-Fi is up, for a phone to set it up from (design/setup-network/)
+  joined?: string                          // ...and the house's Wi-Fi it joined from there, before it goes
   bridges: { ssid: string; checked: boolean; known: boolean; count: number }
   bridges_moving?: NetMove | null          // the pucks' journey; `moving` above is the hub's own
 }
@@ -187,6 +197,16 @@ export type NetMove = {
   waiting?: string[]
   late?: string[]
 }
+/* What the hub runs from, and the drive beside it (design/move-to-drive/). `ask` is first run's question;
+   `drive` is the one with something on it. The host checks every move again (driver-layer/host/drive.sh). */
+export type Drive = { name: string; serial: string; model: string; bytes: number; empty: boolean; system: string | null; used: number | null; last: number | null }
+export type DriveState = { from: 'stick' | 'drive' | 'unknown'; drives: Drive[]; drive: Drive | null; ask: boolean; kept: boolean; moved: boolean; moving: boolean; refused?: string | null; failed?: string | null }
+export async function getDrive(): Promise<DriveState> {
+  const r = await request('/drive'); if (!r.ok) await fail(r); return r.json()
+}
+export const moveToDrive = (name: string, serial: string) => post<DriveState>('/drive/move', { name, serial })
+export const keepDrive = () => post<DriveState>('/drive/keep')
+export const driveSeen = () => post<DriveState>('/drive/seen')
 export type SeenNetwork = { ssid: string; signal?: 'strong' | 'ok' | 'faint'; band?: string | null; secure: boolean }
 export async function getNetwork(): Promise<NetState> {
   const r = await request('/network'); if (!r.ok) await fail(r); return r.json()
@@ -769,6 +789,19 @@ export type Sound = { id: string; name: string; ready: boolean }
 export async function getSounds(): Promise<{ sounds: Sound[]; folder: string }> {
   const r = await request('/sounds'); if (!r.ok) await fail(r); return r.json()
 }
+/* Music in every room (hub/music.py, design/music/). */
+export type MusicRoom = { id: string; name: string; here: boolean; playing: string | null }
+export type MusicCatalog = { ready: boolean; again: MusicItem[]; radio: MusicItem[]; own: MusicItem[]; rooms: MusicRoom[]; again_by_room: Record<string, MusicItem[]> }
+export async function getMusic(room?: string | null): Promise<MusicCatalog> {
+  const r = await request(`/music${room ? `?room=${encodeURIComponent(room)}` : ''}`); if (!r.ok) await fail(r); return r.json()
+}
+export async function findMusic(q: string): Promise<MusicItem[]> {
+  const r = await request(`/music/find?q=${encodeURIComponent(q)}`); if (!r.ok) await fail(r); return (await r.json()).items
+}
+export const playMusic = (item: MusicItem, rooms: string[], everywhere = false) => post<{ ok: true; rooms: string[] }>('/music/play', { item, rooms, everywhere })
+export const joinMusic = (room: string, into: string) => post('/music/join', { room, into })
+export const leaveMusic = (room: string) => post('/music/leave', { room })
+export const stopMusic = (rooms: string[]) => post('/music/stop', { rooms })
 export const approveDraft = (id: string) => post<Routine>(`/drafts/${encodeURIComponent(id)}/approve`)
 export async function discardDraft(id: string) {
   const r = await request(`/drafts/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (!r.ok) await fail(r)
@@ -801,7 +834,7 @@ let live: WebSocket | null = null
 export function kickStream() { live?.close() }
 
 /** Live updates from the brain. Reconnects with backoff; reports link state. */
-export function connect(on: { device: (d: Device) => void; home: (h: Home) => void; ambient: (a: Ambient) => void; status: (s: Status) => void; intent: (i: Intent) => void; drafts: (d: Routine[]) => void; presence: (p: Presence) => void; phones: () => void; share: () => void; signals: (t: TryBrief | null) => void; roofline?: (r: Roofline) => void; printers?: (p: Printers) => void; power?: (p: Power | null) => void; link: (up: boolean) => void }) {
+export function connect(on: { device: (d: Device) => void; home: (h: Home) => void; ambient: (a: Ambient) => void; status: (s: Status) => void; intent: (i: Intent) => void; drafts: (d: Routine[]) => void; presence: (p: Presence) => void; phones: () => void; share: () => void; signals: (t: TryBrief | null) => void; roofline?: (r: Roofline) => void; printers?: (p: Printers) => void; power?: (p: Power | null) => void; note?: (m: Message) => void; link: (up: boolean) => void }) {
   let delay = 1000, ws: WebSocket | null = null, closed = false
   const open = () => {
     ws = live = new WebSocket(wsUrl('/stream'), wsProtocols())   // the token rides as a subprotocol, never in the URL (door.ts)
@@ -821,6 +854,7 @@ export function connect(on: { device: (d: Device) => void; home: (h: Home) => vo
       else if (m.type === 'roofline') on.roofline?.(m.roofline)   // its evenings, its look, the way round, a box gone dark
       else if (m.type === 'printers') on.printers?.(m.printers)   // the whole printer status: what each is doing, found, asking
       else if (m.type === 'power') on.power?.(m.power)   // the sun, the battery and the grid: at once when the band changes, else every ten seconds
+      else if (m.type === 'message' && m.class === 'house') on.note?.(m)   // a rule's note, for now; the band's classes come with docs/messages.md step 3
     }
     ws.onclose = () => { on.link(false); if (!closed) setTimeout(open, delay = Math.min(delay * 2, 15000)) }
     ws.onerror = () => ws?.close()
@@ -861,7 +895,7 @@ export const qrUrl = (text: string) => `/qr.svg?text=${encodeURIComponent(text)}
 
 /* The phones that belong to the house, once it has a code. A phone gets in by typing the code, or by asking and being
    allowed from a screen that is already in; the hub keeps a hash and the phone a cookie, so removing one is instant. */
-export type Phone = { id: string; name: string; kind: 'wall' | 'phone' | 'screen' | null; joined: number; expires: number | null; remote: boolean; last_seen: number | null; how: 'code' | 'wall' | 'setup'; me: boolean; moved?: boolean; in_app?: boolean; room?: string | null }
+export type Phone = { id: string; name: string; kind: 'wall' | 'phone' | 'screen' | null; joined: number; expires: number | null; remote: boolean; last_seen: number | null; how: 'code' | 'wall' | 'setup'; me: boolean; moved?: boolean; in_app?: boolean; room?: string | null; push?: boolean }
 export type Ask = { id: string; name: string; kind: string | null; asked: number }
 export type Me = { locked: boolean; paired: boolean; home: string; phone: Phone | null; away?: boolean; lan?: string | null; address?: string | null }
 export async function getMe(): Promise<Me> { const r = await fetch(apiUrl('/phones/me'), { headers: withToken(new Headers()) }); if (!r.ok) await fail(r); return r.json() }

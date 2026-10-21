@@ -16,12 +16,18 @@
 #      the next start.
 #   4. Run install.sh, which does everything a hand install would.
 #   5. On a unit with its own screen: startup/install.sh, the splash and the panel full screen.
+#
+# The x86 image (x86-image/) is written to a USB stick and booted on the NUC. Moving off the stick onto
+# the computer's drive happens before this runs (host/move-early.sh, at the start of the boot); by the
+# time first boot gets here the hub is wherever it is staying, and its root filesystem is grown to fill
+# that disk.
 set -euo pipefail
 MARK=${HUB_FIRSTBOOT_MARK:-/var/lib/home-hub/firstboot.done}
 CONF=${HUB_CONF:-/etc/home-hub.conf}
 DIR="${HOME_HUB_DIR:-/opt/home-hub}"
 # shellcheck disable=SC1090
 [ -f "$CONF" ] && . "$CONF"
+[ -n "${HOME_HUB_BRANCH:-}" ] && export HOME_HUB_BRANCH    # an image built from a branch keeps following it (install.sh)
 [ -f "$MARK" ] && exit 0
 mkdir -p "$(dirname "$MARK")"
 log() { printf '[home-hub] %s\n' "$*"; }
@@ -49,6 +55,17 @@ if is_pi5; then
       reboot; exit 0
     fi
     log "could not copy to the NVMe; carrying on from the SD card"
+  fi
+fi
+
+if [ "${HUB_IMAGE:-}" = x86 ]; then
+  SYS_BLOCK="${HUB_SYS_BLOCK:-/sys/block}"
+  ROOT_PART="$(findmnt -no SOURCE /)"
+  ROOT_DISK="$(lsblk -no PKNAME "$ROOT_PART" | head -1)"
+  PARTN="$(cat "$SYS_BLOCK/$ROOT_DISK/$(basename "$ROOT_PART")/partition" 2>/dev/null || true)"
+  if [ -n "$PARTN" ] && growpart "/dev/$ROOT_DISK" "$PARTN" >/dev/null 2>&1; then
+    resize2fs "$ROOT_PART" >/dev/null 2>&1 || true
+    log "the system now fills its disk"
   fi
 fi
 
@@ -95,6 +112,16 @@ if screen_here && [ "${HUB_ROLE:-}" != hub ]; then
     exit 1
   fi
   log "no hub found: this unit will run the house"
+fi
+
+# The containers a flashed image carries (pi-image/, x86-image/): enough to serve the Wi-Fi step before
+# the hub has any internet (docs/network.md, piece 5). Loaded once and deleted, because the disk wants
+# the room more than a second copy.
+PRELOAD="${HUB_PRELOAD:-/var/lib/home-hub/preload}"
+if ls "$PRELOAD"/*.tar >/dev/null 2>&1 && command -v docker >/dev/null 2>&1; then
+  systemctl start docker >/dev/null 2>&1 || true
+  log "loading the containers this image carries, so it can start before it has internet"
+  for t in "$PRELOAD"/*.tar; do docker load -i "$t" >/dev/null 2>&1 && rm -f "$t"; done
 fi
 
 log "installing the hub"

@@ -72,6 +72,8 @@ def needs_code(method: str, path: str) -> bool:
     # reading how a move went changes nothing. A code in front of either would be a code in front of
     # a household finding out what happened to their own house.
     if path.startswith("/network") and m == "POST" and path not in ("/network/scan", "/network/done"): return True
+    # Moving onto the computer's drive erases it (design/move-to-drive/). Keeping it, or reading that it moved, does not.
+    if path == "/drive/move" and m == "POST": return True
     # Sharing the house with Apple Home, Google Home or Alexa is a change to the house, not a tap on
     # it. The bridge's own routes are not here: they never reach this function, because the service
     # token answered for them before the gate. docs/matter.md.
@@ -80,7 +82,9 @@ def needs_code(method: str, path: str) -> bool:
     # and the same `remote`, carried to the house's own name (design/away/, C) -- nothing about who may do what
     # changes, and the page on the new name has no code yet to send with the claim. A screen saying which room it
     # hangs in changes only itself (design/companion/, C), and one let in from another screen has no code to send.
-    if path.startswith("/phones") and m != "GET": return path not in ("/phones/ask", "/phones/code", "/phones/move", "/phones/move/claim", "/phones/me/room")
+    # Nor is a phone asking to be told things, or to stop: it changes only how that one phone hears about the house.
+    if path.startswith("/phones") and m != "GET":
+        return path not in ("/phones/ask", "/phones/code", "/phones/move", "/phones/move/claim", "/phones/me/room", "/phones/me/push")
     return False
 
 

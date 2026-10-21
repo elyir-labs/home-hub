@@ -8,11 +8,18 @@
  * tests/address.test.ts can pin the picture the household chose.
  */
 import type { AddressState, NameLook, Offer } from './api'
+import type { Shell } from './inapp'
 
 export const ZONE = 'elyir.app'
 
-/** The setup step appears only when the service is offering and the house has no address yet. */
-export const offersOutside = (a: AddressState | null | undefined) => !!a && a.offer.open && !a.house
+/** The setup step appears only when the service is offering and the house has no address yet -- and, inside
+    the store app, only on the US storefront, the one place a store lets the app point at paying elsewhere
+    (design/store-app/, C). */
+export const offersOutside = (a: AddressState | null | undefined, where: Shell | null = null) =>
+  !!a && a.offer.open && !a.house && (!where || where.store === 'US')
+
+/** Where the store app sends somebody to pay. Android has no one browser to name. */
+export const browserFor = (where: Shell) => (where.os === 'ios' ? 'Safari' : 'your browser')
 
 /** What goes where the address becomes a house, from what somebody typed: Jordan's House -> jordans-house. */
 export function cleanName(typed: string) {
@@ -35,8 +42,10 @@ export function price(offer: Offer): { amount: string; rest: string } | null {
   return { amount, rest: rest.join(' ') }
 }
 
-/** The button that takes the address: paid on a phone, never on the shared wall -- or, by hand, simply taken. */
-export const takeWords = (offer: Offer) => (offer.pay ? 'Continue on your phone' : 'Give it this address')
+/** The button that takes the address: paid on a phone, never on the shared wall -- or, by hand, simply taken.
+    In the store app the phone is the phone, so the button opens the browser rather than a code for its camera. */
+export const takeWords = (offer: Offer, where: Shell | null = null) =>
+  !offer.pay ? 'Give it this address' : where ? `Continue in ${browserFor(where)}` : 'Continue on your phone'
 
 /** Where the phone pays, for the QR code: the payment page, told which house. */
 export const payUrl = (offer: Offer, house: string) => offer.pay ? `${offer.pay}${offer.pay.includes('?') ? '&' : '?'}house=${encodeURIComponent(house)}` : null
