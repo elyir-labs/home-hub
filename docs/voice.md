@@ -211,8 +211,9 @@ the host, and can be overridden.
 Expected latency for a short sentence, to be replaced by measurements: Small 1 to 3 s, Medium about 1.5 s, Large under
 1 s, Accelerated well under 1 s.
 
-How it is chosen: `install.sh` already knows the machine it is on; it writes `VOICE_TIER=small|medium|large|accelerated`
-and the matching `VOICE_STT_MODEL`, `VOICE_TTS_VOICE` and `VOICE_WAKE=satellite|hub` into `driver-layer/.env`, the way
+How it is chosen: `driver-layer/host-tier.sh` measures the machine on every install and writes
+`HOST_TIER=small|medium|large|accelerated` (`docs/host-tiers.md`, which also decides what else a hub is offered); the
+voice takes its size from that rather than a `VOICE_TIER` of its own, and `install.sh` writes the matching `VOICE_STT_MODEL`, `VOICE_TTS_VOICE` and `VOICE_WAKE=satellite|hub` into `driver-layer/.env`, the way
 it writes the radio profiles today, and a hand-edited value there wins over the guess. The voice containers read
 those variables; nothing else in the stack changes between tiers, and the brain speaks the same Wyoming to all of them.
 The panel says which tier it is running under *This hub* in plain words ("Listening with the small model; a bigger hub
