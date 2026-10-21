@@ -22,6 +22,7 @@ import SortView from '../SortView.vue'
 import { machinesOf } from '../machines'
 import { isCarried, onATile, sensorName } from '../units'
 import { heldIn, heldOf } from '../controller'
+import { canStart } from '../music'
 
 const props = defineProps<{ room: Room }>()
 defineEmits<{ back: []; open: [id: string] }>()
@@ -83,6 +84,7 @@ function sizeOf(d: Device): Size {
   if (isDead(d)) return 'third'                                     // nothing to say but that it stopped answering
   const c = cap(d)
   if (c === 'media' && d.state === 'playing') return 'full'
+  if (c === 'media' && canStart(d) && d.state !== 'paused' && d.state !== 'buffering') return 'half'   // design/music/RoomA: a quiet speaker the hub can play on offers Play something and its last two again, and that is two lines more than a third holds
   if (c === 'media') return 'third'                                 // paused, it keeps its artwork and one button, and that fits in a third -- which is how both boards draw it
   if (d.id === brightest.value) return 'half'
   if (c === 'camera') return 'half'                                 // it brings a picture, and a picture needs room
