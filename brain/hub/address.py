@@ -16,6 +16,12 @@ naming a want from a fixed pair, beside away.env carrying the values; host/away.
 them again before it writes a line of .env -- the same arrangement restart.request has, for the same
 reason. Nothing here is on the path of a tap, a light or the panel coming up: with the service down the
 house is exactly as it is now.
+
+Paying is the Elyir account's (design/account/, B): the page the offer names is account.elyir.com/hub, and the
+hub makes itself known at that page's own origin once, keeping a token for it beside the relay's secret. The
+wall's code carries a short-lived code for that page, never the token. Once somebody has paid, the hub asks the
+account for a ticket every day and takes it to the relay itself, with its own secret, so the hub still has no
+opinion about money: a ticket either carries the name or the name runs out.
 """
 import json, logging, os, re, time, urllib.error, urllib.parse, urllib.request
 
@@ -29,6 +35,9 @@ VALUES = DATA / "away.env"         # what host/away.sh writes into .env, checked
 REQUEST = DATA / "away.request"    # the host's home-hub-away.path is watching for exactly this
 DONE = DATA / "away.json"          # host/away.sh's answer: what it did and when
 OFFER_EVERY, STATUS_EVERY = 600, 60
+PAID_EVERY = 600              # who pays and until when, for This hub
+CARRY_WAITING = 5             # while somebody may be paying right now, how often the account is asked
+RENEW_BEFORE = 20 * 86400     # a ticket is asked for again once the name is carried for less than this
 
 HOUSE = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$")
 SECRET = re.compile(r"^[A-Za-z0-9_-]{16,128}$")
@@ -49,7 +58,9 @@ class Unreachable(Exception):
 
 
 def _http(method: str, path: str, body: dict | None = None, secret: str | None = None, timeout: float = 8.0):
-    req = urllib.request.Request(API.rstrip("/") + path, method=method, data=json.dumps(body).encode() if body is not None else None,
+    """A path is the relay's service; a whole https address is the account's, which the offer named."""
+    url = path if path.startswith("https://") else API.rstrip("/") + path
+    req = urllib.request.Request(url, method=method, data=json.dumps(body).encode() if body is not None else None,
                                  headers={"Content-Type": "application/json", "User-Agent": "home-hub",
                                           **({"Authorization": f"Bearer {secret}"} if secret else {})})
     try:
@@ -69,6 +80,8 @@ class Address:
         self.hub, self.fetch, self.now = hub, fetch, now
         self._offer: tuple[float, dict] | None = None
         self._status: tuple[float, dict] | None = None
+        self._paid: tuple[float, dict] | None = None
+        self._tried = self._paying_until = 0.0
 
     # ---- what is kept ----
     def _state(self) -> dict:
@@ -129,7 +142,67 @@ class Address:
         self._status = None
         self.hub.log.add("home", "address", None, "claimed", source="hub", detail={"address": body["address"], "who": who})
         self._ask_host("on", state)
-        return self.summary()
+        return {**self.summary(), "pay": self.pay_link()}
+
+    # ---- paying, from an Elyir account ----
+    def _account(self) -> str | None:
+        """The account's origin: the one the payment page is on. None while nothing can be paid for."""
+        pay = self.offer().get("pay") or ""
+        u = urllib.parse.urlsplit(pay)
+        return f"https://{u.netloc}" if u.scheme == "https" and u.netloc else None
+
+    def pay_link(self) -> str | None:
+        """The page the wall's code opens: the offer's payment page, told this house by a code that runs out within the
+        hour. Made known to the account the first time; a fresh code every time after."""
+        s, api, pay = self._state(), self._account(), self.offer().get("pay")
+        if not s.get("house") or not api: return None
+        acct = s.get("account") or {}
+        named = {"name": s["house"], "home": self.hub.settings.get("home_name") or ""}
+        if acct.get("api") == api and acct.get("token"):
+            code, body = self.fetch("POST", f"{api}/v1/hub/code", named, secret=acct["token"])
+        else:
+            code, body = self.fetch("POST", f"{api}/v1/hubs", named)
+            if code == 200 and body and SECRET.match(str(body.get("hub_token", "")).removeprefix("hb_")):
+                s["account"] = {"api": api, "token": body["hub_token"]}
+                self._save(s)
+        if code != 200 or not body or not body.get("code"): raise Unreachable("The payment page is not answering right now. Try again in a while.")
+        self._paying_until = self.now() + 3600
+        return f"{pay}{'&' if '?' in pay else '?'}{urllib.parse.urlencode({'c': body['code']})}"
+
+    def carry(self) -> bool:
+        """Ask the account for a ticket and take it to the relay. False, quietly, when nothing is paid or nobody answers."""
+        s = self._state()
+        acct = s.get("account") or {}
+        if not s.get("house") or not acct.get("token"): return False
+        self._tried = self.now()
+        try:
+            code, body = self.fetch("POST", f"{acct['api']}/v1/hub/ticket", {}, secret=acct["token"])
+            if code != 200 or not body or not body.get("ticket"): return False
+            code, _ = self.fetch("POST", f"/houses/{s['house']}/carry", {"ticket": body["ticket"]}, secret=s["secret"])
+        except Unreachable:
+            return False
+        if code == 200: self._status = self._paid = None
+        return code == 200
+
+    def renew(self) -> bool:
+        """Every few hours from the hub's own loop: a ticket once the name is carried for less than RENEW_BEFORE."""
+        s = self._state()
+        if not s.get("house") or not (s.get("account") or {}).get("token"): return False
+        until = self.status().get("entitled_until") or 0
+        return until - self.now() < RENEW_BEFORE and self.carry()
+
+    def paid(self) -> dict:
+        """Who pays, how much and until when, as the account says: for This hub. Cached for ten minutes."""
+        acct = self._state().get("account") or {}
+        if not acct.get("token"): return {}
+        if self._paid and self.now() - self._paid[0] < PAID_EVERY: return self._paid[1]
+        try: code, body = self.fetch("GET", f"{acct['api']}/v1/hub", secret=acct["token"])
+        except Unreachable: return self._paid[1] if self._paid else {}
+        plan = (body or {}).get("plan") or {}
+        out = {"payer": body.get("payer"), "price": plan.get("price"), "paid_until": plan.get("until"),
+               "cancels": bool(plan.get("cancels"))} if code == 200 and body else {}
+        self._paid = (self.now(), out)
+        return out
 
     def status(self) -> dict:
         """What the service says about this house: carried or not, and until when. Cached for a minute."""
@@ -220,6 +293,8 @@ class Address:
         except ValueError: done = {}
         out = {"offer": self.offer(), "guess": first_guess(self.hub.settings.get("home_name")), "house": s.get("house")}
         if s.get("house"):
+            if self.now() < self._paying_until and self.now() - self._tried >= CARRY_WAITING and not self.status().get("carried"):
+                self.carry()      # somebody may have just paid on their phone: the wall moves on without waiting for the day's ticket
             out |= {"address": f"{s['house']}.{s['zone']}", "want": s.get("want"), "on": done.get("on") is True and done.get("house") == s["house"],
-                    "waiting": REQUEST.exists(), **self.status()}
+                    "waiting": REQUEST.exists(), **self.status(), "paid": self.paid() or None}
         return out

@@ -928,7 +928,12 @@ export type AddressState = {
   offer: Offer; guess: string; house: string | null
   address?: string; want?: 'on' | 'off'; on?: boolean; waiting?: boolean
   carried?: boolean; held_until?: number | null; entitled_until?: number | null; lost?: boolean
+  /** Who pays from their Elyir account (the email, masked), how much, and until when. Null until somebody has. */
+  paid?: Paid | null
+  /** Only in the answer to taking an address: the payment page the wall's code opens, with a code that runs out. */
+  pay?: string | null
 }
+export type Paid = { payer: string | null; price: string | null; paid_until: number | null; cancels: boolean }
 export type NameLook = { name: string; free: boolean; address?: string; why?: string; suggestions?: string[] }
 export async function getAddress(): Promise<AddressState> { const r = await request('/address'); if (!r.ok) await fail(r); return r.json() }
 export async function lookAddress(name: string): Promise<NameLook> {

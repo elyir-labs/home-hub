@@ -882,7 +882,8 @@ export function createHouse({ env = {}, qr = null } = {}) {
       const offer = env.OUTSIDE === 'closed' ? { open: false, price: null, pay: null } : env.OUTSIDE === 'hand' ? { open: true, price: null, pay: null, by_hand: true } : { open: true, price: '$3 a month', pay: 'https://pay.example/start' }
       if (!mockAddress.house) return json(res, { offer, guess: 'jordan', house: null })
       const carried = Date.now() - mockAddress.claimedAt > 6000
-      return json(res, { offer, guess: 'jordan', house: mockAddress.house, address: `${mockAddress.house}.elyir.app`, want: mockAddress.want, on: carried, waiting: false, carried, held_until: null, entitled_until: carried ? Date.UTC(2027, 9, 1) / 1000 : null })
+      return json(res, { offer, guess: 'jordan', house: mockAddress.house, address: `${mockAddress.house}.elyir.app`, want: mockAddress.want, on: carried, waiting: false, carried, held_until: null, entitled_until: carried ? Date.UTC(2027, 9, 1) / 1000 : null,
+        paid: carried && offer.pay ? { payer: 't•••i@example.com', price: '$3 a month', paid_until: Date.UTC(2026, 10, 1) / 1000, cancels: false } : null })
     }
     if (p.startsWith('/address/names/')) {
       const n = decodeURIComponent(p.slice('/address/names/'.length))
@@ -892,7 +893,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
       let name = ''; try { name = JSON.parse(b).name || '' } catch {}
       if (name === 'palace') { res.writeHead(409, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: { why: 'taken', suggestions: ['palace-house'] } })) }
       Object.assign(mockAddress, { house: name, claimedAt: Date.now(), want: 'on' })
-      json(res, { offer: { open: true, price: '$3 a month', pay: 'https://pay.example/start' }, guess: 'jordan', house: name, address: `${name}.elyir.app`, want: 'on', carried: false })
+      json(res, { offer: { open: true, price: '$3 a month', pay: 'https://pay.example/start' }, guess: 'jordan', house: name, address: `${name}.elyir.app`, want: 'on', carried: false, pay: 'https://pay.example/start?c=hc_mock' })
     }) }
     if ((p === '/address/on' || p === '/address/off') && req.method === 'POST') { mockAddress.want = p.endsWith('on') ? 'on' : 'off'; return json(res, { offer: { open: true, price: '$3 a month', pay: null }, guess: 'jordan', house: mockAddress.house, address: `${mockAddress.house}.elyir.app`, want: mockAddress.want, carried: true, on: mockAddress.want === 'on', entitled_until: Date.UTC(2027, 9, 1) / 1000 }) }
     /* The house's own address and a phone that has not moved to it yet (design/away/, C). ADDRESS=1 gives the house

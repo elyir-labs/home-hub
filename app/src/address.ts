@@ -47,13 +47,12 @@ export function price(offer: Offer): { amount: string; rest: string } | null {
 export const takeWords = (offer: Offer, where: Shell | null = null) =>
   !offer.pay ? 'Give it this address' : where ? `Continue in ${browserFor(where)}` : 'Continue on your phone'
 
-/** Where the phone pays, for the QR code: the payment page, told which house. */
-export const payUrl = (offer: Offer, house: string) => offer.pay ? `${offer.pay}${offer.pay.includes('?') ? '&' : '?'}house=${encodeURIComponent(house)}` : null
-
 // In UTC: an entitlement ends at midnight UTC on the day it was granted to, and reading it locally moved it a day early west of London.
 const day = (ts: number) => new Date(ts * 1000).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 
-/** The row on This hub, once the house has an address: what it is, how it is, and the one thing to do. */
+/** The row on This hub, once the house has an address: what it is, how it is, and the one thing to do. Who pays is
+    the Elyir account's (design/account/, B), by its masked email: the wall is shared, and a name is not something the
+    account has. */
 export function outsideRow(a: AddressState | null | undefined): { value: string; sub: string; action: 'Turn off' | 'Turn on' } | null {
   if (!a?.house || !a.address) return null
   const off = a.want === 'off'
@@ -63,6 +62,7 @@ export function outsideRow(a: AddressState | null | undefined): { value: string;
   else if (off) sub = 'The web address is kept. Turn it on again whenever you like.'
   else if (a.waiting || (!a.on && a.carried)) sub = 'Getting the web address ready — about a minute.'
   else if (!a.carried) sub = a.offer.by_hand ? 'We are turning it on.' : 'Waiting for the payment to go through.'
+  else if (a.paid?.payer && a.paid.paid_until) sub = `${a.paid.price ? `${a.paid.price} ` : ''}from the Elyir account ${a.paid.payer} · ${a.paid.cancels ? 'ends' : 'next'} on ${day(a.paid.paid_until)}. If it ever stops, everything at home carries on as it is.`
   else sub = a.entitled_until ? `${a.offer.by_hand ? 'Free' : 'Paid up'} until ${day(a.entitled_until)}. If it ever stops, everything at home carries on as it is.` : 'On.'
   return { value, sub, action: off ? 'Turn on' : 'Turn off' }
 }
