@@ -229,7 +229,8 @@ class Phones:
 
     # ---- being told things while away from a screen (docs/messages.md, step 5) ----
     # {subscription, vapid: {publicKey, privateKey}, tz, since}: the phone's own key, the same one it hands every
-    # house it has joined (docs/apps.md, Decided), so it lives on the record and Remove takes it.
+    # house it has joined (docs/apps.md, Decided), so it lives on the record and Remove takes it. A phone in the
+    # store app keeps {apns: {token, env, p256dh, auth}, tz, since} instead: the key the house seals to.
     def set_push(self, phone_id: str, push: dict | None) -> dict:
         p = self.get(phone_id)
         if not p: raise KeyError("No such phone.")

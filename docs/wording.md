@@ -155,6 +155,7 @@ screen change, and so a board of its own, rather than a sentence.
 | `SharePage.vue`, `brain/hub/api.py` | "Running the installer again adds one" | Not something a household can do |
 | `brain/hub/health.py` | "Ring needs signing in again." | NOT WORDS: no button on Needs a look, while an account's sign-in has one |
 | `PowerPane.vue`, `app/src/power.ts` — the house's power | "5.8 kW from the sun", "24.6 kWh" | *kW* and *kWh*: what every solar household reads in the Tesla app, and units a new household member has never had to know. The band's lines avoid them; the pane does not |
+| `app/src/store.ts`, `brain/hub/assistant.py` — the All off scene | "Lights off and media paused" | *media*: a word from the engine, not the house. Say what it is: "Lights and music off" (`design/music/`, A, 20 October 2026) |
 
 Add to this table whenever a word stops you, rather than fixing it in passing. Each area's pass starts
 from this list and then reads every screen and every sentence the brain says in it, since most of what

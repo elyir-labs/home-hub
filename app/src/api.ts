@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { request, plainError } from './code'
+import type { MusicItem } from './music'
 import { apiUrl, withToken, wsProtocols, wsUrl } from './door'
 /* `capability` is the driver's word for what this is and it picks the Home Assistant service; `kind` is
    the owner's, where they have given one. Read the two together through cap() in store.ts, never the raw
@@ -788,6 +789,19 @@ export type Sound = { id: string; name: string; ready: boolean }
 export async function getSounds(): Promise<{ sounds: Sound[]; folder: string }> {
   const r = await request('/sounds'); if (!r.ok) await fail(r); return r.json()
 }
+/* Music in every room (hub/music.py, design/music/). */
+export type MusicRoom = { id: string; name: string; here: boolean; playing: string | null }
+export type MusicCatalog = { ready: boolean; again: MusicItem[]; radio: MusicItem[]; own: MusicItem[]; rooms: MusicRoom[]; again_by_room: Record<string, MusicItem[]> }
+export async function getMusic(room?: string | null): Promise<MusicCatalog> {
+  const r = await request(`/music${room ? `?room=${encodeURIComponent(room)}` : ''}`); if (!r.ok) await fail(r); return r.json()
+}
+export async function findMusic(q: string): Promise<MusicItem[]> {
+  const r = await request(`/music/find?q=${encodeURIComponent(q)}`); if (!r.ok) await fail(r); return (await r.json()).items
+}
+export const playMusic = (item: MusicItem, rooms: string[], everywhere = false) => post<{ ok: true; rooms: string[] }>('/music/play', { item, rooms, everywhere })
+export const joinMusic = (room: string, into: string) => post('/music/join', { room, into })
+export const leaveMusic = (room: string) => post('/music/leave', { room })
+export const stopMusic = (rooms: string[]) => post('/music/stop', { rooms })
 export const approveDraft = (id: string) => post<Routine>(`/drafts/${encodeURIComponent(id)}/approve`)
 export async function discardDraft(id: string) {
   const r = await request(`/drafts/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (!r.ok) await fail(r)
