@@ -7,5 +7,6 @@ mosquitto/log/
 zigbee2mqtt/*
 !zigbee2mqtt/configuration.yaml
 brain-data/
+music-data/
 mosquitto/config/passwd
 lan-cert/data/

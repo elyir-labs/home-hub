@@ -50,6 +50,10 @@ NOT_DISCOVERY = {None, "user", "import"} | SIGN_IN
 # so HA stops making them. Z-Wave is only hidden: the hub's own Z-Wave entry is a zwave_js one.
 RADIOS = {"zha", "zwave_js", "homeassistant_sky_connect", "homeassistant_connect_zbt2", "homeassistant_hardware", "homeassistant_yellow"}
 IGNORE_RADIOS = RADIOS - {"zwave_js"}
+# The hub's own music engine (hub/music.py) is set up by the brain and signed in again by it. HA sees it on the
+# network and offers it, and asks for its sign-in again once a year; neither is a person's business. Hidden, never
+# ignored: an ignored entry would stand in the way of the one the brain makes.
+OWN = {"music_assistant"}
 
 # integration kinds that are devices or hubs for devices, not helpers, not virtual aliases, not internals
 KINDS = {"hub", "device", "service"}
@@ -124,14 +128,14 @@ class Onboarding:
             if r["handler"] not in IGNORE_RADIOS: continue
             try: await self.hub.ha.send("config_entries/ignore_flow", flow_id=r["flow_id"], title=r["title"])
             except Exception as e: log.warning("could not tell HA to stop offering %s: %s", r["title"], e)
-        return [r for r in rows if r["handler"] not in RADIOS]
+        return [r for r in rows if r["handler"] not in RADIOS | OWN]
 
     async def sign_ins(self) -> list[dict]:
         """Accounts waiting for a person: the sign-in ran out, or the maker changed what it needs.
 
         HA opens a flow of its own when a token dies. It is the same conversation the panel already draws
         for adding the account, minus the parts it still remembers, so it needs no screen of its own."""
-        return await self._flows(lambda source: source in SIGN_IN)
+        return [r for r in await self._flows(lambda source: source in SIGN_IN) if r["handler"] not in OWN]
 
     async def catalog(self) -> list[dict]:
         """Everything that can be added by hand, for the search box."""

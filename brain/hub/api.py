@@ -33,6 +33,7 @@ from .backup import Backup
 from .network import Network
 from .restart import Restart
 from .sounds import Sounds, DIR as SOUNDS_DIR
+from .music import Music, MusicError
 from .commands import Commands, NotUnderstood, refusal_aloud
 from .voice import Voice
 from .suggest import Suggestions
@@ -159,6 +160,7 @@ class Hub:
         self.restart = Restart(self)                   # turning it off and on again, at the smallest rung that could help
         self.address = Address(self)                   # the house's own name outside, and the switch for it: hub/address.py
         self.sounds = Sounds(self)                     # noise and rain on a speaker, looped here, with a sleep timer
+        self.music = Music(self)                       # radio and the household's own music, on any speaker the engine reaches
         self.commands = Commands(self)                 # plain words into moves, by a fixed grammar first and the assistant after
         self.voice = Voice(self)                       # the same answers, said out loud -- inert until a hub has an engine
         self.suggest = Suggestions(self)               # names and rooms for things not placed yet; proposes, never moves
@@ -170,6 +172,7 @@ class Hub:
         self._tick_task = self._drivers_task = None
         self._wake = asyncio.Event()
         self._rebuild_task = None
+        self._music_task = None
         self._loop_task = None
         self._loop: asyncio.AbstractEventLoop | None = None   # the server's loop, for broadcasts from worker threads
         self.roofline._fold()                          # the boxes folded into the roofline's one tile, before the first build
@@ -279,6 +282,7 @@ class Hub:
         self._set("ready")
         asyncio.create_task(self.provision.refresh())   # look at the driver layer now, not at the next half-minute
         asyncio.create_task(self.sounds.ensure())        # the generated noises, once
+        if not self._music_task or self._music_task.done(): self._music_task = asyncio.create_task(self._keep_music())   # the music engine, set up unseen
         asyncio.create_task(self.bridge.watch())         # what appears on the USB from now on
         asyncio.create_task(self.bridge.firmware.watch())   # a build parked by tools/dev.sh puck
         asyncio.create_task(self.strip.listen())         # the strips the house already has
@@ -287,6 +291,13 @@ class Hub:
         self._broadcast(json.dumps({"type": "ambient", "ambient": self.ambient()}))
         self.power_changed(force=True)
         log.info("home: %d rooms, %d devices, weather=%s", len(self.home.rooms), len(self.home.devices), self.weather and self.weather["id"])
+
+    async def _keep_music(self):
+        """The music engine comes up on its own clock, so it is looked for until it answers and then twice a day,
+        which is what catches its yearly key running out before anybody reaches for a speaker."""
+        while self.driver == "ready":
+            state = await self.music.ensure()
+            await asyncio.sleep(12 * 3600 if state == "ready" else 60)
 
     def ready(self):
         if self.driver != "ready": raise HTTPException(503, "The hub is still starting.")
@@ -2709,6 +2720,79 @@ async def sounds():
     Asking also starts preparing any new file, so a fresh rain.mp3 is looped and ready by the time someone taps it."""
     hub.sounds.prepare_soon()
     return {"sounds": hub.sounds.catalog(), "playing": {k: hub.sounds.describe(k) for k in hub.sounds.sessions}, "folder": str(SOUNDS_DIR)}
+
+
+# ---------- music ----------
+def _music_rooms(room: str | None) -> list[dict]:
+    playing = {}
+    for d in hub.home.devices.values():
+        if d.id in hub.home.players and d.state in ("playing", "paused") and d.attrs.get("media_title"): playing.setdefault(d.room_id, d.attrs["media_title"])
+    rooms = [hub.home.rooms[r] for r in hub.music.rooms() if r in hub.home.rooms]
+    rooms.sort(key=lambda r: (r.id != room, r.name))
+    return [{"id": r.id, "name": r.name, "here": r.id == room, "playing": playing.get(r.id)} for r in rooms]
+
+
+@app.get("/music")
+async def music(room: str | None = None):
+    """The pane's two sides (design/music/RoomA): what to play -- again, radio, the household's own -- and where, this room
+    first. `again` is every room's last two, for the speakers' cards."""
+    hub.ready()
+    out = await hub.music.catalog(room)
+    return {**out, "rooms": _music_rooms(room), "again_by_room": {r: hub.music.again(r) for r in hub.music.rooms()}}
+
+
+@app.get("/music/find")
+async def music_find(q: str = ""):
+    hub.ready()
+    try: return {"items": await hub.music.find(q)}
+    except MusicError as e: raise HTTPException(409, str(e))
+    except Exception as e: raise HTTPException(502, f"The music could not be searched: {e}")
+
+
+def _music_item(body: dict) -> dict:
+    it = (body or {}).get("item") or {}
+    if not isinstance(it, dict) or not it.get("uri") or not it.get("name") or it.get("kind") not in ("radio", "playlist", "album", "track", "artist"):
+        raise HTTPException(400, "Say what to play.")
+    return {k: it.get(k) for k in ("uri", "name", "kind", "by", "art")}
+
+
+@app.post("/music/play")
+async def music_play(body: dict):
+    """{"item": {...}, "rooms": [room ids]} or "everywhere": true. The first room leads; the rest play in step with it."""
+    hub.ready()
+    item = _music_item(body)
+    rooms = hub.music.rooms() if body.get("everywhere") else [r for r in body.get("rooms") or [] if isinstance(r, str)]
+    if not rooms: raise HTTPException(400, "Say which room.")
+    try: return {"ok": True, **await hub.music.play(item, rooms)}
+    except MusicError as e: raise HTTPException(409, str(e))
+    except Exception as e: raise HTTPException(502, f"The speaker did not take it: {e}")
+
+
+@app.post("/music/join")
+async def music_join(body: dict):
+    """{"room": the room to add, "into": the room whose music it joins}."""
+    hub.ready()
+    try: await hub.music.join(str(body.get("room") or ""), str(body.get("into") or ""))
+    except MusicError as e: raise HTTPException(409, str(e))
+    except Exception as e: raise HTTPException(502, f"The speaker did not take it: {e}")
+    return {"ok": True}
+
+
+@app.post("/music/leave")
+async def music_leave(body: dict):
+    hub.ready()
+    try: await hub.music.leave(str(body.get("room") or ""))
+    except MusicError as e: raise HTTPException(409, str(e))
+    except Exception as e: raise HTTPException(502, f"The speaker did not take it: {e}")
+    return {"ok": True}
+
+
+@app.post("/music/stop")
+async def music_stop(body: dict):
+    hub.ready()
+    rooms = hub.music.rooms() if body.get("everywhere") else [r for r in body.get("rooms") or [] if isinstance(r, str)]
+    try: return {"ok": True, "devices": [d.id for d in await hub.music.stop(rooms)]}
+    except MusicError as e: raise HTTPException(409, str(e))
 
 
 # ---------- health ----------

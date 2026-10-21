@@ -596,6 +596,14 @@ tiers() {
   cp "$t" "$d/"; echo "HOST_PINNED=1" > "$d/.env"; echo "HOST_TIER=small" >> "$d/.env"
   "$d/host-tier.sh" >/dev/null 2>&1
   is "a pinned hub keeps what somebody wrote" "$(grep -c '^HOST_' "$d/.env")" "2"
+  printf 'HOST_PINNED=1\nHOST_CAN=music,films\nCOMPOSE_PROFILES=zigbee,voice\n' > "$d/.env"
+  "$d/host-tier.sh" >/dev/null 2>&1
+  is "music runs where the house can play it, beside the radios and the voice" "$(grep '^COMPOSE_PROFILES=' "$d/.env")" "COMPOSE_PROFILES=zigbee,voice,music"
+  "$d/host-tier.sh" >/dev/null 2>&1
+  is "...once, however often it is measured" "$(grep '^COMPOSE_PROFILES=' "$d/.env")" "COMPOSE_PROFILES=zigbee,voice,music"
+  printf 'HOST_PINNED=1\nHOST_CAN=films\nCOMPOSE_PROFILES=music\n' > "$d/.env"
+  "$d/host-tier.sh" >/dev/null 2>&1
+  is "...and stops where it cannot, leaving none rather than nothing" "$(grep '^COMPOSE_PROFILES=' "$d/.env")" "COMPOSE_PROFILES=none"
   rm -rf "$d"
 }
 
