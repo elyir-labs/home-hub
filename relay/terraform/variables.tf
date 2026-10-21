@@ -126,3 +126,44 @@ variable "relay_offer_open" {
   type        = bool
   default     = false
 }
+
+variable "apns_key" {
+  description = <<-EOT
+    The sender's key for Apple's push service (relay/service/push.py): the whole .p8 file Apple hands out once,
+    BEGIN and END lines included. It signs every notification the store app is sent, so it lives only in the
+    operator's gitignored terraform.tfvars and on the box in a file only the service reads. Empty, the default,
+    leaves the sender off: it answers 503 and every house keeps its phones for when it is on.
+  EOT
+  type        = string
+  default     = ""
+  sensitive   = true
+
+  validation {
+    condition     = var.apns_key == "" || strcontains(var.apns_key, "BEGIN PRIVATE KEY")
+    error_message = "apns_key must be the .p8 file's contents, starting -----BEGIN PRIVATE KEY-----, or empty."
+  }
+}
+
+variable "apns_key_id" {
+  description = "The ten-character id Apple shows beside that key."
+  type        = string
+  default     = ""
+  sensitive   = true
+
+  validation {
+    condition     = var.apns_key_id == "" || can(regex("^[A-Z0-9]{10}$", var.apns_key_id))
+    error_message = "apns_key_id is ten capital letters and digits, or empty."
+  }
+}
+
+variable "apns_team_id" {
+  description = "The Apple developer team the key belongs to: ten characters, from the developer account's membership page."
+  type        = string
+  default     = ""
+  sensitive   = true
+
+  validation {
+    condition     = var.apns_team_id == "" || can(regex("^[A-Z0-9]{10}$", var.apns_team_id))
+    error_message = "apns_team_id is ten capital letters and digits, or empty."
+  }
+}
