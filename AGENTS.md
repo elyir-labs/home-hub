@@ -300,6 +300,14 @@ Do not reopen these, and do not propose around them.
   buttons, one quiet email box for anyone who wants one ready to plug in, writing to the one Elyir waitlist. Its
   pictures are the panel on the pretend house with `NAMES=plain` (`npm run site-shots`), never somebody else's show or
   brand. `site/`, pinned by `site/site.test.mjs`; made by `site/terraform/`, deployed by `.github/workflows/site.yml`.
+- **The Elyir account pays for a house's address, and the house belongs to it; nobody signs in to use the house**
+  (21 October, `design/account/`, B). It is the same account as Elyir Bench, at `account.elyir.com`. The code at the end
+  of the address step opens it instead of a bare payment page, and it pays the relay as a ticket payer beside Bench
+  Cloud, so the relay stays the only place that checks money. A house belongs to one or more accounts, which buys two
+  things only: getting back in when the code is forgotten -- a signed-in phone, at home only, said on the wall and told
+  to every phone that can change things -- and handing the house over when somebody moves out. A person in a house is
+  still a phone: phones at home and the wall never sign in, and the Houses app keeps its list without an account. On
+  the wall it is never called "Account", which is already the page for the services the house signed into. Not built yet.
 
 ---
 
