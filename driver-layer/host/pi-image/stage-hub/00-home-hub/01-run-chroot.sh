@@ -8,7 +8,10 @@
 REF="${HOME_HUB_REF:-main}"
 REPO="${HOME_HUB_REPO:-https://github.com/elyir-labs/home-hub.git}"
 
-git clone --depth 1 --branch "$REF" "$REPO" /opt/home-hub
+# Without design/ and site/, the same list as trim_checkout in install.sh.
+git clone --depth 1 --filter=blob:none --no-checkout --branch "$REF" "$REPO" /opt/home-hub
+git -C /opt/home-hub sparse-checkout set --no-cone '/*' '!/design/' '!/site/'
+git -C /opt/home-hub reset -q --hard
 chmod +x /opt/home-hub/install.sh /opt/home-hub/driver-layer/radios.sh /opt/home-hub/driver-layer/host/firstboot.sh
 
 # get.docker.com ends by starting the daemon, which cannot happen in a chroot; the packages are what matter.
