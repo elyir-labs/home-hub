@@ -303,6 +303,10 @@ if ! PULLED="$(docker compose pull -q --ignore-buildable 2>&1)"; then
 fi
 if PULL="$(docker compose pull -q brain 2>&1)"; then
   echo "  brain image: $(docker image inspect "${HUB_BRAIN_IMAGE:-ghcr.io/elyir-labs/home-hub-brain:latest}" --format '{{index .RepoDigests 0}}' 2>/dev/null | cut -d@ -f2 | cut -c1-19)"
+elif [ -n "${HUB_BRAIN_IMAGE:-}" ] && docker image inspect "$HUB_BRAIN_IMAGE" >/dev/null 2>&1; then
+  # A flashed image brought this brain with it (firstboot.sh loaded it), and a branch's brain may not be published
+  # yet. Building it again here took longer than anybody would wait in front of the splash.
+  echo "  the registry doesn't have $HUB_BRAIN_IMAGE; using the copy this image brought"
 else
   case "$PULL" in
     *denied*|*unauthorized*|*401*|*403*) echo "  the published brain image is not public (GitHub package visibility); building it here from the code above, which takes a few minutes" ;;
