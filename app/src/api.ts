@@ -181,6 +181,9 @@ export type NetState = {
   stale?: true                             // the host's picture has not been refreshed lately
   moving?: { ssid: string; since: number }  // the hub is being moved right now, and the host is watching it
   reverted?: string                        // ...and one did not take, so this is the name that failed
+  reverted_why?: 'password' | 'unreachable' // ...and why, when the router said
+  setup?: { ssid: string; both: boolean }   // the hub's own Wi-Fi is up, for a phone to set it up from (design/setup-network/)
+  joined?: string                          // ...and the house's Wi-Fi it joined from there, before it goes
   bridges: { ssid: string; checked: boolean; known: boolean; count: number }
   bridges_moving?: NetMove | null          // the pucks' journey; `moving` above is the hub's own
 }
@@ -194,6 +197,16 @@ export type NetMove = {
   waiting?: string[]
   late?: string[]
 }
+/* What the hub runs from, and the drive beside it (design/move-to-drive/). `ask` is first run's question;
+   `drive` is the one with something on it. The host checks every move again (driver-layer/host/drive.sh). */
+export type Drive = { name: string; serial: string; model: string; bytes: number; empty: boolean; system: string | null; used: number | null; last: number | null }
+export type DriveState = { from: 'stick' | 'drive' | 'unknown'; drives: Drive[]; drive: Drive | null; ask: boolean; kept: boolean; moved: boolean; moving: boolean; refused?: string | null; failed?: string | null }
+export async function getDrive(): Promise<DriveState> {
+  const r = await request('/drive'); if (!r.ok) await fail(r); return r.json()
+}
+export const moveToDrive = (name: string, serial: string) => post<DriveState>('/drive/move', { name, serial })
+export const keepDrive = () => post<DriveState>('/drive/keep')
+export const driveSeen = () => post<DriveState>('/drive/seen')
 export type SeenNetwork = { ssid: string; signal?: 'strong' | 'ok' | 'faint'; band?: string | null; secure: boolean }
 export async function getNetwork(): Promise<NetState> {
   const r = await request('/network'); if (!r.ok) await fail(r); return r.json()

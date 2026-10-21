@@ -31,6 +31,7 @@ from .happened import Happened, Changes
 from .healed import Healed
 from .backup import Backup
 from .network import Network
+from .drive import Drive
 from .restart import Restart
 from .sounds import Sounds, DIR as SOUNDS_DIR
 from .music import Music, MusicError
@@ -52,7 +53,7 @@ from .share import Share
 from .nightlight import Nightlight
 from .ears import Ears
 from .relay import Relay
-from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, away_refused, away_refusal
+from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, from_setup, SETUP_OPEN, away_refused, away_refusal
 from .pusher import NEEDS_ADDRESS as PUSH_NEEDS_ADDRESS, Pusher, checked as push_checked
 from . import camera
 
@@ -141,6 +142,7 @@ class Hub:
         self.power = Power()               # the sun on the roof, the battery and the grid: hub/power.py
         self._power_sent: tuple[float, tuple | None] = (0.0, None)
         self.net = Network(self)           # how this hub is connected, and what it hands out: docs/network.md
+        self.drive = Drive(self)           # what it runs from, and the drive beside it: design/move-to-drive/
         self.share = Share(self)           # what this house lets a Matter bridge publish: docs/matter.md
         self.share_status: dict = {}       # what the bridge last said about itself (pairing codes, who holds it)
         self.relay = Relay(self)           # two switches on one light: the hub carries the press across
@@ -790,7 +792,10 @@ async def settings_lock(request: Request, call_next):
     """
     request.state.phone = None
     request.state.away = from_away(request.headers)   # off the Wi-Fi, or in through the relay: docs/away.md piece 2
+    request.state.setup = from_setup(request.headers)  # on the hub's own setup Wi-Fi: docs/network.md piece 5
     m, path = request.method, request.url.path
+    if request.state.setup and ((m, path) in SETUP_OPEN or open_to_strangers(m, path)):
+        return await call_next(request)
     phone = hub.phones.identify(_phone_token(request)) if hub.lock.locked else None
     # Who is asking, for anything this request writes down. Set before call_next so the copy the
     # endpoint's task starts with has it, and only ever read for source="user" (events.py). A house
@@ -1904,7 +1909,9 @@ async def network_hub(body: dict, request: Request):
     reached. Doing it the other way round would mean the hub changing networks and only then
     discovering it can no longer tell anybody.
     """
-    hub.ready()
+    # From the setup Wi-Fi the house may not have started yet -- it may have nothing to start with --
+    # and the one thing being asked is which Wi-Fi to use, which needs nothing from it.
+    if not getattr(request.state, "setup", False): hub.ready()
     if request.state.away:
         # The one refusal this design makes that restarting does not. A restart away from home is
         # caught by a watchdog on the machine; a wrong network away from home can be right and still
@@ -1912,10 +1919,39 @@ async def network_hub(body: dict, request: Request):
         raise HTTPException(403, "Changing the network has to be done in the house.")
     ssid, password = str(body.get("ssid") or ""), str(body.get("password") or "")
     try:
-        if sum(1 for p in hub.bridge.pucks.values() if p.get("online")):
+        if hub.driver == "ready" and sum(1 for p in hub.bridge.pucks.values() if p.get("online")):
             await hub.bridge.move(ssid, password)
         return hub.net.join(ssid, password)
     except ValueError as e: raise HTTPException(400, str(e))
+
+
+# ---------------------------------------------------------------- the drive beside a hub on a USB stick
+#
+# design/move-to-drive/. Looking is open; moving erases a drive, so it is a change to the house (lock.py), and
+# it is never done from away, where nobody can see which computer it is.
+
+
+@app.get("/drive")
+def drive_state():
+    return hub.drive.state()
+
+
+@app.post("/drive/move")
+def drive_move(body: dict, request: Request):
+    if request.state.away:
+        raise HTTPException(403, "Moving the hub onto its drive has to be done in the house.")
+    try: return hub.drive.move(str(body.get("name") or ""), str(body.get("serial") or ""))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.post("/drive/keep")
+def drive_keep():
+    return hub.drive.keep()
+
+
+@app.post("/drive/seen")
+def drive_seen():
+    return hub.drive.seen()
 
 
 @app.post("/network/done")

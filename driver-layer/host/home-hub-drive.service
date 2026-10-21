@@ -1,0 +1,14 @@
+# Runs drive.sh: once each boot, to describe what the hub runs from and the drive beside it, and once per
+# request from the panel to move onto that drive. Started by home-hub-drive.path, and at boot.
+[Unit]
+Description=Home Hub: what this hub runs from, and the drive beside it
+After=local-fs.target home-hub-move.service
+
+[Service]
+Type=oneshot
+Environment=HOME_HUB_DIR=/opt/home-hub
+ExecStart=/opt/home-hub/driver-layer/host/drive.sh
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target

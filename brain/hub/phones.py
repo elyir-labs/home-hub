@@ -293,7 +293,7 @@ NOT_THE_APP = {"/openapi.json"}
 
 
 # ---- how a request reached the house ----
-VIA, AWAY = "x-hub-via", "relay"
+VIA, AWAY, SETUP = "x-hub-via", "relay", "setup"
 
 
 def from_away(headers) -> bool:
@@ -308,6 +308,22 @@ def from_away(headers) -> bool:
     Nothing is refused on the strength of this yet; step 2 in docs/away.md is the gate that reads it.
     """
     return (headers.get(VIA) or "").strip().lower() == AWAY
+
+
+def from_setup(headers) -> bool:
+    """Did this request come from a phone on the hub's own setup Wi-Fi?
+
+    Only Caddy's catch-all for that Wi-Fi's addresses stamps it, and every other door deletes or replaces
+    the header, so it cannot be claimed from the house's Wi-Fi or from away. Being on that Wi-Fi means
+    holding the password printed under the hub, which is the same proof a button press on the thing is
+    (docs/network.md, piece 5).
+    """
+    return (headers.get(VIA) or "").strip().lower() == SETUP
+
+
+# What a phone on the setup Wi-Fi may do without the house's passcode: see the hub's network, look
+# around, and give it the house's Wi-Fi. Nothing else -- the house itself is not open to it.
+SETUP_OPEN = {("GET", "/network"), ("POST", "/network/scan"), ("POST", "/network/hub")}
 
 
 # ---- and what may pass from outside it ----

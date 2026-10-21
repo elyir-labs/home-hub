@@ -10,6 +10,9 @@ import Restore from './Restore.vue'
 import AdvancedLink from './AdvancedLink.vue'
 import Drivers from './Drivers.vue'
 import NetworkSheet from './NetworkSheet.vue'
+import DriveSheet from './DriveSheet.vue'
+import { getDrive, type DriveState } from './api'
+import { rowLine } from './drive'
 import { getAddress, turnAddress, type AddressState } from './api'
 import { outsideRow } from './address'
 import BridgeCard from './BridgeCard.vue'
@@ -19,6 +22,10 @@ import { locale, languageName, LANGUAGES } from './lang'
 /* This hub: which build it is, whether a newer one exists, a backup to take away and a way to put one back.
    The phones that belong to the house are on the People page: they are about who, not about this computer. */
 const update = computed(() => store.status?.update ?? null)
+/* Running from the USB stick, by choice (design/move-to-drive/): the first row until the hub is on its drive. */
+const drive = ref<DriveState | null>(null)
+const driveOpen = ref(false)
+getDrive().then(s => (drive.value = s)).catch(() => {})
 const busy = ref(false)
 async function backup() {
   if (busy.value) return
@@ -244,6 +251,11 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
     <p class="page-lede">The small computer running the house. It looks after itself; this is where you check on it.</p>
 
     <ul class="hub-rows">
+      <li v-if="drive?.from === 'stick' && drive.drive">
+        <span class="hub-k">Runs from</span>
+        <span class="hub-v">The USB stick.<span class="hub-sub line">{{ rowLine(drive.drive) }}</span></span>
+        <button class="button small" @click="driveOpen = true">Move…</button>
+      </li>
       <li :class="{ asking: !!uask }">
         <span class="hub-k">Software</span>
         <template v-if="uask">
@@ -382,6 +394,7 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
 
     <AdvancedLink />
     <NetworkSheet v-if="netOpen" @close="closeNet" />
+    <DriveSheet v-if="driveOpen && drive" :state="drive" @close="driveOpen = false" />
     <BridgeCard v-if="opened" :bridge="opened" @close="open = null; loadBridges()" @changed="changed" />
   </div>
 </template>

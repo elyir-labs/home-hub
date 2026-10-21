@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Today: a cable first</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="setup-network.css">
+<style>
+  .board { position: relative; width: 1440px; height: 900px; overflow: hidden; color: var(--ink);
+           background: linear-gradient(#10131a, #0c0d10); }
+  .head { position: absolute; left: 64px; top: 56px; width: 1180px; }
+  .head h2 { margin: 10px 0 0; font-size: 40px; line-height: 1.08; letter-spacing: -.025em; font-weight: 400; }
+  .head p { margin: 12px 0 0; font-size: 17px; color: var(--ink-2); max-width: 70ch; }
+  .steps { position: absolute; left: 64px; right: 64px; top: 230px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+  .st { position: relative; min-height: 470px; border-radius: var(--r-md); background: rgba(26,28,34,.68); border: 1px solid var(--edge); padding: 18px 18px 16px; }
+  .st .n { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .st .pic { height: 170px; display: grid; place-items: center; margin: 12px 0 10px; color: var(--ink-2); }
+  .st b { display: block; font-size: 18px; font-weight: 500; line-height: 1.25; }
+  .st p { margin: 8px 0 0; font-size: 14px; color: var(--ink-2); line-height: 1.45; }
+  .st.hurt { border-color: rgba(var(--lamp-rgb), .45); }
+  .ouch { margin-top: 14px; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.4; color: var(--lamp); }
+  .ouch svg { margin-top: 1px; }
+  .arrow { position: absolute; top: 120px; right: -16px; width: 14px; color: var(--muted); z-index: 2; }
+  .foot2 { position: absolute; left: 64px; right: 64px; top: 740px; display: flex; gap: 14px; align-items: center; font-size: 15px; color: var(--ink-2); }
+  .foot2 .pill { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--edge); background: rgba(255,255,255,.04); white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="head">
+    <div class="cap">Today · how a hub is set up now</div>
+    <h2>A box with no screen starts with a cable to the router.</h2>
+    <p>Traced from install.sh, the Pi image&rsquo;s README and today&rsquo;s NUC install. Three of the five steps happen before the household sees a single word from us, and two of them need things a home may not have.</p>
+  </div>
+
+  <div class="steps">
+    <div class="st hurt">
+      <svg class="arrow" viewBox="0 0 14 14"><path d="M2 7h10M8 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      <div class="n">1 · Put the hub on it</div>
+      <div class="pic"><svg class="i" width="150" height="120" viewBox="0 0 150 120"><rect x="10" y="22" width="80" height="56" rx="5"/><path d="M38 90h24M50 78v12"/><rect x="100" y="66" width="44" height="18" rx="3"/><path d="M104 72h4M112 72h4M120 72h4M128 72h4M108 78h24"/><rect x="104" y="30" width="22" height="12" rx="2"/><path d="M126 36h12"/></svg></div>
+      <b>A borrowed keyboard and monitor</b>
+      <p>A NUC: write Ubuntu to a USB stick, install it, then paste the install command. A Pi: flash our image.</p>
+      <div class="ouch"><svg class="i" width="15" height="15" viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>Nobody we are building for owns a spare monitor, or will type a command.</div>
+    </div>
+    <div class="st hurt">
+      <svg class="arrow" viewBox="0 0 14 14"><path d="M2 7h10M8 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      <div class="n">2 · A cable to the router</div>
+      <div class="pic"><svg class="i" width="150" height="120" viewBox="0 0 150 120"><rect x="14" y="62" width="62" height="24" rx="4"/><path d="M26 62l-6-22M64 62l6-22"/><circle cx="26" cy="74" r="1.6"/><circle cx="34" cy="74" r="1.6"/><path d="M76 74c30 0 30 20 54 20"/><rect x="118" y="86" width="22" height="16" rx="3"/></svg></div>
+      <b>Next to the router, on a free port</b>
+      <p>The hub has no Wi&#8209;Fi until someone gives it one, and with no screen there is nowhere to type it.</p>
+      <div class="ouch"><svg class="i" width="15" height="15" viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>Routers live in closets, mesh pucks have one port or none, and the hub ends up where the cable reaches.</div>
+    </div>
+    <div class="st">
+      <svg class="arrow" viewBox="0 0 14 14"><path d="M2 7h10M8 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      <div class="n">3 · Wait</div>
+      <div class="pic"><svg class="i" width="150" height="120" viewBox="0 0 150 120"><rect x="35" y="40" width="80" height="40" rx="6"/><circle cx="50" cy="60" r="3" fill="currentColor"/><path d="M75 18v14M68 25l7 7 7-7"/></svg></div>
+      <b>The first start downloads the house</b>
+      <p>The engine and the brain are pulled from the internet on first boot. Nothing on the box says how far along it is.</p>
+    </div>
+    <div class="st hurt">
+      <svg class="arrow" viewBox="0 0 14 14"><path d="M2 7h10M8 3l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      <div class="n">4 · Find it</div>
+      <div class="pic"><svg class="i" width="150" height="120" viewBox="0 0 150 120"><rect x="52" y="14" width="46" height="92" rx="8"/><rect x="58" y="26" width="34" height="10" rx="3"/><path d="M62 31h20"/><circle cx="75" cy="66" r="10"/><path d="M75 60v6l4 3"/></svg></div>
+      <b>Type hub.local, and hope</b>
+      <p>On a phone or a laptop on the same network, once it is ready, which you find out by trying.</p>
+      <div class="ouch"><svg class="i" width="15" height="15" viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg>Some phones and routers never answer a .local name. Two hubs on one network can't both have it.</div>
+    </div>
+    <div class="st">
+      
+      <div class="n">5 · Welcome home.</div>
+      <div class="pic"><svg class="i" width="150" height="120" viewBox="0 0 150 120"><rect x="52" y="14" width="46" height="92" rx="8"/><rect x="62" y="34" width="14" height="14" rx="4"/><path d="M62 58h26M62 66h18"/><rect x="62" y="82" width="26" height="9" rx="4.5"/></svg></div>
+      <b>The first thing we wrote</b>
+      <p>Setup proper: names, a passcode, where home is, rooms. This part is drawn already, in design/setup/ and design/words-setup/, and is not what this collection changes.</p>
+    </div>
+  </div>
+
+  <div class="foot2">
+    <span>Both directions keep step 5 as it is, and remove 1 to 4:</span>
+    <span class="pill">the box arrives with the hub on it</span>
+    <span class="pill">the house is already downloaded</span>
+    <span class="pill">no cable, anywhere in the house</span>
+    <span class="pill">a phone finds it, not a typed name</span>
+  </div>
+</div>
+</body>
+</html>

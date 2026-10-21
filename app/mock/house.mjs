@@ -828,11 +828,13 @@ export function createHouse({ env = {}, qr = null } = {}) {
          NET=cable    the hub is on ethernet and eleven bridges are on a Wi-Fi it was told about
          NET=wifi     the hub is on the Wi-Fi too, and a change takes it with them
          NET=moved    the hub has moved and the password it holds is for somewhere else
+         NET=setup    the hub is on nothing, with its own Wi-Fi up; open ?wifi=1 (NET=setup-alone: a card that can't do both)
          NET=none     no host script at all ('unknown'): the row says so and offers two typed fields
          NET=off      a managed hub with a radio and nothing connected. Looks like 'none' and is the
                       opposite case: this one IS the hub that should be moved
        MOVE=moving|done|late pins a moment of the move instead of walking it. */
     if (p.startsWith('/network')) return network(p, req, res)
+    if (p.startsWith('/drive')) return driveRoute(p, req, res)
     /* A bridge being set up. BRIDGE=cable walks the whole job the way a real one does -- software,
        Wi-Fi, keys, then the walk to find it a socket -- so the sheet can be watched rather than
        described. BRIDGE=knocking|working|placing|ready|failed pins one moment instead. */
@@ -1203,6 +1205,26 @@ export function createHouse({ env = {}, qr = null } = {}) {
     return true
   }
 
+  /* ---- the drive beside a hub on its USB stick (design/move-to-drive/) ----------------------------
+     DRIVE=stick   running from the stick beside a drive with Ubuntu on it: first run asks, or This hub's row
+     DRIVE=kept    the same, already answered Keep, so only the row shows
+     DRIVE=moved   just moved onto the drive: first run says so once */
+  const DRIVE = env.DRIVE ?? ''
+  const UBUNTU = { name: 'nvme0n1', serial: 'S6P7NS0T', model: 'Samsung SSD 980 500GB', bytes: 500107862016, empty: false,
+                   system: 'Ubuntu 24.04', used: 61e9, last: Math.floor(Date.now() / 1000) - 90000 }
+  let driveKept = DRIVE === 'kept', driveSeenMoved = false
+  function driveState() {
+    if (DRIVE === 'moved') return { from: 'drive', drives: [], drive: null, ask: false, kept: false, moved: !driveSeenMoved, moving: false }
+    if (DRIVE === 'stick' || DRIVE === 'kept') return { from: 'stick', drives: [UBUNTU], drive: UBUNTU, ask: !driveKept, kept: driveKept, moved: false, moving: false }
+    return { from: 'drive', drives: [], drive: null, ask: false, kept: false, moved: false, moving: false }
+  }
+  function driveRoute(p, req, res) {
+    if (p === '/drive/keep') driveKept = true
+    if (p === '/drive/seen') driveSeenMoved = true
+    if (p === '/drive/move') return json(res, { ...driveState(), moving: true })
+    return json(res, driveState())
+  }
+
   /* ---- the network, and eleven bridges following it ---------------------------------------- */
   const NET = env.NET ?? 'cable'
   const ROOMS = ['Kitchen', 'Living room', 'Landing', 'Hallway', 'Back bedroom', 'Study',
@@ -1216,7 +1238,21 @@ export function createHouse({ env = {}, qr = null } = {}) {
     return { state: 'done', ssid: 'Downstairs', total: 11, followed: ROOMS }
   }
 
+  /* NET=setup is a hub on nothing with its own Wi-Fi up (design/setup-network/, A); NET=setup-alone is the
+     same on a card that can't do both. Joining takes three seconds; the password "wrong" is refused. */
+  let setupTry = null
+  function setupState() {
+    const s = { how: 'none', ip: '10.42.0.1', name: 'hub', can_change: true, managed: true,
+                bridges: { ssid: '', checked: false, known: false, count: 0 }, setup: { ssid: 'Elyir Hub 4F2A', both: NET === 'setup' } }
+    if (setupTry && Date.now() > setupTry.at) {
+      if (setupTry.ok) return { ...s, ip: '192.168.1.20', joined: setupTry.ssid }
+      return { ...s, reverted: setupTry.ssid, reverted_why: 'password' }
+    }
+    return s
+  }
+
   function netState() {
+    if (NET.startsWith('setup')) return setupState()
     // Mirrors bridge.wifi_for_pucks(): a hub on Wi-Fi hands out the network it is ON, and when that is
     // not the one it holds a password for, `known` goes false and the name is the hub's, not the old one.
     const moved = NET === 'moved'
@@ -1230,6 +1266,13 @@ export function createHouse({ env = {}, qr = null } = {}) {
 
   function network(p, req, res) {
     if (p === '/network') return json(res, netState())
+    if (p === '/network/scan' && NET.startsWith('setup')) return json(res, { can_change: true, networks: [
+      { ssid: 'Elyir Hub 4F2A', signal: 'strong', band: '2.4', secure: true },
+      { ssid: 'Bluebell', signal: 'strong', band: '5', secure: true },
+      { ssid: 'Bluebell Guest', signal: 'ok', band: '2.4', secure: true },
+      { ssid: 'Cedar Falls Library', signal: 'faint', band: '2.4', secure: true },
+      { ssid: 'NETGEAR-72', signal: 'faint', band: '2.4', secure: true },
+    ] })
     if (p === '/network/scan') return json(res, { can_change: NET !== 'none', networks: [
       { ssid: 'Downstairs', signal: 'strong', band: '5', secure: true },
       { ssid: 'BT-HUB-9QK2', signal: 'faint', band: '2.4', secure: true },
@@ -1242,6 +1285,10 @@ export function createHouse({ env = {}, qr = null } = {}) {
     return req.on('end', () => {
       let b = {}
       try { b = JSON.parse(raw) } catch {}
+      if (NET.startsWith('setup') && p === '/network/hub') {
+        setupTry = { ssid: b.ssid, ok: b.password !== 'wrong', at: Date.now() + 3000 }
+        return json(res, { ...setupState(), moving: { ssid: b.ssid, since: Date.now() / 1000 } })
+      }
       netSsid = b.ssid || 'Downstairs'
       netMove = { state: 'moving', ssid: netSsid, total: 11, followed: [], waiting: [...ROOMS] }
       const late = env.MOVE === 'late'

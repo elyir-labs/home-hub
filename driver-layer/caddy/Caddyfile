@@ -38,6 +38,28 @@
 	}
 }
 
+# The hub's own Wi-Fi, while it has no other (host/network.sh; docs/network.md, piece 5). A phone that
+# joins it asks some name of its maker's whether there is internet here, and the hub's dnsmasq answered
+# that name with the hub, so the question lands on this catch-all. Sending it to the panel is what makes
+# the phone open its sign-in sheet on the setup screen. Only addresses on that Wi-Fi are answered, and
+# only while it exists, because nothing else is ever handed one; everything else is dropped as before.
+# The stamp tells the brain the request came from somebody holding the label (hub/phones.py, from_setup).
+# Every other door replaces or deletes X-Hub-Via, so it cannot be claimed from the house's own Wi-Fi.
+http:// {
+	@setup remote_ip 10.42.0.0/24
+	handle @setup {
+		@hub host 10.42.0.1
+		handle @hub {
+			encode gzip
+			reverse_proxy {$BRAIN_UPSTREAM:localhost:8300} {
+				header_up X-Hub-Via setup
+			}
+		}
+		redir http://10.42.0.1/ 302
+	}
+	abort
+}
+
 # Away from home: the door the tunnel feeds, and nothing else. It is bound to loopback, so nothing on
 # the Wi-Fi can reach it; a request that arrives here came from outside the house, which is the whole
 # reason it is a door of its own rather than a share of the two above. The stamp is what the brain

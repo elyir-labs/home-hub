@@ -7,3 +7,9 @@ if [ ! -f files/home-hub.conf ]; then
 	printf 'HOME_HUB_REF=main\nHOME_HUB_REPO=https://github.com/elyir-labs/home-hub.git\n' > files/home-hub.conf
 fi
 install -m 644 files/home-hub.conf "${ROOTFS_DIR}/etc/home-hub.conf"
+# The containers the hub starts with before it has internet, saved by the workflow (files/preload/*.tar).
+# firstboot.sh loads them and deletes them.
+if ls files/preload/*.tar >/dev/null 2>&1; then
+	install -d "${ROOTFS_DIR}/var/lib/home-hub/preload"
+	install -m 644 files/preload/*.tar "${ROOTFS_DIR}/var/lib/home-hub/preload/"
+fi

@@ -12,7 +12,11 @@ What the image carries beyond stock Raspberry Pi OS Lite:
 - `home-hub-firstboot.service`, enabled, which runs `driver-layer/host/firstboot.sh` once: bootloader and
   PCIe on a Pi 5, the copy to an empty NVMe, then `install.sh` exactly as a hand install would run it.
 
-The first boot still needs the internet: it pulls the engine and the brain images. Raspberry Pi Imager's
+The first boot does not need the internet to start. The image carries the brain, the front door and the broker
+(`/var/lib/home-hub/preload/`, loaded once and deleted), which is all the Wi‑Fi step needs: a Pi with no cable
+offers a Wi‑Fi of its own (docs/network.md, piece 5). The engine and the rest download once the hub is online.
+That Wi‑Fi's password is the one on a shipped hub's label; a card you flash yourself makes its own on first boot and
+has no label to read it from, so give it Wi‑Fi with Raspberry Pi Imager's customization instead, or a cable. Raspberry Pi Imager's
 own customization (Wi‑Fi, a user and password, an SSH key, the time zone) works on this image as on any
 Raspberry Pi OS image; nothing here needs it, but it is how you get a shell if you ever want one. The
 image ships with no password and SSH off; with a screen and keyboard attached, Raspberry Pi OS's own first-boot
