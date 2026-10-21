@@ -9,13 +9,14 @@
 #   1. On a Pi 5: bring the bootloader current and make sure PCIe is on, so an NVMe on any base works.
 #   2. On a Pi 5 that booted from SD with an empty NVMe attached: copy itself to the NVMe and reboot
 #      from it (HUB_AUTO_NVME=0 in /etc/home-hub.conf turns this off).
-#   3. On a unit with its own screen, in a house that already has a hub: become that hub's screen and
-#      stop there -- no second house (design/companion/, C). HUB_ROLE=hub in /etc/home-hub.conf skips
-#      the look. HUB_ROLE=screen makes any display the screen (an HDMI monitor too), looks for ten
+#   3. On a unit with its own screen (the wall's DSI panel, or on a Pi any screen at all), in a house
+#      that already has a hub: become that hub's screen and stop there -- no second house
+#      (design/companion/, C). HUB_ROLE=hub in /etc/home-hub.conf skips the look. HUB_ROLE=screen makes any display the screen (an HDMI monitor too), looks for ten
 #      minutes instead of twenty seconds, and never installs a hub: finding none, it tries again at
 #      the next start.
 #   4. Run install.sh, which does everything a hand install would.
-#   5. On a unit with its own screen: startup/install.sh, the splash and the panel full screen.
+#   5. On a unit with its own screen: startup/install.sh, the splash and the panel full screen, started
+#      now rather than at the next boot.
 #
 # The x86 image (x86-image/) is written to a USB stick and booted on the NUC. Moving off the stick onto
 # the computer's drive happens before this runs (host/move-early.sh, at the start of the boot); by the
@@ -32,7 +33,8 @@ DIR="${HOME_HUB_DIR:-/opt/home-hub}"
 mkdir -p "$(dirname "$MARK")"
 log() { printf '[home-hub] %s\n' "$*"; }
 
-is_pi5() { grep -q "Raspberry Pi 5" /proc/device-tree/model 2>/dev/null; }
+MODEL="${HUB_MODEL:-/proc/device-tree/model}"
+is_pi5() { grep -qs "Raspberry Pi 5" "$MODEL"; }
 booted_from_sd() { findmnt -no SOURCE / | grep -q mmcblk; }
 nvme_empty() { [ -b /dev/nvme0n1 ] && [ -z "$(lsblk -no NAME /dev/nvme0n1 | tail -n +2)" ]; }
 
@@ -69,11 +71,17 @@ if [ "${HUB_IMAGE:-}" = x86 ]; then
   fi
 fi
 
-# The wall, on its DSI connector. A monitor on HDMI is somebody's desk, not the product's face --
-# unless this unit was told it is a screen.
+# The wall, on its DSI connector. A monitor on a NUC is somebody's desk, not the product's face --
+# unless this unit was told it is a screen. A Pi with any screen plugged in at its first boot is the
+# wall: the Pi image has no desktop, so a screen on one is there to show the house.
+is_pi() { grep -qs "Raspberry Pi" "$MODEL"; }
 screen_here() {
-  { [ "${HUB_ROLE:-}" = screen ] || grep -qsx connected "${HUB_DRM:-/sys/class/drm}"/card*-DSI-*/status; } && [ -x "$DIR/startup/install.sh" ]
+  local drm="${HUB_DRM:-/sys/class/drm}"
+  { [ "${HUB_ROLE:-}" = screen ] || grep -qsx connected "$drm"/card*-DSI-*/status \
+      || { is_pi && grep -qsx connected "$drm"/card*-*/status; }; } && [ -x "$DIR/startup/install.sh" ]
 }
+# The panel now, not at the next boot: on the image the splash is still up and the wall takes over from it.
+wall_now() { systemctl start --no-block elyir-wall.service >/dev/null 2>&1 || true; }
 set_conf() { { grep -v "^$1=" "$CONF" 2>/dev/null || true; echo "$1=\"$2\""; } > "$CONF.new" && mv "$CONF.new" "$CONF"; }
 
 if screen_here && [ "${HUB_ROLE:-}" != hub ]; then
@@ -101,7 +109,7 @@ if screen_here && [ "${HUB_ROLE:-}" != hub ]; then
     set_conf HUB_ROLE screen
     set_conf ELYIR_READY_URL "$HUB/alive"
     set_conf ELYIR_PANEL_URL "$HUB/?screen=1"
-    HOME_HUB_DIR="$DIR" "$DIR/startup/install.sh" || log "could not set up the screen"
+    HOME_HUB_DIR="$DIR" "$DIR/startup/install.sh" && wall_now || log "could not set up the screen"
     touch "$MARK"
     log "done: the house's hub asks this screen in"
     exit 0
@@ -133,7 +141,7 @@ fi
 # A unit with a screen of its own starts the way every Elyir product does.
 if screen_here; then
   log "a screen of its own: Elyir's startup"
-  HOME_HUB_DIR="$DIR" "$DIR/startup/install.sh" || log "could not set up the screen's startup; the hub is unaffected"
+  HOME_HUB_DIR="$DIR" "$DIR/startup/install.sh" && wall_now || log "could not set up the screen's startup; the hub is unaffected"
 fi
 touch "$MARK"
 log "done"

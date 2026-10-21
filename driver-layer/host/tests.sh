@@ -543,19 +543,23 @@ becoming() {
   printf '#!/usr/bin/env bash\necho "docker $* in $PWD" >> "%s/asked"\n' "$root" > "$bin/docker"
   mkdir -p "$dir/driver-layer" "$root/avahi"; touch "$dir/driver-layer/docker-compose.yml"
   chmod +x "$dir/startup/"*.sh "$dir/install.sh" "$bin"/*
-  boot() {   # role, found, dsi
+  boot() {   # role, found, dsi, hdmi, the board's model
     rm -f "$root"/*-installed "$root/done" "$root/conf" "$root/asked"; rm -rf "${drm:?}"/*
     echo '<service-group/>' > "$root/avahi/home-hub.service"
     [ -n "$1" ] && echo "HUB_ROLE=\"$1\"" > "$root/conf"
     [ -n "$3" ] && { mkdir -p "$drm/card1-DSI-1"; echo connected > "$drm/card1-DSI-1/status"; }
+    mkdir -p "$drm/card1-HDMI-A-1"; if [ -n "${4:-}" ]; then echo connected; else echo disconnected; fi > "$drm/card1-HDMI-A-1/status"
+    printf '%s' "${5:-}" > "$root/model"
     PATH="$bin:$PATH" FOUND="$2" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_FIRSTBOOT_MARK="$root/done" HUB_DRM="$drm" HUB_AVAHI="$root/avahi" \
-      "$HERE/firstboot.sh" >/dev/null 2>&1
+      HUB_MODEL="$root/model" "$HERE/firstboot.sh" >/dev/null 2>&1
   }
+  wall() { cat "$root/asked" 2>/dev/null | grep -c 'systemctl start --no-block elyir-wall.service' || true; }
   ran() { local out=""; for k in hub screen; do [ -f "$root/$k-installed" ] && out="$out$k "; done; [ -f "$root/done" ] && out="${out}done"; echo "${out% }"; }
 
   boot screen http://hub.local ""
   is "told it is a screen, on HDMI, with a hub on the Wi-Fi: it becomes the screen and nothing else" "$(ran)" "screen done"
   is "...and opens the hub's panel as a screen" "$(grep '^ELYIR_PANEL_URL=' "$root/conf")" 'ELYIR_PANEL_URL="http://hub.local/?screen=1"'
+  is "...now, not at the next boot" "$(wall)" "1"
   is "...a hub it used to be stops: its timers and watchers are switched off" "$(grep -c 'systemctl disable --now home-hub-watchdog.timer home-hub-update.path' "$root/asked")" "1"
   is "...its house is taken down" "$(grep -c "docker compose down in $dir/driver-layer" "$root/asked")" "1"
   is "...and it no longer says it is a hub" "$([ -f "$root/avahi/home-hub.service" ] && echo still || echo gone)" "gone"
@@ -567,9 +571,18 @@ becoming() {
   is "the wall's own screen and a hub on the Wi-Fi: the screen, without being told" "$(ran)" "screen done"
   boot "" "" dsi
   is "the wall's own screen and no hub: it runs the house, on its own screen" "$(ran)" "hub screen done"
-  boot "" http://hub.local ""
-  is "a monitor on HDMI and nobody said screen: a hub, as before, whatever is on the Wi-Fi" "$(ran)" "hub done"
+  is "...shown now, not at the next boot" "$(wall)" "1"
+  boot "" http://hub.local "" hdmi "Intel(R) NUC"
+  is "a monitor on a NUC's HDMI and nobody said screen: a hub, as before, whatever is on the Wi-Fi" "$(ran)" "hub done"
   is "...and a hub keeps its house: nothing taken down" "$(cat "$root/asked" 2>/dev/null | grep -c 'compose down\|disable')" "0"
+  is "...and no wall" "$(wall)" "0"
+  boot "" "" "" hdmi "Raspberry Pi 4 Model B Rev 1.5"
+  is "a Pi with a monitor on HDMI and no hub: it runs the house, on that monitor" "$(ran)" "hub screen done"
+  is "...shown now, not at the next boot" "$(wall)" "1"
+  boot "" http://hub.local "" hdmi "Raspberry Pi 4 Model B Rev 1.5"
+  is "a Pi with a monitor on HDMI and a hub on the Wi-Fi: that hub's screen" "$(ran)" "screen done"
+  boot "" "" "" "" "Raspberry Pi 4 Model B Rev 1.5"
+  is "a Pi with nothing plugged in: a hub, and no wall" "$(ran) $(wall)" "hub done 0"
   boot hub http://hub.local dsi
   is "HUB_ROLE=hub skips the look" "$(ran)" "hub screen done"
   rm -rf "$root"

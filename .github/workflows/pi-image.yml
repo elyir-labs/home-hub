@@ -57,6 +57,13 @@ jobs:
           docker pull -q --platform linux/arm64 eclipse-mosquitto:2
           docker save "$B" -o "$F/brain.tar"; docker save caddy:2 -o "$F/caddy.tar"; docker save eclipse-mosquitto:2 -o "$F/mosquitto.tar"
           ls -lh "$F"
+      - name: A password nobody keeps
+        # pi-gen turns off Raspberry Pi OS's first-boot "enter new username" prompt only for an image built with a
+        # password. On a hub with a screen, that prompt took the screen and held the boot until someone answered it.
+        # This one is never written down, and the stage locks the account before the image is made (00-run.sh).
+        id: pass
+        run: |
+          P=$(openssl rand -hex 24); echo "::add-mask::$P"; echo "value=$P" >> "$GITHUB_OUTPUT"
       - uses: usimd/pi-gen-action@v1
         id: build
         with:
@@ -64,9 +71,9 @@ jobs:
           stage-list: stage0 stage1 stage2 ./driver-layer/host/pi-image/stage-hub
           hostname: hub
           username: hub
+          password: ${{ steps.pass.outputs.value }}
+          disable-first-boot-user-rename: 1
           enable-ssh: 0
-          # No password baked in, so the first-boot user rename stays on (pi-gen refuses to turn it off without one).
-          # Headless, nothing waits on it: the hub's own first-boot unit runs regardless.
           locale: en_US.UTF-8
           keyboard-layout: English (US)
           keyboard-keymap: us
