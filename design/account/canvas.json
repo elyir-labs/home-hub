@@ -1,0 +1,120 @@
+{
+  "name": "The Elyir account on the hub",
+  "areas": ["Phones and away"],
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "What the Elyir account is to a house"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today — The hub: paid up, and nothing says by whom",
+      "page": "page-1"
+    },
+    {
+      "file": "PaysA.dc.html",
+      "x": 0,
+      "y": 1100,
+      "w": 390,
+      "h": 844,
+      "title": "A — the account pays: the code on the wall opens account.elyir.com",
+      "page": "page-1"
+    },
+    {
+      "file": "PaysA-hub.dc.html",
+      "x": 520,
+      "y": 1100,
+      "w": 1440,
+      "h": 900,
+      "title": "A, on the wall — the row names whose account pays",
+      "page": "page-1"
+    },
+    {
+      "file": "HoldsB.dc.html",
+      "x": 0,
+      "y": 2200,
+      "w": 390,
+      "h": 844,
+      "title": "B — the account pays and the house belongs to it",
+      "page": "page-1"
+    },
+    {
+      "file": "HoldsB-hub.dc.html",
+      "x": 520,
+      "y": 2200,
+      "w": 1440,
+      "h": 900,
+      "title": "B, on the wall — Belongs to: the way back in, and the way to hand it over",
+      "page": "page-1"
+    },
+    {
+      "file": "ListC.dc.html",
+      "x": 0,
+      "y": 3300,
+      "w": 390,
+      "h": 844,
+      "title": "C — B, and the Houses app signs in: a new phone already knows your houses",
+      "page": "page-1"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "page": "page-1",
+      "text": "WHY THIS EXISTS\n\nElyir Bench already has an Elyir account: account.elyir.com, sign in with Apple, Google or an emailed code, one card and one list of receipts for every Elyir plan. Its own rule (15 October) is one account per person for every Elyir service, membership per service, billing per service -- and its page already has a row saying \"Elyir home hub: Coming later, with this same account\".\n\nThe hub, meanwhile, has a paid thing with no payer. The address step shows a code that opens a payment page told only the house's name (payUrl in app/src/address.ts), and afterwards This hub says \"Paid up until...\" and nothing else: not whose card, not where the receipts are, not how to stop from a phone.\n\nWHAT IS NOT CONTESTED, in every direction:\n\n- NOBODY NEEDS AN ACCOUNT TO USE THE HOUSE. A person in a house is still a phone (docs/settings.md). Phones at home never sign in; the wall never signs in; a house that never pays never meets the account at all.\n- PAYING HAPPENS ON A PHONE (design/address/, Plain). The account only replaces the bare payment page that code already opens.\n- THE HUB STILL HAS NO OPINION ABOUT MONEY. The account pays the relay the way Bench Cloud already does -- a signed ticket the house carries (relay/service, /carry) -- so the relay stays the only place that checks.\n- SELF-HOSTING STAYS FREE AND THE SAME, with no account.\n- ON THE WALL IT IS NEVER CALLED \"Account\". This house already has an Accounts page, for the services the house signed into; the Elyir one is named in full or by the person's name.\n\nWHAT IS CONTESTED is how much the account is to a house: only the payer (A), the payer and the house's owner (B), or B plus a list of your houses that follows you to a new phone (C)."
+    },
+    {
+      "id": "today",
+      "x": 1560,
+      "y": 0,
+      "w": 520,
+      "page": "page-1",
+      "text": "TODAY\n\nThe hub as it ships with the address on, the row in the words of outsideRow(): \"Paid up until November 1, 2026. If it ever stops, everything at home carries on as it is.\"\n\nIt is correct and it is a dead end. The person who paid has nowhere to go to change the card, see a receipt or stop paying, and nobody else in the house can tell who that was. Payments themselves are not built (docs/away.md, What does not work yet), so whatever is picked here is the first version, not a migration."
+    },
+    {
+      "id": "a",
+      "x": 2080,
+      "y": 1100,
+      "w": 600,
+      "page": "page-1",
+      "text": "A -- THE ACCOUNT ONLY PAYS\n\nThe code at the end of the address step opens account.elyir.com instead of a bare payment page: sign in, or make an account with the same three buttons, then pay. The account keeps the card and the receipts beside Elyir Bench's. On the wall, the Outside row names whose account pays and where the card lives. That is all the account is to the house.\n\nUNDERNEATH: the hub joins the account once, the way a printer joins Bench Cloud -- the paying phone hands it a one-time token -- and from then on the hub fetches a ticket each month and carries it to the relay. The account becomes a second payer beside Bench Cloud; the relay does not change.\n\nFOR: the least the account can be and still fix Today. Nothing about who is in the house moves out of the house. It is also the most like Bench, where the account and plan only add the paid things.\n\nAGAINST: it leaves the two problems an account is best at untouched. A forgotten code with no phone that can change things is still a backup restore or us by hand (relay/service cli.py rotate). And moving out still has no answer: the house, its phones and its address go with the box or with nobody."
+    },
+    {
+      "id": "b",
+      "x": 2080,
+      "y": 2200,
+      "w": 600,
+      "page": "page-1",
+      "text": "B -- THE ACCOUNT PAYS, AND THE HOUSE BELONGS TO IT\n\nEverything in A, and the house is listed on the account as one of Your Elyir services, with who it belongs to. One or more accounts -- the payer first, then anybody added, the same email invite Bench uses for a second owner. On the wall, This hub gains a Belongs to row.\n\nWHAT BELONGING BUYS, and only this:\n- GETTING BACK IN. The code is forgotten and no phone can change things: somebody it belongs to signs in on a phone at home, and the hub lets that phone in as one that can change things. At home only, never from away.\n- HANDING IT OVER. Moving out, Hand the house over on the account: the house forgets its phones and its code, the address goes to the next household or back, and they start with their own.\n\nFOR: these are the two moments a household is most stuck today, and both are rare, so an account that is only met then costs nobody anything the rest of the time. It is the answer docs/shipping.md left open for a box sold on.\n\nAGAINST: it is the first time something outside the house can let a phone into it. The rule that the house admits its own phones gets one exception, and that exception has to be designed as carefully as the code: at home only, said on the wall when it happens, and told to every phone that can change things."
+    },
+    {
+      "id": "c",
+      "x": 520,
+      "y": 3300,
+      "w": 600,
+      "page": "page-1",
+      "text": "C -- B, AND THE HOUSES APP SIGNS IN\n\nEverything in B, and the Houses app gets Sign in with Elyir. A new phone signs in and every house the account belongs to is already in the list, by its own name and address. Nothing is opened: each house still lets the phone in itself, with its code or a yes from a phone already in it. The account remembers houses; it opens none. Its wall boards are B's.\n\nFOR: \"A new phone adds every house again\" is the open item design/houses/ left, and this is the only direction that closes it. Somebody with a lake house and a home does the move once per account, not once per phone.\n\nAGAINST: it reverses a decision made on purpose -- \"there is no account, on purpose\" (app/houses/src/houses.ts) -- and puts a sign-in inside the one app every household opens. The stores then require deleting the account from inside the app (docs/apps.md), which account.elyir.com cannot do yet. And what it saves is one code per house, once per new phone."
+    },
+    {
+      "id": "shared",
+      "x": -620,
+      "y": 1100,
+      "w": 500,
+      "page": "page-1",
+      "text": "WHAT THE THREE NEED THAT IS NOT DRAWN\n\n- The hub as an app on the account: one entry in bench-cloud's app list and one in account/web/app.js.\n- The hub joining the account and carrying its tickets (brain/hub/address.py has no ticket client yet), and the account signing tickets as a payer the relay knows.\n- \"Coming later\" on account.elyir.com replaced by the house, as on B's phone.\n- The price, the currency and who the merchant is are still docs/service.md's open decisions; $3 a month is the placeholder from design/address/."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "page-1"
+  }
+}
