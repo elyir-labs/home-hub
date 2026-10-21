@@ -6,7 +6,7 @@
 // check what is committed without drawing anything; render.mjs draws the images and writes these.
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH } from './sequence.mjs'
+import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST, GLYPHS, WORDS } from './sequence.mjs'
 
 export const THEME = 'elyir'
 export const DIR = `/usr/share/plymouth/themes/${THEME}`
@@ -39,6 +39,10 @@ ENDING=${TIME.ending}
 `
 
 const n = (v) => +(+v).toFixed(4)
+
+// A letter's picture is named for its character code, so a space or a dot is an ordinary file name.
+export const glyphFile = (c) => `g-${c.charCodeAt(0)}.png`
+const quote = (c) => (c === '"' || c === '\\' ? '\\' + c : c)
 
 export function script() {
   const [pr, pg, pb] = COLOR.panel.map((c) => n(c / 255))
@@ -112,19 +116,97 @@ slow_image = fit(Image("slow.png"));
 slow = Sprite(slow_image); slow.SetZ(30); slow.SetOpacity(0);
 slow.SetPosition(Math.Int((screen_w - slow_image.GetWidth()) / 2), Math.Int(oy + 640 * s), 30);
 
+# A first start's words (design/first-start/). Each step sends elyir:step:<step> as it starts, and the line under
+# the house becomes that step's, with a quieter line under it where there is something to know. elyir:hello ends a
+# first start on where to go next: elyir:addr, elyir:wifi or elyir:pass, then that hub's own words one character
+# at a time as elyir:c:<character>, drawn from the letters below. A first start never shows the slow sentence.
+${Object.entries(FIRST).map(([id, w]) => `global.step_line["${id}"] = fit(Image("step-${id}.png"));` +
+  (w.quiet ? ` global.step_quiet["${id}"] = fit(Image("quiet-${id}.png"));` : '')).join('\n')}
+${[...GLYPHS].map((c) => `global.glyph["${quote(c)}"] = fit(Image("${glyphFile(c)}")); global.char_of["elyir:c:${quote(c)}"] = "${quote(c)}";`).join('\n')}
+ready_image = fit(Image("ready.png"));
+where_image["addr"] = fit(Image("where-cable.png"));
+where_image["wifi"] = fit(Image("where-wifi.png"));
+where_image["pass"] = fit(Image("where-password.png"));
+line = Sprite(); line.SetZ(30); line.SetOpacity(0);
+quiet = Sprite(); quiet.SetZ(30); quiet.SetOpacity(0);
+ready = Sprite(ready_image); ready.SetZ(30); ready.SetOpacity(0);
+ready.SetPosition(Math.Int((screen_w - ready_image.GetWidth()) / 2), Math.Int(oy + ${WORDS.ready.top} * s), 30);
+
 global.frame = 0;
 global.name_shown = -1;
 global.ready_at = -1;
 global.ending_at = -1;
 global.widths["none"] = 0;
+global.first = 0;
+global.step_at = -1;
+global.hello_at = -1;
+global.field = "";
+global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0;
+global.shown_n = 0;
+
+fun centered(sprite, image, top) {
+  sprite.SetImage(image);
+  sprite.SetPosition(Math.Int((screen_w - image.GetWidth()) / 2), Math.Int(oy + top * s), 30);
+}
+
+fun step(id) {
+  global.first = 1;
+  global.step_at = global.frame / 50;
+  centered(line, global.step_line[id], ${WORDS.line.top});
+  global.quiet_on = 0;
+  if (global.step_quiet[id]) { centered(quiet, global.step_quiet[id], ${WORDS.quiet.top}); global.quiet_on = 1; }
+}
+
+fun piece(image) {
+  if (image) { global.pieces[global.piece_n] = image; global.piece_n = global.piece_n + 1; }
+}
+
+# A function here is a global like any other, so this one may not share a name with global.field: it was once
+# called field, and the first character overwrote it.
+fun letters(which) {
+  i = 0;
+  while (i < global.n[which]) { piece(global.glyph[global.chars[which + "-" + i]]); i = i + 1; }
+}
+
+# Where to go next, as one line: the words and this hub's own, side by side and centered together.
+fun where() {
+  global.piece_n = 0;
+  if (global.n["wifi"] > 0) { piece(where_image["wifi"]); letters("wifi"); piece(where_image["pass"]); letters("pass"); }
+  else { piece(where_image["addr"]); letters("addr"); }
+  w = 0; i = 0;
+  while (i < global.piece_n) { w = w + global.pieces[i].GetWidth(); i = i + 1; }
+  x = Math.Int((screen_w - w) / 2); i = 0;
+  while (i < global.piece_n) {
+    if (!global.where_sprite[i]) { global.where_sprite[i] = Sprite(); global.where_sprite[i].SetOpacity(0); }
+    global.where_sprite[i].SetImage(global.pieces[i]);
+    global.where_sprite[i].SetPosition(x, Math.Int(oy + ${WORDS.where.top} * s), 31);
+    x = x + global.pieces[i].GetWidth(); i = i + 1;
+  }
+  while (i < global.shown_n) { global.where_sprite[i].SetOpacity(0); i = i + 1; }
+  global.shown_n = global.piece_n;
+}
 
 fun status(text) {
   if (text == "elyir:ready" && global.ready_at < 0) { global.ready_at = global.frame / 50; }
+${Object.keys(FIRST).map((id) => `  if (text == "elyir:step:${id}") { step("${id}"); }`).join('\n')}
+  if (text == "elyir:hello") { global.first = 1; global.hello_at = global.frame / 50; }
+  if (text == "elyir:addr") { global.field = "addr"; global.n["addr"] = 0; }
+  if (text == "elyir:wifi") { global.field = "wifi"; global.n["wifi"] = 0; }
+  if (text == "elyir:pass") { global.field = "pass"; global.n["pass"] = 0; }
+  # A character of this hub's own, looked up whole: Plymouth's scripts cannot take a status apart.
+  c = global.char_of[text];
+  if (c && global.field != "") {
+    global.chars[global.field + "-" + global.n[global.field]] = c;
+    global.n[global.field] = global.n[global.field] + 1;
+    where();
+  }
 }
 
 fun refresh() {
   global.frame = global.frame + 1;
   t = global.frame / 50;
+  hello = 0;
+  if (global.hello_at >= 0) { hello = ease(ramp(t, global.hello_at, global.hello_at + 0.8)); }
 
   if (global.ready_at >= 0 && global.ending_at < 0 && t >= ready_after) { global.ending_at = t; }
   out = 0;
@@ -149,6 +231,7 @@ fun refresh() {
   appear = ease(ramp(t, dotted, dotted + 0.3)) * (1 - out);
   k = ease(ramp(t, lit_at, lit_at + 0.8)) * (low + (1 - low) * breath(t));
   if (global.ending_at >= 0) { k = 1; }
+  k = k + (1 - k) * hello;
   move = ease(ramp(t, leave, land));
   x = ox + (tittle_x + (lamp_x - tittle_x) * move) * s;
   y = oy + (tittle_y + (lamp_y - tittle_y) * move) * s;
@@ -171,7 +254,18 @@ fun refresh() {
 
   gone = 1 - out;
   if (global.ready_at >= 0) { gone = 0; }
+  if (global.first) { gone = 0; }
   slow.SetOpacity(ease(ramp(t, slow_after, slow_after + 1)) * gone);
+
+  # The words wait for the house, and each step's line comes up as the step starts.
+  after_house = ease(ramp(t, land, land + 0.6));
+  said = 0;
+  if (global.step_at >= 0) { said = ease(ramp(t, global.step_at, global.step_at + 0.6)) * after_house * (1 - hello); }
+  line.SetOpacity(said);
+  quiet.SetOpacity(said * global.quiet_on);
+  ready.SetOpacity(hello * after_house);
+  i = 0;
+  while (i < global.shown_n) { global.where_sprite[i].SetOpacity(hello * after_house); i = i + 1; }
 }
 
 Plymouth.SetUpdateStatusFunction(status);

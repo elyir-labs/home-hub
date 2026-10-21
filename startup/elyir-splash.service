@@ -1,5 +1,6 @@
 # The startup splash on a hub with no wall of its own (a NUC with a monitor plugged in): it stays up past the end
-# of boot until the hub answers, plays its ending, and leaves the screen dark rather than at a login nobody has.
+# of boot until the hub answers, then plays its ending and leaves the screen dark rather than at a login nobody has.
+# A first start ends instead on where to go next (startup/say.sh, design/first-start/).
 # The x86 image enables it; startup/install.sh turns it off on a unit that becomes a wall, whose own service
 # ends the splash onto the panel. If this fails, plymouth-quit takes the splash down as it would anyway.
 [Unit]
@@ -14,7 +15,7 @@ ConditionPathExists=/dev/tty0
 [Service]
 Type=simple
 RemainAfterExit=yes
-ExecStart=/opt/home-hub/startup/wall.sh wait
+ExecStart=/opt/home-hub/startup/say.sh end
 TimeoutStartSec=infinity
 
 [Install]
