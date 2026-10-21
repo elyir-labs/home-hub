@@ -1,17 +1,107 @@
 {
   "name": "Films, shows and music on the hub",
-  "areas": ["Watching and listening", "Phones and away"],
+  "areas": [
+    "Watching and listening",
+    "Phones and away"
+  ],
   "pages": [
-    { "id": "q", "name": "What watching is like" }
+    {
+      "id": "q",
+      "name": "What watching is like"
+    },
+    {
+      "id": "q-lost",
+      "name": "What watching is like: not chosen"
+    }
   ],
   "artboards": [
-    { "file": "Today.dc.html", "page": "q", "x": 0, "y": 0, "w": 1920, "h": 1080, "title": "Today — Jellyfin's own screens, and the one card the hub has" },
-    { "file": "TonightA.dc.html", "page": "q", "x": 0, "y": 1400, "w": 1920, "h": 1080, "title": "A — Tonight: the TV opens on the evening, not the library", "is_interactive": true },
-    { "file": "PhoneA.dc.html", "page": "q", "x": 2040, "y": 1400, "w": 390, "h": 844, "title": "A on the phone — the remote, and what's next" },
-    { "file": "ShelvesB.dc.html", "page": "q", "x": 0, "y": 3000, "w": 1920, "h": 1080, "title": "B — Shelves: who's watching, then the collection to browse", "is_interactive": true },
-    { "file": "PhoneB.dc.html", "page": "q", "x": 2040, "y": 3000, "w": 390, "h": 844, "title": "B on the phone — the same shelves, and where to play it", "is_interactive": true },
-    { "file": "RoomC.dc.html", "page": "q", "x": 0, "y": 4600, "w": 1920, "h": 1080, "title": "C — The room: the TV is part of the living room, and the lamps answer it", "is_interactive": true },
-    { "file": "PhoneC.dc.html", "page": "q", "x": 2040, "y": 4600, "w": 390, "h": 844, "title": "C on the phone — the room's TV, and choosing for it", "is_interactive": true }
+    {
+      "file": "Today.dc.html",
+      "page": "q",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today — Jellyfin's own screens, and the one card the hub has"
+    },
+    {
+      "file": "TonightD.dc.html",
+      "page": "q",
+      "x": 0,
+      "y": 1400,
+      "w": 1920,
+      "h": 1080,
+      "title": "D — A's front page, with C's lamps",
+      "is_interactive": true
+    },
+    {
+      "file": "PhoneD.dc.html",
+      "page": "q",
+      "x": 2040,
+      "y": 1400,
+      "w": 390,
+      "h": 844,
+      "title": "D on the phone — the remote, what's next, and the lamps"
+    },
+    {
+      "file": "TonightA.dc.html",
+      "page": "q-lost",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "A — Tonight: the TV opens on the evening, not the library",
+      "is_interactive": true
+    },
+    {
+      "file": "PhoneA.dc.html",
+      "page": "q-lost",
+      "x": 2040,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "A on the phone — the remote, and what's next"
+    },
+    {
+      "file": "ShelvesB.dc.html",
+      "page": "q-lost",
+      "x": 0,
+      "y": 1600,
+      "w": 1920,
+      "h": 1080,
+      "title": "B — Shelves: who's watching, then the collection to browse",
+      "is_interactive": true
+    },
+    {
+      "file": "PhoneB.dc.html",
+      "page": "q-lost",
+      "x": 2040,
+      "y": 1600,
+      "w": 390,
+      "h": 844,
+      "title": "B on the phone — the same shelves, and where to play it",
+      "is_interactive": true
+    },
+    {
+      "file": "RoomC.dc.html",
+      "page": "q-lost",
+      "x": 0,
+      "y": 3200,
+      "w": 1920,
+      "h": 1080,
+      "title": "C — The room: the TV is part of the living room, and the lamps answer it",
+      "is_interactive": true
+    },
+    {
+      "file": "PhoneC.dc.html",
+      "page": "q-lost",
+      "x": 2040,
+      "y": 3200,
+      "w": 390,
+      "h": 844,
+      "title": "C on the phone — the room's TV, and choosing for it",
+      "is_interactive": true
+    }
   ],
   "annotations": [
     {
@@ -40,35 +130,48 @@
     },
     {
       "id": "a",
-      "page": "q",
+      "page": "q-lost",
       "x": 0,
-      "y": 2520,
+      "y": 1120,
       "w": 2430,
       "text": "A — TONIGHT. The TV opens on one thing: what you were in the middle of, the whole screen, with Keep watching already under the remote. Under it, one row called Next mixes the new episode, what somebody added, a home video and something like the last one finished. Everything else is a quiet line at the foot: Films, Shows, Home videos, Music, and a name said or typed. With nothing in progress, the newest thing takes the screen. On the phone, the TV is a thing in the living room: tap it for Keep watching, Next, and a pad to move on the TV.\n\nFOR: most evenings are a continuation, and this is one press from the sofa. It is the least like every other streaming app, and the least to learn.\n\nAGAINST: the person who wants to browse is one step further away, and a household that shares one TV sees one person's evening unless the house can tell who is in the room."
     },
     {
       "id": "b",
-      "page": "q",
+      "page": "q-lost",
       "x": 0,
-      "y": 4120,
+      "y": 2720,
       "w": 2430,
       "text": "B — SHELVES. The TV asks who's watching, with the house's own people from People and Everyone, then lays out the collection: what's new across the top, then Keep watching, then a shelf each for Films, Shows, Home videos and Music. Tabs along the top. The phone carries the same shelves, and a film tapped there asks where to play it: a TV in the house, or the phone.\n\nFOR: everybody already knows how to use it. The collection is the household's own, and browsing it is part of the pleasure. Separate people mean separate Keep watching, and a kids' shelf that stays a kids' shelf.\n\nAGAINST: it is every streaming app, so it looks like one, and nothing about it says it belongs to this house. Who's watching is a question every time the TV comes on."
     },
     {
       "id": "c",
-      "page": "q",
+      "page": "q-lost",
       "x": 0,
-      "y": 5720,
+      "y": 4320,
       "w": 2430,
       "text": "C — THE ROOM. The TV is part of the living room, and the house is in it. Switched on with nothing playing, it is a picture from the house's own home videos, the time, and the room as it is. A film picked offers 'Lamps down while it plays', on by default once a household says yes the first time; paused, the lamps come up and the screen says so. On the phone, the living room shows the TV beside its lamps and blinds, and choosing happens there: a search for a film, a show or a day, and Play on the TV, lamps down.\n\nFOR: it is the reason this is part of the hub and not a Jellyfin app. Nobody else can dim the room when the film starts, and a TV at rest showing last summer is a thing people will keep switched on.\n\nAGAINST: browsing on the TV is thin by design, so the phone is needed for anything but the next thing. A room with no lamps the hub can reach gets none of what makes it different."
     },
     {
-      "id": "ask",
+      "id": "d",
+      "page": "q",
+      "x": 0,
+      "y": 2520,
+      "w": 2430,
+      "text": "D — A'S FRONT PAGE, WITH C'S LAMPS. The TV opens on the evening exactly as A does: what you were in the middle of, the whole screen, Keep watching under the remote, one row called Next, and everything else a quiet line at the foot. Beside the buttons sits C's 'Lamps down while it plays', for the room the TV is in. The first time, it is off and asks; once the household says yes it stays on, and it can be turned off from the same place. Paused, the lamps come back up and the corner says so; playing again takes them back down. On the phone, the TV is a thing in the living room: Keep watching, the lamps line under it, Next, and a pad to move on the TV.\n\nNOT TAKEN FROM C: the resting picture from the house's home videos, and choosing on the phone as the main way in. NOT TAKEN FROM B: who's watching. A shared TV shows the household's evening, and says whose ('with Jordan').\n\nA ROOM WITH NO LAMPS THE HUB CAN REACH shows no lamps control, and nothing else changes."
+    },
+    {
+      "id": "pick",
       "page": "q",
       "x": 2560,
       "y": 1400,
       "w": 500,
-      "text": "THE PICK\n\nA, B or C, or a mix: B's people and shelves behind A's front page, with C's lamps, is a whole answer too. Or something else, described.\n\nWhatever is picked: the brain gains a media module that speaks Jellyfin's API the way it speaks Home Assistant's, the engine joins the hub's containers pinned to a version, and the TV apps start with Apple TV and Google TV in a repository of their own."
+      "text": "DECIDED 20 OCTOBER 2026\n\nD: A's front page, with C's lamps. A, B and C are kept on their own page with their cases.\n\nNext: the brain gains a media module that speaks Jellyfin's API the way it speaks Home Assistant's, the engine joins the hub's containers pinned to a version, and the TV app starts with Apple TV and Google TV in a repository of its own."
     }
-  ]
+  ],
+  "decided": {
+    "on": "2026-10-20",
+    "chose": "D, A's front page with C's lamps",
+    "board": "TonightD.dc.html"
+  }
 }
