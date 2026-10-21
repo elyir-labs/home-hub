@@ -231,6 +231,7 @@ jobs:
         tools/hooks/pre-commit
         tools/release.sh
         driver-layer/radios.sh
+        driver-layer/host-tier.sh
         driver-layer/mqtt-auth.sh
         driver-layer/host/harden.sh
         driver-layer/host/firstboot.sh

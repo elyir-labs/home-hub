@@ -214,6 +214,10 @@ for v in ${HUB_IMAGE_VARS:-}; do echo "$v=${!v}" >> .env; done
 # Messages take a password: made once, written into .env, handed to every part by compose.
 chmod +x mqtt-auth.sh
 ./mqtt-auth.sh
+# What this machine is big enough for, measured on every run so a house restored onto a bigger box
+# grows into it. docs/host-tiers.md.
+chmod +x host-tier.sh
+./host-tier.sh
 # radios: only start what is plugged in, now and whenever a stick is plugged in or pulled later
 chmod +x radios.sh
 ./radios.sh detect

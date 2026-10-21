@@ -287,6 +287,12 @@ Do not reopen these, and do not propose around them.
   hub nor a puck ever hands one to the other (`Bridges.kind()`, `fwupdate.cpp`). A house's own names, keys
   and network scans never come into this tree either: the secret scan in CI and `tools/hooks/pre-commit`
   are there for that.
+- **There are two hubs, one image, and the house always comes first** (20 October, `docs/host-tiers.md`). **Hub**
+  (CM5 or Pi 5) runs the house, the voice and music to the speakers. **Hub Plus** is an off-the-shelf N100/N150 mini
+  PC, 16 GB and 512 GB, flashed with our image, with no ODM. It adds films, camera recording and the assistant. A box is
+  offered what `driver-layer/host-tier.sh` measures (`HOST_CAN`), never what it is sold as. Films need a video
+  encoder, so a Pi never gets them. Every extra runs under the `x-extra` caps in `driver-layer/docker-compose.yml`, and
+  a light never waits on a film. Pinned by the tiers group in `driver-layer/host/tests.sh`.
 - **A screen that can't reach the hub says so before anyone taps** (9 October, `design/out-of-reach/`, C with
   B's card). An open live connection is not proof: the screen makes a fresh request every half minute, and two
   misses put a band along the foot ("Changes made here aren't reaching the hub", since when, the switches on the
