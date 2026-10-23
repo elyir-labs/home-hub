@@ -526,6 +526,26 @@ awake() {
   rm -rf "$root"
 }
 
+# A Pi wall plays its sound on the screen it is plugged into: the card on the connected HDMI port. sysfs and
+# /proc/asound are directories here.
+speaking() {
+  group "the wall's sound comes out of the screen it is plugged into"
+  local root; root=$(mktemp -d); mkdir -p "$root/home" "$root/drm/card1-HDMI-A-1" "$root/drm/card1-HDMI-A-2" "$root/asound"
+  plug() { echo "$1" > "$root/drm/card1-HDMI-A-1/status"; echo "$2" > "$root/drm/card1-HDMI-A-2/status"
+    HOME="$root/home" HUB_DRM="$root/drm" HUB_ASOUND="$root/asound" "$HERE/../../startup/wall.sh" speaker; }
+  said() { grep -o 'hdmi:CARD=[a-z0-9]*' "$root/home/.asoundrc" 2>/dev/null || echo nothing; }
+
+  touch "$root/asound/vc4hdmi0" "$root/asound/vc4hdmi1"
+  plug connected disconnected
+  is "a screen on the first port plays through the first HDMI card" "$(said)" "hdmi:CARD=vc4hdmi0"
+  plug disconnected connected
+  is "moved to the second port, the sound follows it" "$(said)" "hdmi:CARD=vc4hdmi1"
+  plug disconnected disconnected
+  is "a DSI screen has no HDMI to point at, and nothing is left behind" "$(said)" "nothing"
+  rm -f "$root/asound/"*; plug connected disconnected
+  is "a box whose HDMI card is not a Pi's keeps ALSA's own default" "$(said)" "nothing"
+  rm -rf "$root"
+}
 
 # What first boot makes of a unit: the house's screen, or the house's hub. Never a second hub beside a
 # real one when the unit was told it is a screen (design/companion/, C). The checkout is fake: its
@@ -1148,6 +1168,6 @@ tiers() {
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; usb_first; following; developing; reporting; keeping; awake; setting_up; moving_in; moving; describing
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; usb_first; following; developing; reporting; keeping; speaking; awake; setting_up; moving_in; moving; describing
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

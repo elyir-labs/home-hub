@@ -21,7 +21,7 @@ HOME_HUB_DIR="$DIR" "$HERE/splash.sh"
 
 log "the screen's own user and service"
 id elyir-wall >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin elyir-wall
-usermod -aG video,render,input elyir-wall
+usermod -aG video,render,input,audio elyir-wall
 cat > /etc/pam.d/elyir-wall <<'PAM'
 auth     required pam_unix.so nullok
 account  required pam_unix.so
