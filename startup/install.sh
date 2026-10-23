@@ -43,7 +43,11 @@ if [ -f "$AVAHI_CONF" ] && ! grep -q '^deny-interfaces=' "$AVAHI_CONF"; then
   systemctl try-restart avahi-daemon >/dev/null 2>&1 || true
 fi
 
+log "this screen's own updates, following its hub"
+install -m 0644 "$HERE/elyir-screen-update.service" "$HERE/elyir-screen-update.timer" /etc/systemd/system/
+
 systemctl daemon-reload
 systemctl enable elyir-wall.service >/dev/null
 systemctl enable --now elyir-keep-hub.timer >/dev/null 2>&1 || true
+systemctl enable --now elyir-screen-update.timer >/dev/null 2>&1 || true
 log "done; it shows from the next boot"

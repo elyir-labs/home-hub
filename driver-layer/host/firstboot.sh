@@ -6,7 +6,8 @@
 # leaves a mark, and never runs again. Everything Pi-specific lives here, not in install.sh, so the
 # install script stays the same on a NUC, a VM, or any Debian or Fedora box.
 #
-#   1. On a Pi 5: bring the bootloader current and make sure PCIe is on, so an NVMe on any base works.
+#   1. On a Pi 4 or 5: a USB stick boots first, so a reinstall needs no card taken out. On a Pi 5, also
+#      bring the bootloader current and make sure PCIe is on, so an NVMe on any base works.
 #   2. On a Pi 5 that booted from SD with an empty NVMe attached: copy itself to the NVMe and reboot
 #      from it (HUB_AUTO_NVME=0 in /etc/home-hub.conf turns this off).
 #   3. On a unit with its own screen (the wall's DSI panel, or on a Pi any screen at all), in a house
@@ -38,6 +39,33 @@ is_pi5() { grep -qs "Raspberry Pi 5" "$MODEL"; }
 booted_from_sd() { findmnt -no SOURCE / | grep -q mmcblk; }
 nvme_empty() { [ -b /dev/nvme0n1 ] && [ -z "$(lsblk -no NAME /dev/nvme0n1 | tail -n +2)" ]; }
 
+# A stick in a USB port is how a Pi is reinstalled without opening it, so the bootloader tries USB first,
+# then an NVMe, then the card or eMMC. NVMe ahead of the card is also what makes the copy below stick: the
+# card it was copied from can still boot. HUB_USB_FIRST=0 in /etc/home-hub.conf leaves the order alone.
+boot_order() {
+  case "$(tr -d '\0' < "$MODEL" 2>/dev/null)" in
+    *"Raspberry Pi 5"*|*"Compute Module 5"*) echo 0xf164 ;;
+    *"Raspberry Pi 4"*|*"Compute Module 4"*) echo 0xf14 ;;
+  esac
+}
+usb_first() {
+  local want cur tmp
+  [ "${HUB_USB_FIRST:-1}" = "1" ] || return 0
+  want="$(boot_order)"; [ -n "$want" ] && command -v rpi-eeprom-config >/dev/null 2>&1 || return 0
+  cur="$(rpi-eeprom-config 2>/dev/null)" || return 0
+  printf '%s\n' "$cur" | grep -qx "BOOT_ORDER=$want" && return 0
+  tmp="$(mktemp)"
+  # Under [all] when the config has sections: appended at the end it could land in a conditional one.
+  printf '%s' "$cur" | awk -v w="BOOT_ORDER=$want" '
+    /^BOOT_ORDER=/ { if (!done) print w; done = 1; next }
+    { print }
+    /^\[all\]/ && !done { print w; done = 1 }
+    END { if (!done) print w }' > "$tmp"
+  if rpi-eeprom-config --apply "$tmp" >/dev/null 2>&1; then log "a USB stick now boots first, from the next start"
+  else log "could not change the boot order; a reinstall still works from the card"; fi
+  rm -f "$tmp"
+}
+
 if is_pi5; then
   log "Raspberry Pi 5: bootloader and PCIe"
   rpi-eeprom-update -a >/dev/null 2>&1 || true
@@ -46,6 +74,7 @@ if is_pi5; then
     printf '\n# home-hub: NVMe on a base without a HAT EEPROM\ndtparam=pciex1\n' >> "$CFG"    # harmless with nothing attached
     log "enabled PCIe in config.txt (takes effect on the next boot)"
   fi
+  usb_first                           # after -a, which would stage the old order over it
   if [ "${HUB_AUTO_NVME:-1}" = "1" ] && booted_from_sd && nvme_empty; then
     log "empty NVMe found while running from SD: copying the system across, then rebooting from it"
     if ! command -v rpi-clone >/dev/null 2>&1; then
@@ -58,6 +87,8 @@ if is_pi5; then
     fi
     log "could not copy to the NVMe; carrying on from the SD card"
   fi
+else
+  usb_first
 fi
 
 if [ "${HUB_IMAGE:-}" = x86 ]; then

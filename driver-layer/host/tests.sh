@@ -589,6 +589,116 @@ becoming() {
 }
 
 
+# A reinstall is a stick in a USB port, never a card taken out: first boot puts USB first in a Pi's
+# bootloader. rpi-eeprom-config prints what the bootloader holds now and keeps what it is given.
+usb_first() {
+  group "first boot makes a USB stick boot first on a Pi, and leaves anything else alone"
+  local root dir bin; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"
+  mkdir -p "$dir/startup" "$bin"
+  printf '#!/usr/bin/env bash\n' > "$dir/startup/find-hub.sh"
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$dir/install.sh"
+  for c in hostnamectl apt-get avahi-browse systemctl docker rpi-eeprom-update reboot; do printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/$c"; done
+  printf '#!/usr/bin/env bash\nif [ "${1:-}" = --apply ]; then cp "$2" "%s/applied"; else cat "%s/eeprom"; fi\n' "$root" "$root" > "$bin/rpi-eeprom-config"
+  chmod +x "$dir/startup/"*.sh "$dir/install.sh" "$bin"/*
+  boot() {  # the board's model, what its bootloader holds now, /etc/home-hub.conf
+    rm -f "$root/applied" "$root/done"
+    printf '%s\0' "$1" > "$root/model"; printf '%b' "$2" > "$root/eeprom"; printf '%s\n' "${3:-}" > "$root/conf"
+    PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_FIRSTBOOT_MARK="$root/done" HUB_DRM="$root/drm" \
+      HUB_MODEL="$root/model" "$HERE/firstboot.sh" >/dev/null 2>&1
+  }
+  applied() { cat "$root/applied" 2>/dev/null | tr '\n' ' ' | sed 's/ $//'; }
+
+  boot "Raspberry Pi 5 Model B Rev 1.0" '[all]\nBOOT_ORDER=0xf461\nPOWER_OFF_ON_HALT=0\n'
+  is "a Pi 5 tries USB, then NVMe, then the card, and keeps its other settings" "$(applied)" "[all] BOOT_ORDER=0xf164 POWER_OFF_ON_HALT=0"
+  boot "Raspberry Pi Compute Module 5 Rev 1.0" '[all]\nWAKE_ON_GPIO=1\n'
+  is "a CM5 with no order of its own gets one under [all]" "$(applied)" "[all] BOOT_ORDER=0xf164 WAKE_ON_GPIO=1"
+  boot "Raspberry Pi 4 Model B Rev 1.5" '[all]\nBOOT_ORDER=0xf41\n'
+  is "a Pi 4 tries USB, then the card" "$(applied)" "[all] BOOT_ORDER=0xf14"
+  boot "Raspberry Pi 5 Model B Rev 1.0" ''
+  is "a bootloader with no settings at all still gets the order" "$(applied)" "BOOT_ORDER=0xf164"
+  boot "Raspberry Pi 5 Model B Rev 1.0" '[all]\nBOOT_ORDER=0xf164\n'
+  is "already in that order: nothing is rewritten" "$(applied)" ""
+  boot "Raspberry Pi 5 Model B Rev 1.0" '[all]\nBOOT_ORDER=0xf461\n' 'HUB_USB_FIRST=0'
+  is "HUB_USB_FIRST=0 leaves the order alone" "$(applied)" ""
+  boot "Intel(R) NUC" '[all]\nBOOT_ORDER=0xf461\n'
+  is "anything that is not a Pi is left alone" "$(applied)" ""
+  rm -rf "$root"
+}
+
+
+# A screen of another hub has every hub update switched off, so it follows its hub's release itself:
+# checked as a hub checks one, and its wall put back when the new one does not stay up. The hub's /alive
+# is a file, the releases server a directory, and systemctl says what the wall is doing.
+following() {
+  group "a screen follows its hub's release, checked, and puts its wall back if it does not stay up"
+  local root up dir bin keys serve startup; root=$(mktemp -d); up="$root/up"; dir="$root/screen"; bin="$root/bin"
+  keys="$root/keys"; serve="$root/serve"; startup="$(cd "$HERE/../../startup" && pwd)"
+  mkdir -p "$bin" "$up/startup" "$up/driver-layer/host/release-keys.d" "$serve/v0.3.0" "$serve/v0.3.1"
+  git init -q "$up"; git -C "$up" config user.email t@t; git -C "$up" config user.name t
+  cp "$HERE/verify.sh" "$up/driver-layer/host/"
+  keypair "$root/maker.pem" "$up/driver-layer/host/release-keys.d/release.pub"
+  keypair "$root/thief.pem" "$root/thief.pub"
+  printf '#!/usr/bin/env bash\necho installed >> "%s/asked"\n' "$root" > "$up/startup/install.sh"; chmod +x "$up/startup/install.sh"
+  release() { git -C "$up" add -A; git -C "$up" commit -qm "$1"; git -C "$up" tag "$1"; }
+  echo one > "$up/f"; release v0.2.0
+  echo '# a newer wall' >> "$up/startup/install.sh"; release v0.3.0
+  echo two > "$up/f"; release v0.3.1
+  git -C "$up" checkout -qb development; echo three > "$up/f"; git -C "$up" commit -qam work
+  for v in v0.3.0 v0.3.1; do manifest "$serve/$v/release.json" "$v" "$(git -C "$up" rev-list -n 1 "$v")"; sign "$serve/$v/release.json" "$root/maker.pem"; done
+  git clone -q "$up" "$dir"; git -C "$dir" reset -q --hard v0.2.0
+  cat > "$bin/systemctl" <<'SH'
+#!/usr/bin/env bash
+echo "systemctl $*" >> "$ROOT/asked"
+case "$*" in
+  "is-active elyir-wall.service") echo active ;;
+  "show -p NRestarts --value elyir-wall.service") n=$(cat "$ROOT/restarts"); echo "$n"; [ -f "$ROOT/falling" ] && echo $((n + 1)) > "$ROOT/restarts" ;;
+esac
+exit 0
+SH
+  chmod +x "$bin/systemctl"; echo 0 > "$root/restarts"
+  run() {  # the version the hub says it runs, and anything else /etc/home-hub.conf says
+    rm -f "$root/asked"
+    printf '{"ok": true, "version": "%s", "commit": "1a2b3c4d5e6f"}' "$1" > "$root/alive.json"
+    printf 'HUB_ROLE="screen"\nELYIR_READY_URL="file://%s/alive.json"\n%s\n' "$root" "${2:-}" > "$root/conf"
+    PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_STATE="$root/state" HOME_HUB_KEYS="$keys" \
+      HOME_HUB_RELEASES="file://$serve" SCREEN_SETTLE=0 SCREEN_WATCH=0 "$startup/screen-update.sh" >/dev/null 2>&1
+  }
+  on() { git -C "$dir" describe --tags --always; }
+  asked() { cat "$root/asked" 2>/dev/null | grep -c "$1" || true; }
+
+  run 0.3.0
+  is "the hub runs v0.3.0: the screen moves to it" "$(on)" "v0.3.0"
+  is "...takes the keys it was set up with, once" "$(ls "$keys")" "release.pub"
+  is "...and its startup changed, so the wall is set up again and restarted" "$(asked installed) $(asked 'restart elyir-wall')" "1 1"
+  run 0.3.0
+  is "run again on the same version: nothing moves or restarts" "$(asked 'restart elyir-wall')" "0"
+  run 0.3.1
+  is "a release that leaves the startup alone moves the code and leaves the wall alone" "$(on) $(asked 'restart elyir-wall')" "v0.3.1 0"
+
+  git -C "$dir" reset -q --hard v0.2.0
+  sign "$serve/v0.3.0/release.json" "$root/thief.pem"; run 0.3.0
+  is "a release not signed by a key it holds: it stays where it is" "$(on)" "v0.2.0"
+  sign "$serve/v0.3.0/release.json" "$root/maker.pem"
+  run development-1a2b3c4
+  is "a hub on a branch: a screen on releases stays where it is" "$(on)" "v0.2.0"
+  printf 'ELYIR_READY_URL="file://%s/alive.json"\n' "$root" > "$root/conf"
+  PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" "$startup/screen-update.sh" >/dev/null 2>&1
+  is "a hub's own screen is left to the hub" "$(on)" "v0.2.0"
+
+  touch "$root/falling"; run 0.3.0
+  is "a wall that keeps restarting on the new version: the last one is put back" "$(on)" "v0.2.0"
+  is "...set up and restarted again on it" "$(asked installed) $(asked 'restart elyir-wall')" "2 2"
+  rm -f "$root/falling"; run 0.3.0
+  is "...and that version is not tried again on its own" "$(on) $(asked 'restart elyir-wall')" "v0.2.0 0"
+  run 0.3.1
+  is "the next release is" "$(on)" "v0.3.1"
+
+  run 0.3.0 'HOME_HUB_BRANCH="development"'
+  is "a screen built from a branch follows that branch, whatever its hub runs" "$(git -C "$dir" log -1 --format=%s)" "work"
+  rm -rf "$root"
+}
+
+
 # A hub with no cable and no Wi-Fi makes one of its own for a phone to set it up from (docs/network.md,
 # piece 5; design/setup-network/, A). NetworkManager, the kernel's radio and the routing table are
 # scripts on PATH; each says what this house looks like and writes down what it was asked.
@@ -928,6 +1038,6 @@ tiers() {
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; keeping; awake; setting_up; moving_in; moving; describing
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; usb_first; following; keeping; awake; setting_up; moving_in; moving; describing
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]
