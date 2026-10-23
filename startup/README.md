@@ -14,7 +14,7 @@ until the product is ready, when it opens onto the product. Chosen 7 October 202
 | `wall.sh`, `elyir-wall.service` | Keep the splash up until the product answers, let it end, then the panel full screen |
 | `splash.sh` | The splash and a quiet boot around it, on a Pi's boot settings or a PC's GRUB |
 | `elyir-splash.service` | On a hub with no wall (a NUC's monitor): the splash held until the hub answers, then its ending |
-| `install.sh` | Sets all of it up on a unit with its own screen; first boot runs it when a DSI screen is connected |
+| `install.sh` | Sets all of it up on a unit with its own screen; first boot runs it when a DSI screen is connected, or on a Pi any screen |
 
 **Changing it** goes board, then sequence, then render, the order AGENTS.md §1 sets:
 
