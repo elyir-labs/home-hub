@@ -22,7 +22,16 @@
   "pages": [
     {
       "id": "developer",
-      "name": "Developer settings on the hub"
+      "name": "Developer settings on the hub",
+      "decided": {
+        "on": "2026-10-22",
+        "chose": "B, there by default on a hub not on releases",
+        "board": "PageB.dc.html"
+      }
+    },
+    {
+      "id": "developer-rejected",
+      "name": "Developer settings on the hub: not chosen"
     }
   ],
   "artboards": [
@@ -42,7 +51,7 @@
       "w": 1440,
       "h": 900,
       "title": "A — hold the Software row, and the rows open under it",
-      "page": "developer"
+      "page": "developer-rejected"
     },
     {
       "file": "PageB.dc.html",
@@ -60,7 +69,7 @@
       "w": 1440,
       "h": 900,
       "title": "C — the rows are there exactly when the hub is not on releases",
-      "page": "developer"
+      "page": "developer-rejected"
     },
     {
       "file": "KeyPhone.dc.html",
@@ -91,7 +100,7 @@
     },
     {
       "id": "a",
-      "page": "developer",
+      "page": "developer-rejected",
       "x": 1560,
       "y": 940,
       "w": 1440,
@@ -107,7 +116,7 @@
     },
     {
       "id": "c",
-      "page": "developer",
+      "page": "developer-rejected",
       "x": 1560,
       "y": 2240,
       "w": 1440,
@@ -135,7 +144,7 @@
       "x": 3120,
       "y": 0,
       "w": 500,
-      "text": "TO PICK\n\nA, B or C, or a mix: B's page reached by A's hold, or C's rule with B's page. The phone board goes with whichever is chosen.\n\nThe branch fallback the hub needed is already built, on branch dev-tools, and does not wait on this pick. So are tools/dev.sh devices (every hub and screen, what it runs, how far behind, and why SSH would not get in) and tools/dev.sh image."
+      "text": "DECIDED 22 OCTOBER 2026: B, THERE BY DEFAULT ON A HUB NOT ON RELEASES\n\nB's page, For working on the hub, with C's rule for when it is on the list: a hub following development, main or a branch has it from the start, because a hub like that is one somebody is working on. A hub on releases does not, and gets it with seven taps on the version in The hub's Software row and the passcode. Take this page away takes it off the list on either kind of hub, until the next seven taps.\n\nThe phone board goes with it: a key is added from a phone or computer at hub.local/developer, never typed on the wall.\n\nA and C are on the next page, Developer settings on the hub: not chosen, with their cases intact."
     }
   ]
 }
