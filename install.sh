@@ -15,6 +15,11 @@ set -euo pipefail
 REPO="${HOME_HUB_REPO:-https://github.com/elyir-labs/home-hub.git}"
 DIR="${HOME_HUB_DIR:-/opt/home-hub}"
 HOSTNAME_WANTED="${HOME_HUB_HOSTNAME:-hub}"
+# A hub installed before the repository moved (18 October 2026) still fetched from the old one, which stopped
+# that day: its code stood still while the brain image, named by branch, moved on without it.
+case "$(git -C "$DIR" remote get-url origin 2>/dev/null)" in
+  https://github.com/topeysoft/home-hub|https://github.com/topeysoft/home-hub.git) git -C "$DIR" remote set-url origin "$REPO" ;;
+esac
 # Which code this hub follows. "release" is the newest version tag: nothing reaches a house until
 # somebody tags it. "main" and "development" follow those branches commit by commit, which is what a
 # hub being worked on wants — HOME_HUB_CHANNEL=development sudo ./install.sh. The brain is told, so

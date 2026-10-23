@@ -26,6 +26,11 @@ log() { printf '[screen] %s\n' "$*"; }
 
 # A hub's own screen moves with the hub's install.sh; only another hub's screen has nobody else to do it.
 [ "${HUB_ROLE:-}" = screen ] && [ -n "${ELYIR_READY_URL:-}" ] && [ -d "$DIR/.git" ] || exit 0
+# As install.sh: a unit set up before the repository moved still fetched from the old one, which stopped.
+case "$(git -C "$DIR" remote get-url origin 2>/dev/null)" in
+  https://github.com/topeysoft/home-hub|https://github.com/topeysoft/home-hub.git)
+    git -C "$DIR" remote set-url origin https://github.com/elyir-labs/home-hub.git ;;
+esac
 # shellcheck source=driver-layer/host/verify.sh
 . "$DIR/driver-layer/host/verify.sh"
 
