@@ -635,7 +635,7 @@ following() {
   keys="$root/keys"; serve="$root/serve"; startup="$(cd "$HERE/../../startup" && pwd)"
   mkdir -p "$bin" "$up/startup" "$up/driver-layer/host/release-keys.d" "$serve/v0.3.0" "$serve/v0.3.1"
   git init -q "$up"; git -C "$up" config user.email t@t; git -C "$up" config user.name t
-  cp "$HERE/verify.sh" "$up/driver-layer/host/"
+  cp "$HERE/verify.sh" "$HERE/landed.sh" "$up/driver-layer/host/"
   keypair "$root/maker.pem" "$up/driver-layer/host/release-keys.d/release.pub"
   keypair "$root/thief.pem" "$root/thief.pub"
   printf '#!/usr/bin/env bash\necho installed >> "%s/asked"\n' "$root" > "$up/startup/install.sh"; chmod +x "$up/startup/install.sh"
@@ -695,6 +695,23 @@ SH
 
   run 0.3.0 'HOME_HUB_BRANCH="development"'
   is "a screen built from a branch follows that branch, whatever its hub runs" "$(git -C "$dir" log -1 --format=%s)" "work"
+
+  following_a_branch() { run 0.3.0 "HOME_HUB_BRANCH=\"$1\""; }
+  says() { sed -n 's/^HOME_HUB_BRANCH=//p' "$root/conf" | tr -d '"'; }
+  git -C "$up" branch -q fresh
+  following_a_branch fresh
+  is "a branch just cut from development, with nothing on it yet, is still the branch" "$(says)" "fresh"
+  git -C "$up" checkout -qb try-it; echo four > "$up/f"; git -C "$up" commit -qam trying; git -C "$up" checkout -q development
+  following_a_branch try-it
+  is "a branch still being worked on is followed" "$(git -C "$dir" log -1 --format=%s) $(says)" "trying try-it"
+  git -C "$up" merge -q --no-ff -m "took try-it" try-it
+  following_a_branch try-it
+  is "once development holds it and has moved on, the screen follows development" "$(git -C "$dir" log -1 --format=%s)" "took try-it"
+  is "...and says so for good" "$(says)" "development"
+  git -C "$up" checkout -qb gone; echo five > "$up/f"; git -C "$up" commit -qam "gone soon"; git -C "$up" checkout -q development
+  following_a_branch gone
+  git -C "$up" branch -qD gone; following_a_branch gone
+  is "a branch deleted without being merged in: development too" "$(git -C "$dir" log -1 --format=%s) $(says)" "took try-it development"
   rm -rf "$root"
 }
 

@@ -18,17 +18,29 @@ HOSTNAME_WANTED="${HOME_HUB_HOSTNAME:-hub}"
 # Which code this hub follows. "release" is the newest version tag: nothing reaches a house until
 # somebody tags it. "main" and "development" follow those branches commit by commit, which is what a
 # hub being worked on wants — HOME_HUB_CHANNEL=development sudo ./install.sh. The brain is told, so
-# the panel offers the same one. Anything else is a typo, and a typo lands on releases.
+# the panel offers the same one. Anything else is a typo, and a typo lands on releases -- except a branch
+# this script wrote into .env itself, which update.sh and network.sh hand back as the channel.
 CHANNEL="${HOME_HUB_CHANNEL:-release}"
+case "$CHANNEL" in release|main|development) ;; *)
+  [ -z "${HOME_HUB_BRANCH:-}" ] && grep -qxF "HUB_CHANNEL=$CHANNEL" "$DIR/driver-layer/.env" 2>/dev/null && HOME_HUB_BRANCH="$CHANNEL" ;;
+esac
 case "$CHANNEL" in main|development) BRANCH="$CHANNEL" ;; *) CHANNEL="release"; BRANCH="main" ;; esac
 # An image built from a branch rather than a release tag (a test image: pi-image.yml, x86-image.yml writes this into
 # /etc/home-hub.conf) follows that branch, the way a development hub follows development. Otherwise its first install
 # would move it onto the newest release, which has never heard of what the image was built to test, and run that
-# release's brain. The Matter bridge is only published for releases and the two main branches, so it stays on latest.
+# release's brain. Once the branch has landed (host/landed.sh) it follows development instead, for good.
 if [ -n "${HOME_HUB_BRANCH:-}" ]; then
   CHANNEL="$HOME_HUB_BRANCH"; BRANCH="$HOME_HUB_BRANCH"
-  export HUB_BRIDGE_IMAGE="${HUB_BRIDGE_IMAGE:-ghcr.io/elyir-labs/home-hub-matter-bridge:latest}"
+  # shellcheck source=driver-layer/host/landed.sh
+  if [ -f "$DIR/driver-layer/host/landed.sh" ] && . "$DIR/driver-layer/host/landed.sh" && landed "$BRANCH" "$DIR"; then
+    echo "$BRANCH has landed in development; this hub follows development from now on"
+    CHANNEL=development; BRANCH=development
+  fi
 fi
+# The Matter bridge is only published for releases and the two main branches, so a branch hub stays on latest.
+case "$CHANNEL" in release|main|development) ;; *)
+  export HUB_BRIDGE_IMAGE="${HUB_BRIDGE_IMAGE:-ghcr.io/elyir-labs/home-hub-matter-bridge:latest}" ;;
+esac
 
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 # Where this has got to, for the panel to draw. Only when update.sh asks for it: somebody running
@@ -141,7 +153,7 @@ cd "$DIR/driver-layer"
 # predates the signing.
 if [ -z "${HUB_BRAIN_IMAGE:-}" ]; then
   if [ -n "$VERSION" ]; then export HUB_BRAIN_IMAGE="ghcr.io/elyir-labs/home-hub-brain:${VERSION}"
-  elif [ "$CHANNEL" != "release" ]; then export HUB_BRAIN_IMAGE="ghcr.io/elyir-labs/home-hub-brain:${BRANCH}"
+  elif [ "$CHANNEL" != "release" ]; then export HUB_BRAIN_IMAGE="ghcr.io/elyir-labs/home-hub-brain:${BRANCH//\//-}"
   fi
 fi
 # The Matter bridge is ours too, and it and the brain have a contract between them -- what the bridge
@@ -333,7 +345,7 @@ else
   # hubs that had to build their own. The checkout this was built from is the answer, and it is
   # right there.
   BUILT_COMMIT="$(git -C "$DIR" rev-parse HEAD 2>/dev/null || echo "")"
-  BUILT_VERSION="${VERSION:-main-$(git -C "$DIR" rev-parse --short HEAD 2>/dev/null || echo unknown)}"
+  BUILT_VERSION="${VERSION:-$BRANCH-$(git -C "$DIR" rev-parse --short HEAD 2>/dev/null || echo unknown)}"
   # A digest names an image that exists on a registry, and nothing can build one: docker refuses
   # outright with "refusing to create a tag with a digest reference". So a verified release, which
   # pins by digest on purpose, could not fall back to building at all -- the install would fail on

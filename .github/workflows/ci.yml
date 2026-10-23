@@ -242,6 +242,7 @@ jobs:
         driver-layer/host/network.sh
         driver-layer/host/away.sh
         driver-layer/host/verify.sh
+        driver-layer/host/landed.sh
         driver-layer/host/channel.sh
         driver-layer/host/wifi-awake.sh
         driver-layer/host/tests.sh
