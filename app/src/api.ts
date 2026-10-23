@@ -974,3 +974,30 @@ export async function claimAddress(name: string): Promise<AddressState> {
   return r.json()
 }
 export const turnAddress = (on: boolean) => post<AddressState>(`/address/${on ? 'on' : 'off'}`)
+
+/* For working on the hub (design/developer/, B): what this hub follows, SSH, and the screens in the house.
+   `shown` is the brain's answer to whether the page is on This house's list -- by default exactly when the hub
+   is not on releases. A brain older than the page answers 404, and then there is no page. */
+export type DevKey = { name: string; type: string; fingerprint: string; added: number; source: string }
+export type DevScreen = { id: string; name: string; host: string; ip: string; version: string; commit: string; channel: string
+  landed: boolean; current: boolean | null; seen: number | null; updating: boolean }
+export type Developer = { shown: boolean; channel: string; version: string; commit: string; landed: string | null; behind: number | null
+  ssh: { on: boolean; user: string; host: string; ip: string; keys: DevKey[]; pending: boolean }
+  screens: DevScreen[]; requested: { channel: string | null } }
+export type GithubKey = { line: string; type: string; fingerprint: string; name: string }
+export async function getDeveloper(): Promise<Developer | null> {
+  const r = await request('/developer'); if (r.status === 404) return null; if (!r.ok) await fail(r); return r.json()
+}
+export const showDeveloper = () => post<Developer>('/developer/show')
+export const hideDeveloper = () => post<Developer>('/developer/hide')
+export const followChannel = (channel: string) => post<Developer>('/developer/channel', { channel })
+export async function githubKeys(user: string): Promise<GithubKey[]> {
+  const r = await request(`/developer/github-keys?user=${encodeURIComponent(user)}`); if (!r.ok) await fail(r); return (await r.json()).keys
+}
+export const allowKeys = (keys: string[], source: string) => post<Developer>('/developer/ssh/keys', { keys, source })
+export async function removeKey(fingerprint: string): Promise<Developer> {
+  const r = await request(`/developer/ssh/keys/${encodeURIComponent(fingerprint)}`, { method: 'DELETE' }); if (!r.ok) await fail(r); return r.json()
+}
+export const turnSsh = (on: boolean) => post<Developer>('/developer/ssh', { on })
+export const updateScreen = (id: string) => post<Developer>(`/developer/screens/${encodeURIComponent(id)}/update`)
+export const updateScreens = () => post<Developer>('/developer/screens/update')
