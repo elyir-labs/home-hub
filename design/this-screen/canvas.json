@@ -1,0 +1,112 @@
+{
+  "name": "What a screen is, and which way up",
+  "areas": [
+    "Wall screens"
+  ],
+  "reading": [
+    "why",
+    "Today.dc.html",
+    "today",
+    "OwnPageA.dc.html",
+    "a",
+    "InPlaceB.dc.html",
+    "b",
+    "AgainC.dc.html",
+    "c",
+    "behind"
+  ],
+  "pages": [
+    {
+      "id": "screen",
+      "name": "What a screen is, and which way up"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: nothing says what this screen is, and nothing turns it over",
+      "page": "screen"
+    },
+    {
+      "file": "OwnPageA.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "A: This screen gets a page of its own",
+      "page": "screen"
+    },
+    {
+      "file": "InPlaceB.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "B: each where it already belongs: the turn on How it looks, what it is on The hub",
+      "page": "screen"
+    },
+    {
+      "file": "AgainC.dc.html",
+      "x": 1560,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "C: no setting; first start decides, and Start over asks again",
+      "page": "screen"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "screen",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\nA unit with a screen decides what it is once, at its first start (driver-layer/host/firstboot.sh). If it finds a hub on the Wi-Fi it becomes that hub's screen; if not, it becomes the hub. After that, nothing on any screen can change it. The only way is to flash it again with HUB_ROLE set in /etc/home-hub.conf. design/companion/'s BUILT note says so: 'once a unit has become a screen, nothing local is listening to turn it into a hub.'\n\nThe cases that need it are ordinary. The hub was unplugged at the wall's first start, so the wall built a second house. A wall meant for the flat over the garage joined the main house. A house moved from its wall onto a mini PC (companion's After board, 'A new hub'), and the old wall should now be that hub's screen. And the reverse of each.\n\nAnd a screen was hung upside down, with no way to turn it.\n\nBoth are about this screen rather than the house, so they are drawn together: every direction answers both."
+    },
+    {
+      "id": "today",
+      "page": "screen",
+      "x": 0,
+      "y": 940,
+      "w": 1440,
+      "text": "TODAY, drawn from the shipped panel on the mock brain at 1440x900. Open the house sheet on a wall screen. How it looks has the one setting that is this screen's own (light or dark) and a line for its room. The hub describes the hub, wherever it is. Both pages read exactly the same on a screen that is the hub and on one that is not, and that is the problem: you cannot tell from the screen what you are touching, let alone change it. Nothing anywhere turns the screen over."
+    },
+    {
+      "id": "a",
+      "page": "screen",
+      "x": 1560,
+      "y": 940,
+      "w": 1440,
+      "text": "A: THIS SCREEN, A PAGE OF ITS OWN. A new entry in the sheet, only on a screen (never on a phone), saying what the unit is before it is opened: 'Hallway · shows Maple Court' or 'Hallway · runs the house'. The page holds everything that belongs to this screen rather than the house: which way up, its room, light or dark (moved here from How it looks), what it does, and its own restart. Companion's After board already promised 'This screen's own Restart stays on This screen'. Flip 'just turned over': the choice stays where the finger was, with Put it back beside it.\n\nWhat it does changes through a question with both answers written out, never a switch. Leaving a hub for another one is said in lamp: what stops working, and that the rest already knows the other hub.\n\nFOR: one place, named for what people will call it. The unit says what it is in the list itself, so nobody has to open The hub to find out whether they are standing at it.\n\nAGAINST: a twelfth entry in a list that already scrolls. Light or dark moves off How it looks, where it lives today."
+    },
+    {
+      "id": "b",
+      "page": "screen",
+      "x": 0,
+      "y": 2240,
+      "w": 1440,
+      "text": "B: EACH WHERE IT ALREADY BELONGS. No new page. Which way up sits beside Light and Dark, under How it looks' 'This screen', the one heading that already means 'only this screen'. What the screen is goes at the top of The hub, because the question people have is 'is this the hub?', and The hub is the page about the hub. Change answers with two pictures of where the house runs: this screen showing it from a box elsewhere, or this screen with the house inside it. The one it has now says Now.\n\nFOR: nothing new to find, and the pictures explain what a hub is in the act of choosing, for someone who has never needed the word.\n\nAGAINST: on a screen that is not the hub, The hub is a page about a box in another room, and a row about the glass in your hand sits oddly at its top. Which way up becomes two small cards among the looks."
+    },
+    {
+      "id": "c",
+      "page": "screen",
+      "x": 1560,
+      "y": 2240,
+      "w": 1440,
+      "text": "C: SET IT UP AGAIN. There is no setting for what a screen is. First start decides it, as it does today, and The hub gets one Start over row that goes back to first start's question, now asked with what it finds on the Wi-Fi. On a screen that ran the house, the house is put in a backup on the screen first, so 'Run it here again' is one tap.\n\nWhich way up is offered where the mistake is first seen. The first thing a new screen shows carries one pill drawn the other way up, so a screen hung upside down reads it the right way. Flip 'first start, upside down': the board is drawn as the person at the wall sees it. After setup, the same choice sits on How it looks, as in B.\n\nFOR: one moment decides what a unit is, and it is the moment that already does, so there is no setting to keep agreeing with first start. The upside-down pill catches the mistake on the day it is made.\n\nAGAINST: on the hub, starting over is the heaviest thing a screen can do, and the row looks like any other. The passcode and the room are asked again for what could be a two-minute switch. On a screen hung the right way, a pill drawn upside down looks like a bug until the first tap takes it away."
+    },
+    {
+      "id": "behind",
+      "page": "screen",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "WHAT HAPPENS BEHIND EVERY DIRECTION\n\nTHE TURN IS THE PANEL'S. The page is drawn turned over and the browser maps taps through the turn, so it works the same on the wall unit, the tablet and the hub's own wall, and needs nothing from the device. It is kept per screen, like light or dark. The startup before the panel is the device's own; the panel tells the device once, and the next start comes up the right way too.\n\nCHANGING WHAT A SCREEN IS NEEDS THE UNIT TO ACT. A screen runs no brain, and the page it shows is served by the hub, so a screen gets a small helper of its own that listens only on the screen itself, and the panel asks it. That helper is the 'nothing local is listening' gap from companion. A hub's own wall already has its brain to ask.\n\nONLY ON THE SCREEN ITSELF, never from a phone or another screen. Touching the glass proves you are standing at it, the way a press does on everything we make. The hub's list of screens (companion's After board) can still show them and remove them. It asks for the passcode when the house has one, as restarting does.\n\nSCREEN TO ITS OWN HOUSE is first start's other branch: the home engine installed, the screen announced as a hub, its own name back. HUB TO SCREEN needs another hub on the Wi-Fi and always makes a backup first. Things paired only to that unit stop answering, so they are named before the change, not discovered after it."
+    }
+  ]
+}

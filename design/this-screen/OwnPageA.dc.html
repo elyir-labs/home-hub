@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A, This screen gets its own page</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="screen.css">
+</head>
+<body data-unit="screen" data-step="page">
+<div class="wall">
+  <div class="house">
+    <nav class="nav" data-on="screen" data-screen="Hallway · shows Maple Court" data-if="unit:screen"></nav>
+    <nav class="nav" data-on="screen" data-screen="Hallway · runs the house" data-if="unit:hub"></nav>
+    <div class="main">
+      <div class="head"><h2>This screen</h2></div><span class="close"></span>
+      <div class="body">
+        <p class="lede">What you set here is for this screen alone, not the house.</p>
+        <ul class="rows">
+          <li>
+            <span class="k">Which way up</span>
+            <span>
+              <span class="opts">
+                <span class="opt sm" data-if="step:page,ask" style="border-color: rgba(var(--lamp-rgb), .75); background: rgba(var(--lamp-rgb), .06);"><span class="mini dark"><i></i><i class="lit"></i><i class="wide"></i></span><span class="nm">As it is <span class="tick">&#10003;</span></span></span>
+                <span class="opt sm" data-if="step:turned"><span class="mini dark"><i></i><i class="lit"></i><i class="wide"></i></span><span class="nm">As it was</span></span>
+                <span class="opt sm" data-if="step:page,ask"><span class="mini dark turned"><i></i><i class="lit"></i><i class="wide"></i></span><span class="nm">Turned over</span></span>
+                <span class="opt sm on" data-if="step:turned"><span class="mini dark turned"><i></i><i class="lit"></i><i class="wide"></i></span><span class="nm">Turned over <span class="tick">&#10003;</span></span></span>
+              </span>
+              <span class="sub" data-if="step:page,ask">Hung upside down? Turn it over. Everything turns with it, and taps land where you touch.</span>
+              <span class="sub" data-if="step:turned" style="color: var(--ink-2);">Turned over just now. <span class="linkish">Put it back</span></span>
+            </span>
+            <span></span>
+          </li>
+          <li><span class="k">Room</span><span class="v">Hallway<span class="sub">It opens on the hallway, and goes back to it after resting.</span></span><span class="btn">Change</span></li>
+          <li><span class="k">Light or dark</span><span class="v">Dark<span class="sub">Only this screen. Phones pick their own.</span></span>
+            <span style="display: flex; gap: 6px;"><span class="btn ghost">Light</span><span class="btn">Dark</span></span></li>
+          <li data-if="unit:screen"><span class="k">What it does</span><span class="v">Shows Maple Court from the hub.<span class="sub">The hub is the small computer that runs the house. This screen runs nothing itself, so unplugging it changes nothing in the house.</span></span><span class="btn">Change</span></li>
+          <li data-if="unit:hub"><span class="k">What it does</span><span class="v">Runs Maple Court. This screen is the hub.<span class="sub">Phones and other screens show the house from here. Unplug it, and the house stops until it's back.</span></span><span class="btn">Change</span></li>
+          <li data-if="unit:screen"><span class="k">Restart</span><span class="v">Restart this screen.<span class="sub">Only the screen. The house keeps running, and so do its lights.</span></span><span class="btn ghost">Restart</span></li>
+          <li data-if="unit:hub"><span class="k">Restart</span><span class="v">This screen is the hub, so restarting it restarts the house.<span class="sub">That's on The hub, with the rest of what keeps the house running.</span></span><span class="btn ghost">The hub</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div data-if="step:ask unit:screen"><div class="hush"></div>
+      <div class="ask">
+        <h3>What should this screen do?</h3>
+        <p class="lede">One or the other. Changing it takes about two minutes, and the screen goes dark while it does.</p>
+        <div class="choice"><span class="radio"></span><span><span class="t1">Show Maple Court</span><span class="t2">From the hub, as it does now.</span></span></div>
+        <div class="choice on"><span class="radio"></span><span><span class="t1">Run a house of its own</span><span class="t2">A separate house, set up from the start on this screen, for a flat or an office with its own lights. Maple Court carries on without it.</span></span></div>
+        <p class="foot">Moving Maple Court itself onto this screen is a backup on The hub, restored here once it's set up.</p>
+        <div class="actions"><span class="btn ghost big">Keep it as it is</span><span class="btn big">Start a new house here</span></div>
+      </div>
+    </div>
+
+    <div data-if="step:ask unit:hub"><div class="hush"></div>
+      <div class="ask">
+        <h3>What should this screen do?</h3>
+        <p class="lede">One or the other. Changing it takes about two minutes, and the screen goes dark while it does.</p>
+        <div class="choice"><span class="radio"></span><span><span class="t1">Run Maple Court</span><span class="t2">As it does now. This screen is the hub.</span></span></div>
+        <div class="choice on"><span class="radio"></span><span><span class="t1">Show the house from another hub</span><span class="t2">Found on your Wi-Fi: a hub running Maple Court, from this screen's backup on 20 October.</span></span></div>
+        <p class="foot warnline">This screen stops running the house. The 4 switches that only answer to this screen need adding to the other hub; the rest already know it.</p>
+        <div class="actions"><span class="btn ghost big">Keep it as it is</span><span class="btn big">Show the other hub's house</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="flips" data-k="step"><span style="padding: 0 6px;">Showing</span>
+    <span class="flip" data-v="page">the page</span><span class="flip" data-v="ask">What it does, Change</span><span class="flip" data-v="turned">just turned over</span></div>
+  <div class="flips" data-k="unit"><span style="padding: 0 6px;">On</span>
+    <span class="flip" data-v="screen">a screen for a hub</span><span class="flip" data-v="hub">a screen that is the hub</span></div>
+</div>
+<script src="screen.js"></script>
+</body>
+</html>
