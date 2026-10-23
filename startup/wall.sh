@@ -5,7 +5,8 @@
 # splash finish, then hand the screen to the panel. elyir-wall.service runs it twice:
 #
 #   wall.sh wait   as root, before the browser: waits for the product, tells the splash, lets it end
-#   wall.sh run    as the wall's own user: cage, with Chromium on the panel full screen at the design's size
+#   wall.sh run    as the wall's own user: cage, with Chromium on the panel full screen at the design's size,
+#                  turned the way This screen last set it, and screen-helper.py beside it
 #
 # When only the browser restarts, the splash is long gone and `wait` returns at once, so a screen
 # coming back is a few seconds of nothing rather than the whole startup again.
@@ -50,6 +51,13 @@ hidden_cursor() {
   export XCURSOR_PATH="${dir%/default/cursors}" XCURSOR_THEME=default XCURSOR_SIZE=24
 }
 
+# Which way up This screen last asked for (screen-helper.py keeps it), as the compositor says it.
+transform() {
+  case "$(cat "${ELYIR_TURN_FILE:-$HOME/.config/elyir/turn}" 2>/dev/null)" in
+    90) echo 90 ;; 180) echo 180 ;; 270) echo 270 ;; *) echo normal ;;
+  esac
+}
+
 browser() {
   local b
   for b in chromium chromium-browser; do command -v "$b" >/dev/null 2>&1 && { echo "$b"; return; }; done
@@ -72,7 +80,8 @@ case "${1:-}" in
   browse)
     # The scale is set on the display, not in the browser: Chromium on Wayland draws a forced scale under 1 into a
     # corner of the screen, while a scaled output is simply a bigger screen to it.
-    for out in $(wlr-randr 2>/dev/null | awk '/^[^ ]/ { print $1 }'); do wlr-randr --output "$out" --scale "$2" || true; done
+    for out in $(wlr-randr 2>/dev/null | awk '/^[^ ]/ { print $1 }'); do wlr-randr --output "$out" --scale "$2" --transform "$(transform)" || true; done
+    ELYIR_PANEL_URL="$PANEL_URL" python3 "$HERE/screen-helper.py" &
     # Chromium locks its profile under this machine's name and refuses to start, exit 21, when the name has changed
     # since -- which first boot does, to hub or to screen. Only this service runs a browser as this user, one at a
     # time, so a lock found here is always left over.

@@ -1,0 +1,11 @@
+# Watches for the word screen-helper.py leaves when somebody asks on This screen to change what this unit
+# is. Installed by startup/install.sh.
+[Unit]
+Description=Elyir's screen: watch for a change of what this unit is
+
+[Path]
+PathExists=/var/lib/elyir-screen/role.request
+Unit=elyir-screen-role.service
+
+[Install]
+WantedBy=multi-user.target
