@@ -106,3 +106,20 @@ body {
 .flips + .flips { bottom: 58px; }
 .flip { padding: 5px 11px; border-radius: 999px; cursor: pointer; color: var(--ink-2); }
 .flip.on { background: var(--ink); color: var(--bg); }
+
+/* which way up, any of four. Each picture is the panel turned that far from how it is drawn now, so on a
+   screen hung sideways the right answer is the one picture that looks upright to the person at it */
+.ways { display: flex; gap: 10px; }
+.way { width: 112px; padding: 8px 8px 10px; border-radius: 16px; border: 1px solid var(--edge); background: rgba(255,255,255,.03); text-align: center; }
+.way.on { border-color: rgba(var(--lamp-rgb), .75); background: rgba(var(--lamp-rgb), .06); }
+.way .cell { height: 92px; display: grid; place-items: center; }
+.way .m { width: 86px; height: 54px; border-radius: 8px; background: linear-gradient(#262842, #3a2a3a); padding: 6px; display: grid; gap: 4px;
+          grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.way .m i { border-radius: 4px; background: rgba(255,255,255,.14); }
+.way .m i.lit { background: linear-gradient(#f8c98a, #f0ac63); }
+.way .m i.wide { grid-column: span 2; }
+.way .m i.roof { display: grid; place-items: center; color: var(--ink); }
+.way.r90 .m { transform: rotate(90deg); }
+.way.r180 .m { transform: rotate(180deg); }
+.way.r270 .m { transform: rotate(-90deg); }
+.way .nm { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 6px; font-size: 14.5px; white-space: nowrap; }
