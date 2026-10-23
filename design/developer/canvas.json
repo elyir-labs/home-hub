@@ -1,0 +1,141 @@
+{
+  "name": "Developer settings on the hub",
+  "areas": [
+    "Wall screens",
+    "Tools"
+  ],
+  "reading": [
+    "why",
+    "Today.dc.html",
+    "today",
+    "HoldA.dc.html",
+    "a",
+    "PageB.dc.html",
+    "b",
+    "BranchC.dc.html",
+    "c",
+    "KeyPhone.dc.html",
+    "phone",
+    "behind",
+    "pick"
+  ],
+  "pages": [
+    {
+      "id": "developer",
+      "name": "Developer settings on the hub"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today — a hub flashed from a branch says only its build's name",
+      "page": "developer"
+    },
+    {
+      "file": "HoldA.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "A — hold the Software row, and the rows open under it",
+      "page": "developer"
+    },
+    {
+      "file": "PageB.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "B — a page of its own, put on the list by tapping the version",
+      "page": "developer"
+    },
+    {
+      "file": "BranchC.dc.html",
+      "x": 1560,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "C — the rows are there exactly when the hub is not on releases",
+      "page": "developer"
+    },
+    {
+      "file": "KeyPhone.dc.html",
+      "x": 3120,
+      "y": 1300,
+      "w": 390,
+      "h": 844,
+      "title": "Every direction — a key is added from a phone, never typed on the wall",
+      "page": "developer"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "developer",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS (22 OCTOBER 2026)\n\nA wall screen was flashed from an image built on the pi-image-wall branch. That branch was merged into development the same day, and nothing was ever pushed to it again. The Software row on The hub said only \"pi-image-wall-e39341a…\", the 54-character name of its build. It offered no update and did not say it was up to date. It said nothing at all about why.\n\nThree things were missing, and only one of them is a panel problem. First, a unit built from a branch had no way to leave that branch. That is fixed in code without a board: it now follows the branch until the branch lands in development, then development (driver-layer/host/landed.sh, on branch dev-tools). Second, there was no way into the box: the image ships with SSH off and its user locked, and the only way in is Raspberry Pi Imager's settings at flash time. Third, nothing on the hub says what the wall screens in the house are running, or lets anybody nudge one.\n\nThis collection is about the second and third, and about where a developer's controls live on a panel that a household must never trip over (AGENTS.md section 5, Out of the box)."
+    },
+    {
+      "id": "today",
+      "page": "developer",
+      "x": 0,
+      "y": 940,
+      "w": 1440,
+      "text": "TODAY -- DRAWN FROM THE SHIPPED PANEL\n\nThe hub as app/src/HubPage.vue draws it on a hub flashed from a branch. Software shows store.status.version verbatim: the branch name and the whole 40-character commit, because pi-image.yml stamps HUB_VERSION as <branch>-<sha>. The right column is empty. available was null, because the brain counted any channel but main and development as releases, and a branch build is not a release. So the row says neither Install the update nor Up to date. The left list repeats the same string, cut off.\n\nWhat's new says \"Nothing was written down for this build\", which is true of every branch build. Nothing on the page names what the hub follows. The wall screens appear nowhere: a joined screen is a phone of kind \"screen\" with a room, listed on People and phones as \"Kitchen screen\", with no version, no address and no way to update it. SSH has no switch anywhere."
+    },
+    {
+      "id": "a",
+      "page": "developer",
+      "x": 1560,
+      "y": 940,
+      "w": 1440,
+      "text": "A -- HOLD THE SOFTWARE ROW, AND THE ROWS OPEN UNDER IT\n\nNothing is added for a household to see. Holding the Software row for three seconds asks for the passcode in the row itself, the way Restart and Install already ask in theirs. Then three rows open directly under it, behind a rule headed For working on the hub. They are Follows (chips: Releases, development, main, the branch it is on, Another branch…), SSH (a switch, the command to type, and which keys can sign in) and Screens (each wall screen with its room, address, what it follows and its commit, and Update now beside one that is behind). They stay until Hide these. Whether they are shown is a setting of the hub, not of the screen, so a developer's phone and the wall agree. The Software row itself reads as the build, \"pi-image-wall · e39341a\", for everybody. When the branch has landed, it says the next update moves the hub to development, beside the Install button that does it.\n\nFOR: everything about the software is in one place, under the row it concerns. There is nothing new to find, nothing in the list, and no new page. The gesture is the one the panel already uses for the move to a drive (design/move-to-drive/, \"a hold, behind the passcode\"), so it is not a new idea to learn. Technical words are fine inside, because only the person who held the row and typed the passcode ever reads them.\n\nAGAINST: a hold is invisible, so the only way to learn it is to be told. While the rows are shown they push the household's rows down the page, and on a hub a household uses every day, that is the wrong way round. The Screens list is the longest of the three rows and has the least to do with software versions."
+    },
+    {
+      "id": "b",
+      "page": "developer",
+      "x": 0,
+      "y": 2240,
+      "w": 1440,
+      "text": "B -- A PAGE OF ITS OWN, PUT ON THE LIST BY TAPPING THE VERSION\n\nTapping the Software row's version seven times, as a phone turns on its developer options, asks for the passcode and adds a page to the bottom of This house's list: For working on the hub. The page has three cards. The first is what the hub follows, as a list of choices, each saying what it means and where the hub is on it. The second is SSH: off, with a code to open hub.local/developer on a phone, or on, with the command, a copy button, each key with its fingerprint and Remove, and Turn SSH off. The third is the screens in the house as a table (room, address, what it follows, commit, Up to date, Update now, Not answering) with Update all. Take this page away removes it from the list until the next seven taps. The Hub page itself is unchanged apart from the readable version.\n\nFOR: the household's page is untouched, and a developer gets the width for a table, which three wall screens and a bedroom one that stopped answering need. The entry is a convention most developers already know from their own phones. It is the easiest of the three to grow when the next developer control arrives (logs, a restart of one service), without any of it landing among a household's rows.\n\nAGAINST: a page on the list is visible to everyone once it is on, which makes it the most likely of the three for a household to open. Seven taps is a party trick, not a design, and the people this is for will still have to be told it exists. It is the most to build: a page, its place in HousePanel's list, and a setting to keep it there."
+    },
+    {
+      "id": "c",
+      "page": "developer",
+      "x": 1560,
+      "y": 2240,
+      "w": 1440,
+      "text": "C -- A DEVELOPER'S HUB IS MADE, NOT SWITCHED\n\nThere is no switch and nothing to find. The Follows and SSH rows are on The hub exactly when the hub is not on releases. A hub flashed from a branch image (tools/dev.sh image), or installed with HOME_HUB_CHANNEL=development, is by definition one somebody is working on, and a hub in a household ships on releases and never shows them. Choosing Releases in the Follows row is the way out, and the rows go with it. Flip Follows to Releases on this board to see what a household sees.\n\nScreens is the one row that is for everyone, because since 01ef7ae every wall screen updates itself overnight and can fail to come back. On a release hub it says it in household words: which screens, Up to date, or \"A version behind. It catches up tonight.\" with Update now. On a developer's hub the same row adds each screen's address, branch and commit.\n\nFOR: a household cannot stumble on the developer rows, because their hub does not have them, which no gesture can promise. It needs no new gesture, no page and no setting, and the rule is one line in the panel (the channel is not release). Screens become a household fact rather than a developer one, which matches what they now do on their own.\n\nAGAINST: a hub on releases cannot be made a developer's hub from the panel. That takes a reflash, or SSH, and SSH is one of the rows it would have to turn on. So a hub that is already in somebody's house, on releases, can never be reached this way. That is arguably the point, but it means support for a real household goes through the image, not the panel. A household's Hub page also gains a Screens row it did not have."
+    },
+    {
+      "id": "phone",
+      "page": "developer",
+      "x": 3120,
+      "y": 2184,
+      "w": 390,
+      "text": "EVERY DIRECTION: THE KEY ON A PHONE\n\nA key is never typed on the wall screen, in any direction. It is a long line copied from a computer, and the wall has no clipboard worth the name. The wall's own keyboard (design/keyboard/) is shaped for short fields. The wall is also in the kitchen, where anybody can stand at it. So the wall offers a code for hub.local/developer, and the phone or computer that opens it does the adding.\n\nThere are two ways to add a key. From GitHub takes a username, fetches github.com/<user>.keys and shows each key with its comment and fingerprint, so you choose which ones by name rather than trusting the whole list (old-laptop is left off here). Paste one takes a single line and reads it back the same way. Either asks for the passcode before anything changes, then shows the command to type.\n\n\"SSH key\" is jargon, and it stays. This page is reached only from inside the developer rows, and a person who needs a plainer word for it is not the person adding one. The household words are kept for everything outside: none of the three directions shows the word SSH to a household."
+    },
+    {
+      "id": "behind",
+      "page": "developer",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "BEHIND EVERY DIRECTION\n\nWHAT EACH ONE NEEDS FROM THE HUB, NOT BUILT YET. SSH needs a host unit that the brain asks through a request file, as Install and Restart already do. The unit writes pi's authorized_keys from the keys the panel sent, unlocks the user, and starts or stops ssh.service. The brain never runs it itself, and a request names keys, never commands. Changing what the hub follows is install.sh run again with a new HOME_HUB_CHANNEL, which is already how the channel is changed. It is the same request file with a different field.\n\nSCREENS NEED TO REPORT IN. Today the hub knows a screen only as a phone with a room. Every direction needs each screen to tell the hub its address, the commit it is on and what it follows (startup/screen-update.sh knows all three), and needs some way for \"Update now\" to reach it. A screen has no brain to call. The simplest is that the screen asks the hub on a short timer whether it has been asked to update, then runs the same update it runs overnight.\n\nTHE VERSION READS AS ITS NAME. In every direction, \"pi-image-wall-e39341a161495b2f26826c292bc0bbdb1a213aeb\" becomes \"pi-image-wall · e39341a\", and a release stays \"v0.6.4\". That part changes what a household sees on a release hub not at all.\n\nWORDS. Inside the developer area: SSH, branch, development, main, commit. Outside it, nothing new reaches a household except C's Screens row, which uses the wall screen words People and phones settled (Kitchen wall screen, Up to date, Not answering)."
+    },
+    {
+      "id": "pick",
+      "page": "developer",
+      "x": 3120,
+      "y": 0,
+      "w": 500,
+      "text": "TO PICK\n\nA, B or C, or a mix: B's page reached by A's hold, or C's rule with B's page. The phone board goes with whichever is chosen.\n\nThe branch fallback the hub needed is already built, on branch dev-tools, and does not wait on this pick. So are tools/dev.sh devices (every hub and screen, what it runs, how far behind, and why SSH would not get in) and tools/dev.sh image."
+    }
+  ]
+}
