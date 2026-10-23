@@ -141,6 +141,15 @@ Three rules keep it from becoming a liability:
 - **It is the same panel, not a second one.** The phone's "is there internet?" check is answered with the panel
   (dnsmasq answers every name with `10.42.0.1`; Caddy's catch-all sends anything from that Wi‑Fi to it and stamps
   `X-Hub-Via: setup`), so the phone opens its sign-in sheet on `SetupWifi.vue`, in first run's frame and words.
+- **A hub with a screen is its own label** (design/screen-wifi/, C, decided 22 October 2026). A card somebody flashed
+  themselves has no label, and its password is made on the card at first boot. So the screen plugged into the hub asks
+  which Wi‑Fi itself, on its own keyboard, with the hub's Wi‑Fi as a code beside the question for anyone who would
+  rather use a phone; a screen nobody can touch or point at shows only the code. Only that screen is told the
+  password: `host/network.sh` keeps it in `network.setup-key` (root's, never in `network.json`, gone with the
+  network), Caddy stamps `X-Hub-Via: screen` on requests from the machine itself, and the brain believes the stamp
+  only on a connection from loopback, because :8300 is reachable from the Wi‑Fi too. It draws the code at
+  `/network/setup.svg` and refuses it to anything else. A phone that joins is counted, and the screen steps aside
+  for it.
 
 **Both at once where the card can.** A card whose kernel lists managed and AP in one combination (the NUC's
 RTL8852BE does, on one channel) runs the setup network on a second interface, `hubsetup0`, and tries the house's

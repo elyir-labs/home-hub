@@ -294,7 +294,7 @@ NOT_THE_APP = {"/openapi.json"}
 
 
 # ---- how a request reached the house ----
-VIA, AWAY, SETUP = "x-hub-via", "relay", "setup"
+VIA, AWAY, SETUP, SCREEN = "x-hub-via", "relay", "setup", "screen"
 
 
 def from_away(headers) -> bool:
@@ -320,6 +320,16 @@ def from_setup(headers) -> bool:
     (docs/network.md, piece 5).
     """
     return (headers.get(VIA) or "").strip().lower() == SETUP
+
+
+def from_screen(headers, peer: str | None) -> bool:
+    """Is this the screen plugged into the hub itself?
+
+    Caddy stamps it only on a request from this machine, and deletes it on every other. The brain also
+    listens on :8300 where anything on the Wi-Fi can reach it and send whatever header it likes, so the
+    stamp counts only when the connection itself came from loopback, which is Caddy (design/screen-wifi/).
+    """
+    return (headers.get(VIA) or "").strip().lower() == SCREEN and peer in ("127.0.0.1", "::1")
 
 
 # What a phone on the setup Wi-Fi may do without the house's passcode: see the hub's network, look

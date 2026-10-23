@@ -875,6 +875,7 @@ case "$*" in
   "phy phy0 info") [ -n "${BOTH:-}" ] && printf '\tvalid interface combinations:\n\t\t * #{ managed } <= 1, #{ AP, P2P-client, P2P-GO } <= 1,\n\t\t   total <= 2, #channels <= 1\n\tHT Capability overrides:\n' ;;
   "dev wlp1s0 interface add hubsetup0 type __ap") touch "$ROOT/iface" ;;
   "dev hubsetup0 del") rm -f "$ROOT/iface" ;;
+  "dev wlp1s0 station dump"|"dev hubsetup0 station dump") [ -n "${PHONES:-}" ] && printf 'Station 3a:1f:00:00:00:01 (on wlp1s0)\n\tinactive time:\t40 ms\n' ;;
 esac
 exit 0
 SH
@@ -898,6 +899,12 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
   is "...on the house's strongest 2.4 GHz channel, handing out addresses" "$(grep -c 'channel 11 ipv4.method shared ipv4.addresses 10.42.0.1/24' "$root/asked")" "1"
   is "...said in the hub's picture, for the panel" "$(field setup.ssid)" "elyir hub 4f2a"
   is "...on the card itself, which cannot do both" "$(field setup.both)" "false"
+  is "...its password kept for the hub's own screen, and nobody else" \
+    "$(cat "$data/network.setup-key") $(stat -c %a "$data/network.setup-key" 2>/dev/null || stat -f %Lp "$data/network.setup-key")" "kite-maple-41 600"
+  is "...never in the picture anything can read" "$(grep -c kite-maple "$data/network.json")" "0"
+  is "...with nobody on it yet" "$(field setup_phones)" "0"
+  PHONES=1 tick
+  is "a phone that joins it is counted, so the screen can step aside" "$(field setup_phones)" "1"
   is "its own Wi-Fi is not one of the house's choices" "$(python3 -c 'import json,sys; print(",".join(n["ssid"] for n in json.load(open(sys.argv[1]))))' "$data/network.scan")" "Bluebell,Bluebell Guest"
 
   fresh; BOTH=1 tick
@@ -912,6 +919,7 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
   python3 -c 'import json,sys; json.dump({"ssid":"Bluebell","at":1},open(sys.argv[1],"w"))' "$data/network.joined"
   ROUTE=wlp1s0 BOTH=1 tick
   is "...and then goes" "$(field setup.ssid)" ""
+  is "...and its password with it" "$([ -f "$data/network.setup-key" ] && echo kept || echo gone)" "gone"
   is "...taking its interface with it" "$(grep -c 'iw dev hubsetup0 del' "$root/asked")" "1"
   is "...and lets the house's Wi-Fi choose its own band again" "$(grep -c 'connection modify Bluebell 802-11-wireless.bssid' "$root/asked")" "1"
 

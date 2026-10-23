@@ -16,7 +16,22 @@ export function onSetupWifi(loc: { hostname: string; search: string }): boolean 
   return loc.hostname === SETUP_HOST || new URLSearchParams(loc.search).get('wifi') === '1'
 }
 
-export type WifiScreen = 'which' | 'password' | 'done' | 'leaving'
+/* The screen plugged into a hub with no network asks the same question itself, with the hub's own Wi-Fi as a code
+   beside it for anyone who would rather use a phone (design/screen-wifi/, C, decided 22 October 2026). Only that
+   screen is told the password, so being told it is what says this is that screen; once the hub has joined, the
+   question is over. */
+export const askHere = (net: NetState | null): boolean => !!net?.setup?.password && !net.joined
+
+/* A phone on the hub's own Wi-Fi is answering it, so the screen steps aside, unless somebody already began here. */
+export const phoneHasIt = (net: NetState | null, begun: boolean): boolean => !begun && (net?.setup?.phones ?? 0) > 0
+
+/* A screen nobody can touch or point at shows only the code: the question would be one it can't answer. */
+export const canAnswer = (): boolean => typeof matchMedia !== 'function' || !matchMedia('(any-pointer: none)').matches
+
+/* Welcome home's line while the rest of the hub downloads, once it joined from here. */
+export const fetchingLine = (ssid: string) => `On ${ssid}. Getting the rest of the hub, which takes a few minutes the first time.`
+
+export type WifiScreen = 'which' | 'password' | 'done' | 'leaving' | 'phone'
 export type WifiAt = { screen: WifiScreen; ssid?: string; error?: string }
 
 /* Where a phone lands. Somebody coming back after a wrong password on a card that can't do both is

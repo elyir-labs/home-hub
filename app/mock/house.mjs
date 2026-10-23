@@ -1241,12 +1241,17 @@ export function createHouse({ env = {}, qr = null } = {}) {
   }
 
   /* NET=setup is a hub on nothing with its own Wi-Fi up (design/setup-network/, A); NET=setup-alone is the
-     same on a card that can't do both. Joining takes three seconds; the password "wrong" is refused. */
+     same on a card that can't do both. Joining takes three seconds; the password "wrong" is refused.
+     NET=screen is that hub seen from the screen plugged into it (design/screen-wifi/, C), which alone is told the
+     password; PHONES=1 puts a phone on the hub's Wi-Fi. */
+  const SCREEN = NET.startsWith('screen')
   let setupTry = null
   function setupState() {
+    const setup = { ssid: 'Elyir Hub 4F2A', both: !NET.endsWith('-alone'), phones: Number(env.PHONES || 0), ...(SCREEN ? { password: 'kite-maple-41' } : {}) }
     const s = { how: 'none', ip: '10.42.0.1', name: 'hub', can_change: true, managed: true,
-                bridges: { ssid: '', checked: false, known: false, count: 0 }, setup: { ssid: 'Elyir Hub 4F2A', both: NET === 'setup' } }
+                bridges: { ssid: '', checked: false, known: false, count: 0 }, setup }
     if (setupTry && Date.now() > setupTry.at) {
+      if (setupTry.ok && SCREEN) return { how: 'wifi', ssid: setupTry.ssid, signal: 'strong', ip: '192.168.1.20', name: 'hub', can_change: true, managed: true, bridges: s.bridges, joined: setupTry.ssid }
       if (setupTry.ok) return { ...s, ip: '192.168.1.20', joined: setupTry.ssid }
       return { ...s, reverted: setupTry.ssid, reverted_why: 'password' }
     }
@@ -1254,7 +1259,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
   }
 
   function netState() {
-    if (NET.startsWith('setup')) return setupState()
+    if (NET.startsWith('setup') || SCREEN) return setupState()
     // Mirrors bridge.wifi_for_pucks(): a hub on Wi-Fi hands out the network it is ON, and when that is
     // not the one it holds a password for, `known` goes false and the name is the hub's, not the old one.
     const moved = NET === 'moved'
@@ -1268,7 +1273,12 @@ export function createHouse({ env = {}, qr = null } = {}) {
 
   function network(p, req, res) {
     if (p === '/network') return json(res, netState())
-    if (p === '/network/scan' && NET.startsWith('setup')) return json(res, { can_change: true, networks: [
+    if (p === '/network/setup.svg') {
+      if (!SCREEN || setupTry?.ok) { res.writeHead(404, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: "the hub's own Wi-Fi is not up" })) }
+      res.writeHead(200, { 'Content-Type': 'image/svg+xml' })
+      return res.end(qr?.('WIFI:T:WPA;S:Elyir Hub 4F2A;P:kite-maple-41;;') ?? FAKE_QR)
+    }
+    if (p === '/network/scan' && (NET.startsWith('setup') || SCREEN)) return json(res, { can_change: true, networks: [
       { ssid: 'Elyir Hub 4F2A', signal: 'strong', band: '2.4', secure: true },
       { ssid: 'Bluebell', signal: 'strong', band: '5', secure: true },
       { ssid: 'Bluebell Guest', signal: 'ok', band: '2.4', secure: true },
@@ -1287,7 +1297,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
     return req.on('end', () => {
       let b = {}
       try { b = JSON.parse(raw) } catch {}
-      if (NET.startsWith('setup') && p === '/network/hub') {
+      if ((NET.startsWith('setup') || SCREEN) && p === '/network/hub') {
         setupTry = { ssid: b.ssid, ok: b.password !== 'wrong', at: Date.now() + 3000 }
         return json(res, { ...setupState(), moving: { ssid: b.ssid, since: Date.now() / 1000 } })
       }

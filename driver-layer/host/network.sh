@@ -42,6 +42,10 @@ CONF="${HUB_CONF:-/etc/home-hub.conf}"
 SYS_NET="${HUB_NET:-/sys/class/net}"
 SETUP_CON=home-hub-setup; SETUP_IF=hubsetup0; SETUP_ADDR=10.42.0.1
 SETUP="$DATA/network.setup"; JOINED="$DATA/network.joined"; OFFLINE="$DATA/network.offline"
+# The setup Wi-Fi's password, for the one screen plugged into this hub to show (design/screen-wifi/, C). A
+# file of its own because network.setup is copied whole into network.json, which anything can read; this
+# one is root's alone, and exists only while that Wi-Fi does.
+KEY="$DATA/network.setup-key"
 # How long a hub is on nothing before it offers its own Wi-Fi. Short on a hub that has never had a
 # Wi-Fi, because somebody is standing there with the box; long on one that had one, because a router
 # rebooting is not a reason to start broadcasting.
@@ -112,7 +116,7 @@ write_state() {
     [ -f "$DATA/network.moving" ] && printf ', "moving": %s' "$(cat "$DATA/network.moving")"
     [ -f "$DATA/network.reverted" ] && printf ', "reverted": %s' "$(json_str "$(cat "$DATA/network.reverted")")"
     [ -f "$DATA/network.reverted-why" ] && printf ', "reverted_why": %s' "$(json_str "$(cat "$DATA/network.reverted-why")")"
-    [ -f "$SETUP" ] && printf ', "setup": %s' "$(cat "$SETUP")"
+    [ -f "$SETUP" ] && printf ', "setup": %s, "setup_phones": %s' "$(cat "$SETUP")" "$(setup_phones)"
     [ -f "$JOINED" ] && printf ', "joined": %s' "$(cat "$JOINED")"
     printf '}\n'
   } > "$tmp" 2>/dev/null && mv "$tmp" "$STATE"
@@ -173,6 +177,11 @@ for n in json.load(open(sys.argv[1])):
 # ---------------------------------------------------------------- the hub's own Wi-Fi
 
 # The radio a house's Wi-Fi goes on: the first wireless device that is not the setup Wi-Fi.
+# How many phones are on the hub's own Wi-Fi, so the screen on the hub can step aside for one.
+setup_phones() {
+  local ifname="$SETUP_IF"; ip link show "$SETUP_IF" >/dev/null 2>&1 || ifname="$(wifi_dev)"
+  iw dev "$ifname" station dump 2>/dev/null | grep -c '^Station'
+}
 wifi_dev() { nmcli -t -f DEVICE,TYPE device 2>/dev/null | awk -F: -v s="$SETUP_IF" '$2=="wifi" && $1!=s {print $1; exit}'; }
 
 # Online is a default route out of the house through anything but the setup Wi-Fi -- which never has
@@ -217,6 +226,7 @@ print(c[0] if c else 6)' "$DATA/network.scan" 2>/dev/null || echo 6)"
     wifi-sec.key-mgmt wpa-psk wifi-sec.psk "$SETUP_PASS" >/dev/null 2>&1
   if nmcli connection up "$SETUP_CON" >/dev/null 2>&1; then
     printf '{"ssid": %s, "both": %s, "since": %s, "chan": "%s"}' "$(json_str "$SETUP_SSID")" "$both" "$(date +%s)" "$chan" > "$SETUP"
+    (umask 077; printf '%s' "$SETUP_PASS" > "$KEY")
     say "setup: $SETUP_SSID up on $ifname, channel $chan (both at once: $both)"
   else
     say "setup: $SETUP_SSID would not start on $ifname"
@@ -237,7 +247,7 @@ setup_down() {
       nmcli connection modify "$ssid" 802-11-wireless.bssid "" >/dev/null 2>&1 && nmcli connection up "$ssid" >/dev/null 2>&1
     fi
   fi
-  rm -f "$SETUP" "$JOINED"
+  rm -f "$SETUP" "$JOINED" "$KEY"
   say "setup: down"
 }
 
