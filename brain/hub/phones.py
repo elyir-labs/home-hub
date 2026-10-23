@@ -287,7 +287,8 @@ class Phones:
 # carries no secret -- the shipped image is blank until the cable writes to it -- and the only name
 # that answers is the hash the hub is offering today (hub/bridge_updates.py).
 OPEN_PREFIXES = ("/phones/claim/", "/assets/", "/sounds/", "/icons/", "/bridge/firmware/")
-OPEN_PATHS = {"/", "/alive", "/phones/me", "/phones/ask", "/phones/code", "/phones/move/claim", "/qr.svg", "/phone", "/index.html", "/manifest.webmanifest", "/sw.js", "/favicon.ico", "/favicon.svg", "/robots.txt"}
+OPEN_PATHS = {"/", "/alive", "/phones/me", "/phones/ask", "/phones/code", "/phones/move/claim", "/qr.svg", "/phone", "/index.html", "/manifest.webmanifest", "/sw.js", "/favicon.ico", "/favicon.svg", "/robots.txt",
+              "/screens/report"}   # a screen's own unit, which has no cookie: hub/developer.py names it by a key of its own
 OPEN_SUFFIXES = (".js", ".css", ".svg", ".png", ".ico", ".woff2", ".webmanifest", ".json", ".html", ".txt", ".map")
 NOT_THE_APP = {"/openapi.json"}
 

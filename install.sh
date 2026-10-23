@@ -293,19 +293,23 @@ udevadm control --reload 2>/dev/null || true
 # The watchdog is the one with no request behind it: it runs on its own clock and catches a house that
 # stopped answering when nobody is there to notice (docs/restart.md, piece 5).
 chmod +x host/update.sh host/restore.sh host/channel.sh host/restart.sh host/watchdog.sh host/network.sh host/away.sh \
-         host/drive.sh host/move-early.sh host/move-to-drive.sh
+         host/drive.sh host/move-early.sh host/move-to-drive.sh host/developer.sh
 for u in home-hub-update.service home-hub-update.path home-hub-restore.service home-hub-restore.path \
          home-hub-restart.service home-hub-restart.path home-hub-watchdog.service home-hub-watchdog.timer \
          home-hub-channel.service home-hub-channel.timer \
          home-hub-network.service home-hub-network.path home-hub-network.timer \
-         home-hub-away.service home-hub-away.path home-hub-drive.service home-hub-drive.path home-hub-move.service; do
+         home-hub-away.service home-hub-away.path home-hub-drive.service home-hub-drive.path home-hub-move.service \
+         home-hub-developer.service home-hub-developer.path; do
   sed "s#/opt/home-hub#$DIR#g" "host/$u" > "/etc/systemd/system/$u"
 done
 systemctl daemon-reload 2>/dev/null || true
 systemctl enable --now home-hub-update.path home-hub-restore.path home-hub-restart.path \
                        home-hub-watchdog.timer home-hub-channel.timer \
                        home-hub-network.path home-hub-network.timer home-hub-away.path \
-                       home-hub-drive.path home-hub-drive.service home-hub-move.service >/dev/null 2>&1 || true
+                       home-hub-drive.path home-hub-drive.service home-hub-move.service \
+                       home-hub-developer.path >/dev/null 2>&1 || true
+# Whether SSH is on, as the card was flashed, so the page for working on the hub says what is true (design/developer/).
+HOME_HUB_DIR="$DIR" ./host/developer.sh >/dev/null 2>&1 || true
 # ...and write the first picture of this hub's network now, so the panel's Network row is a fact
 # from the first minute rather than blank until the timer's first tick (docs/network.md, piece 2).
 HOME_HUB_DIR="$DIR" ./host/network.sh >/dev/null 2>&1 || true

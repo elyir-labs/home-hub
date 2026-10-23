@@ -34,6 +34,8 @@ def needs_code(method: str, path: str) -> bool:
     # The house's address outside: taking one, turning it on or off, giving it back. It costs money and
     # it opens a door, so it sits behind the code like every other change to what the house is.
     if path.startswith("/address") and m in ("POST", "DELETE"): return True
+    # For working on the hub: what code it runs and who can sign in to the machine (design/developer/).
+    if path.startswith("/developer/") and (m in ("POST", "DELETE") or path == "/developer/github-keys"): return True
     if path.startswith("/rules") and m in ("PUT", "POST", "DELETE"): return True
     # The one GET on this list. Reading what the house DID never needs the code -- that is the
     # household's own situation, and the catch-up is open like the network page. Reading who did it
