@@ -7,7 +7,7 @@ run anything, that a key is checked before it is kept, and that a screen's unit 
 
 Run from brain/: .venv/bin/python -m unittest -v tests.test_developer
 """
-import base64, json, os, struct, time, urllib.error
+import base64, json, struct, time, urllib.error
 from unittest import mock
 
 from hub import developer as developer_mod, updates as updates_mod
