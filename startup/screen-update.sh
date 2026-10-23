@@ -26,6 +26,11 @@ log() { printf '[screen] %s\n' "$*"; }
 
 # A hub's own screen moves with the hub's install.sh; only another hub's screen has nobody else to do it.
 [ "${HUB_ROLE:-}" = screen ] && [ -n "${ELYIR_READY_URL:-}" ] && [ -d "$DIR/.git" ] || exit 0
+# As install.sh: a unit set up before the repository moved still fetched from the old one, which stopped.
+case "$(git -C "$DIR" remote get-url origin 2>/dev/null)" in
+  https://github.com/topeysoft/home-hub|https://github.com/topeysoft/home-hub.git)
+    git -C "$DIR" remote set-url origin https://github.com/elyir-labs/home-hub.git ;;
+esac
 # shellcheck source=driver-layer/host/verify.sh
 . "$DIR/driver-layer/host/verify.sh"
 
@@ -37,6 +42,13 @@ fi
 BRANCH=""
 case "${HOME_HUB_CHANNEL:-release}" in main|development) BRANCH="$HOME_HUB_CHANNEL" ;; esac
 [ -n "${HOME_HUB_BRANCH:-}" ] && BRANCH="$HOME_HUB_BRANCH"
+# shellcheck source=driver-layer/host/landed.sh
+. "$DIR/driver-layer/host/landed.sh"
+if [ -n "${HOME_HUB_BRANCH:-}" ] && landed "$HOME_HUB_BRANCH" "$DIR"; then
+  log "$HOME_HUB_BRANCH has landed in development; following development from now on"
+  BRANCH=development
+  { grep -v '^HOME_HUB_BRANCH=' "$CONF"; echo 'HOME_HUB_BRANCH="development"'; } > "$CONF.new" && mv "$CONF.new" "$CONF"
+fi
 
 if [ -n "$BRANCH" ]; then
   git -C "$DIR" fetch -q origin "+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" 2>/dev/null \

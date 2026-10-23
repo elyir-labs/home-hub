@@ -339,6 +339,15 @@ Do not reopen these, and do not propose around them.
   to every phone that can change things -- and handing the house over when somebody moves out. A person in a house is
   still a phone: phones at home and the wall never sign in, and the Houses app keeps its list without an account. On
   the wall it is never called "Account", which is already the page for the services the house signed into. Not built yet.
+- **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
+  B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
+  development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this
+  page away removes it on either. It holds what the hub follows, SSH, and the house's screens with Update now. An SSH key
+  is added from a phone or computer (`?sheet=developer&key=1`, the wall's code opens it), never typed on the wall; the request names keys, never
+  commands, and the host writes them (`driver-layer/host/developer.sh`). A unit flashed from a branch follows it until
+  it lands in development, then development (`driver-layer/host/landed.sh`). The image still ships with SSH off. Pinned by
+  `app/tests/developer.test.ts`, `app/e2e/developer.spec.ts`, `brain/tests/test_developer.py` and the `developing` and
+  `reporting` groups in `driver-layer/host/tests.sh`.
 
 ---
 

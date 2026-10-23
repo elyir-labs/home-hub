@@ -14457,3 +14457,342 @@ html[data-wall] [data-moving] *::after {
      copy, which this Chromium ignores, and the rule ships empty */
   backdrop-filter: none !important;
 }
+
+/* FOR WORKING ON THE HUB (design/developer/PageB.dc.html, KeyPhone.dc.html). Wider than a page of rows: two
+   columns of cards, the screens table needing the width. Every class here is dev-, so nothing else is restyled. */
+.house-page > .page.page-developer {
+  max-width: 1030px;
+}
+.hub-version {
+  cursor: default;
+}
+.dev-mono {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.92em;
+  letter-spacing: 0;
+}
+.dev-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.dev-head .page-lede {
+  margin: 0;
+  color: var(--ink-2);
+}
+.dev-head .button {
+  margin-top: -4px;
+  white-space: nowrap;
+}
+.dev-cards {
+  display: grid;
+  grid-template-columns: minmax(0, 470fr) minmax(0, 530fr);
+  gap: 24px;
+  align-items: start;
+}
+.dev-col {
+  display: grid;
+  gap: 18px;
+}
+.dev-card {
+  padding: 18px 20px;
+  border-radius: var(--r-lg);
+  background: rgba(var(--wash-rgb), 0.035);
+  border: 1px solid var(--edge-hi);
+}
+.dev-card h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 500;
+}
+.dev-say {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.dev-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.dev-ink {
+  color: var(--ink-2);
+}
+.dev-warn {
+  color: var(--lamp);
+}
+.dev-opt {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: start;
+  width: 100%;
+  padding: 10px 0;
+  border-top: 1px solid var(--edge);
+  text-align: left;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.dev-opt:disabled {
+  opacity: 0.5;
+}
+.dev-opt b {
+  display: block;
+  font-weight: 500;
+  font-size: 14.5px;
+}
+.dev-opt b + span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.dev-opt b + span.dev-warn {
+  color: var(--lamp);
+}
+.dev-dot {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 1.5px solid var(--edge-hi);
+}
+.dev-opt.on .dev-dot {
+  border: 5px solid var(--lamp);
+}
+.dev-ask {
+  padding: 0 0 12px 32px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.dev-ask p {
+  margin: 0 0 10px;
+}
+.dev-ask .input {
+  height: 42px;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+.dev-acts {
+  display: flex;
+  gap: 8px;
+}
+.dev-cmd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 10px;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--edge);
+  font-size: 15px;
+}
+:root[data-shade='light'] .dev-cmd {
+  background: var(--surface-hi);
+}
+.dev-copy {
+  display: inline-grid;
+  place-items: center;
+  color: var(--ink-2);
+}
+.dev-key {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid var(--edge);
+  font-size: 14px;
+}
+.dev-key > span > span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+.dev-none {
+  padding: 4px 0 2px;
+}
+.dev-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+.dev-off {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.dev-off .dev-sub {
+  display: block;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.dev-qr {
+  flex: none;
+  width: 92px;
+  height: 92px;
+  border-radius: 10px;
+  background: var(--ink);
+}
+.dev-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.dev-table th {
+  padding: 0 0 8px;
+  text-align: left;
+  font-weight: 400;
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dev-table td {
+  padding: 11px 10px 11px 0;
+  border-top: 1px solid var(--edge);
+  vertical-align: middle;
+}
+.dev-m {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+.dev-end {
+  text-align: right;
+  white-space: nowrap;
+}
+.dev-end .button {
+  margin: 0;
+}
+.dev-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--live);
+}
+.dev-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  color: var(--ink-2);
+  font-size: 15px;
+}
+.dev-seg {
+  display: flex;
+  max-width: 420px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface-hi);
+  border: 1px solid var(--edge);
+}
+.dev-seg button {
+  flex: 1;
+  padding: 8px 0;
+  text-align: center;
+  border-radius: 999px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.dev-seg button.on {
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 500;
+}
+.dev-form {
+  max-width: 420px;
+  margin-top: 18px;
+}
+.dev-flabel {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.dev-flabel.dev-warn {
+  color: var(--lamp);
+}
+.dev-found {
+  margin: 14px 0 8px;
+}
+.dev-paste {
+  height: 112px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: none;
+  word-break: break-all;
+}
+.dev-paste + .dev-pk {
+  margin-top: 14px;
+}
+.dev-pk {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: start;
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  text-align: left;
+  color: var(--ink);
+}
+.dev-pk + .dev-pk {
+  margin-top: 6px;
+}
+.dev-pk b {
+  display: block;
+  font-weight: 500;
+  font-size: 15px;
+}
+.dev-pk b + span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.dev-box {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--edge-hi);
+}
+.dev-pk.on .dev-box {
+  background: var(--lamp);
+  border-color: transparent;
+  color: var(--lamp-ink);
+}
+.button.dev-cta {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 18px;
+}
+.dev-foot {
+  max-width: 420px;
+  margin-top: 14px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.dev-foot .dev-mono {
+  color: var(--ink-2);
+}
+@media (max-width: 1180px) {
+  .dev-cards {
+    grid-template-columns: 1fr;
+  }
+}

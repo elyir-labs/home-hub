@@ -12,6 +12,8 @@
 #   tools/dev.sh free     let go of a port something is still listening on from yesterday
 #   tools/dev.sh checkouts  every worktree on this machine, and which hold work that would be lost
 #   tools/dev.sh tidy     remove what is merged and clean, after saying what and asking
+#   tools/dev.sh devices  the hubs and screens on this network: what each runs, how far behind, whether SSH gets in
+#   tools/dev.sh image    a Pi image of this branch, built by CI and downloaded, ready for Imager
 #   tools/dev.sh graft    this tree's brain onto a hub, without a release
 #   tools/dev.sh says     what a hub's brain is saying, with its request log taken out
 #   tools/dev.sh puck     this tree's bridge firmware onto one puck, now, through the hub
@@ -234,7 +236,7 @@ where_you_were() {
   echo "  ${D}tools/dev.sh design${R} — the artboards, before any of it is code"
 }
 
-usage() { sed -n '4,18p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '4,20p' "$0" | sed 's/^# \{0,1\}//'; }
 
 case "${1:-status}" in
   status|"") if fresh; then first_time; else where_you_were; fi ;;
@@ -269,6 +271,7 @@ case "${1:-status}" in
   design) shift || true; exec node tools/artboards.mjs "$@" ;;
   checkouts) exec tools/checkouts.sh full ;;
   tidy)  shift || true; exec tools/checkouts.sh tidy "$@" ;;
+  devices|image) exec tools/devices.sh "$@" ;;
   # dev.py stops whatever hub is holding the port and starts yours with the reloader on, so the
   # brain here is always the code you just wrote.
   hub)   ensure both

@@ -20,6 +20,7 @@
    Nothing here talks to a real device. */
 import { printerNotes, printersAsked, printersRoute } from './printers.mjs'
 import { powerRoute } from './power.mjs'
+import { developerRoute, developerStatus } from './developer.mjs'
 
 export function createHouse({ env = {}, qr = null } = {}) {
   const now = Math.floor(Date.now() / 1000)
@@ -577,7 +578,8 @@ export function createHouse({ env = {}, qr = null } = {}) {
     }
     if (printersRoute(req, res, p, env)) return    // 3D printers, only for a page that asked for them: mock/printers.mjs
     if (powerRoute(req, res, p, env)) return       // a Tesla gateway, the same way: mock/power.mjs
-    if (p === '/setup/status') return json(res, status)
+    if (developerRoute(req, res, p)) return        // For working on the hub, ?dev= on the page: mock/developer.mjs
+    if (p === '/setup/status') return json(res, developerStatus(req, status))
     if (p === '/update/notes') return json(res, { notes: releaseNotes[0], history: releaseNotes })
     /* Install: on a hub the brain restarts and comes back as the next build, and the page follows it
        (store.ts, newBuild). The mock only takes the request; the e2e speaks the new version itself. */
