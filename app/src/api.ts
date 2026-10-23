@@ -183,7 +183,8 @@ export type NetState = {
   moving?: { ssid: string; since: number }  // the hub is being moved right now, and the host is watching it
   reverted?: string                        // ...and one did not take, so this is the name that failed
   reverted_why?: 'password' | 'unreachable' // ...and why, when the router said
-  setup?: { ssid: string; both: boolean }   // the hub's own Wi-Fi is up, for a phone to set it up from (design/setup-network/)
+  setup?: { ssid: string; both: boolean; phones?: number   // the hub's own Wi-Fi is up, for a phone to set it up from (design/setup-network/)
+            password?: string }                         // ...told only to the screen plugged into the hub (design/screen-wifi/)
   joined?: string                          // ...and the house's Wi-Fi it joined from there, before it goes
   bridges: { ssid: string; checked: boolean; known: boolean; count: number }
   bridges_moving?: NetMove | null          // the pucks' journey; `moving` above is the hub's own
@@ -219,6 +220,8 @@ export const moveBridges = (ssid: string, password: string) => post<NetMove>('/n
    arrives second finds the other already there; the host puts the old connection back if this hub
    never turns up on the new one. */
 export const moveHub = (ssid: string, password: string) => post<NetState>('/network/hub', { ssid, password })
+/* The hub's own Wi-Fi as a code, drawn by the brain for the screen plugged into the hub and nothing else (design/screen-wifi/). */
+export const setupWifiQrUrl = '/network/setup.svg'
 export const networkDone = () => post<Bridge>('/network/done')
 
 /* Letting a NEW switch in, two ways, because a switch arrives in a hand or already screwed to a wall.

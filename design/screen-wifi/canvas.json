@@ -1,0 +1,179 @@
+{
+  "name": "A hub with a screen and no network",
+  "areas": [
+    "First run"
+  ],
+  "reading": [
+    "why",
+    "Today.dc.html",
+    "today",
+    "c",
+    "BothC-1.dc.html",
+    "CodeA-2.dc.html",
+    "HereB-2.dc.html",
+    "HereB-3.dc.html",
+    "After.dc.html",
+    "after",
+    "behind",
+    "decided",
+    "a",
+    "CodeA-1.dc.html",
+    "b",
+    "HereB-1.dc.html"
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: Getting things ready, for good",
+      "page": "screen-wifi"
+    },
+    {
+      "file": "After.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "After C: online, and saying so",
+      "page": "screen-wifi"
+    },
+    {
+      "file": "CodeA-1.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "A1: the screen is the label",
+      "page": "screen-wifi-rejected"
+    },
+    {
+      "file": "CodeA-2.dc.html",
+      "x": 1560,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "C, after a scan: the screen follows the phone",
+      "page": "screen-wifi"
+    },
+    {
+      "file": "HereB-1.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "B1: the wall asks which Wi-Fi",
+      "page": "screen-wifi-rejected"
+    },
+    {
+      "file": "HereB-2.dc.html",
+      "x": 0,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "C, after a tap: the password, on the wall's own keyboard",
+      "page": "screen-wifi"
+    },
+    {
+      "file": "HereB-3.dc.html",
+      "x": 1560,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "C, after a tap: a wrong password, said on the wall",
+      "page": "screen-wifi"
+    },
+    {
+      "file": "BothC-1.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "C1: ask here, with the code beside it",
+      "page": "screen-wifi"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS (22 OCTOBER 2026)\n\nA Pi 5 was flashed with the hub image and started with its touch screen attached. The screen sat on Welcome home saying Getting things ready, and never got further. The hub's own Wi-Fi was on the air and could be joined, but nobody knew its password, and nothing on the screen showed a code.\n\nThe way in from design/setup-network/ (A) was drawn for a box with no screen and a printed label. A card you flash yourself has no label: its password is made on the card at first boot and written to a file a Mac can't open. And this Pi had something better than a label: a screen.\n\nThese boards are what a hub with a screen does when it has no network.\n\nWHAT DOES NOT CHANGE: the phone's screens (setup-network, A2 to A4), Welcome home and everything after it, and the cable, which always wins.",
+      "page": "screen-wifi"
+    },
+    {
+      "id": "today",
+      "x": 0,
+      "y": 940,
+      "w": 1440,
+      "text": "TODAY\n\nDrawn from the built panel at 1440x900, with the engine down, which is what a hub with no internet looks like: the brain and the front door came on the card, the house engine downloads on the first start, and without a network it never does. The status line has no other state, so it says a minute or two for good, and Get started stays dim.",
+      "page": "screen-wifi"
+    },
+    {
+      "id": "after",
+      "x": 1560,
+      "y": 940,
+      "w": 1440,
+      "text": "AFTER\n\nWelcome home as it is, with one line changed so it tells the truth: which Wi-Fi the hub is on, and that it is fetching the rest. The same line names a Wi-Fi that isn't reaching the internet, so a hub that joined a dead network says so instead of waiting forever.",
+      "page": "screen-wifi"
+    },
+    {
+      "id": "c",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "C: ASK HERE, WITH THE CODE BESIDE IT\n\nB's question on the left, A's code on the right, at the wall's full width. Whoever is standing there starts either one, and the other gives way: tap a network and it is B2, scan the code and it is A2. A screen with no touch draws only the code, which is A.\n\nFOR: nobody is sent the wrong way. A short password is typed where you stand; a long one goes to the phone. The no-touch case answers itself.\n\nAGAINST: a choice before the first question, on the one screen that should be simplest. It is a two-column page that no other first-run screen uses, and the password is on show while somebody types at the list.",
+      "page": "screen-wifi"
+    },
+    {
+      "id": "behind",
+      "x": 3120,
+      "y": 0,
+      "w": 520,
+      "text": "UNDER IT\n\nTHE PASSWORD IS SHOWN ONLY ON THE HUB'S OWN SCREEN. The brain gives it to the panel only on a request from the screen plugged into the hub, never to a phone or anything else on a network, and only while the hub's own Wi-Fi is up. It is what the label says, and it is behind the same glass as the hub.\n\nA SECOND SCREEN DOES THE SAME. A Pi flashed to be another screen in a house has no network either until it is given one. It gets its Wi-Fi this way, then finds the house's hub as design/companion/ (C) already draws.\n\nA HUB THAT LOSES ITS WI-FI LATER, after a new router, offers its own Wi-Fi again after five minutes. Its wall should then say the same thing behind the passcode. Not drawn here, and owed a board of its own.\n\nA CARD WITH NO SCREEN still has no label. Separately from this pick, the image could write the hub's Wi-Fi name and password to a small text file on the card's first partition, the one any computer can open. It is a file, not a screen, so it isn't drawn.\n\nWORDS. Elyir Hub 4F2A and its password are the only names, as on the label. Wi-Fi, internet and cable are words households already use. Access point, setup network and captive portal stay in docs/.",
+      "page": "screen-wifi"
+    },
+    {
+      "id": "a",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "A: THE SCREEN IS THE LABEL\n\nWith no network, Welcome home shows the hub's own Wi-Fi as a code, with its name and password in words. The phone's camera joins it, and the phone's screens already built do the rest. Once a phone is on, the code steps aside and the wall follows along.\n\nFOR: one way to set up every hub. A shipped hub's label and a self-flashed hub's screen say the same thing, so there is one journey to keep working, and it is the one already built. It works on any screen, including an HDMI monitor you can't touch, and the phone is better than glass at typing a long password. The wall also fixes setup-network's weak spot: on a card that can't do both, the phone is dropped before it hears a wrong password, and the wall can still say it.\n\nAGAINST: two devices to answer a question the screen in front of you could ask itself. The password sits on the wall until somebody scans it. And the person standing at the wall is sent to their pocket first.",
+      "page": "screen-wifi-rejected"
+    },
+    {
+      "id": "b",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "B: THE WALL ASKS ITSELF\n\nFirst run opens on the phone's own question, Which Wi-Fi is yours?, on the wall, before Welcome home, the way it already opens on the drive question when there is one. The password is typed on the wall's own keyboard. A wrong one is said right there.\n\nFOR: one device, nothing to scan, and no password on show. A wrong password is said in seconds on every card, because the screen is on the hub and never loses it. It is SetupWifi.vue and Keys.vue as they are, in a new place, with the phone's words.\n\nAGAINST: it needs a screen you can touch, and a Pi on a TV or an HDMI monitor can't answer it. A long password with capitals and symbols is typed on glass. It does nothing for a hub without a screen, which still needs the label.",
+      "page": "screen-wifi-rejected"
+    },
+    {
+      "id": "decided",
+      "x": 3120,
+      "y": 1300,
+      "w": 520,
+      "text": "DECIDED 22 OCTOBER 2026\n\nC. A hub with a screen and no network asks which Wi-Fi on the wall, with its own Wi-Fi's code beside the question for anyone who would rather use a phone. A screen you can't touch shows only the code.\n\nWhichever is started first wins. A tap goes on to the password on the wall's own keyboard, and a wrong one is said right there (B2, B3). A scan hands the wall over to the phone, which follows along (A2). Both end on Welcome home with its status line telling the truth (After).\n\nA and B on their own are on the next page.",
+      "page": "screen-wifi"
+    }
+  ],
+  "pages": [
+    {
+      "id": "screen-wifi",
+      "name": "A hub with a screen and no network",
+      "decided": {
+        "on": "2026-10-22",
+        "chose": "C",
+        "board": "BothC-1.dc.html"
+      }
+    },
+    {
+      "id": "screen-wifi-rejected",
+      "name": "A hub with a screen and no network: not chosen"
+    }
+  ]
+}

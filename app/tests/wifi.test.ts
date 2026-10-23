@@ -5,7 +5,7 @@
    password, and that the hub's own Wi-Fi is never offered as the house's. */
 import { describe, expect, it } from 'vitest'
 import type { NetState } from '../src/api'
-import { afterJoin, firstScreen, houseAddress, offered, onSetupWifi, wrongLine } from '../src/wifi'
+import { afterJoin, askHere, fetchingLine, firstScreen, houseAddress, offered, onSetupWifi, phoneHasIt, wrongLine } from '../src/wifi'
 
 const net = (over: Partial<NetState> = {}): NetState => ({
   how: 'none', ip: '10.42.0.1', name: 'hub', can_change: true, managed: true,
@@ -55,4 +55,24 @@ describe('the address under hub.local', () => {
     expect(houseAddress(net())).toBe(null)
     expect(houseAddress(net({ ip: '127.0.0.1' }))).toBe(null)
   })
+})
+
+/* The screen plugged into a hub with no network (design/screen-wifi/, C, decided 22 October 2026). */
+describe('on the hub’s own screen', () => {
+  const here = (over: Partial<NetState> = {}) => net({ setup: { ssid: 'Elyir Hub 4F2A', both: true, phones: 0, password: 'kite-maple-41' }, ...over })
+
+  it('asks only where it was told the password, and only until the hub has joined', () => {
+    expect(askHere(here())).toBe(true)
+    expect(askHere(net())).toBe(false)
+    expect(askHere(here({ joined: 'Bluebell' }))).toBe(false)
+    expect(askHere(null)).toBe(false)
+  })
+  it('steps aside for a phone on the hub’s Wi-Fi, unless somebody already began here', () => {
+    expect(phoneHasIt(here(), false)).toBe(false)
+    const phone = here({ setup: { ssid: 'Elyir Hub 4F2A', both: true, phones: 1, password: 'kite-maple-41' } })
+    expect(phoneHasIt(phone, false)).toBe(true)
+    expect(phoneHasIt(phone, true)).toBe(false)
+  })
+  it('says which Wi-Fi it joined while the rest downloads', () =>
+    expect(fetchingLine('Bluebell')).toBe('On Bluebell. Getting the rest of the hub, which takes a few minutes the first time.'))
 })

@@ -307,6 +307,12 @@ Do not reopen these, and do not propose around them.
   give the hub a Wi-Fi and nothing else. B (the same over Bluetooth, no network switch) waits for an app, because
   Safari has no Bluetooth. Pinned by `app/tests/wifi.test.ts`, `app/e2e/setup-wifi.spec.ts`, `brain/tests/test_setup_wifi.py` and the
   `setting_up` group in `driver-layer/host/tests.sh`; the host's half is `host/network.sh`.
+- **A hub with a screen and no network asks which Wi-Fi on that screen** (22 October, `design/screen-wifi/`, C). The
+  question is the phone's, before Welcome home, with the hub's own Wi-Fi as a code beside it; whichever is started
+  first wins, and a phone on the hub's Wi-Fi gets the screen to step aside. A screen nobody can touch or point at shows
+  only the code. Only the screen plugged into the hub is told the password (`network.setup-key`, Caddy's `screen`
+  stamp, believed only from loopback). Pinned by `app/tests/wifi.test.ts`, `app/e2e/screen-wifi.spec.ts`,
+  `brain/tests/test_setup_wifi.py` and the `setting_up` group in `driver-layer/host/tests.sh`.
 - **A hub on its USB stick asks before it erases the drive beside it** (20 October, `design/move-to-drive/`, A with
   B's sheet). An empty drive is moved onto without asking; anything else only on the screen. First run opens on the
   question, naming the drive and what is on it, and erases only on the typed word; Keep is an answer, and This hub's

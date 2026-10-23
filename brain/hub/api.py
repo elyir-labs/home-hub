@@ -54,7 +54,7 @@ from .share import Share
 from .nightlight import Nightlight
 from .ears import Ears
 from .relay import Relay
-from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, from_setup, SETUP_OPEN, away_refused, away_refusal
+from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, from_setup, from_screen, SETUP_OPEN, away_refused, away_refusal
 from .pusher import NEEDS_ADDRESS as PUSH_NEEDS_ADDRESS, Pusher, checked as push_checked
 from . import camera
 
@@ -795,6 +795,7 @@ async def settings_lock(request: Request, call_next):
     request.state.phone = None
     request.state.away = from_away(request.headers)   # off the Wi-Fi, or in through the relay: docs/away.md piece 2
     request.state.setup = from_setup(request.headers)  # on the hub's own setup Wi-Fi: docs/network.md piece 5
+    request.state.screen = from_screen(request.headers, request.client.host if request.client else None)  # plugged into the hub
     m, path = request.method, request.url.path
     if request.state.setup and ((m, path) in SETUP_OPEN or open_to_strangers(m, path)):
         return await call_next(request)
@@ -1877,15 +1878,26 @@ async def strip_forget(strip_id: str):
 
 
 @app.get("/network")
-def network_state():
+def network_state(request: Request):
     """What the hub is on, and what the bridges are on. Two different questions on most hubs."""
     wifi = hub.bridge.wifi_for_pucks()
-    return {**hub.net.state(),
+    return {**hub.net.state(own_screen=request.state.screen),
             "bridges": {"ssid": wifi["ssid"], "checked": wifi["checked"], "known": wifi["known"],
                         "count": sum(1 for p in hub.bridge.pucks.values() if p.get("online"))},
             # Two different journeys, and they must not share a key: `moving` is this hub changing
             # network (the host is watching it), `bridges_moving` is the pucks doing the same.
             "bridges_moving": hub.bridge.move_status()}
+
+
+@app.get("/network/setup.svg")
+def network_setup_qr(request: Request):
+    """The hub's own Wi-Fi as a code for a phone's camera, on the screen plugged into the hub (design/screen-wifi/, C).
+
+    Built here from what the host wrote, like the bridge's pairing code, and only for that screen: anywhere else
+    it would be the label's password handed to whoever asked."""
+    code = hub.net.setup_code() if request.state.screen else None
+    if not code: raise HTTPException(404, "the hub's own Wi-Fi is not up")
+    return Response(content=qr_svg_bytes(code), media_type="image/svg+xml", headers={"Cache-Control": "no-store"})
 
 
 @app.post("/network/scan")
@@ -1912,9 +1924,9 @@ async def network_hub(body: dict, request: Request):
     reached. Doing it the other way round would mean the hub changing networks and only then
     discovering it can no longer tell anybody.
     """
-    # From the setup Wi-Fi the house may not have started yet -- it may have nothing to start with --
-    # and the one thing being asked is which Wi-Fi to use, which needs nothing from it.
-    if not getattr(request.state, "setup", False): hub.ready()
+    # From the setup Wi-Fi, or the screen on a hub with no network, the house may not have started yet -- it
+    # may have nothing to start with -- and the one thing being asked is which Wi-Fi to use, which needs nothing from it.
+    if not (request.state.setup or request.state.screen): hub.ready()
     if request.state.away:
         # The one refusal this design makes that restarting does not. A restart away from home is
         # caught by a watchdog on the machine; a wrong network away from home can be right and still
