@@ -17,7 +17,7 @@ import { hasCard, printerOn, printerPart, printersIn as inRoom } from './printer
 /* The few soft sheets the panel has. Named rather than written out twice: the restart keeps the one
    it closed so it can come back to it, and `typeof store.sheet` there would make the store's own type
    circular -- which typescript answers by quietly making the whole store `any`. */
-export type Sheet = null | 'location' | 'add' | 'code' | 'why' | 'routines' | 'signals' | 'hub' | 'look' | 'house' | 'people' | 'accounts' | 'things' | 'printers' | 'share' | 'notes' | 'happened' | 'changes'
+export type Sheet = null | 'location' | 'add' | 'code' | 'why' | 'routines' | 'signals' | 'hub' | 'look' | 'screen' | 'house' | 'people' | 'accounts' | 'things' | 'printers' | 'share' | 'notes' | 'happened' | 'changes'
 
 export const store = reactive({
   rooms: [] as Room[], linkUp: false, linkLost: false, error: '', loaded: false,   // linkLost: down long enough to be worth mentioning

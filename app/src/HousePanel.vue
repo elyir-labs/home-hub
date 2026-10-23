@@ -24,6 +24,9 @@ import { adjusted, feelFrom } from './look'
 import Icon from './Icon.vue'
 import LocationPage from './LocationPage.vue'
 import LookPage from './LookPage.vue'
+import ScreenPage from './ScreenPage.vue'
+import { isScreen, screenRoom } from './screen'
+import { ask as askScreen, doorHint as screenHint, here } from './thisScreen'
 import RoutinesPage from './RoutinesPage.vue'
 import SignalsPage from './SignalsPage.vue'
 import { doorHint } from './signals'
@@ -66,7 +69,7 @@ function step(s: SetupStep) {
 function homeScreenDone() { phoneSteps.value = false; store.homeScreenDone = true; dismissHomeScreen() }
 
 const page = computed<PageId>(() => isPage(store.sheet) ? store.sheet : 'house')
-const PAGE: Record<Exclude<PageId, 'house'>, Component> = { location: LocationPage, look: LookPage, routines: RoutinesPage, signals: SignalsPage, people: PeoplePage, accounts: AccountsPage, things: ThingsPage, printers: PrintersPage, add: AddPage, share: SharePage, hub: HubPage, code: CodePage, notes: NotesPage, happened: HappenedPage, changes: ChangesPage }
+const PAGE: Record<Exclude<PageId, 'house'>, Component> = { location: LocationPage, look: LookPage, screen: ScreenPage, routines: RoutinesPage, signals: SignalsPage, people: PeoplePage, accounts: AccountsPage, things: ThingsPage, printers: PrintersPage, add: AddPage, share: SharePage, hub: HubPage, code: CodePage, notes: NotesPage, happened: HappenedPage, changes: ChangesPage }
 
 /* a conversation the house already has open (signing an account in again) is
    handed to the Add page on the way in, once, so the page reads as that one job */
@@ -76,7 +79,7 @@ watch(page, p => { if (p === 'add') { resume.value = store.resume; store.resume 
 const ready = computed(updateReady)
 const locked = computed(() => !!store.status?.locked)
 const title = computed(() => ({
-  house: 'This house', location: 'Where is home?', look: 'How the house looks', routines: 'Routines', signals: 'What the lights tell you', people: 'People', accounts: 'Accounts', things: 'What this house has', printers: 'Printers',
+  house: 'This house', location: 'Where is home?', look: 'How the house looks', screen: 'This screen', routines: 'Routines', signals: 'What the lights tell you', people: 'People', accounts: 'Accounts', things: 'What this house has', printers: 'Printers',
   add: resume.value ? 'Sign in again' : 'Add to the house', share: 'Share this house', hub: 'The hub', code: 'Passcode',
   notes: 'Needs a look', happened: 'What happened', changes: 'Who changed what',
 }[page.value]))
@@ -155,9 +158,13 @@ const notes = computed(() => store.notes.length === 1 ? store.notes[0].text : `$
 /* The brain writes this line too. It has to say what is actually inside, and "2 things still on"
    versus "2 things still unlocked" is a distinction the panel cannot make from a count. */
 const happened = computed(() => store.happened?.hint ?? 'What the house did while you were out')
+const onScreen = isScreen()
 const doors = computed(() => [
   { id: 'location' as const, icon: 'pin', name: 'Where home is', hint: store.ambient.location?.name ?? 'Not set yet' },
   { id: 'look' as const, icon: 'sun', name: 'How it looks', hint: look.value },
+  /* Only on a screen: the glass, not the house (design/this-screen/, A). Its line says what this unit is
+     before anybody opens it. */
+  ...(onScreen ? [{ id: 'screen' as const, icon: 'tv', name: 'This screen', hint: screenHint(store.rooms.find(r => r.id === screenRoom())?.name ?? null, here.value?.role ?? null, store.homeName || 'the house') }] : []),
   { id: 'routines' as const, icon: 'sparkle', name: 'Routines', hint: routines.value },
   /* Beside Routines because a household's own signals ARE routines, listed again on this page under
      the house's four. design/signal/Chosen.dc.html. */
@@ -196,7 +203,7 @@ const homeLine = computed(() => {
 function go(id: PageId) { store.sheet = id }
 function close() { store.sheet = null }
 function key(e: KeyboardEvent) { if (e.key === 'Escape') close() }
-onMounted(() => { window.addEventListener('keydown', key); loadSignals() })
+onMounted(() => { window.addEventListener('keydown', key); loadSignals(); if (onScreen) askScreen() })
 onUnmounted(() => window.removeEventListener('keydown', key))
 </script>
 
