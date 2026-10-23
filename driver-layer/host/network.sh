@@ -191,7 +191,10 @@ both_at_once() {
 }
 
 setup_up() {
-  local dev chan ifname both=false; dev="$(wifi_dev)"
+  local dev chan ifname both=false
+  # Raspberry Pi OS starts with Wi-Fi switched off until a country is set, which left a hub on nothing with no way on.
+  nmcli radio wifi on >/dev/null 2>&1
+  dev="$(wifi_dev)"
   [ -n "$dev" ] || return 1
   scan                       # before the radio is busy: a card hosting a network may not scan at all
   # The strongest 2.4 GHz channel nearby is most likely the house's own, which is the channel the hub
