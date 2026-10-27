@@ -526,6 +526,26 @@ awake() {
   rm -rf "$root"
 }
 
+# A Pi wall plays its sound on the screen it is plugged into: the card on the connected HDMI port. sysfs and
+# /proc/asound are directories here.
+speaking() {
+  group "the wall's sound comes out of the screen it is plugged into"
+  local root; root=$(mktemp -d); mkdir -p "$root/home" "$root/drm/card1-HDMI-A-1" "$root/drm/card1-HDMI-A-2" "$root/asound"
+  plug() { echo "$1" > "$root/drm/card1-HDMI-A-1/status"; echo "$2" > "$root/drm/card1-HDMI-A-2/status"
+    HOME="$root/home" HUB_DRM="$root/drm" HUB_ASOUND="$root/asound" "$HERE/../../startup/wall.sh" speaker; }
+  said() { grep -o 'hdmi:CARD=[a-z0-9]*' "$root/home/.asoundrc" 2>/dev/null || echo nothing; }
+
+  touch "$root/asound/vc4hdmi0" "$root/asound/vc4hdmi1"
+  plug connected disconnected
+  is "a screen on the first port plays through the first HDMI card" "$(said)" "hdmi:CARD=vc4hdmi0"
+  plug disconnected connected
+  is "moved to the second port, the sound follows it" "$(said)" "hdmi:CARD=vc4hdmi1"
+  plug disconnected disconnected
+  is "a DSI screen has no HDMI to point at, and nothing is left behind" "$(said)" "nothing"
+  rm -f "$root/asound/"*; plug connected disconnected
+  is "a box whose HDMI card is not a Pi's keeps ALSA's own default" "$(said)" "nothing"
+  rm -rf "$root"
+}
 
 # What first boot makes of a unit: the house's screen, or the house's hub. Never a second hub beside a
 # real one when the unit was told it is a screen (design/companion/, C). The checkout is fake: its
@@ -626,6 +646,99 @@ usb_first() {
 }
 
 
+# The page for working on the hub (design/developer/, B) writes state for the host and never a command:
+# a channel, or the whole set of keys that may sign in. systemctl and ssh-keygen are scripts on PATH; the
+# keys and sshd's config land in the temp directory.
+developing() {
+  group "working on the hub: what it follows and who may sign in, checked again on the host"
+  local root dir data bin; root=$(mktemp -d); dir="$root/hub"; data="$dir/driver-layer/brain-data"; bin="$root/bin"
+  mkdir -p "$data" "$bin"; printf 'HUB_CHANNEL=release\nTZ=UTC\n' > "$dir/driver-layer/.env"
+  cat > "$bin/systemctl" <<'SH'
+#!/usr/bin/env bash
+echo "systemctl $*" >> "$ROOT/asked"
+case "$*" in
+  "is-active ssh") [ -f "$ROOT/ssh-on" ] && echo active || echo inactive ;;
+  "enable --now ssh") touch "$ROOT/ssh-on" ;;
+  "disable --now ssh") rm -f "$ROOT/ssh-on" ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\ncase "$1" in -lf) read -r l; case "$l" in *SHORT*) echo "2048 SHA256:x (RSA)" ;; *) echo "3072 SHA256:x (RSA)" ;; esac ;; esac\nexit 0\n' > "$bin/ssh-keygen"
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/chown"
+  chmod +x "$bin"/*
+  run() {
+    rm -f "$root/asked"
+    PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_CONF=/dev/null HUB_SSH_USER=pi HUB_KEYS_DIR="$root/keys" \
+      HUB_SSHD_CONF="$root/sshd/10-home-hub.conf" "$HERE/developer.sh" >/dev/null 2>&1
+  }
+  says() { python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); print(d["on"], len(d["keys"]), d["user"])' "$data/ssh.json"; }
+  asked() { grep -c "$1" "$root/asked" 2>/dev/null || true; }
+  local key="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB jordan@laptop"
+
+  echo '{"at": 1, "channel": "development"}' > "$data/channel.request"; run
+  is "a named channel goes into .env, once, beside everything else" "$(grep -c '^HUB_CHANNEL=' "$dir/driver-layer/.env") $(grep '^HUB_CHANNEL=' "$dir/driver-layer/.env") $(grep -c '^TZ=UTC' "$dir/driver-layer/.env")" "1 HUB_CHANNEL=development 1"
+  is "...and is handed to the update every update gets" "$(sed -n 's/.*"to": "\([^"]*\)".*/\1/p' "$data/update.request")" "development"
+  is "...and the request is gone" "$([ -f "$data/channel.request" ] && echo there || echo gone)" "gone"
+  rm -f "$data/update.request"
+  echo '{"channel": "try-it/strip"}' > "$data/channel.request"; run
+  is "a branch name is followed too" "$(grep '^HUB_CHANNEL=' "$dir/driver-layer/.env")" "HUB_CHANNEL=try-it/strip"
+  rm -f "$data/update.request"
+  for bad in 'x;reboot' '../etc' '-rf' 'a b' 'main..x' 'x.lock'; do
+    printf '{"channel": "%s"}\n' "$bad" > "$data/channel.request"; run
+  done
+  is "anything that is no branch name changes nothing and updates nothing" \
+    "$(grep '^HUB_CHANNEL=' "$dir/driver-layer/.env") $([ -f "$data/update.request" ] && echo updated || echo still)" "HUB_CHANNEL=try-it/strip still"
+
+  run
+  is "with nothing asked, it still says what is true: SSH off" "$(says)" "False 0 pi"
+  printf '{"on": true, "keys": ["%s", "command=\\"sh\\" %s", "ssh-rsa AAAASHORT", "ssh-dss AAAA"]}\n' "$key" "$key" > "$data/ssh.request"; run
+  is "on: the one good key is written, and nothing in front of a key gets through" "$(cat "$root/keys/pi.keys")" "$key"
+  is "...sshd takes keys only, from that file as well as the user's own" \
+    "$(grep -c -e '^PasswordAuthentication no' -e '^KbdInteractiveAuthentication no' -e "^AuthorizedKeysFile .ssh/authorized_keys $root/keys/%u.keys" "$root/sshd/10-home-hub.conf")" "3"
+  is "...the server is started" "$(asked 'enable --now ssh')" "1"
+  is "...and ssh.json says so" "$(says)" "True 1 pi"
+  printf '{"on": true, "keys": ["ssh-rsa AAAASHORT"]}\n' > "$data/ssh.request"; run
+  is "on with no key it would take: off, rather than open to nobody in particular" "$(says) $(asked 'disable --now ssh')" "False 0 pi 1"
+  printf '{"on": true, "keys": ["%s"]}\n' "$key" > "$data/ssh.request"; run
+  printf '{"on": false, "keys": ["%s"]}\n' "$key" > "$data/ssh.request"; run
+  is "off: the server stops and the file is emptied" "$(says) $(wc -c < "$root/keys/pi.keys" | tr -d ' ')" "False 0 pi 0"
+  touch "$root/ssh-on"; run
+  is "a server somebody started some other way is reported as on" "$(says)" "True 0 pi"
+  rm -rf "$root"
+}
+
+
+# A screen tells its hub what it runs once a minute, as a unit of its own, and updates when the hub asks.
+# curl and systemctl are scripts on PATH; the hub's answer is a file.
+reporting() {
+  group "a screen tells its hub what it runs, by a key of its own, and updates when asked"
+  local root dir bin startup; root=$(mktemp -d); dir="$root/screen"; bin="$root/bin"; startup="$(cd "$HERE/../../startup" && pwd)"
+  mkdir -p "$bin"; git init -q "$dir"; git -C "$dir" -c user.email=t@t -c user.name=t commit -q --allow-empty -m one
+  printf '#!/usr/bin/env bash\nfor a; do [ "$p" = -d ] && echo "$a" > "$ROOT/sent"; p="$a"; done\ncat "$ROOT/reply"\n' > "$bin/curl"
+  printf '#!/usr/bin/env bash\necho "systemctl $*" >> "$ROOT/asked"\n[ "$1" = is-active ] && echo inactive\nexit 0\n' > "$bin/systemctl"
+  chmod +x "$bin"/*
+  run() {
+    rm -f "$root/asked" "$root/sent"; echo "$1" > "$root/reply"
+    printf 'HUB_ROLE="screen"\nELYIR_READY_URL="http://hub.local/alive"\n%s\n' "${2:-}" > "$root/conf"
+    PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_STATE="$root/state" "$startup/screen-report.sh" >/dev/null 2>&1
+  }
+  sent() { python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])' "$root/sent" "$1"; }
+  run '{"update": false}'
+  local first; first="$(sent unit) $(sent key)"
+  is "it names itself with an id and a key made once" "$(sent unit | wc -c | tr -d ' ') $(sent key | wc -c | tr -d ' ')" "17 49"
+  is "...kept where only root reads it" "$(ls -l "$root/state/screen.id" | cut -c1-10)" "-rw-------"
+  is "...says what it runs" "$(sent commit) $(sent channel)" "$(git -C "$dir" rev-parse HEAD) release"
+  is "...and nothing is started when the hub asks nothing" "$(grep -c 'start --no-block' "$root/asked" || true)" "0"
+  run '{"update": true}' 'HOME_HUB_BRANCH="try-it"'
+  is "the same id and key the next time" "$(sent unit) $(sent key)" "$first"
+  is "a screen built from a branch says the branch" "$(sent channel)" "try-it"
+  is "the hub asked: the screen's own update starts now" "$(grep -c 'start --no-block elyir-screen-update.service' "$root/asked")" "1"
+  printf 'ELYIR_READY_URL="http://hub.local/alive"\n' > "$root/conf"; rm -f "$root/sent"
+  PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_STATE="$root/state" "$startup/screen-report.sh" >/dev/null 2>&1
+  is "a hub's own screen says nothing: the hub knows what it runs" "$([ -f "$root/sent" ] && echo sent || echo quiet)" "quiet"
+  rm -rf "$root"
+}
+
 # A screen of another hub has every hub update switched off, so it follows its hub's release itself:
 # checked as a hub checks one, and its wall put back when the new one does not stay up. The hub's /alive
 # is a file, the releases server a directory, and systemctl says what the wall is doing.
@@ -635,7 +748,7 @@ following() {
   keys="$root/keys"; serve="$root/serve"; startup="$(cd "$HERE/../../startup" && pwd)"
   mkdir -p "$bin" "$up/startup" "$up/driver-layer/host/release-keys.d" "$serve/v0.3.0" "$serve/v0.3.1"
   git init -q "$up"; git -C "$up" config user.email t@t; git -C "$up" config user.name t
-  cp "$HERE/verify.sh" "$up/driver-layer/host/"
+  cp "$HERE/verify.sh" "$HERE/landed.sh" "$up/driver-layer/host/"
   keypair "$root/maker.pem" "$up/driver-layer/host/release-keys.d/release.pub"
   keypair "$root/thief.pem" "$root/thief.pub"
   printf '#!/usr/bin/env bash\necho installed >> "%s/asked"\n' "$root" > "$up/startup/install.sh"; chmod +x "$up/startup/install.sh"
@@ -695,6 +808,23 @@ SH
 
   run 0.3.0 'HOME_HUB_BRANCH="development"'
   is "a screen built from a branch follows that branch, whatever its hub runs" "$(git -C "$dir" log -1 --format=%s)" "work"
+
+  following_a_branch() { run 0.3.0 "HOME_HUB_BRANCH=\"$1\""; }
+  says() { sed -n 's/^HOME_HUB_BRANCH=//p' "$root/conf" | tr -d '"'; }
+  git -C "$up" branch -q fresh
+  following_a_branch fresh
+  is "a branch just cut from development, with nothing on it yet, is still the branch" "$(says)" "fresh"
+  git -C "$up" checkout -qb try-it; echo four > "$up/f"; git -C "$up" commit -qam trying; git -C "$up" checkout -q development
+  following_a_branch try-it
+  is "a branch still being worked on is followed" "$(git -C "$dir" log -1 --format=%s) $(says)" "trying try-it"
+  git -C "$up" merge -q --no-ff -m "took try-it" try-it
+  following_a_branch try-it
+  is "once development holds it and has moved on, the screen follows development" "$(git -C "$dir" log -1 --format=%s)" "took try-it"
+  is "...and says so for good" "$(says)" "development"
+  git -C "$up" checkout -qb gone; echo five > "$up/f"; git -C "$up" commit -qam "gone soon"; git -C "$up" checkout -q development
+  following_a_branch gone
+  git -C "$up" branch -qD gone; following_a_branch gone
+  is "a branch deleted without being merged in: development too" "$(git -C "$dir" log -1 --format=%s) $(says)" "took try-it development"
   rm -rf "$root"
 }
 
@@ -745,6 +875,7 @@ case "$*" in
   "phy phy0 info") [ -n "${BOTH:-}" ] && printf '\tvalid interface combinations:\n\t\t * #{ managed } <= 1, #{ AP, P2P-client, P2P-GO } <= 1,\n\t\t   total <= 2, #channels <= 1\n\tHT Capability overrides:\n' ;;
   "dev wlp1s0 interface add hubsetup0 type __ap") touch "$ROOT/iface" ;;
   "dev hubsetup0 del") rm -f "$ROOT/iface" ;;
+  "dev wlp1s0 station dump"|"dev hubsetup0 station dump") [ -n "${PHONES:-}" ] && printf 'Station 3a:1f:00:00:00:01 (on wlp1s0)\n\tinactive time:\t40 ms\n' ;;
 esac
 exit 0
 SH
@@ -768,6 +899,12 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
   is "...on the house's strongest 2.4 GHz channel, handing out addresses" "$(grep -c 'channel 11 ipv4.method shared ipv4.addresses 10.42.0.1/24' "$root/asked")" "1"
   is "...said in the hub's picture, for the panel" "$(field setup.ssid)" "elyir hub 4f2a"
   is "...on the card itself, which cannot do both" "$(field setup.both)" "false"
+  is "...its password kept for the hub's own screen, and nobody else" \
+    "$(cat "$data/network.setup-key") $(stat -c %a "$data/network.setup-key" 2>/dev/null || stat -f %Lp "$data/network.setup-key")" "kite-maple-41 600"
+  is "...never in the picture anything can read" "$(grep -c kite-maple "$data/network.json")" "0"
+  is "...with nobody on it yet" "$(field setup_phones)" "0"
+  PHONES=1 tick
+  is "a phone that joins it is counted, so the screen can step aside" "$(field setup_phones)" "1"
   is "its own Wi-Fi is not one of the house's choices" "$(python3 -c 'import json,sys; print(",".join(n["ssid"] for n in json.load(open(sys.argv[1]))))' "$data/network.scan")" "Bluebell,Bluebell Guest"
 
   fresh; BOTH=1 tick
@@ -782,6 +919,7 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
   python3 -c 'import json,sys; json.dump({"ssid":"Bluebell","at":1},open(sys.argv[1],"w"))' "$data/network.joined"
   ROUTE=wlp1s0 BOTH=1 tick
   is "...and then goes" "$(field setup.ssid)" ""
+  is "...and its password with it" "$([ -f "$data/network.setup-key" ] && echo kept || echo gone)" "gone"
   is "...taking its interface with it" "$(grep -c 'iw dev hubsetup0 del' "$root/asked")" "1"
   is "...and lets the house's Wi-Fi choose its own band again" "$(grep -c 'connection modify Bluebell 802-11-wireless.bssid' "$root/asked")" "1"
 
@@ -1104,6 +1242,6 @@ changing() {
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; keeping; awake; setting_up; moving_in; moving; describing
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; keeping; speaking; awake; setting_up; moving_in; moving; describing
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

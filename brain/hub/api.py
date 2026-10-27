@@ -33,6 +33,7 @@ from .backup import Backup
 from .network import Network
 from .drive import Drive
 from .restart import Restart
+from .developer import Developer
 from .sounds import Sounds, DIR as SOUNDS_DIR
 from .music import Music, MusicError
 from .commands import Commands, NotUnderstood, refusal_aloud
@@ -53,7 +54,7 @@ from .share import Share
 from .nightlight import Nightlight
 from .ears import Ears
 from .relay import Relay
-from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, from_setup, SETUP_OPEN, away_refused, away_refusal
+from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, from_setup, from_screen, SETUP_OPEN, away_refused, away_refusal
 from .pusher import NEEDS_ADDRESS as PUSH_NEEDS_ADDRESS, Pusher, checked as push_checked
 from . import camera
 
@@ -161,6 +162,7 @@ class Hub:
         self.backup = Backup(self)                     # the house as one file, and back
         self.restart = Restart(self)                   # turning it off and on again, at the smallest rung that could help
         self.address = Address(self)                   # the house's own name outside, and the switch for it: hub/address.py
+        self.developer = Developer(self)               # for working on the hub: what it follows, SSH, the screens (design/developer/)
         self.sounds = Sounds(self)                     # noise and rain on a speaker, looped here, with a sleep timer
         self.music = Music(self)                       # radio and the household's own music, on any speaker the engine reaches
         self.commands = Commands(self)                 # plain words into moves, by a fixed grammar first and the assistant after
@@ -793,6 +795,7 @@ async def settings_lock(request: Request, call_next):
     request.state.phone = None
     request.state.away = from_away(request.headers)   # off the Wi-Fi, or in through the relay: docs/away.md piece 2
     request.state.setup = from_setup(request.headers)  # on the hub's own setup Wi-Fi: docs/network.md piece 5
+    request.state.screen = from_screen(request.headers, request.client.host if request.client else None)  # plugged into the hub
     m, path = request.method, request.url.path
     if request.state.setup and ((m, path) in SETUP_OPEN or open_to_strangers(m, path)):
         return await call_next(request)
@@ -814,6 +817,7 @@ async def settings_lock(request: Request, call_next):
         if not open_to_strangers(m, path):
             if not phone: return JSONResponse({"detail": "phone"}, status_code=401)
             request.state.phone = phone
+            if phone.get("kind") == "screen" and request.client: hub.developer.saw_screen(phone, request.client.host)
         if needs_code(m, path):
             who = request.client.host if request.client else ""
             wait = hub.lock.waiting(who)
@@ -1874,15 +1878,26 @@ async def strip_forget(strip_id: str):
 
 
 @app.get("/network")
-def network_state():
+def network_state(request: Request):
     """What the hub is on, and what the bridges are on. Two different questions on most hubs."""
     wifi = hub.bridge.wifi_for_pucks()
-    return {**hub.net.state(),
+    return {**hub.net.state(own_screen=request.state.screen),
             "bridges": {"ssid": wifi["ssid"], "checked": wifi["checked"], "known": wifi["known"],
                         "count": sum(1 for p in hub.bridge.pucks.values() if p.get("online"))},
             # Two different journeys, and they must not share a key: `moving` is this hub changing
             # network (the host is watching it), `bridges_moving` is the pucks doing the same.
             "bridges_moving": hub.bridge.move_status()}
+
+
+@app.get("/network/setup.svg")
+def network_setup_qr(request: Request):
+    """The hub's own Wi-Fi as a code for a phone's camera, on the screen plugged into the hub (design/screen-wifi/, C).
+
+    Built here from what the host wrote, like the bridge's pairing code, and only for that screen: anywhere else
+    it would be the label's password handed to whoever asked."""
+    code = hub.net.setup_code() if request.state.screen else None
+    if not code: raise HTTPException(404, "the hub's own Wi-Fi is not up")
+    return Response(content=qr_svg_bytes(code), media_type="image/svg+xml", headers={"Cache-Control": "no-store"})
 
 
 @app.post("/network/scan")
@@ -1909,9 +1924,9 @@ async def network_hub(body: dict, request: Request):
     reached. Doing it the other way round would mean the hub changing networks and only then
     discovering it can no longer tell anybody.
     """
-    # From the setup Wi-Fi the house may not have started yet -- it may have nothing to start with --
-    # and the one thing being asked is which Wi-Fi to use, which needs nothing from it.
-    if not getattr(request.state, "setup", False): hub.ready()
+    # From the setup Wi-Fi, or the screen on a hub with no network, the house may not have started yet -- it
+    # may have nothing to start with -- and the one thing being asked is which Wi-Fi to use, which needs nothing from it.
+    if not (request.state.setup or request.state.screen): hub.ready()
     if request.state.away:
         # The one refusal this design makes that restarting does not. A restart away from home is
         # caught by a watchdog on the machine; a wrong network away from home can be right and still
@@ -3024,6 +3039,91 @@ def address_forget(request: Request):
     """Give the address back. Anyone may have it after this."""
     if not _may_restart(request): raise HTTPException(403, "Giving the web address back needs the passcode.")
     return hub.address.forget(_who(request))
+
+
+# ---------- for working on the hub (design/developer/, B) ----------
+@app.get("/developer")
+def developer(): return hub.developer.summary()
+
+
+@app.post("/developer/show")
+def developer_show(request: Request):
+    """Whether This house lists the page. Unset, it is listed exactly when the hub is not on releases."""
+    if not _may_restart(request): raise HTTPException(403, "Showing or hiding this page needs the passcode.")
+    return hub.developer.show(True)
+
+
+@app.post("/developer/hide")
+def developer_hide(request: Request):
+    if not _may_restart(request): raise HTTPException(403, "Showing or hiding this page needs the passcode.")
+    return hub.developer.show(False)
+
+
+@app.post("/developer/channel")
+def developer_channel(body: dict, request: Request):
+    """{"channel": "release" | "main" | "development" | <branch>}: what this hub follows. The host moves it, as an update."""
+    if not _may_restart(request): raise HTTPException(403, "Changing what the hub follows needs the passcode.")
+    try: return hub.developer.choose_channel(str(body.get("channel") or ""))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.get("/developer/github-keys")
+def developer_github_keys(request: Request, user: str = ""):
+    if not _may_restart(request): raise HTTPException(403, "Adding a key needs the passcode.")
+    try: return {"keys": hub.developer.github_keys(user.strip())}
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+def _may_ssh(request: Request) -> None:
+    if not _may_restart(request): raise HTTPException(403, "Changing who can sign in to the hub needs the passcode.")
+    if request.state.away: raise HTTPException(403, "Who can sign in to the hub is changed at home, on the Wi\u2011Fi.")
+
+
+@app.post("/developer/ssh/keys")
+def developer_ssh_add(body: dict, request: Request):
+    """{"keys": [authorized_keys lines], "source": "pasted" | "github:<user>"}"""
+    _may_ssh(request)
+    keys = body.get("keys")
+    if not isinstance(keys, list): raise HTTPException(400, "There was no key in that.")
+    try: return hub.developer.add_keys([str(k) for k in keys], str(body.get("source") or "pasted"))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.delete("/developer/ssh/keys/{fingerprint:path}")
+def developer_ssh_remove(fingerprint: str, request: Request):
+    _may_ssh(request)
+    try: return hub.developer.remove_key(fingerprint)
+    except KeyError: raise HTTPException(404, "That key isn't one this hub has.")
+
+
+@app.post("/developer/ssh")
+def developer_ssh(body: dict, request: Request):
+    """{"on": true | false}. On needs a key: with none, nothing could sign in anyway."""
+    _may_ssh(request)
+    try: return hub.developer.set_ssh(bool(body.get("on")))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.post("/developer/screens/update")
+def developer_screens_update(request: Request):
+    if not _may_restart(request): raise HTTPException(403, "Updating the screens needs the passcode.")
+    return hub.developer.update_screen(None)
+
+
+@app.post("/developer/screens/{unit}/update")
+def developer_screen_update(unit: str, request: Request):
+    if not _may_restart(request): raise HTTPException(403, "Updating a screen needs the passcode.")
+    try: return hub.developer.update_screen(unit)
+    except KeyError: raise HTTPException(404, "That screen hasn't been heard from.")
+
+
+@app.post("/screens/report")
+def screens_report(body: dict, request: Request):
+    """A screen's own unit, once a minute (startup/screen-report.sh): what it runs. The answer says whether to update now."""
+    if request.state.away: raise HTTPException(403)
+    try: return hub.developer.report(body or {}, request.client.host if request.client else "")
+    except PermissionError: raise HTTPException(403, "That isn't the key this screen gave before.")
+    except ValueError: raise HTTPException(400)
 
 
 # ---------- the assistant: writes and explains, never runs ----------

@@ -16,8 +16,9 @@ What the image carries beyond stock Raspberry Pi OS Lite:
 The first boot does not need the internet to start. The image carries the brain, the front door and the broker
 (`/var/lib/home-hub/preload/`, loaded once and deleted), which is all the Wi‑Fi step needs: a Pi with no cable
 offers a Wi‑Fi of its own (docs/network.md, piece 5). The engine and the rest download once the hub is online.
-That Wi‑Fi's password is the one on a shipped hub's label; a card you flash yourself makes its own on first boot and
-has no label to read it from, so give it Wi‑Fi with Raspberry Pi Imager's customization instead, or a cable. Raspberry Pi Imager's
+That Wi‑Fi's password is the one on a shipped hub's label. A card you flash yourself makes its own on first boot and
+has no label: with a screen attached, the screen asks which Wi‑Fi itself and shows that password beside the question
+(design/screen-wifi/); without one, give it Wi‑Fi with Raspberry Pi Imager's customization instead, or a cable. Raspberry Pi Imager's
 own customization (Wi‑Fi, a user and password, an SSH key, the time zone) works on this image as on any
 Raspberry Pi OS image; nothing here needs it, but it is how you get a shell if you ever want one. The
 image ships with SSH off and its one user locked, and without Raspberry Pi OS's first-boot "enter new username"

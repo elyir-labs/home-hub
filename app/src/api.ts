@@ -13,14 +13,15 @@ export type Home = { name?: string | null; temp_unit?: string; entry?: string[];
 export type Driver = 'down' | 'fresh' | 'needs-login' | 'connecting' | 'ready'
 export type Part = { id: string; name: string; state: 'unknown' | 'off' | 'adding' | 'ready' | 'failed' | 'sign-in' | 'waiting'; text: string; port: number }
 /* channel: which code this hub follows — 'release' (version tags, what a house runs), or 'main' or
-   'development' (that branch, for a hub being worked on). `available` is null when the hub genuinely cannot tell, and
+   'development' (that branch, for a hub being worked on), or any other branch an image was built from, until it lands
+   in development (`latest.landed` names it then). `available` is null when the hub genuinely cannot tell, and
    `offer` is the same answer minus a version that was installed, would not start, and was put back:
    the hub stops raising that one on its own, and the button under This hub still installs it. */
 /** What changed, in words a household reads. Written by hand into releases/<version>.md and shipped
    inside the brain's image, so these are the notes for the code this hub is actually running. */
 export type ReleaseNotes = { version: string; what: string[]; details: string }
 export type UpdateNotes = { notes: ReleaseNotes | null; history: ReleaseNotes[] }
-export type Update = { version: string; commit: string; channel: 'release' | 'main' | 'development'; latest: { version: string; sha: string; when: string; title: string; what: string[] } | null; whats_new: ReleaseNotes | null; held: boolean; reached_us: boolean; available: boolean | null; offer: boolean | null; rejected: string | null; auto: boolean; verified: boolean; checked: number | null; requested: boolean; state: { state: 'running' | 'done' | 'failed' | 'reverted' | 'refused'; started?: number; finished?: number; commit?: string; to?: string; bad?: string; reverted?: boolean } | null; error: string | null
+export type Update = { version: string; commit: string; channel: string; latest: { version: string; sha: string; when: string; title: string; what: string[]; landed?: string } | null; whats_new: ReleaseNotes | null; held: boolean; reached_us: boolean; available: boolean | null; offer: boolean | null; rejected: string | null; auto: boolean; verified: boolean; checked: number | null; requested: boolean; state: { state: 'running' | 'done' | 'failed' | 'reverted' | 'refused'; started?: number; finished?: number; commit?: string; to?: string; bad?: string; reverted?: boolean } | null; error: string | null
   /* Where the host has got to, while it is getting there. The brain is alive for nearly all of an
      update -- the code, the signature and the pull all happen with it running -- so this is a real
      answer for most of the wait rather than a spinner. null when nothing is happening. */
@@ -182,7 +183,8 @@ export type NetState = {
   moving?: { ssid: string; since: number }  // the hub is being moved right now, and the host is watching it
   reverted?: string                        // ...and one did not take, so this is the name that failed
   reverted_why?: 'password' | 'unreachable' // ...and why, when the router said
-  setup?: { ssid: string; both: boolean }   // the hub's own Wi-Fi is up, for a phone to set it up from (design/setup-network/)
+  setup?: { ssid: string; both: boolean; phones?: number   // the hub's own Wi-Fi is up, for a phone to set it up from (design/setup-network/)
+            password?: string }                         // ...told only to the screen plugged into the hub (design/screen-wifi/)
   joined?: string                          // ...and the house's Wi-Fi it joined from there, before it goes
   bridges: { ssid: string; checked: boolean; known: boolean; count: number }
   bridges_moving?: NetMove | null          // the pucks' journey; `moving` above is the hub's own
@@ -218,6 +220,8 @@ export const moveBridges = (ssid: string, password: string) => post<NetMove>('/n
    arrives second finds the other already there; the host puts the old connection back if this hub
    never turns up on the new one. */
 export const moveHub = (ssid: string, password: string) => post<NetState>('/network/hub', { ssid, password })
+/* The hub's own Wi-Fi as a code, drawn by the brain for the screen plugged into the hub and nothing else (design/screen-wifi/). */
+export const setupWifiQrUrl = '/network/setup.svg'
 export const networkDone = () => post<Bridge>('/network/done')
 
 /* Letting a NEW switch in, two ways, because a switch arrives in a hand or already screwed to a wall.
@@ -973,3 +977,30 @@ export async function claimAddress(name: string): Promise<AddressState> {
   return r.json()
 }
 export const turnAddress = (on: boolean) => post<AddressState>(`/address/${on ? 'on' : 'off'}`)
+
+/* For working on the hub (design/developer/, B): what this hub follows, SSH, and the screens in the house.
+   `shown` is the brain's answer to whether the page is on This house's list -- by default exactly when the hub
+   is not on releases. A brain older than the page answers 404, and then there is no page. */
+export type DevKey = { name: string; type: string; fingerprint: string; added: number; source: string }
+export type DevScreen = { id: string; name: string; host: string; ip: string; version: string; commit: string; channel: string
+  landed: boolean; current: boolean | null; seen: number | null; updating: boolean }
+export type Developer = { shown: boolean; channel: string; version: string; commit: string; landed: string | null; behind: number | null
+  ssh: { on: boolean; user: string; host: string; ip: string; keys: DevKey[]; pending: boolean }
+  screens: DevScreen[]; requested: { channel: string | null } }
+export type GithubKey = { line: string; type: string; fingerprint: string; name: string }
+export async function getDeveloper(): Promise<Developer | null> {
+  const r = await request('/developer'); if (r.status === 404) return null; if (!r.ok) await fail(r); return r.json()
+}
+export const showDeveloper = () => post<Developer>('/developer/show')
+export const hideDeveloper = () => post<Developer>('/developer/hide')
+export const followChannel = (channel: string) => post<Developer>('/developer/channel', { channel })
+export async function githubKeys(user: string): Promise<GithubKey[]> {
+  const r = await request(`/developer/github-keys?user=${encodeURIComponent(user)}`); if (!r.ok) await fail(r); return (await r.json()).keys
+}
+export const allowKeys = (keys: string[], source: string) => post<Developer>('/developer/ssh/keys', { keys, source })
+export async function removeKey(fingerprint: string): Promise<Developer> {
+  const r = await request(`/developer/ssh/keys/${encodeURIComponent(fingerprint)}`, { method: 'DELETE' }); if (!r.ok) await fail(r); return r.json()
+}
+export const turnSsh = (on: boolean) => post<Developer>('/developer/ssh', { on })
+export const updateScreen = (id: string) => post<Developer>(`/developer/screens/${encodeURIComponent(id)}/update`)
+export const updateScreens = () => post<Developer>('/developer/screens/update')

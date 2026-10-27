@@ -4,7 +4,7 @@ import { carried, tell } from './inapp'
 import { moveCode, withoutCode } from './move'
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { reactive, watch } from 'vue'
-import { getMe, claimMove, kickStream, type Me, doRestart, type Rung, getBridge, type Bridge, getStrip, stripLooking, type Strip, getHome, getEvents, getAmbient, getScenes, getStatus, getDiscovered, getRoutines, getAssistant, getPresence, getHealth, getSounds, getMusic, connect, act, setIntent, setHomeIntent, type Room, type Device, type Home, type Event, type Ambient, type Rules, type Status, type Found, type Intent, type Routine, type Assistant, type Presence, type Note, type Sound, requestUpdate, getPhones, type Phone, type Ask, getAccounts, type Account, getShare, type Share, getHappened, type Happened, getChanges, type Changes, getSignals, type SignalsPage, type TryBrief, getRoofline, type Roofline, getPrinters, type Printers, type Printer, getPower, getPowerDay, type Power, type PowerDay } from './api'
+import { getMe, claimMove, kickStream, type Me, doRestart, type Rung, getBridge, type Bridge, getStrip, stripLooking, type Strip, getHome, getEvents, getAmbient, getScenes, getStatus, getDiscovered, getRoutines, getAssistant, getPresence, getHealth, getSounds, getMusic, connect, act, setIntent, setHomeIntent, type Room, type Device, type Home, type Event, type Ambient, type Rules, type Status, type Found, type Intent, type Routine, type Assistant, type Presence, type Note, type Sound, requestUpdate, getPhones, type Phone, type Ask, getAccounts, type Account, getShare, type Share, getHappened, type Happened, getChanges, type Changes, getSignals, type SignalsPage, type TryBrief, getRoofline, type Roofline, getPrinters, type Printers, type Printer, getPower, getPowerDay, type Power, type PowerDay, getDeveloper, type Developer } from './api'
 import type { MusicItem } from './music'
 import { previewHeld, previewHeldNote, previewRoofDevice, previewRoofline, previewStripBeat } from './controller'
 import { lock, CANCELED, failed } from './code'
@@ -17,7 +17,7 @@ import { hasCard, printerOn, printerPart, printersIn as inRoom } from './printer
 /* The few soft sheets the panel has. Named rather than written out twice: the restart keeps the one
    it closed so it can come back to it, and `typeof store.sheet` there would make the store's own type
    circular -- which typescript answers by quietly making the whole store `any`. */
-export type Sheet = null | 'location' | 'add' | 'code' | 'why' | 'routines' | 'signals' | 'hub' | 'look' | 'screen' | 'house' | 'people' | 'accounts' | 'things' | 'printers' | 'share' | 'notes' | 'happened' | 'changes'
+export type Sheet = null | 'location' | 'add' | 'code' | 'why' | 'routines' | 'signals' | 'hub' | 'look' | 'screen' | 'house' | 'people' | 'accounts' | 'things' | 'printers' | 'share' | 'notes' | 'happened' | 'changes' | 'developer'
 
 export const store = reactive({
   rooms: [] as Room[], linkUp: false, linkLost: false, error: '', loaded: false,   // linkLost: down long enough to be worth mentioning
@@ -65,6 +65,9 @@ export const store = reactive({
   /* What this house gives out to other apps as Matter devices: its own page, and its own door, which
      says how things stand there without anybody opening it. Null until the hub has answered once. */
   share: null as Share | null,
+  /* For working on the hub (design/developer/, B): null on a hub too old to have it, and then there is no door. */
+  developer: null as Developer | null,
+  devKey: new URLSearchParams(location.search).get('key') === '1',   // ?sheet=developer&key=1: the key form a phone opens from the wall's code
   /* Music (design/music/): each room's last plays, for the speakers' Again, and the room whose pane is open. */
   musicAgain: {} as Record<string, MusicItem[]>,
   musicPane: (new URLSearchParams(location.search).get('music') || null) as string | null,   // ?music=living previews it
@@ -826,6 +829,9 @@ export const canShare = (d: Device) => {
 }
 export const isShared = (d: Device) => canShare(d) && !(store.share?.left_out ?? []).includes(d.id)
 
+export async function loadDeveloper() {
+  try { store.developer = await getDeveloper() } catch { /* the door keeps whatever it last knew */ }
+}
 export async function loadShare() {
   try { store.share = await getShare() } catch { /* an older hub: the door simply does not appear */ }
 }
@@ -994,7 +1000,7 @@ export async function load() {
   await refreshStatus()
   if (lock.unpaired) return                    // the join screen is up; the house answers once this phone is in
   try { applyHome(await getHome()) } catch { store.error = 'The hub is not answering.' }
-  loadAmbient(); loadRules(); loadRoutines(); loadAssistant(); loadPresence(); loadHealth(); loadSounds(); loadMusic(); loadPhones(); loadAccounts(); loadShare(); loadRoofline(); loadPrinters(); loadPower()
+  loadAmbient(); loadRules(); loadRoutines(); loadAssistant(); loadPresence(); loadHealth(); loadSounds(); loadMusic(); loadPhones(); loadAccounts(); loadShare(); loadDeveloper(); loadRoofline(); loadPrinters(); loadPower()
 }
 let foundPoll: number | undefined
 /* The hub came back on a different build from the one this page was reading. Until it reloads, the

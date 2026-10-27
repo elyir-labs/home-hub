@@ -4,9 +4,11 @@
 -->
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { setupOwner, setupLogin, setupDone, addRoom, setPin, getAddress, getDrive, type AddressState, type DriveState } from './api'
+import { setupOwner, setupLogin, setupDone, addRoom, setPin, getAddress, getDrive, getNetwork, type AddressState, type DriveState, type NetState } from './api'
 import { firstPage } from './drive'
+import { askHere, fetchingLine } from './wifi'
 import DriveStep from './DriveStep.vue'
+import SetupWifi from './SetupWifi.vue'
 import { offersOutside } from './address'
 import { shell } from './inapp'
 import { remember } from './code'
@@ -51,6 +53,15 @@ getDrive().then(s => {
   const p = firstPage(s)
   if (p && (!preview || PAGES.indexOf(preview) <= PAGES.indexOf('moved'))) page.value = preview ?? p
 }).catch(() => {})
+
+/* The screen plugged into a hub with no network asks which Wi-Fi before Welcome home, since nothing can be set up
+   until the rest of the hub has downloaded (design/screen-wifi/, C). Looked at until the house's engine is up. */
+const net = ref<NetState | null>(null), joinedHere = ref('')
+const wifiHere = computed(() => page.value === 'welcome' && !joinedHere.value && askHere(net.value))
+async function lookAtNetwork() { try { net.value = await getNetwork() } catch {} }
+lookAtNetwork()
+const netTimer = window.setInterval(() => { if (!engineReady.value) lookAtNetwork() }, 5000)
+onUnmounted(() => clearInterval(netTimer))
 
 function next(after: Page) {
   const s = status.value
@@ -141,6 +152,7 @@ onMounted(() => {
   if (scroller.value) ro.observe(scroller.value)
   window.addEventListener('resize', measure)
 })
+watch(scroller, (el, was) => { if (was) ro?.unobserve(was); if (el) ro?.observe(el); nextTick(measure) })
 onUnmounted(() => { ro?.disconnect(); window.removeEventListener('resize', measure) })
 /* A step change swaps the whole page under the transition, so re-measure once it has
    landed -- and again when what is on it grows, which `Adding` does as it goes. */
@@ -159,7 +171,8 @@ async function saveCode() {
 </script>
 
 <template>
-  <main class="setup" :class="{ docked }" ref="scroller">
+  <SetupWifi v-if="wifiHere" here @online="ssid => (joinedHere = ssid)" />
+  <main v-else class="setup" :class="{ docked }" ref="scroller">
     <Transition name="view" mode="out-in" @after-enter="measure">
       <!-- the drive beside a hub on its stick, before anything else (design/move-to-drive/, A) -->
       <section class="setup-page" v-if="onDrive && drive" :key="page">
@@ -179,6 +192,7 @@ async function saveCode() {
           <button class="button big" :disabled="!engineReady" @click="next('welcome')">Get started</button>
         </div>
         <p class="setup-status" v-if="store.restoring"><span class="pulse-dot"></span> Restoring your backup. The hub restarts, and this screen comes back with your house on it.</p>
+        <p class="setup-status" v-else-if="!engineReady && joinedHere"><span class="pulse-dot" style="background: var(--live)"></span> {{ fetchingLine(joinedHere) }}</p>
         <p class="setup-status" v-else-if="!engineReady"><span class="pulse-dot"></span> Getting things ready. The first start takes a minute or two.</p>
         <p class="setup-status" v-else-if="driver === 'needs-login'">This hub was set up before. You’ll sign in with the name and password chosen then.</p>
         <p class="setup-foot">Moving from another hub? <button class="linkish" @click="fromBackup = !fromBackup">Bring its backup over</button></p>

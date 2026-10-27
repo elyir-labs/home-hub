@@ -337,9 +337,8 @@ class Firmware:
         id_, fw, kind = str(req.get("chip") or ""), str(req.get("fw") or ""), str(req.get("kind") or "bridge")
         k = self.kinds.get(kind)
         u = getattr(self.hub, "updates", None)
-        from .updates import BRANCHES
         why = ("this hub follows releases, and a release hub takes only released firmware"
-               if not (u and u.channel in BRANCHES) else
+               if not (u and u.channel != "release") else
                f"{kind!r} is not something this hub updates" if k is None else
                f"{id_ or 'that'} is not a {k.noun} this hub knows" if not k.known(id_) else
                f"{id_} is not on the broker right now" if not k.online(id_) else
