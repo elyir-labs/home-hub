@@ -165,6 +165,46 @@ class DevelopmentChannelTests(UpdateTest):
         self.assertFalse((await u.check())["available"])
 
 
+class OtherBranchTests(UpdateTest):
+    """An image built from a branch follows it until it lands in development, then development."""
+    def github(self, compare=None, gone=False):
+        def get(url):
+            if "/compare/" in url:
+                if gone: raise updates.urllib.error.HTTPError(url, 404, "Not Found", {}, None)
+                return {"status": compare}
+            if "/commits/" in url: return {"sha": "c" * 40, "commit": {"message": "Try it\n\nbody", "committer": {"date": "2026-10-22T10:00:00Z"}}}
+            return {"workflow_runs": [{"head_sha": "d" * 40, "head_commit": {"timestamp": "2026-10-22T11:00:00Z", "message": "Merged it"}}]}
+        return mock.patch.object(updates, "_get", side_effect=get)
+
+    def test_a_hub_built_from_a_branch_follows_it(self):
+        u = self.make(version="pi-image-wall-" + "a" * 40, channel="pi-image-wall")
+        self.assertEqual((u.channel, u.follows_branch), ("pi-image-wall", True))
+
+    def test_a_channel_its_build_did_not_come_from_is_no_branch(self):
+        self.assertEqual(self.make(version="v1.2.0", channel="pi-image-wall").channel, "release")
+
+    def test_while_it_is_being_worked_on_its_head_is_offered(self):
+        u = self.make(version="try-it-aaaaaaa", channel="try-it")
+        for status in ("ahead", "diverged", "identical"):
+            with self.github(status) as get: latest = u.fetch()
+            self.assertEqual((latest["version"], latest["title"], latest.get("landed")), ("try-it-ccccccc", "Try it", None), status)
+        self.assertIn("/commits/try-it", get.call_args.args[0])
+
+    def test_once_development_holds_it_and_moved_on_development_is_offered(self):
+        u = self.make(version="try-it-aaaaaaa", channel="try-it")
+        with self.github("behind") as get: latest = u.fetch()
+        self.assertEqual((latest["version"], latest["landed"]), ("development-ddddddd", "try-it"))
+        self.assertIn("/brain-image.yml/runs?branch=development", get.call_args.args[0])
+
+    def test_a_branch_that_is_gone_lands_too(self):
+        u = self.make(version="try-it-aaaaaaa", channel="try-it")
+        with self.github(gone=True): self.assertEqual(u.fetch()["landed"], "try-it")
+
+    async def test_it_compares_commits_as_the_named_branches_do(self):
+        u = self.make(version="try-it-aaaaaaa", commit="a" * 40, channel="try-it")
+        with self.github("behind"): self.assertTrue((await u.check())["available"])
+
+
 class WhenGitHubIsUnreachableTests(UpdateTest):
     async def test_the_last_good_answer_stands_and_the_reason_is_kept_not_raised(self):
         u = self.make(version="v1.2.0")

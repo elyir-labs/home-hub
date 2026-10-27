@@ -274,6 +274,24 @@ services:
     volumes:
       - ./ring-mqtt:/data
 
+  music:
+    # Radio and the household's own music, on any speaker in the house (hub/music.py, design/music/, docs/music.md).
+    # Rented like the engine: the brain sets it up with nobody watching and nothing of it reaches the screen. An extra,
+    # so it takes the house-first caps; COMPOSE_PROFILES=music turns it on, and host-tier.sh does that on every hub.
+    # network_mode: host because it finds speakers the way the house does, on the LAN, and the brain and the engine
+    # reach it on loopback. Its own web page is on :8095 and nothing links to it.
+    <<: *extra
+    image: ${HUB_IMG_MUSIC:-ghcr.io/music-assistant/server:2.10.5}
+    container_name: music
+    restart: unless-stopped
+    profiles: [music]
+    network_mode: host
+    mem_limit: 768m
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./music-data:/data
+
   wyoming-piper:
     # The house's own voice. docs/voice.md, *Where the voice comes out*: the brain synthesizes an answer
     # here and the PANEL plays it, as audio in the page, from a URL on the hub's own LAN address — the

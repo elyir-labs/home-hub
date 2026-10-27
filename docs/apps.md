@@ -100,6 +100,48 @@ server of ours. So the page hands the shell what it needs for that, and the hous
 - **The two routines** are the panel's own: `POST /home/intent/asleep` (Bedtime) and `POST /home/intent/away`
   (Everything off), with the same pass. Neither needs the passcode; from away, a phone set to Anywhere.
 
+**Notifications in the iOS app** (built 20 October 2026; the app's half is in `elyir-labs/home-hub-apps`). The web view
+has no web push, so Houses' one Notifications switch asks the app instead, and is shown in the iOS app as in a
+browser; on Android it stays hidden until FCM. The fine print names Apple, as it does on an iPhone in Safari.
+
+- **The page asks, inside the tap**: `window.webkit.messageHandlers.houses.postMessage({type: 'houses:push-identity'})`.
+  The app asks the phone's permission and answers with
+  `window.dispatchEvent(new CustomEvent('houses:push-identity', {detail}))`, where `detail` is the identity, or
+  `{denied: true}`, or `{error: '...'}`. The identity is
+  `{kind: "apns", token: <hex device token>, env: "sandbox"|"production", p256dh: <base64url uncompressed P-256 public key, 65 bytes>, auth: <base64url, 16 random bytes>}`;
+  the private half of that key never leaves the phone. No answer in two minutes counts as an error. A refusal reads
+  *This phone is set not to allow them. You can change that in Settings.*; an error, *This phone couldn't turn them
+  on just now. Try again in a moment.*, with the switch still there to try again (`app/houses/src/push.ts`).
+- **Turning it off** posts `{type: 'houses:push-off'}`; the app forgets nothing, and the page `DELETE`s
+  `/phones/me/push` at each house, as in a browser. The page keeps the identity it was handed (in its own storage,
+  never the private half), so a house added later, or one that missed it, is handed it without asking the app again.
+- **Each house is handed** `POST /phones/me/push {apns: {token, env, p256dh, auth}, tz}`, under the same rules as the
+  web variant: a phone of the house's own, never a wall. The house checks the token is 64 to 200 hex characters,
+  the environment one of the two, the key a real point on P-256 and the secret 16 bytes, and keeps
+  `push = {apns, tz, since}` on the phone's record; `/phones/me` says `push: true` as for web push.
+- **The house seals and hands it over** (`brain/hub/pusher.py`). The same payload web push carries, encrypted to
+  (p256dh, auth) exactly as web push is (RFC 8291, aes128gcm, one record), is posted to `https://api.elyir.app/push`
+  with the house's relay secret as `Authorization: Bearer`:
+  `{house: <its label>, token, env, sealed: <base64url>, urgency: "normal"|"high", collapse: <the 32-character topic web push uses>, ttl: <seconds>}`.
+  200 `{sent: true}` is done; 410 `{gone: true}` drops the phone's push, as a web push 404 or 410 does; 429, any
+  other answer, or none at all is tried again on the next look while the TTL lasts; 503 means the sender has no
+  key yet, and the house keeps the phone, logs it once, and does not try that one again. Quiet hours, the two-look
+  rule and the tags are web push's.
+- **A house with no web address** holds no relay secret, so it cannot use the sender: the phone's push stays
+  recorded and unsent, and `/phones/me` adds `push_note: "This house needs its web address to tell this phone."`
+  beside `push: true`. Nothing in the page shows it yet.
+- **The sender** (`relay/service/push.py`, `POST /push` on the registration service) takes a notification only from
+  a house that proves itself with its secret and is carried, at most ten a minute and sixty an hour per house,
+  counted in memory. It checks the fields (the sealed body at most 3 KB, `collapse` at most 64 characters, `ttl` at
+  most a day) and hands Apple, with Elyir's key (ES256 provider token, kept 50 minutes), topic `app.elyir.houses`,
+  push type `alert`, priority 10 for high and 5 for normal, the expiry and the collapse id:
+  `{"aps": {"alert": {"title": "Houses", "body": "One of your houses needs a look."}, "mutable-content": 1, "thread-id": <house>}, "h": <house>, "s": <sealed>}`.
+  The app's Notification Service Extension opens `s` with the phone's key and shows the house's own words, titled
+  with this phone's name for the house. Apple's 410, or 400 `BadDeviceToken` or `DeviceTokenNotForTopic`, is
+  answered 410; Apple's 429 is 429; anything else 502; with no key configured, 503. It logs nothing of what it
+  carries and keeps no token past the request. The key is Terraform's like the rest (`relay/README.md`, *Turning
+  the sender on*); until the operator adds it, every house keeps its phones for when it is on.
+
 ### What the stores will hold us to
 
 Settled before any shell code, because three of them change what gets built rather than what gets filled in:

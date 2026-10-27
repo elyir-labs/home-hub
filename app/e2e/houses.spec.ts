@@ -302,13 +302,76 @@ test('Houses has a part for this phone under Add a house, drawn as the board dra
   expect(Math.abs((sw.y + sw.height / 2) - (row.y + row.height / 2))).toBeLessThan(2)
 })
 
-test('inside the store app the part is not there: a web view has no web push', async ({ page }) => {
+test('in the Android app the part is not there until FCM', async ({ page }) => {
   await fresh(page)
   await addHouse(page, 'maple-court', 'Home')
-  await page.goto(`${APP}/?shell=ios&store=US`)
+  await page.goto(`${APP}/?shell=android&store=US`)
   const sheet = await houses(page)
   await expect(sheet.locator('.hs-row', { hasText: 'Add a house' })).toBeVisible()
   await expect(sheet.locator('.hs-phone')).toHaveCount(0)
+})
+
+/* The iOS app's half of notifications, by hand (docs/apps.md, What the page gives the shell): asked for this phone's
+   push identity, it answers with an event on the page. The identity is made fresh in the page each run. */
+const IOS_PUSH = (answer: 'identity' | 'denied') => {
+  const w = window as any
+  w.toShell = []
+  w.webkit = { messageHandlers: { houses: { postMessage: (m: any) => {
+    w.toShell.push(m)
+    if (m.type !== 'houses:push-identity') return
+    setTimeout(async () => {
+      const b64 = (raw: ArrayBuffer | Uint8Array) => btoa(String.fromCharCode(...new Uint8Array(raw))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+      const pair = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits'])
+      const token = [...crypto.getRandomValues(new Uint8Array(32))].map(x => x.toString(16).padStart(2, '0')).join('')
+      w.identity = { kind: 'apns', token, env: 'sandbox', p256dh: b64(await crypto.subtle.exportKey('raw', pair.publicKey)), auth: b64(crypto.getRandomValues(new Uint8Array(16))) }
+      window.dispatchEvent(new CustomEvent('houses:push-identity', { detail: answer === 'denied' ? { denied: true } : w.identity }))
+    }, 50)
+  } } } }
+}
+
+test('in the iOS app the switch asks the app, and every house is handed what it answered', async ({ page }) => {
+  await page.addInitScript(IOS_PUSH, 'identity')
+  await fresh(page)
+  await addHouse(page, 'maple-court', 'Home')
+  await addHouse(page, 'lake', 'Lake house')
+  await page.goto(`${APP}/?shell=ios&store=US`)
+  const asked: { method: string; auth: string | undefined; body: any }[] = []
+  page.on('request', r => { if (r.url().endsWith('/phones/me/push') && r.method() !== 'OPTIONS') asked.push({ method: r.method(), auth: r.headers().authorization, body: r.postDataJSON() }) })
+
+  const sheet = await houses(page)
+  const part = sheet.getByRole('region', { name: 'This phone' })
+  await expect(part.locator('.hs-phone-s')).toHaveText('Your houses can tell this phone when something needs you.')
+  await expect(part.locator('.hs-phone-fine')).toHaveText('Each house decides what is worth telling you. Apple sees that one of your houses sent this phone something, and when, never what.')
+  const toggle = part.getByRole('switch', { name: 'Notifications' })
+  await expect(toggle).toHaveAttribute('aria-checked', 'false')
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-checked', 'true')
+  await expect.poll(() => asked.filter(a => a.method === 'POST').length).toBe(2)
+  const identity = await page.evaluate(() => (window as any).identity)
+  for (const { auth, body } of asked) {
+    expect(auth).toBe('Bearer mocktoken')
+    expect(body).toEqual({ apns: { token: identity.token, env: 'sandbox', p256dh: identity.p256dh, auth: identity.auth }, tz: 'America/Chicago' })
+  }
+  expect(await page.evaluate(() => (window as any).toShell.filter((m: any) => m.type === 'houses:push-identity').length)).toBe(1)
+
+  asked.length = 0
+  await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-checked', 'false')
+  await expect.poll(() => asked.filter(a => a.method === 'DELETE').length).toBe(2)
+  expect(await page.evaluate(() => (window as any).toShell.at(-1))).toEqual({ type: 'houses:push-off' })
+})
+
+test('in the iOS app a phone set not to allow them says so, and no house is asked', async ({ page }) => {
+  await page.addInitScript(IOS_PUSH, 'denied')
+  await fresh(page)
+  await addHouse(page, 'maple-court', 'Home')
+  await page.goto(`${APP}/?shell=ios&store=US`)
+  const asked: string[] = []
+  page.on('request', r => { if (r.url().endsWith('/phones/me/push') && r.method() === 'POST') asked.push(r.url()) })
+  const sheet = await houses(page)
+  await sheet.getByRole('switch', { name: 'Notifications' }).click()
+  await expect(sheet.locator('.hs-phone-s')).toHaveText('This phone is set not to allow them. You can change that in Settings.')
+  expect(asked).toEqual([])
 })
 
 test('switched on, every house is handed the subscription and this phone’s key; switched off, every house lets it go', async ({ page }) => {

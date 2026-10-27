@@ -1,0 +1,19 @@
+# The x86 image's move from its USB stick onto a drive (host/move-early.sh), at the very start of a boot:
+# after the disks are mounted and before the system log is written to disk, Docker starts, or first boot runs.
+# Inert anywhere but the x86 image running from a stick.
+[Unit]
+Description=Home Hub: move from the USB stick onto a drive, before anything writes to it
+DefaultDependencies=no
+After=local-fs.target systemd-remount-fs.service systemd-random-seed.service
+Before=systemd-journal-flush.service docker.service containerd.service home-hub-firstboot.service sysinit.target
+ConditionPathExists=/etc/home-hub.conf
+
+[Service]
+Type=oneshot
+Environment=HOME_HUB_DIR=/opt/home-hub
+ExecStart=/opt/home-hub/driver-layer/host/move-early.sh
+StandardOutput=journal+console
+TimeoutStartSec=0
+
+[Install]
+WantedBy=sysinit.target

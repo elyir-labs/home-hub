@@ -242,15 +242,20 @@ jobs:
         driver-layer/host/network.sh
         driver-layer/host/away.sh
         driver-layer/host/verify.sh
+        driver-layer/host/landed.sh
+        driver-layer/host/developer.sh
+        startup/screen-report.sh
         driver-layer/host/channel.sh
         driver-layer/host/wifi-awake.sh
         driver-layer/host/tests.sh
         driver-layer/host/pi-image/stage-hub/prerun.sh
         driver-layer/host/pi-image/stage-hub/00-home-hub/*.sh
         startup/install.sh
+        startup/splash.sh
         startup/wall.sh
         startup/find-hub.sh
         startup/keep-hub.sh
+        startup/screen-update.sh
     steps:
       - uses: actions/checkout@v4
       # `bash -n a.sh b.sh` reads a.sh as the script and everything after it as that script's

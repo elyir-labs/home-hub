@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A4 alone: a card that can&rsquo;t do both</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="setup-network.css">
+<style>
+  .addr { display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 12px 0 20px; border-radius: var(--r-md); background: var(--surface);
+          border: 1px solid var(--edge-hi); font-size: 24px; letter-spacing: -.01em; }
+  .addr .copy { margin-left: auto; height: 40px; padding: 0 14px; border-radius: 999px; background: var(--surface-hi); border: 1px solid var(--edge);
+                display: flex; align-items: center; gap: 6px; font-size: 14.5px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="phone" style="background: #07080a;">
+  <div class="status-bar"><span>9:41</span><span class="r"><span class="wifi">Elyir Hub 4F2A</span><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i>
+    <svg width="26" height="13" viewBox="0 0 26 13" style="margin-left: 6px"><rect x=".5" y=".5" width="22" height="12" rx="3.5" fill="none" stroke="rgba(255,255,255,.5)"/><rect x="2.5" y="2.5" width="15" height="8" rx="2" fill="#fff"/><rect x="24" y="4.5" width="1.6" height="4" rx=".8" fill="rgba(255,255,255,.5)"/></svg></span></div>
+
+  <div class="sheet">
+    <div class="sheet-bar"><span class="sys">Cancel</span><b>Elyir Hub 4F2A</b></div>
+
+    <div class="col" style="top: 96px;">
+      <div class="mark"><svg class="i" width="26" height="26" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r=".9" fill="currentColor"/></svg></div>
+      <h1>The hub is joining Bluebell.</h1>
+      <p class="lede">Your phone goes back to Bluebell in a moment. The rest of setup is at this address, in your browser.</p>
+      <div class="addr">hub.local<span class="copy"><svg class="i" width="15" height="15" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copy</span></div>
+      <div class="note" style="margin-top: 16px;"><svg class="i" width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.5"/></svg><span>If the password was wrong, the hub&rsquo;s own Wi&#8209;Fi comes back in a minute. Scan the code on the hub again to try once more.</span></div>
+    </div>
+  </div>
+  <div class="home-ind"></div>
+
+  <div class="ring" style="left: 10px; right: 10px; top: 480px; height: 92px; border-radius: 18px;"></div>
+  <div class="ann" style="left: 14px; right: 14px; top: 620px;">
+    <span class="cap">Only on a card that can&rsquo;t do both</span>
+    The hub has to take its own Wi&#8209;Fi down to try Bluebell, so this is said <b>before</b> it tries, and a wrong password is said when the person comes back by scanning the label again: the hub keeps the reason. The NUC this was drawn for can do both, and sees A3 and A4.
+  </div>
+</div>
+</body>
+</html>

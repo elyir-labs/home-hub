@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A, Tonight: the TV opens on the evening</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap">
+<link rel="stylesheet" href="media.css">
+<style>
+  .hero { position: absolute; inset: 0; }
+  .next { position: absolute; left: 96px; right: 0; top: 640px; }
+  .next .row { display: flex; gap: 28px; margin-top: 18px; }
+  .next .c { width: 344px; flex: none; }
+  .next .c .still { height: 190px; }
+  .badge { position: absolute; left: 14px; top: 14px; padding: 5px 12px; border-radius: 999px; font-size: 15px; font-weight: 600; letter-spacing: .06em;
+           background: rgba(var(--lamp-rgb), .92); color: var(--lamp-ink); }
+  .index { position: absolute; left: 96px; right: 96px; bottom: 70px; display: flex; gap: 44px; font-size: 22px; color: var(--muted); align-items: baseline; }
+  .index b { color: var(--ink-2); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="tv">
+  <div class="hero s-field" data-when="evening"></div>
+  <div class="hero s-ember" data-when="nothing" style="bottom: 240px; left: 500px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 35%); mask-image: linear-gradient(90deg, transparent, #000 35%);"></div>
+  <div class="shade-l"></div><div class="shade-b"></div>
+
+  <div style="position: absolute; left: 96px; right: 96px; top: 54px; display: flex; align-items: center; gap: 16px; font-size: 22px;">
+    <span class="house"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg></span>
+    <span class="ink2">Maple Court</span><span style="flex: 1"></span>
+    <span class="ink2" style="font-size: 26px;">8:42</span>
+  </div>
+
+  <div data-when="evening" style="position: absolute; left: 96px; top: 196px; width: 900px;">
+    <div class="eyebrow">Keep watching &middot; 1 h 12 min left</div>
+    <h1 class="title" style="font-size: 116px; margin: 18px 0 20px;">The Long Field</h1>
+    <p class="ink2" style="margin: 0 0 26px; font-size: 26px;">You stopped on Tuesday, 48 minutes in, with Jordan.</p>
+    <div class="line" style="width: 520px; margin-bottom: 36px;"><i style="width: 40%"></i></div>
+    <span class="btn focus">&#9654;&ensp;Keep watching</span>&ensp;<span class="btn">From the start</span>
+  </div>
+
+  <div data-when="nothing" style="position: absolute; left: 96px; top: 196px; width: 900px;">
+    <div class="eyebrow" style="color: var(--lamp);">New &middot; Jordan added it yesterday</div>
+    <h1 class="title" style="font-size: 116px; margin: 18px 0 20px;">Salt &amp; Ember</h1>
+    <p class="ink2" style="margin: 0 0 26px; font-size: 26px; max-width: 34ch;">A cook, a fire, and the one winter the restaurant stayed open. 1 h 58 min.</p>
+    <div style="height: 42px;"></div>
+    <span class="btn focus">&#9654;&ensp;Watch</span>&ensp;<span class="btn">Something else</span>
+  </div>
+
+  <div class="next">
+    <div class="eyebrow">Next</div>
+    <div class="row">
+      <div class="c" data-when="evening"><div class="still s-harbor"><span class="badge">NEW</span></div><div class="cardname">Harbor Lights</div><div class="cardsub">Episode 4 came in this morning</div></div>
+      <div class="c" data-when="evening"><div class="still s-ember"><span class="badge">NEW</span></div><div class="cardname">Salt &amp; Ember</div><div class="cardsub">Jordan added it yesterday</div></div>
+      <div class="c" data-when="nothing"><div class="still s-harbor"><span class="badge">NEW</span></div><div class="cardname">Harbor Lights</div><div class="cardsub">Episode 4 came in this morning</div></div>
+      <div class="c"><div class="still s-lake"></div><div class="cardname">The lake, August</div><div class="cardsub">38 clips from Jordan&rsquo;s phone</div></div>
+      <div class="c"><div class="still s-north"></div><div class="cardname">Northbound</div><div class="cardsub">2 h 4 min &middot; like The Quiet Year</div></div>
+      <div class="c" data-when="nothing"><div class="still s-tide"></div><div class="cardname">Low Tide</div><div class="cardsub">1 h 41 min &middot; Riley&rsquo;s pick, still unwatched</div></div>
+      <div class="c"><div class="still s-moons"><div class="line"><i style="width: 8%"></i></div></div><div class="cardname">Paper Moons</div><div class="cardsub">Episode 2 of 8</div></div>
+    </div>
+  </div>
+
+  <div class="index"><b>Everything</b><span>Films 214</span><span>Shows 31</span><span>Home videos 1,206</span><span>Music</span><span style="flex: 1"></span><span>&#9906;&ensp;Say or type a name</span></div>
+
+  <div class="flips"><span style="padding: 6px 4px;">Showing</span>
+    <span class="flip on" data-to="evening">in the middle of something</span><span class="flip" data-to="nothing">nothing in progress</span></div>
+</div>
+<script src="flips.js"></script>
+</body>
+</html>

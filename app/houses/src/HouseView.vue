@@ -10,13 +10,13 @@
  *
  * A tap on the house's name in its panel opens Houses over it (HereB-sheet): every house this phone has, how
  * each one is, and the way to add another. Under them, the phone's own part (design/notify/, B): one switch that
- * lets every house tell this phone what needs it. Not in the store app, whose web view has no web push; its
- * notifications are to come from the sealed sender (docs/apps.md, Decided).
+ * lets every house tell this phone what needs it. In the iOS app, whose web view has no web push, the switch asks
+ * the app instead and the houses go through the sealed sender (docs/apps.md, Decided); hidden on Android until FCM.
  */
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { baseOf, glance, reach, save, state, type House } from './houses'
-import { fineFor, lineFor, look, pushing, turnOff, turnOn } from './push'
-import { postToShell, shell } from './shell'
+import { fineFor, lineFor, look, pushShown, pushing, turnOff, turnOn } from './push'
+import { osOf, postToShell, shell } from './shell'
 
 const props = defineProps<{ id: string; base: string }>()
 const emit = defineEmits<{ switch: [id: string]; add: []; reached: [id: string, base: string] }>()
@@ -78,9 +78,9 @@ onMounted(async () => {
 })
 onUnmounted(() => { window.removeEventListener('message', onMessage); clearTimeout(fallback) })
 
-const ua = navigator.userAgent, touch = navigator.maxTouchPoints || 0
+const ua = navigator.userAgent, touch = navigator.maxTouchPoints || 0, os = osOf(shell)
 const pushOn = computed(() => pushing.state === 'on' || pushing.state === 'partial')
-const switchable = computed(() => pushOn.value || pushing.state === 'off')
+const switchable = computed(() => pushOn.value || pushing.state === 'off' || pushing.state === 'failed')
 const flip = () => (pushing.busy ? undefined : pushOn.value ? turnOff() : turnOn())
 
 function line(h: House): { here: boolean; text: string; needs: boolean } {
@@ -125,14 +125,14 @@ function line(h: House): { here: boolean; text: string; needs: boolean } {
           </button>
         </li>
       </ul>
-      <section class="hs-phone" v-if="!shell" aria-label="This phone">
+      <section class="hs-phone" v-if="pushShown(os)" aria-label="This phone">
         <p class="hs-phone-cap">This phone</p>
         <div class="hs-phone-row">
           <span class="hs-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 004 0"/></svg></span>
           <span><span class="hs-phone-t">Notifications</span><span class="hs-phone-s">{{ lineFor(pushing.state, pushing.missing, ua, touch) }}</span></span>
           <button v-if="switchable" class="hs-toggle" :class="{ on: pushOn }" role="switch" :aria-checked="pushOn" aria-label="Notifications" :aria-busy="pushing.busy" @click="flip"><i></i></button>
         </div>
-        <p class="hs-phone-fine">{{ fineFor(ua, touch) }}</p>
+        <p class="hs-phone-fine">{{ fineFor(ua, touch, os) }}</p>
       </section>
     </section>
   </div>

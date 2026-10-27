@@ -150,9 +150,11 @@ was found:
   that person gets locked out of it.
 - **The recorder is at Home Assistant's defaults.** Ten days of history and a commit every second. Fine on NVMe,
   unkind to eMMC; a longer commit interval and the exclusion of chatty sensors is configuration, not code.
-- **Wi-Fi onboarding.** Wi-Fi is set at flash time. A customer whose router has no free port needs the hub to raise
-  a setup network of its own and take the home Wi-Fi from a phone. Ethernet first, access point as the fallback.
-  This one needs hardware in hand and is not a today item.
+- **Wi-Fi onboarding.** Built (docs/network.md, piece 5; design/setup-network/, A): a hub on nothing raises a Wi-Fi of
+  its own, the code on its label joins it, and the phone gives it the house's Wi-Fi. The Pi and x86 images carry the
+  brain, the front door and the broker, so that step works before the hub has internet; the rest downloads once it
+  is online (`driver-layer/host/x86-image/`). Still open: writing each unit's name and password at the bench and
+  printing its label.
 - **Per-unit identity.** A serial, a claim code printed on the box, a hub identifier that rides the backup. Two hubs
   on one Wi-Fi collide on `hub.local` today: avahi renames the second one and nothing tells the panel, so the code
   on the wall points at the wrong house. *This hub* should show the name the hub actually answers to.
@@ -208,7 +210,7 @@ enough to land with a test. The order is by what it closes.
 10. **A consent sentence where the key is pasted.** One line on the Routines sheet, and the privacy policy it points
     at.
 
-Not today, and why: Wi-Fi onboarding and the physical reset need the unit in hand; remote support and the maker's key
+Not today, and why: the physical reset needs the unit in hand; remote support and the maker's key
 wait on the relay; the hardware-in-the-loop bench in CI needs one hub per tier on a shelf; and everything about
 updates is `docs/updates.md`.
 

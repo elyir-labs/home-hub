@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C, The room: the TV is part of the living room</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap">
+<link rel="stylesheet" href="media.css">
+<style>
+  .full { position: absolute; inset: 0; }
+  .lamp { display: inline-grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: rgba(var(--lamp-rgb), .18); color: var(--lamp); flex: none; }
+  .toggle { width: 70px; height: 40px; border-radius: 999px; background: var(--lamp); position: relative; flex: none; }
+  .toggle::after { content: ""; position: absolute; right: 4px; top: 4px; width: 32px; height: 32px; border-radius: 50%; background: var(--lamp-ink); }
+  .mini { display: flex; gap: 22px; }
+  .mini .m { width: 300px; border-radius: 22px; padding: 14px; }
+  .mini .m .still { height: 150px; border-radius: 14px; }
+  .bar { position: absolute; left: 96px; right: 96px; bottom: 74px; border-radius: 30px; padding: 30px 40px 32px; }
+</style>
+</head>
+<body>
+<div class="tv">
+  <!-- resting: nothing is playing, the TV is on -->
+  <div data-when="rest">
+    <div class="full s-lake" style="filter: brightness(.7) saturate(.9);"></div>
+    <div class="full" style="background: linear-gradient(180deg, rgba(8,9,12,.0) 30%, rgba(8,9,12,.82) 100%);"></div>
+    <div style="position: absolute; left: 96px; top: 54px; font-size: 22px; color: rgba(255,255,255,.8);">From the lake, August 2025 &middot; Jordan&rsquo;s phone</div>
+    <div style="position: absolute; left: 96px; top: 560px;">
+      <div style="font-size: 150px; font-weight: 400; letter-spacing: -.03em; line-height: 1;">8:42</div>
+      <div style="margin-top: 14px; display: flex; align-items: center; gap: 14px; font-size: 26px; color: var(--ink-2);">
+        <span>Living room</span><span>&middot;</span><span>lamps at 60%</span><span>&middot;</span><span>Riley and Jordan are home</span></div>
+    </div>
+    <div class="mini" style="position: absolute; right: 96px; bottom: 74px;">
+      <div class="m glass focus-ring"><div class="still s-field"><div class="line"><i style="width: 40%"></i></div></div><div class="cardname" style="font-size: 21px;">The Long Field</div><div class="cardsub" style="font-size: 17px;">1 h 12 min left</div></div>
+      <div class="m glass"><div class="still s-harbor"></div><div class="cardname" style="font-size: 21px;">Harbor Lights</div><div class="cardsub" style="font-size: 17px;">Episode 4 is new</div></div>
+      <div class="m glass" style="display: flex; flex-direction: column; justify-content: center; gap: 10px;"><div style="font-size: 24px; font-weight: 500;">Something else</div><div class="cardsub" style="white-space: normal; font-size: 18px;">Look here, or pick on your phone and it starts here.</div></div>
+    </div>
+  </div>
+
+  <!-- picked: the film, and what the room will do -->
+  <div data-when="picked">
+    <div class="full s-field"></div><div class="shade-l"></div><div class="shade-b"></div>
+    <div style="position: absolute; left: 96px; top: 54px; font-size: 22px;" class="ink2">Living room</div>
+    <div style="position: absolute; left: 96px; top: 230px; width: 960px;">
+      <div class="eyebrow">A film &middot; 2024 &middot; 1 h 12 min left</div>
+      <h1 class="title" style="font-size: 116px; margin: 18px 0 22px;">The Long Field</h1>
+      <p class="ink2" style="margin: 0 0 34px; font-size: 26px; max-width: 40ch;">A summer of harvests, a family that cannot agree on selling, and the field between them.</p>
+      <span class="btn focus">&#9654;&ensp;Keep watching</span>&ensp;<span class="btn">From the start</span>
+    </div>
+    <div class="glass" style="position: absolute; left: 96px; top: 650px; width: 900px; border-radius: 28px; padding: 22px 28px; display: flex; align-items: center; gap: 22px;">
+      <span class="lamp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></span>
+      <span style="flex: 1;"><span style="display: block; font-size: 25px; font-weight: 500;">Lamps down while it plays</span><span class="ink2" style="font-size: 20px;">The living room goes to 10%, and comes back to 60% when it stops.</span></span>
+      <span class="toggle"></span>
+    </div>
+  </div>
+
+  <!-- paused: the room answers -->
+  <div data-when="paused">
+    <div class="full s-field" style="filter: brightness(.82);"></div>
+    <div class="full" style="background: linear-gradient(180deg, rgba(8,9,12,.35) 0%, transparent 30%, transparent 55%, rgba(8,9,12,.75) 100%);"></div>
+    <div class="glass" style="position: absolute; right: 96px; top: 54px; border-radius: 26px; padding: 16px 24px 16px 16px; display: flex; align-items: center; gap: 16px;">
+      <span class="lamp"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg></span>
+      <span><span style="display: block; font-size: 23px; font-weight: 500;">Lamps up to 40%</span><span class="ink2" style="font-size: 19px;">while it&rsquo;s paused &middot; back down when it plays</span></span>
+    </div>
+    <div class="bar glass">
+      <div style="display: flex; align-items: baseline; gap: 20px;"><span style="font-family: var(--display); font-size: 44px;">The Long Field</span><span class="ink2" style="font-size: 22px;">Paused by Riley&rsquo;s phone</span><span style="flex: 1"></span><span class="ink2" style="font-size: 22px;">1:00:21 &middot; 1 h 12 min left</span></div>
+      <div class="line" style="margin: 22px 0 26px;"><i style="width: 46%"></i></div>
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <span class="btn focus">&#9654;&ensp;Play</span><span class="btn">Back 10 s</span><span class="btn">Subtitles</span><span style="flex: 1"></span><span class="btn">Living room lamps &middot; 40%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flips"><span style="padding: 6px 4px;">Showing</span>
+    <span class="flip on" data-to="rest">the TV on, nothing playing</span><span class="flip" data-to="picked">a film picked</span><span class="flip" data-to="paused">paused</span></div>
+</div>
+<script src="flips.js"></script>
+</body>
+</html>

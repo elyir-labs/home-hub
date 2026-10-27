@@ -38,6 +38,8 @@ import CodePage from './CodePage.vue'
 import NotesPage from './NotesPage.vue'
 import HappenedPage from './HappenedPage.vue'
 import ChangesPage from './ChangesPage.vue'
+import DeveloperPage from './DeveloperPage.vue'
+import { sshHint, versionLabel } from './developer'
 import AdvancedLink from './AdvancedLink.vue'
 import { isPage, LIT, type PageId } from './pages'
 import { printerChip } from './printers'
@@ -66,7 +68,7 @@ function step(s: SetupStep) {
 function homeScreenDone() { phoneSteps.value = false; store.homeScreenDone = true; dismissHomeScreen() }
 
 const page = computed<PageId>(() => isPage(store.sheet) ? store.sheet : 'house')
-const PAGE: Record<Exclude<PageId, 'house'>, Component> = { location: LocationPage, look: LookPage, routines: RoutinesPage, signals: SignalsPage, people: PeoplePage, accounts: AccountsPage, things: ThingsPage, printers: PrintersPage, add: AddPage, share: SharePage, hub: HubPage, code: CodePage, notes: NotesPage, happened: HappenedPage, changes: ChangesPage }
+const PAGE: Record<Exclude<PageId, 'house'>, Component> = { location: LocationPage, look: LookPage, routines: RoutinesPage, signals: SignalsPage, people: PeoplePage, accounts: AccountsPage, things: ThingsPage, printers: PrintersPage, add: AddPage, share: SharePage, hub: HubPage, code: CodePage, notes: NotesPage, happened: HappenedPage, changes: ChangesPage, developer: DeveloperPage }
 
 /* a conversation the house already has open (signing an account in again) is
    handed to the Add page on the way in, once, so the page reads as that one job */
@@ -79,6 +81,7 @@ const title = computed(() => ({
   house: 'This house', location: 'Where is home?', look: 'How the house looks', routines: 'Routines', signals: 'What the lights tell you', people: 'People', accounts: 'Accounts', things: 'What this house has', printers: 'Printers',
   add: resume.value ? 'Sign in again' : 'Add to the house', share: 'Share this house', hub: 'The hub', code: 'Passcode',
   notes: 'Needs a look', happened: 'What happened', changes: 'Who changed what',
+  developer: store.devKey ? 'Add an SSH key' : 'For working on the hub',
 }[page.value]))
 
 /* Which door is lit. Who changed what has no door of its own -- it is reached from inside What
@@ -148,7 +151,7 @@ const power = computed(() => {
   return p.charge != null ? `${sun} · battery ${Math.round(p.charge)}%` : sun
 })
 function openPower() { store.sheet = null; store.powerOpen = true }
-const version = computed(() => { const v = store.status?.version; return !v || v === 'dev' ? 'Development build' : v })
+const version = computed(() => versionLabel(store.status?.version))
 const hub = computed(() => ready.value ? `${version.value} · an update is ready` : version.value)
 const code = computed(() => locked.value ? 'Needed to change the house' : 'Not set: anyone on your Wi‑Fi can change the house')
 const notes = computed(() => store.notes.length === 1 ? store.notes[0].text : `${store.notes.length} things need a look`)
@@ -182,6 +185,9 @@ const doors = computed(() => [
   /* only while there is something behind it. A door that is always there saying "nothing is wrong"
      teaches a person to stop reading it, which is the opposite of what a fault list is for. */
   ...(store.notes.length ? [{ id: 'notes' as const, icon: 'sparkle', name: 'Needs a look', hint: notes.value, attention: true }] : []),
+  /* Last, and only where the brain says so: on a hub that is not on releases, or one somebody tapped the
+     version on seven times (design/developer/, B). Nothing on it is needed to run a house. */
+  ...(store.developer?.shown ? [{ id: 'developer' as const, icon: 'code', name: 'For working on the hub', hint: sshHint(store.developer) }] : []),
 ])
 
 /* the front page: the house at a glance, and the one line for the curious */

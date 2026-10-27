@@ -123,17 +123,46 @@ design's answer and hardens it.
 ## Piece 5: the hub with no network at all
 
 A Wi‑Fi-only hub on first boot, and a Wi‑Fi-only hub whose network has gone, are the same situation: there is
-nothing to reach it on. The floor is a **setup network of its own** — `Home Hub setup`, no password, the panel
-at a fixed address on it, one screen asking which Wi‑Fi.
+nothing to reach it on. The floor is a **setup network of its own**: the panel at a fixed address on it, one
+screen asking which Wi‑Fi. Drawn in `design/setup-network/` and decided there on 19 October 2026 (A now; B, the
+same over Bluetooth, once there is an app).
 
-Two rules keep it from becoming a liability:
+Three rules keep it from becoming a liability:
 
-- **It exists only when nothing else does.** The moment the hub has a working connection the AP is gone. A hub
-  quietly running an open access point in the corner of somebody's house is a security problem the household did
-  not agree to.
-- **It is the same panel, not a second one.** The setup screen already exists (`Setup.vue`); this is one more
-  step in front of it, with the same words and the same look. A separate captive-portal page written once and
-  never loved again is how this feature rots.
+- **It exists only when nothing else does.** `host/network.sh` starts it on a tick where the hub has no default
+  route (30 seconds on a hub that never had a Wi‑Fi, five minutes on one that did, because a router rebooting is
+  not a reason to broadcast), and takes it down once the hub is online, two minutes after a join so the phone can
+  be told it worked. A cable always wins and the network never appears.
+- **It has a password, and it is on the hub.** `HUB_SETUP_SSID` and `HUB_SETUP_PASS` in `/etc/home-hub.conf`, unique
+  to the unit and printed on its label with a standard Wi‑Fi code the phone's camera joins. A unit with no password
+  never starts one. `install.sh` makes a pair where none was written in and prints them; a unit that ships gets its
+  own before it leaves. Holding that password is the proof the house asks for (the same idea as the press): a phone
+  on it may see the hub's network, scan, and give the hub a Wi‑Fi, without the passcode, and nothing else.
+- **It is the same panel, not a second one.** The phone's "is there internet?" check is answered with the panel
+  (dnsmasq answers every name with `10.42.0.1`; Caddy's catch-all sends anything from that Wi‑Fi to it and stamps
+  `X-Hub-Via: setup`), so the phone opens its sign-in sheet on `SetupWifi.vue`, in first run's frame and words.
+- **A hub with a screen is its own label** (design/screen-wifi/, C, decided 22 October 2026). A card somebody flashed
+  themselves has no label, and its password is made on the card at first boot. So the screen plugged into the hub asks
+  which Wi‑Fi itself, on its own keyboard, with the hub's Wi‑Fi as a code beside the question for anyone who would
+  rather use a phone; a screen nobody can touch or point at shows only the code. Only that screen is told the
+  password: `host/network.sh` keeps it in `network.setup-key` (root's, never in `network.json`, gone with the
+  network), Caddy stamps `X-Hub-Via: screen` on requests from the machine itself, and the brain believes the stamp
+  only on a connection from loopback, because :8300 is reachable from the Wi‑Fi too. It draws the code at
+  `/network/setup.svg` and refuses it to anything else. A phone that joins is counted, and the screen steps aside
+  for it.
+
+**Both at once where the card can.** A card whose kernel lists managed and AP in one combination (the NUC's
+RTL8852BE does, on one channel) runs the setup network on a second interface, `hubsetup0`, and tries the house's
+Wi‑Fi on its own while the phone stays connected, so a wrong password is said on the phone that typed it. Sharing a
+channel means 2.4 GHz: the hub joins the house's 2.4 GHz side, moving its own network to that channel first if it
+has to, and lets go of the pin when its own network goes, so the house's Wi‑Fi can choose 5 GHz again (piece 4). A
+card that can't do both drops its own network to try; the phone is told what happens next before it goes, and a
+wrong password is said when somebody scans the label again (`OwnWiFiA-4-alone`). `nmcli` waits for the router's
+answer, so either way a wrong password is known in seconds rather than after the three-minute settle.
+
+**Cables NetworkManager does not manage.** Ubuntu Server hands Ethernet to systemd-networkd, and NetworkManager
+reports it as unmanaged. A real port with carrier and an address now counts as a cable, and "online" is a default
+route through anything, so the hub on its router is never mistaken for a hub on nothing.
 
 ## Piece 6: the ones that did not follow
 

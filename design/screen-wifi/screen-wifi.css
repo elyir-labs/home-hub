@@ -1,0 +1,108 @@
+/* Shared by every board in this collection: the wall at 1440x900, first run's column as the panel
+   draws it there (measured off the built panel, not guessed from panel.css), the Wi-Fi list from
+   SetupWifi.vue, and the wall's own keyboard from Keys.vue at this height. */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Plus Jakarta Sans", -apple-system, "SF Pro Text", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  --bg: #0c0d10;
+  --surface-rgb: 26, 28, 34; --surface: rgba(var(--surface-rgb), .68);
+  --surface-hi: rgba(255,255,255,.08); --surface-press: rgba(255,255,255,.13);
+  --edge: rgba(255,255,255,.1); --edge-hi: rgba(255,255,255,.18);
+  --ink: #f1eee8; --ink-2: #b9b5ad; --muted: #7f7d77;
+  --lamp-rgb: 233, 184, 114; --lamp: rgb(var(--lamp-rgb));
+  --live-rgb: 116, 198, 157; --live: rgb(var(--live-rgb));
+  --danger-rgb: 224, 138, 138; --danger: rgb(var(--danger-rgb));
+  --r-lg: 22px; --r-md: 16px; --r-sm: 12px;
+  background: var(--bg);
+}
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* ---------------------------------------------------------------- the wall and its night sky */
+.wall { position: relative; width: 1440px; height: 900px; overflow: hidden; color: var(--ink); font-size: 17px; line-height: 1.4;
+        background: radial-gradient(38% 30% at 44% 10%, rgba(120,140,190,.16), transparent 70%), linear-gradient(#14161d 0%, #171a22 55%, #12141a 100%); }
+.stars { position: absolute; inset: 0 0 260px; background-image:
+  radial-gradient(1px 1px at 150px 52px, rgba(255,255,255,.5), transparent),
+  radial-gradient(1px 1px at 465px 124px, rgba(255,255,255,.45), transparent),
+  radial-gradient(1px 1px at 216px 166px, rgba(255,255,255,.35), transparent),
+  radial-gradient(1px 1px at 905px 224px, rgba(255,255,255,.4), transparent),
+  radial-gradient(1px 1px at 1082px 108px, rgba(255,255,255,.4), transparent),
+  radial-gradient(1px 1px at 1234px 344px, rgba(255,255,255,.45), transparent),
+  radial-gradient(1px 1px at 1360px 395px, rgba(255,255,255,.35), transparent),
+  radial-gradient(1px 1px at 1405px 41px, rgba(255,255,255,.5), transparent),
+  radial-gradient(1px 1px at 736px 276px, rgba(255,255,255,.35), transparent),
+  radial-gradient(1px 1px at 584px 323px, rgba(255,255,255,.3), transparent),
+  radial-gradient(1px 1px at 82px 168px, rgba(255,255,255,.35), transparent); }
+.moon { position: absolute; left: 609px; top: 83px; width: 50px; height: 50px; border-radius: 50%;
+        box-shadow: inset -34px 0 0 0 #8a8d96, 0 0 80px 30px rgba(140,150,180,.08); }
+.hills { position: absolute; left: -40px; right: -40px; bottom: 0; height: 250px;
+         background: radial-gradient(120% 100% at 30% 100%, #15171e 60%, transparent 61%), radial-gradient(90% 90% at 85% 100%, #14161c 62%, transparent 63%);
+         opacity: .95; }
+
+/* ---------------------------------------------------------------- first run's column on the wall */
+.col { position: absolute; left: 420px; width: 600px; display: flex; flex-direction: column; }
+.mark { width: 64px; height: 64px; border-radius: 28px; display: grid; place-items: center; background: var(--surface);
+        border: 1px solid var(--edge-hi); color: var(--lamp); margin-bottom: 26px; }
+.mark.done { background: var(--live); color: #0b2216; border-color: transparent; }
+h1 { margin: 0; font-size: 54px; line-height: 1.02; letter-spacing: -1.35px; font-weight: 400; text-wrap: balance; }
+.lede { margin: 14px 0 26px; color: var(--ink-2); font-size: 18px; line-height: 1.4; }
+.actions { display: flex; gap: 12px; align-items: center; margin-top: 26px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; height: 54px; padding: 0 28px; border-radius: 999px;
+       background: var(--ink); color: var(--bg); font-weight: 500; font-size: 17px; }
+.btn.dim { opacity: .45; }
+.btn.ghost { background: var(--surface-hi); border: 1px solid var(--edge); color: var(--ink); }
+.status { display: flex; align-items: center; gap: 10px; margin-top: 18px; color: var(--muted); font-size: 14px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lamp); flex: none; }
+.dot.live { background: var(--live); }
+.dot.bad { background: var(--danger); }
+.foot { margin-top: 22px; font-size: 13px; color: var(--muted); }
+.foot u { color: var(--ink-2); text-underline-offset: 3px; }
+
+/* ---------------------------------------------------------------- the Wi-Fi list, SetupWifi.vue */
+.nets { border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--edge); overflow: hidden; }
+.net { display: flex; align-items: center; gap: 14px; height: 56px; padding: 0 18px; font-size: 17px; }
+.net + .net { border-top: 1px solid var(--edge); }
+.net .lock { width: 15px; color: var(--muted); }
+.net .bars { margin-left: auto; color: var(--ink-2); }
+.net.other { color: var(--ink-2); }
+.net.on { background: rgba(var(--lamp-rgb), .12); }
+.field-label { font-size: 13.5px; color: var(--ink-2); margin-bottom: 6px; }
+.input { height: 50px; border-radius: 14px; background: var(--surface-hi); border: 1px solid var(--edge); display: flex; align-items: center;
+         padding: 0 14px; font-size: 17px; color: var(--ink); }
+.input.at { border-color: var(--lamp); }
+.input.bad { border-color: rgba(var(--danger-rgb), .7); }
+.input .caret { width: 1.5px; height: 22px; background: var(--lamp); margin-left: 1px; }
+.input .eye { margin-left: auto; color: var(--muted); font-size: 14px; }
+.err { margin-top: 8px; font-size: 13px; color: var(--danger); }
+
+/* ---------------------------------------------------------------- the wall's keyboard, Keys.vue at 900 tall */
+.wk { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 0 22px; background: rgba(var(--surface-rgb), .82);
+      border-top: 1px solid var(--edge); border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: 0 -12px 40px rgba(0,0,0,.35);
+      display: flex; flex-direction: column; gap: 10px; }
+.wk .r { display: flex; justify-content: center; gap: 10px; }
+.wk .k { flex: 0 0 92px; height: 62px; display: grid; place-items: center; border-radius: var(--r-sm); border: 1px solid rgba(255,255,255,.06);
+         background: var(--surface-hi); color: var(--ink); font-size: 23.5px; }
+.wk .k.mod { background: rgba(255,255,255,.045); color: var(--ink-2); font-size: 17px; }
+.wk .k.wide { flex-basis: 143px; }
+.wk .k.space { flex-basis: 602px; }
+.wk .k.go { flex-basis: 250px; background: var(--ink); color: var(--bg); border: 0; font-weight: 600; font-size: 18px; }
+
+/* ---------------------------------------------------------------- the hub's own Wi-Fi, as a code on the glass */
+.join { display: flex; gap: 24px; align-items: center; padding: 20px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--edge); }
+.join .qr { flex: none; width: 168px; height: 168px; border-radius: 14px; background: #fff; padding: 10px; }
+.join .qr img { display: block; width: 100%; height: 100%; }
+.join .t { font-size: 19px; line-height: 1.3; letter-spacing: -.01em; }
+.join .s { margin-top: 6px; font-size: 14px; color: var(--muted); line-height: 1.45; }
+.join .pair { display: flex; gap: 28px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--edge); font-size: 12.5px; color: var(--muted); }
+.join .pair b { display: block; margin-top: 3px; font-size: 17px; font-weight: 600; color: var(--ink); letter-spacing: .02em; }
+
+/* ---------------------------------------------------------------- annotation, never screen */
+.ann { position: absolute; width: 300px; border: 1px dashed rgba(255,255,255,.28); border-radius: 16px; padding: 12px 15px 11px; background: rgba(8,9,12,.88);
+       font-family: "Instrument Sans", system-ui, sans-serif; font-size: 13px; line-height: 1.45; color: var(--ink-2); z-index: 9; }
+.ann b { color: var(--ink); font-weight: 500; }
+.ann .cap { display: block; margin-bottom: 6px; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.ann.bad { border-color: rgba(var(--danger-rgb), .55); }
+.ann.bad .cap { color: var(--danger); }
+.ring { position: absolute; border: 1.5px dashed rgba(255,255,255,.5); border-radius: 18px; pointer-events: none; z-index: 8; }
+.ring.bad { border-color: rgba(var(--danger-rgb), .8); }

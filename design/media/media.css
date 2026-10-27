@@ -1,0 +1,116 @@
+/* The hub's own films, shows, home videos and music, on the living-room TV and the phone. Shared by
+   every board here: the panel's tokens (app/src/panel.css) and its glass, at television distance.
+   The posters are drawn, not borrowed: no real film, no real artwork. */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Instrument Sans", -apple-system, "SF Pro Text", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  --bg: #0c0d10; --surface: rgba(26,28,34,.68); --surface-hi: rgba(255,255,255,.08);
+  --edge: rgba(255,255,255,.1); --edge-hi: rgba(255,255,255,.18);
+  --ink: #f1eee8; --ink-2: #b9b5ad; --muted: #7f7d77;
+  --lamp-rgb: 233, 184, 114; --lamp: rgb(var(--lamp-rgb)); --lamp-ink: #2a1c07;
+  --live-rgb: 116, 198, 157; --live: rgb(var(--live-rgb)); --danger: #e08a8a;
+  --r-lg: 22px; --r-md: 16px; --r-sm: 12px;
+  --display: "Fraunces", Georgia, serif;
+  background: var(--bg);
+}
+
+/* the television: 1920x1080, everything inside the 96px a TV may crop at its edges */
+.tv { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--ink); font-size: 26px; line-height: 1.35; }
+.tv .safe { position: absolute; inset: 54px 96px; }
+.phone { position: relative; width: 390px; height: 844px; overflow: hidden; background: var(--bg); color: var(--ink); font-size: 16px; line-height: 1.4; }
+
+.glass { background: rgba(22,24,30,.52); backdrop-filter: blur(28px) saturate(1.5); -webkit-backdrop-filter: blur(28px) saturate(1.5);
+         border: 1px solid var(--edge-hi); box-shadow: 0 30px 70px -30px rgba(0,0,0,.9); }
+.eyebrow { font-size: 17px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.title { font-family: var(--display); font-weight: 400; letter-spacing: -.02em; line-height: .98; margin: 0; }
+.muted { color: var(--muted); }
+.ink2 { color: var(--ink-2); }
+
+/* buttons at TV distance; the one the remote is on wears the lamp */
+.btn { display: inline-flex; align-items: center; gap: 14px; height: 76px; padding: 0 38px; border-radius: 999px; font-size: 26px; font-weight: 500;
+       background: rgba(255,255,255,.12); color: var(--ink); border: 1px solid var(--edge); }
+.btn.focus { background: var(--ink); color: var(--bg); box-shadow: 0 0 0 4px rgba(var(--lamp-rgb), .9), 0 0 60px 6px rgba(var(--lamp-rgb), .35); }
+.focus-ring { box-shadow: 0 0 0 4px rgba(var(--lamp-rgb), .95), 0 0 70px 4px rgba(var(--lamp-rgb), .32), 0 40px 60px -30px rgba(0,0,0,.9); transform: scale(1.06); z-index: 2; }
+
+.line { position: relative; height: 6px; border-radius: 6px; background: rgba(255,255,255,.22); }
+.line i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; background: var(--ink); }
+
+/* a card: landscape still with its words under it, or a poster */
+.still { position: relative; border-radius: 18px; overflow: hidden; }
+.still > *, .poster > * { z-index: 1; }
+.still .line { position: absolute; left: 16px; right: 16px; bottom: 14px; height: 5px; }
+.poster { position: relative; border-radius: 16px; overflow: hidden; }
+.poster .pt { position: absolute; left: 18px; right: 18px; bottom: 20px; font-family: var(--display); font-size: 30px; line-height: 1; color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,.6); }
+.cardname { margin-top: 14px; font-size: 22px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cardsub { font-size: 18px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* the drawn pictures, each a scene rather than a flat color, so a row of them reads as a row of films */
+.s-field { background:
+  radial-gradient(14% 22% at 72% 52%, rgba(255,236,190,.95), rgba(255,190,110,.5) 40%, transparent 70%),
+  linear-gradient(180deg, #2b3a5c 0%, #8a6a7a 34%, #e5a067 52%, #f4c98a 58%, #3d3a22 59%, #2a2716 72%, #15140c 100%); }
+.s-field::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 44%;
+  background: repeating-linear-gradient(97deg, rgba(10,10,4,.0) 0 7px, rgba(10,10,4,.55) 7px 9px), linear-gradient(transparent, rgba(8,8,4,.7)); }
+.s-harbor { background:
+  radial-gradient(2.4% 3.4% at 22% 46%, #ffd98a, transparent), radial-gradient(2% 3% at 38% 44%, #ffcf7a, transparent), radial-gradient(2% 3% at 61% 47%, #fff0c0, transparent), radial-gradient(1.8% 2.6% at 80% 45%, #ffcf7a, transparent),
+  linear-gradient(180deg, #0b1630 0%, #1b2d55 46%, #0b1428 50%, #13274a 51%, #08101f 100%); }
+.s-ember { background:
+  radial-gradient(.5% .9% at 44% 40%, #ffd08a, transparent), radial-gradient(.4% .7% at 52% 30%, #ffc070, transparent), radial-gradient(.5% .8% at 58% 46%, #ffe0a0, transparent),
+  radial-gradient(.3% .6% at 40% 24%, #ffb060, transparent), radial-gradient(.4% .7% at 63% 20%, #ffd08a, transparent),
+  radial-gradient(16% 26% at 50% 70%, #ffe3a0, #ff9a40 30%, rgba(200,60,20,.6) 60%, transparent 80%),
+  radial-gradient(46% 50% at 50% 74%, rgba(255,110,40,.6), transparent 72%),
+  linear-gradient(180deg, #120808 0%, #2a0e0b 58%, #3a120a 76%, #1a0806 77%, #0e0504 100%); }
+.s-north { background: linear-gradient(180deg, #5d7fa8 0%, #a9c1da 55%, #d8e2ea 100%); }
+.s-north::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #f4f7fb 0%, #c3d2e2 34%, #6b819b 74%);
+  clip-path: polygon(0 80%, 16% 50%, 28% 60%, 47% 22%, 61% 50%, 73% 38%, 100% 72%, 100% 100%, 0 100%); }
+.s-north::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #3a4a5e, #161e2a);
+  clip-path: polygon(0 88%, 22% 70%, 40% 84%, 60% 64%, 82% 80%, 100% 72%, 100% 100%, 0 100%); }
+.s-moons { background:
+  radial-gradient(9% 16% at 32% 34%, #f6f0e0 60%, transparent 62%), radial-gradient(6% 10.6% at 66% 54%, #e8dcc0 60%, transparent 62%),
+  linear-gradient(160deg, #2c2148 0%, #4d3366 50%, #1c1530 100%); }
+.s-lake { background:
+  radial-gradient(30% 20% at 30% 30%, rgba(255,250,230,.75), transparent 70%),
+  linear-gradient(180deg, #9cc8e0 0%, #cfe4ea 40%, #4a7a6a 41%, #2e5a50 48%, #3c7a94 49%, #6aa8c0 70%, #2e6a86 100%); }
+.s-garden { background:
+  radial-gradient(18% 26% at 70% 30%, rgba(255,238,200,.8), transparent 70%),
+  radial-gradient(40% 30% at 20% 90%, #5a8a3a, transparent 70%), linear-gradient(180deg, #b8d8e8 0%, #e8efe0 45%, #7aa860 46%, #4a7a34 100%); }
+.s-kitchen { background:
+  radial-gradient(24% 34% at 74% 36%, rgba(255,220,160,.8), transparent 70%),
+  linear-gradient(90deg, #6a4a34 0 14%, transparent 14%), linear-gradient(180deg, #d9b890 0%, #b88a60 55%, #7a5638 56%, #4a3020 100%); }
+.s-tide { background:
+  radial-gradient(60% 40% at 50% 0%, rgba(150,230,220,.55), transparent 70%),
+  linear-gradient(180deg, #0e4a58 0%, #0b3a4a 40%, #082a38 70%, #041822 100%); }
+.s-quiet { background:
+  radial-gradient(30% 40% at 50% 40%, rgba(255,255,255,.35), transparent 70%),
+  linear-gradient(180deg, #d8d4cc 0%, #b8b0a4 60%, #8a8276 100%); }
+.s-city { background:
+  linear-gradient(90deg, transparent 8%, #1a1030 8% 14%, transparent 14% 20%, #241640 20% 27%, transparent 27% 34%, #1a1030 34% 38%, transparent 38% 52%, #2a1a48 52% 60%, transparent 60% 70%, #1a1030 70% 80%, transparent 80%) bottom / 100% 46% no-repeat,
+  radial-gradient(50% 40% at 50% 70%, rgba(255,80,160,.6), transparent 70%), linear-gradient(180deg, #120a26 0%, #3a1450 60%, #120a26 100%); }
+.s-band { background:
+  radial-gradient(22% 38% at 50% 30%, rgba(255,200,120,.9), transparent 70%),
+  linear-gradient(180deg, #1a0e10 0%, #3a1a18 60%, #120808 100%); }
+.shade-l { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,9,12,.92) 0%, rgba(8,9,12,.7) 30%, rgba(8,9,12,.1) 62%, transparent 80%); }
+.shade-b { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(8,9,12,.75) 72%, rgba(8,9,12,.98) 100%); }
+
+/* the house's mark, as the panel draws it */
+.house { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--surface); border: 1px solid var(--edge); color: var(--ink); }
+
+/* chips under every board that flip it between states */
+.flips { position: absolute; left: 50%; transform: translateX(-50%); bottom: 10px; display: flex; gap: 6px; padding: 6px; border-radius: 999px;
+         background: rgba(0,0,0,.55); border: 1px solid var(--edge); font-size: 14px; color: var(--ink-2); z-index: 50; white-space: nowrap; }
+.phone .flips { bottom: 10px; font-size: 12px; }
+.flip { padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+.flip.on { background: var(--ink); color: var(--bg); }
+[hidden] { display: none !important; }
+
+/* the phone, at 390x844 */
+.phone .top { position: absolute; left: 20px; right: 20px; top: 58px; display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--ink-2); }
+.phone h2 { margin: 0; font-size: 30px; font-weight: 400; letter-spacing: -.02em; }
+.phone .card { border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--edge); overflow: hidden; }
+.phone .pbtn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 999px; font-size: 16px; font-weight: 500; background: var(--ink); color: var(--bg); }
+.phone .pbtn.ghost { background: rgba(255,255,255,.1); color: var(--ink); }
+.phone .li { display: flex; align-items: center; gap: 14px; padding: 10px 0; }
+.phone .li .still { width: 96px; height: 56px; border-radius: 10px; flex: none; }
+.phone .li b { display: block; font-weight: 500; font-size: 15.5px; } .phone .li small { color: var(--muted); font-size: 13.5px; }
+.phone .label { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }

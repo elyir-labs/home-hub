@@ -20,6 +20,7 @@
    Nothing here talks to a real device. */
 import { printerNotes, printersAsked, printersRoute } from './printers.mjs'
 import { powerRoute } from './power.mjs'
+import { developerRoute, developerStatus } from './developer.mjs'
 
 export function createHouse({ env = {}, qr = null } = {}) {
   const now = Math.floor(Date.now() / 1000)
@@ -40,7 +41,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
       dev('l3', 'Reading lamp', 'living', 'light', 'off', { supported_color_modes: ['onoff'] }),
 
       dev('m1', 'Living room TV', 'living', 'media', 'playing', { media_title: 'The Bear', media_artist: 'Season 3, Episode 4', app_name: 'Disney+', volume_level: 0.35, entity_picture: '/x.jpg', media_position: 1421, media_duration: 3740 }),
-      dev('s1', 'Sonos', 'living', 'media', 'paused', { media_title: 'Blue in Green', media_artist: 'Miles Davis', volume_level: 0.2 }),
+      dev('s1', 'Sonos', 'living', 'media', env.MUSIC === 'quiet' ? 'idle' : 'paused', { ...(env.MUSIC === 'quiet' ? {} : { media_title: 'Blue in Green', media_artist: 'Miles Davis' }), volume_level: 0.2, music: true }),
       dev('c1', 'Blinds', 'living', 'cover', 'open', { current_position: 70 }, 'IKEA'),
       dev('t1', 'Thermostat', 'living', 'climate', 'cool', { current_temperature: 74, temperature: 71, hvac_action: 'cooling', hvac_modes: ['heat', 'cool', 'heat_cool', 'off'], fan_modes: ['on', 'auto'], fan_mode: 'auto', current_humidity: 48 }),
       dev('mo1', 'Motion', 'living', 'motion', 'on', {}),
@@ -61,7 +62,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
       feature('k10', 'Refrigerator Power Freeze', 'kitchen', 'on', 'hw-fridge', 'Refrigerator'),
       feature('k11', 'Dishwasher Sanitize', 'kitchen', 'off', 'hw-dw', 'Dishwasher'),
       feature('k12', 'Dishwasher Delay Start', 'kitchen', 'off', 'hw-dw', 'Dishwasher'),
-      dev('k4', 'Kitchen speaker', 'kitchen', 'media', 'off', {}),
+      dev('k4', 'Kitchen speaker', 'kitchen', 'media', 'off', { music: true }),   // music: the hub can start music on it (hub/music.py)
       dev('k5', 'Back door', 'kitchen', 'contact', 'off', {}),
       dev('k6', 'Humidity', 'kitchen', 'sensor.humidity', '51', { unit_of_measurement: '%' }),
     ] },
@@ -381,6 +382,13 @@ export function createHouse({ env = {}, qr = null } = {}) {
      for pictures that go somewhere public (site/shots.mjs). A real house shows its own names; a page we publish must not
      show somebody else's. */
   const PRETEND = env.PRETEND === '1'
+  const station = (id, name) => ({ uri: `radiobrowser://radio/${id}`, name, kind: 'radio', by: null, art: null })
+  const MUSIC_SHELF = {
+    again_by_room: { living: [{ uri: 'library://playlist/7', name: 'Dinner', kind: 'playlist', by: "Jordan's playlist", art: null }, station('jazz', 'Late-night jazz')],
+                     kitchen: [station('jazz', 'Late-night jazz'), station('news', 'Morning news')] },
+    again: [{ uri: 'library://playlist/7', name: 'Dinner', kind: 'playlist', by: "Jordan's playlist", art: null }, station('jazz', 'Late-night jazz')],
+    radio: [station('jazz', 'Late-night jazz'), station('news', 'Morning news'), station('classical', 'Classical'), station('soul', 'Soul and funk')],
+  }
   const PLAIN = env.NAMES === 'plain' || PRETEND ? [['The Bear', 'Harbor Lights'], ['Disney+', 'Streaming'], ['Philips Hue bridge', 'Light bridge'],
     ['Philips Hue', 'Brightway'], ['Sonos Roam', 'Kitchen speaker'], ['Sonos', 'Speaker'], ['Chromecast (Den)', 'Den TV'],
     ['Blue in Green', 'Late Light'], ['Miles Davis', 'The Quiet Hours']] : []
@@ -570,7 +578,8 @@ export function createHouse({ env = {}, qr = null } = {}) {
     }
     if (printersRoute(req, res, p, env)) return    // 3D printers, only for a page that asked for them: mock/printers.mjs
     if (powerRoute(req, res, p, env)) return       // a Tesla gateway, the same way: mock/power.mjs
-    if (p === '/setup/status') return json(res, status)
+    if (developerRoute(req, res, p)) return        // For working on the hub, ?dev= on the page: mock/developer.mjs
+    if (p === '/setup/status') return json(res, developerStatus(req, status))
     if (p === '/update/notes') return json(res, { notes: releaseNotes[0], history: releaseNotes })
     /* Install: on a hub the brain restarts and comes back as the next build, and the page follows it
        (store.ts, newBuild). The mock only takes the request; the e2e speaks the new version itself. */
@@ -752,6 +761,26 @@ export function createHouse({ env = {}, qr = null } = {}) {
       playing: {},
       folder: '/data/sounds',
     })
+    /* Music in every room (hub/music.py, design/music/): a fixed shelf, the way /sounds is. Each room's last plays, a few
+       stations, and none of the household's own -- the mock house has no drive of music. MUSIC=quiet puts the Sonos at
+       rest, so the living room's card shows Play something. */
+    if (p === '/music' || p === '/music/find') {
+      const shelf = MUSIC_SHELF, q = (url.searchParams.get('q') || '').toLowerCase()
+      if (p === '/music/find') return json(res, { items: q.length < 2 ? [] : [...shelf.radio, ...shelf.again].filter(i => i.name.toLowerCase().includes(q)) })
+      const here = url.searchParams.get('room')
+      const able = rooms.filter(r => r.devices.some(d => d.attrs?.music))
+      return json(res, { ready: true, again: here ? shelf.again_by_room[here] ?? [] : [], radio: shelf.radio, own: [],
+                         rooms: able.map(r => ({ id: r.id, name: r.name, here: r.id === here, playing: null })), again_by_room: shelf.again_by_room })
+    }
+    if (PRETEND && p === '/music/play' && req.method === 'POST') { let raw = ''; req.on('data', c => (raw += c)); return req.on('end', () => {
+      let b = {}; try { b = JSON.parse(raw) } catch {}
+      const ids = (b.everywhere ? rooms.map(r => r.id) : b.rooms || []).map(r => rooms.find(x => x.id === r)?.devices.find(d => d.attrs?.music)).filter(Boolean)
+      for (const d of ids) {
+        Object.assign(d, { state: 'playing' }); Object.assign(d.attrs, { media_title: b.item?.name, media_artist: b.item?.by ?? null, together: ids.filter(x => x !== d).map(x => x.id) })
+        push({ type: 'device', device: d })
+      }
+      json(res, { ok: true, rooms: ids.map(d => d.room_id) })
+    }) }
     /* Never on Home (design/home-keep/): the house's answer, carried on the thing as the brain carries it */
     if (p.startsWith('/devices/') && p.endsWith('/home') && req.method === 'POST') { let raw = ''; req.on('data', c => (raw += c)); return req.on('end', () => {
       let b = {}; try { b = JSON.parse(raw) } catch {}
@@ -801,11 +830,13 @@ export function createHouse({ env = {}, qr = null } = {}) {
          NET=cable    the hub is on ethernet and eleven bridges are on a Wi-Fi it was told about
          NET=wifi     the hub is on the Wi-Fi too, and a change takes it with them
          NET=moved    the hub has moved and the password it holds is for somewhere else
+         NET=setup    the hub is on nothing, with its own Wi-Fi up; open ?wifi=1 (NET=setup-alone: a card that can't do both)
          NET=none     no host script at all ('unknown'): the row says so and offers two typed fields
          NET=off      a managed hub with a radio and nothing connected. Looks like 'none' and is the
                       opposite case: this one IS the hub that should be moved
        MOVE=moving|done|late pins a moment of the move instead of walking it. */
     if (p.startsWith('/network')) return network(p, req, res)
+    if (p.startsWith('/drive')) return driveRoute(p, req, res)
     /* A bridge being set up. BRIDGE=cable walks the whole job the way a real one does -- software,
        Wi-Fi, keys, then the walk to find it a socket -- so the sheet can be watched rather than
        described. BRIDGE=knocking|working|placing|ready|failed pins one moment instead. */
@@ -902,11 +933,13 @@ export function createHouse({ env = {}, qr = null } = {}) {
       ? { locked: !!env.LOCKED, paired: true, home: 'Maple Court', phone: { ...phones.phones[1], me: true, moved: !!env.MOVED }, away: false,
           lan: '192-168-1-53.maple-court.home.elyir.app', address: 'https://maple-court.elyir.app' }
       : { locked: !!env.LOCKED, paired: true, home: 'Maple Court', phone: null })
-    /* Being told things (design/notify/, B): the Houses app hands its subscription and key to every house, and the
-       phone the move handed over is Jordan's iPhone. Kept in memory, like everything here. */
+    /* Being told things (design/notify/, B): the Houses app hands its subscription and key to every house, or in the
+       iOS app its APNs token and the key to seal to, and the phone the move handed over is Jordan's iPhone. Kept in
+       memory, like everything here. */
     if (p === '/phones/me/push' && req.method === 'POST') { let b = ''; req.on('data', c => { b += c }); req.on('end', () => {
       let body = {}; try { body = JSON.parse(b) } catch {}
-      if (!body.subscription?.endpoint || !body.vapid?.publicKey || !body.vapid?.privateKey) { res.writeHead(400, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: "That isn't a way to reach this phone." })) }
+      const apns = body.apns && /^[0-9a-f]{64,200}$/i.test(body.apns.token ?? '') && ['sandbox', 'production'].includes(body.apns.env) && body.apns.p256dh && body.apns.auth
+      if (!apns && (!body.subscription?.endpoint || !body.vapid?.publicKey || !body.vapid?.privateKey)) { res.writeHead(400, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: "That isn't a way to reach this phone." })) }
       phones.phones[1].push = true
       json(res, { phone: { ...phones.phones[1], me: true } })
     }); return }
@@ -1175,6 +1208,26 @@ export function createHouse({ env = {}, qr = null } = {}) {
     return true
   }
 
+  /* ---- the drive beside a hub on its USB stick (design/move-to-drive/) ----------------------------
+     DRIVE=stick   running from the stick beside a drive with Ubuntu on it: first run asks, or This hub's row
+     DRIVE=kept    the same, already answered Keep, so only the row shows
+     DRIVE=moved   just moved onto the drive: first run says so once */
+  const DRIVE = env.DRIVE ?? ''
+  const UBUNTU = { name: 'nvme0n1', serial: 'S6P7NS0T', model: 'Samsung SSD 980 500GB', bytes: 500107862016, empty: false,
+                   system: 'Ubuntu 24.04', used: 61e9, last: Math.floor(Date.now() / 1000) - 90000 }
+  let driveKept = DRIVE === 'kept', driveSeenMoved = false
+  function driveState() {
+    if (DRIVE === 'moved') return { from: 'drive', drives: [], drive: null, ask: false, kept: false, moved: !driveSeenMoved, moving: false }
+    if (DRIVE === 'stick' || DRIVE === 'kept') return { from: 'stick', drives: [UBUNTU], drive: UBUNTU, ask: !driveKept, kept: driveKept, moved: false, moving: false }
+    return { from: 'drive', drives: [], drive: null, ask: false, kept: false, moved: false, moving: false }
+  }
+  function driveRoute(p, req, res) {
+    if (p === '/drive/keep') driveKept = true
+    if (p === '/drive/seen') driveSeenMoved = true
+    if (p === '/drive/move') return json(res, { ...driveState(), moving: true })
+    return json(res, driveState())
+  }
+
   /* ---- the network, and eleven bridges following it ---------------------------------------- */
   const NET = env.NET ?? 'cable'
   const ROOMS = ['Kitchen', 'Living room', 'Landing', 'Hallway', 'Back bedroom', 'Study',
@@ -1188,7 +1241,26 @@ export function createHouse({ env = {}, qr = null } = {}) {
     return { state: 'done', ssid: 'Downstairs', total: 11, followed: ROOMS }
   }
 
+  /* NET=setup is a hub on nothing with its own Wi-Fi up (design/setup-network/, A); NET=setup-alone is the
+     same on a card that can't do both. Joining takes three seconds; the password "wrong" is refused.
+     NET=screen is that hub seen from the screen plugged into it (design/screen-wifi/, C), which alone is told the
+     password; PHONES=1 puts a phone on the hub's Wi-Fi. */
+  const SCREEN = NET.startsWith('screen')
+  let setupTry = null
+  function setupState() {
+    const setup = { ssid: 'Elyir Hub 4F2A', both: !NET.endsWith('-alone'), phones: Number(env.PHONES || 0), ...(SCREEN ? { password: 'kite-maple-41' } : {}) }
+    const s = { how: 'none', ip: '10.42.0.1', name: 'hub', can_change: true, managed: true,
+                bridges: { ssid: '', checked: false, known: false, count: 0 }, setup }
+    if (setupTry && Date.now() > setupTry.at) {
+      if (setupTry.ok && SCREEN) return { how: 'wifi', ssid: setupTry.ssid, signal: 'strong', ip: '192.168.1.20', name: 'hub', can_change: true, managed: true, bridges: s.bridges, joined: setupTry.ssid }
+      if (setupTry.ok) return { ...s, ip: '192.168.1.20', joined: setupTry.ssid }
+      return { ...s, reverted: setupTry.ssid, reverted_why: 'password' }
+    }
+    return s
+  }
+
   function netState() {
+    if (NET.startsWith('setup') || SCREEN) return setupState()
     // Mirrors bridge.wifi_for_pucks(): a hub on Wi-Fi hands out the network it is ON, and when that is
     // not the one it holds a password for, `known` goes false and the name is the hub's, not the old one.
     const moved = NET === 'moved'
@@ -1202,6 +1274,18 @@ export function createHouse({ env = {}, qr = null } = {}) {
 
   function network(p, req, res) {
     if (p === '/network') return json(res, netState())
+    if (p === '/network/setup.svg') {
+      if (!SCREEN || setupTry?.ok) { res.writeHead(404, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: "the hub's own Wi-Fi is not up" })) }
+      res.writeHead(200, { 'Content-Type': 'image/svg+xml' })
+      return res.end(qr?.('WIFI:T:WPA;S:Elyir Hub 4F2A;P:kite-maple-41;;') ?? FAKE_QR)
+    }
+    if (p === '/network/scan' && (NET.startsWith('setup') || SCREEN)) return json(res, { can_change: true, networks: [
+      { ssid: 'Elyir Hub 4F2A', signal: 'strong', band: '2.4', secure: true },
+      { ssid: 'Bluebell', signal: 'strong', band: '5', secure: true },
+      { ssid: 'Bluebell Guest', signal: 'ok', band: '2.4', secure: true },
+      { ssid: 'Cedar Falls Library', signal: 'faint', band: '2.4', secure: true },
+      { ssid: 'NETGEAR-72', signal: 'faint', band: '2.4', secure: true },
+    ] })
     if (p === '/network/scan') return json(res, { can_change: NET !== 'none', networks: [
       { ssid: 'Downstairs', signal: 'strong', band: '5', secure: true },
       { ssid: 'BT-HUB-9QK2', signal: 'faint', band: '2.4', secure: true },
@@ -1214,6 +1298,10 @@ export function createHouse({ env = {}, qr = null } = {}) {
     return req.on('end', () => {
       let b = {}
       try { b = JSON.parse(raw) } catch {}
+      if ((NET.startsWith('setup') || SCREEN) && p === '/network/hub') {
+        setupTry = { ssid: b.ssid, ok: b.password !== 'wrong', at: Date.now() + 3000 }
+        return json(res, { ...setupState(), moving: { ssid: b.ssid, since: Date.now() / 1000 } })
+      }
       netSsid = b.ssid || 'Downstairs'
       netMove = { state: 'moving', ssid: netSsid, total: 11, followed: [], waiting: [...ROOMS] }
       const late = env.MOVE === 'late'

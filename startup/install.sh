@@ -8,39 +8,20 @@
 set -euo pipefail
 DIR="${HOME_HUB_DIR:-/opt/home-hub}"
 HERE="$DIR/startup"
-THEME=/usr/share/plymouth/themes/elyir
 log() { printf '[startup] %s\n' "$*"; }
 [ "$(id -u)" = 0 ] || { echo "run as root" >&2; exit 1; }
 
-log "packages: the splash, a one-window compositor, its display scaling and a browser"
+log "packages: a one-window compositor, its display scaling and a browser"
 export DEBIAN_FRONTEND=noninteractive
-apt-get install -y --no-install-recommends plymouth cage wlr-randr curl >/dev/null
+apt-get install -y --no-install-recommends cage wlr-randr curl >/dev/null
 apt-get install -y --no-install-recommends chromium >/dev/null 2>&1 \
   || apt-get install -y --no-install-recommends chromium-browser >/dev/null
 
-log "the splash"
-rm -rf "$THEME"; mkdir -p "$THEME"
-cp "$HERE"/plymouth/elyir/*.png "$HERE"/plymouth/elyir/elyir.plymouth "$HERE"/plymouth/elyir/elyir.script "$THEME"/
-
-# A Pi's boot says nothing of its own: no rainbow, no raspberries, no log, no cursor. Each edit
-# checks first, so running this again changes nothing.
-CFG=/boot/firmware/config.txt CMD=/boot/firmware/cmdline.txt
-if [ -f "$CFG" ] && ! grep -q '^disable_splash=1' "$CFG"; then
-  printf '\n# Elyir: the startup is ours from the first frame\ndisable_splash=1\n' >> "$CFG"
-fi
-if [ -f "$CMD" ]; then
-  line=$(head -n1 "$CMD")
-  line=${line//console=tty1/console=tty3}
-  for arg in quiet splash plymouth.ignore-serial-consoles logo.nologo vt.global_cursor_default=0 loglevel=3; do
-    case " $line " in *" $arg "*) ;; *) line="$line $arg" ;; esac
-  done
-  printf '%s\n' "$line" > "$CMD"
-fi
-plymouth-set-default-theme -R elyir >/dev/null
+HOME_HUB_DIR="$DIR" "$HERE/splash.sh"
 
 log "the screen's own user and service"
 id elyir-wall >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin elyir-wall
-usermod -aG video,render,input elyir-wall
+usermod -aG video,render,input,audio elyir-wall
 cat > /etc/pam.d/elyir-wall <<'PAM'
 auth     required pam_unix.so nullok
 account  required pam_unix.so
@@ -48,6 +29,8 @@ session  required pam_unix.so
 session  required pam_systemd.so
 PAM
 install -m 0644 "$HERE/elyir-wall.service" /etc/systemd/system/elyir-wall.service
+# The wall ends the splash itself, onto the panel.
+systemctl disable elyir-splash.service >/dev/null 2>&1 || true
 
 log "the hub, reachable even when its name stops answering"
 "$DIR/driver-layer/host/wifi-awake.sh" || true
@@ -60,7 +43,13 @@ if [ -f "$AVAHI_CONF" ] && ! grep -q '^deny-interfaces=' "$AVAHI_CONF"; then
   systemctl try-restart avahi-daemon >/dev/null 2>&1 || true
 fi
 
+log "this screen's own updates, following its hub"
+install -m 0644 "$HERE/elyir-screen-update.service" "$HERE/elyir-screen-update.timer" \
+               "$HERE/elyir-screen-report.service" "$HERE/elyir-screen-report.timer" /etc/systemd/system/
+
 systemctl daemon-reload
 systemctl enable elyir-wall.service >/dev/null
 systemctl enable --now elyir-keep-hub.timer >/dev/null 2>&1 || true
+systemctl enable --now elyir-screen-update.timer >/dev/null 2>&1 || true
+systemctl enable --now elyir-screen-report.timer >/dev/null 2>&1 || true
 log "done; it shows from the next boot"
