@@ -910,6 +910,12 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
   fresh; BOTH=1 tick
   is "a card that can do both gets a second interface for it" "$(grep -c 'iw dev wlp1s0 interface add hubsetup0 type __ap' "$root/asked")" "1"
   is "...and says so" "$(field setup.both)" "true"
+  is "...WPA2 alone, as nmcli's own hotspot is, which the Pi's chip needs" \
+    "$(grep -c 'wifi-sec.key-mgmt wpa-psk wifi-sec.proto rsn wifi-sec.pairwise ccmp wifi-sec.group ccmp wifi-sec.pmf disable' "$root/asked")" "1"
+  fresh; mkdir -p "$net/wlp1s0/device"; ln -s ../../../bus/sdio/drivers/brcmfmac "$net/wlp1s0/device/driver"; BOTH=1 tick
+  is "the Pi's chip says it can do both and cannot: its own Wi-Fi goes on the card itself" \
+    "$(grep -c 'interface add hubsetup0' "$root/asked") $(field setup.both)" "0 false"
+  rm -rf "$net/wlp1s0/device"; fresh; BOTH=1 tick
   BOTH=1 ask '{"do": "join", "ssid": "Bluebell", "password": "right"}'
   is "the house's Wi-Fi is tried on its 2.4 GHz side, so the phone on the hub's stays on" \
     "$(grep -c 'device wifi connect Bluebell password right ifname wlp1s0 bssid AA:BB:CC:00:00:01' "$root/asked")" "1"
