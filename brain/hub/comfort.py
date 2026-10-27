@@ -9,11 +9,16 @@ remote sensors are invisible to Home Assistant, so this is how the house does wh
 with any sensor and any thermostat. Deterministic, logged with source="comfort", and only in heat or
 cool: in auto the thermostat keeps its own range and its own sensor.
 
-Three things keep it from running away with the equipment. The thermostat's own reading answers the
-plant far faster than a sensor two rooms off, so correcting on the raw difference between them feeds
-back on itself: the setpoint chases the reading it just moved, all the way to the thermostat's floor.
-MAX_OFFSET bounds how far from `wanted` a correction may land, which turns that chase into a limp.
-SETTLE is a compressor's minimum rest, and it is remembered in the event log so a hub that restarts in
+A number set at the thermostat itself wins. The house moving it back is a fight the person standing at
+the wall loses every five minutes (9 October: 76, then 78, each put back to 71 while the cooling ran), so
+a setpoint the house did not ask for ends sensing from elsewhere, and the thermostat goes back to its own.
+
+Four things keep it from running away with the equipment. The thermostat's own reading answers the
+plant far faster than a sensor two rooms off, so correcting on the difference between them feeds back on
+itself: the setpoint chases the reading it just moved, all the way to the thermostat's floor. So that
+difference places the setpoint once, when a room or a number is chosen, and after that the far room alone
+nudges it a step at a time, no oftener than NUDGE, since a far room takes that long to answer.
+MAX_OFFSET bounds how far from `wanted` the setpoint may land. SETTLE is a compressor's minimum rest, and it is remembered in the event log so a hub that restarts in
 a loop cannot hammer a compressor. STALE drops a sensor that has stopped reporting, and the thermostat
 goes back to its own reading rather than steering by a number that stopped being true hours ago.
 """
@@ -21,6 +26,8 @@ import json, logging, time
 
 log = logging.getLogger("hub.comfort")
 SETTLE = 300       # seconds between corrections for one thermostat: a compressor needs five minutes between starts
+NUDGE = 1800       # seconds between later nudges: the far room answers a setpoint in half an hour, not five minutes
+MOVING = 120       # how long the thermostat may still report the setpoint the house just moved it from
 STALE = 3600       # a sensor older than this is not trusted; the thermostat runs on its own reading
 MAX_OFFSET_F = 5.0   # how far a correction may sit from `wanted`, in °F, so the loop cannot wind up
 MAX_OFFSET_C = 2.5   # the same in °C
@@ -41,6 +48,16 @@ def setpoint_for(wanted: float, sensor_temp: float, thermostat_temp: float, step
     return max(lo + step, min(hi - step, target))
 
 
+def nudge(current: float, wanted: float, sensor_temp: float, step: float, lo: float, hi: float, max_offset: float) -> float:
+    """One step toward the far room reaching `wanted`, judged by the far room alone, so the thermostat's own
+    reading cannot drag the setpoint after it."""
+    off = sensor_temp - wanted
+    if abs(off) < step * 0.75: return current
+    target = current - step if off > 0 else current + step
+    target = max(wanted - max_offset, min(wanted + max_offset, target))
+    return max(lo + step, min(hi - step, target))
+
+
 def in_unit(value: float, from_unit: str | None, to_unit: str | None) -> float:
     """A temperature in the thermostat's unit. Sensors may still report in their own (°C from a Nest)."""
     if not from_unit or not to_unit: return value     # no unit stated: take it as already in the house's
@@ -55,6 +72,9 @@ class Comfort:
         self.cfg: dict[str, dict] = dict(hub.settings.get("comfort") or {})   # climate id -> {"sensor": id, "wanted": temp}
         self._acted: dict[str, float] = {}
         self._untrusted: set[str] = set()      # thermostats whose sensor has gone quiet, so it is said once
+        self._fresh: set[str] = set()          # a room or a number was just chosen: place the setpoint, then only nudge
+        self._setpoint: dict[str, float] = {}  # the last setpoint seen or asked for, to tell a person's change from ours
+        self._moving: dict[str, tuple[float, float]] = {}   # the setpoint the house moved from, and when
 
     # ---- what the card shows ----
     def _step(self) -> float:
@@ -102,6 +122,12 @@ class Comfort:
         for cid in list(self.cfg):
             self._apply_extras(cid)
             self._seed_acted(cid)
+            self._note_setpoint(cid)
+
+    def _note_setpoint(self, climate_id: str):
+        dev = self.hub.home.devices.get(climate_id)
+        sp = dev.attrs.get("temperature") if dev else None
+        if sp is not None: self._setpoint[climate_id] = float(sp)
 
     def _seed_acted(self, climate_id: str):
         """A restart must not shorten a compressor's rest. The last correction is in the event log, so a hub that
@@ -129,7 +155,7 @@ class Comfort:
         self.cfg[dev.id] = {"sensor": sensor_id, "wanted": wanted}
         self._save(); self._apply_extras(dev.id)
         self.hub.log.add("comfort", dev.id, None, sensor_id, source="user", detail={"wanted": wanted})
-        self._acted.pop(dev.id, None)
+        self._acted.pop(dev.id, None); self._fresh.add(dev.id); self._note_setpoint(dev.id)
         await self.check(dev.id, why="sensor chosen")
 
     def sensing(self, climate_id: str) -> bool:
@@ -140,15 +166,36 @@ class Comfort:
         self.cfg[dev.id]["wanted"] = float(temperature)
         self._save(); self._apply_extras(dev.id)
         self.hub.log.add("comfort", dev.id, None, f"want {temperature}", source="user")
-        self._acted.pop(dev.id, None)
+        self._acted.pop(dev.id, None); self._fresh.add(dev.id)
         await self.check(dev.id, why="target changed")
 
     # ---- keeping the room there ----
     async def on_state(self, dev):
         """A thermostat or a sensor changed: every thermostat that depends on it takes another look."""
-        for cid, c in self.cfg.items():
+        if dev.id in self.cfg and self._moved_by_someone(dev):
+            self._let_go(dev)
+            return
+        for cid, c in list(self.cfg.items()):
             if dev.id == cid or dev.id == c["sensor"]:
                 await self.check(cid, why=f"{dev.id} changed")
+
+    def _moved_by_someone(self, dev) -> bool:
+        sp = dev.attrs.get("temperature")
+        if dev.state not in ("heat", "cool") or sp is None: return False
+        sp, seen = float(sp), self._setpoint.get(dev.id)
+        near = lambda a: a is not None and abs(a - sp) < self._step() / 2
+        was, at = self._moving.get(dev.id, (None, 0.0))
+        if near(was) and time.time() - at < MOVING: return False    # a report already in flight when the house moved it
+        self._setpoint[dev.id] = sp
+        return seen is not None and not near(seen)
+
+    def _let_go(self, dev):
+        self.cfg.pop(dev.id, None); self._save(); self._apply_extras(dev.id)
+        for d in (self._fresh, self._untrusted): d.discard(dev.id)
+        self._moving.pop(dev.id, None)
+        self.hub.log.add("comfort", dev.id, None, "thermostat's own sensor", source="comfort",
+                         detail={"why": "changed at the thermostat", "temperature": dev.attrs.get("temperature")})
+        log.info("comfort: %s was set to %s at the thermostat; back on its own sensor", dev.id, dev.attrs.get("temperature"))
 
     async def check(self, climate_id: str, why: str = "tick"):
         c = self.cfg.get(climate_id)
@@ -160,16 +207,22 @@ class Comfort:
         here = dev.attrs.get("current_temperature")
         current = dev.attrs.get("temperature")
         if sensor_temp is None or here is None or current is None or c.get("wanted") is None: return
-        if time.time() - self._acted.get(climate_id, 0) < SETTLE: return
-        step = self._step()
-        target = setpoint_for(float(c["wanted"]), sensor_temp, float(here), step, float(dev.attrs.get("min_temp") or 5),
-                              float(dev.attrs.get("max_temp") or 35), self._max_offset())
+        fresh = climate_id in self._fresh
+        if time.time() - self._acted.get(climate_id, 0) < (SETTLE if fresh else NUDGE): return
+        step, lo, hi = self._step(), float(dev.attrs.get("min_temp") or 5), float(dev.attrs.get("max_temp") or 35)
+        wanted = float(c["wanted"])
+        if fresh: target = setpoint_for(wanted, sensor_temp, float(here), step, lo, hi, self._max_offset())
+        else: target = nudge(float(current), wanted, sensor_temp, step, lo, hi, self._max_offset())
+        self._fresh.discard(climate_id)
         if abs(target - float(current)) < step * 0.75: return
+        # Noted before the call: the thermostat's answer can arrive, and be looked at, while it is still awaited.
+        self._acted[climate_id] = time.time()
+        self._moving[climate_id] = (float(current), time.time()); self._setpoint[climate_id] = target
         try:
             await self.hub.ha.call("climate", "set_temperature", climate_id, temperature=target)
         except Exception as e:
+            self._setpoint[climate_id] = float(current); self._moving.pop(climate_id, None)
             log.warning("comfort: could not move %s: %s", climate_id, e); return
-        self._acted[climate_id] = time.time()
         self.hub.log.add("comfort", climate_id, str(current), str(target), source="comfort",
                          detail={"sensor": c["sensor"], "sensor_temp": sensor_temp, "thermostat_temp": here, "wanted": c["wanted"], "why": why})
         log.info("comfort: %s -> %s (wanted %s at %s reading %s, thermostat reads %s)", climate_id, target, c["wanted"], c["sensor"], sensor_temp, here)

@@ -8,6 +8,7 @@ import { getMe, askToJoin, claimJoin, joinWithCode } from './api'
 import { lock, remember } from './code'
 import Icon from './Icon.vue'
 import { isScreen } from './screen'
+import TurnPill from './TurnPill.vue'
 
 /* The house has a code and this device is not one of its phones yet. Two ways in: ask, and someone at a screen that
    is already in taps Allow (and types the passcode); or type the passcode here. Being on the Wi‑Fi alone gets nothing. */
@@ -95,5 +96,6 @@ async function withCode() {
         <div class="setup-actions"><button class="button ghost" @click="cancel">Cancel</button></div>
       </template>
     </section>
+    <TurnPill v-if="screen" />
   </main>
 </template>
