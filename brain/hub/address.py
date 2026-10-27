@@ -142,7 +142,11 @@ class Address:
         self._status = None
         self.hub.log.add("home", "address", None, "claimed", source="hub", detail={"address": body["address"], "who": who})
         self._ask_host("on", state)
-        return {**self.summary(), "pay": self.pay_link()}
+        # The name is the house's now, whatever the payment page says: a claim that failed here would be one that
+        # cannot be made again. The wall asks /address/pay for the link once the page answers.
+        try: pay = self.pay_link()
+        except Unreachable: pay = None
+        return {**self.summary(), "pay": pay}
 
     # ---- paying, from an Elyir account ----
     def _account(self) -> str | None:

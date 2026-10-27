@@ -200,6 +200,16 @@ class Addressing(ApiTest):
         with mock.patch.dict(os.environ, {"HUB_AWAY_OFFER": "on"}):
             self.assertIsNone(self.client.post("/address", json={"name": "jordan"}).json()["pay"])
 
+    def test_the_name_is_kept_when_the_payment_page_is_not_answering(self):
+        account = self.service.account
+        self.service.account = lambda *a, **k: (502, None)
+        out = self.client.post("/address", json={"name": "jordan"})
+        self.assertEqual(out.status_code, 200)
+        self.assertEqual(out.json()["house"], "jordan"); self.assertIsNone(out.json()["pay"])
+        self.assertEqual(self.client.post("/address/pay").status_code, 503)
+        self.service.account = account
+        self.assertEqual(self.client.post("/address/pay").json(), {"pay": "https://account.example/hub?c=hc_1"})
+
     def test_once_it_is_paid_the_wall_moves_on_by_itself_and_says_who_pays(self):
         self.client.post("/address", json={"name": "jordan"})
         seen = self.client.get("/address").json()

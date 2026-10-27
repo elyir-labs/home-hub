@@ -982,6 +982,7 @@ export async function claimAddress(name: string): Promise<AddressState> {
   return r.json()
 }
 export const turnAddress = (on: boolean) => post<AddressState>(`/address/${on ? 'on' : 'off'}`)
+export const payLink = () => post<{ pay: string }>('/address/pay').then(r => r.pay)
 
 /* For working on the hub (design/developer/, B): what this hub follows, SSH, and the screens in the house.
    `shown` is the brain's answer to whether the page is on This house's list -- by default exactly when the hub
