@@ -1228,6 +1228,7 @@ changing() {
   is "the panel it was opened on asks what this screen is: a screen, drawn the way it was made" "$(curl -s -H "Origin: $origin" "$at/this")" '{"role": "screen", "turn": 0, "turns": true, "other": null}'
   is "...any other page is refused" "$(call /this '' 'http://elsewhere.example')" "403"
   is "a quarter turn is done and kept" "$(call /turn '{"turn": 90}') $(cat "$root/turn") $(cat "$root/randr")" "200 90 wlr-randr --output DSI-1 --transform 90"
+  is "...and left for turn.sh, so the startup turns too" "$(cat "$root/ask/turn.request")" "90"
   is "...an eighth is not" "$(call /turn '{"turn": 45}')" "400"
   is "a screen asked to show another hub, which it already does, is refused" "$(call /role '{"to": "screen"}')" "400"
   is "a screen asked to run a house leaves the one word for role.sh" "$(call /role '{"to": "hub"}') $(cat "$root/ask/role.request")" "200 hub"
@@ -1236,6 +1237,26 @@ changing() {
   helper "" ""
   is "a hub asked to become a screen with no other hub to show is refused, and leaves nothing" "$(call /role '{"to": "screen"}') $([ -f "$root/ask/role.request" ] && echo left || echo nothing)" "409 nothing"
   kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
+  rm -rf "$root"
+
+  # turn.sh: the startup is turned on the boot line, for the screens plugged in, keeping what else it says
+  root=$(mktemp -d); mkdir -p "$root/drm/card1-DSI-1" "$root/drm/card1-HDMI-A-1" "$root/drm/card1-HDMI-A-2"
+  echo connected > "$root/drm/card1-DSI-1/status"; echo disconnected > "$root/drm/card1-HDMI-A-1/status"
+  echo connected > "$root/drm/card1-HDMI-A-2/status"
+  boot() {   # the turn asked for, then the boot line after turn.sh has read it
+    printf '%s\n' "$1" > "$root/turn.request"
+    ELYIR_TURN_REQUEST="$root/turn.request" ELYIR_CMDLINE="$root/cmdline.txt" HUB_DRM="$root/drm" \
+      "$HERE/../../startup/turn.sh" >/dev/null 2>&1
+    cat "$root/cmdline.txt"
+  }
+  echo 'console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60' > "$root/cmdline.txt"
+  is "a screen turned upside down starts upside down, its mode kept and HDMI added" "$(boot 180)" \
+    "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60,panel_orientation=upside_down video=HDMI-A-2:panel_orientation=upside_down"
+  is "...the request is used once" "$([ -f "$root/turn.request" ] && echo kept || echo gone)" "gone"
+  is "turned a quarter, the orientation is changed rather than another added" "$(boot 90)" \
+    "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60,panel_orientation=left_side_up video=HDMI-A-2:panel_orientation=left_side_up"
+  is "turned back, only what it added goes" "$(boot 0)" "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60"
+  is "a turn that is not a quarter leaves the boot line alone" "$(boot '45; reboot')" "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60"
   rm -rf "$root"
 }
 

@@ -10,7 +10,8 @@ and can reach the display. It listens on this unit alone and answers only the pa
 
 Three things, and no more:
 
-  turn      which way up the display is drawn: 0, 90, 180 or 270, kept for the next start
+  turn      which way up the display is drawn: 0, 90, 180 or 270, kept for the next start, and left
+            for turn.sh, which turns the startup the same way
   restart   the browser, which brings the screen back in a few seconds; the house is not touched
   role      whether this unit runs the house or shows another hub's. It cannot do that itself: it
             leaves one word in a file and role.sh, as root, decides what to do with it
@@ -78,6 +79,13 @@ def turn_to(t):
         os.makedirs(os.path.dirname(TURN_FILE), exist_ok=True)
         with open(TURN_FILE, "w") as f:
             f.write(f"{t}\n")
+        # the startup is drawn before this compositor exists, so turn.sh, as root, turns it on the boot line
+        try:
+            os.makedirs(ASK_DIR, exist_ok=True)
+            with open(os.path.join(ASK_DIR, "turn.request"), "w") as f:
+                f.write(f"{t}\n")
+        except OSError:
+            pass
     return ok
 
 

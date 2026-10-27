@@ -257,6 +257,7 @@ jobs:
         startup/keep-hub.sh
         startup/screen-update.sh
         startup/role.sh
+        startup/turn.sh
     steps:
       - uses: actions/checkout@v4
       # `bash -n a.sh b.sh` reads a.sh as the script and everything after it as that script's

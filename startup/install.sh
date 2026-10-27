@@ -45,7 +45,8 @@ fi
 
 log "This screen's own answers: which way up, a restart, and what this unit is"
 install -d -o elyir-wall -m 0755 /var/lib/elyir-screen
-install -m 0644 "$HERE/elyir-screen-role.path" "$HERE/elyir-screen-role.service" /etc/systemd/system/
+install -m 0644 "$HERE/elyir-screen-role.path" "$HERE/elyir-screen-role.service" \
+               "$HERE/elyir-screen-turn.path" "$HERE/elyir-screen-turn.service" /etc/systemd/system/
 
 log "this screen's own updates, following its hub"
 install -m 0644 "$HERE/elyir-screen-update.service" "$HERE/elyir-screen-update.timer" \
@@ -56,5 +57,6 @@ systemctl enable elyir-wall.service >/dev/null
 systemctl enable --now elyir-keep-hub.timer >/dev/null 2>&1 || true
 systemctl enable --now elyir-screen-update.timer >/dev/null 2>&1 || true
 systemctl enable --now elyir-screen-role.path >/dev/null 2>&1 || true
+systemctl enable --now elyir-screen-turn.path >/dev/null 2>&1 || true
 systemctl enable --now elyir-screen-report.timer >/dev/null 2>&1 || true
 log "done; it shows from the next boot"
