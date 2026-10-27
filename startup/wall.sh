@@ -5,7 +5,8 @@
 # splash finish, then hand the screen to the panel. elyir-wall.service runs it twice:
 #
 #   wall.sh wait   as root, before the browser: waits for the product, tells the splash, lets it end
-#   wall.sh run    as the wall's own user: cage, with Chromium on the panel full screen at the design's size
+#   wall.sh run    as the wall's own user: cage, with Chromium on the panel full screen at the design's size,
+#                  turned the way This screen last set it, and screen-helper.py beside it
 #   wall.sh speaker   points the wall's sound at the screen's speakers, which `run` does first
 #
 # When only the browser restarts, the splash is long gone and `wait` returns at once, so a screen
@@ -51,6 +52,13 @@ hidden_cursor() {
   export XCURSOR_PATH="${dir%/default/cursors}" XCURSOR_THEME=default XCURSOR_SIZE=24
 }
 
+# Which way up This screen last asked for (screen-helper.py keeps it), as the compositor says it.
+transform() {
+  case "$(cat "${ELYIR_TURN_FILE:-$HOME/.config/elyir/turn}" 2>/dev/null)" in
+    90) echo 90 ;; 180) echo 180 ;; 270) echo 270 ;; *) echo normal ;;
+  esac
+}
+
 # The panel speaks from the screen it was asked at (docs/voice.md), and a Pi sends that down the HDMI cable to the
 # screen's own speakers. Its HDMI card takes only IEC958 frames, so a browser left on ALSA's plain default is
 # silent; the hdmi: device converts to them. The card is the one on the port that is connected, worked out each
@@ -91,7 +99,8 @@ case "${1:-}" in
   browse)
     # The scale is set on the display, not in the browser: Chromium on Wayland draws a forced scale under 1 into a
     # corner of the screen, while a scaled output is simply a bigger screen to it.
-    for out in $(wlr-randr 2>/dev/null | awk '/^[^ ]/ { print $1 }'); do wlr-randr --output "$out" --scale "$2" || true; done
+    for out in $(wlr-randr 2>/dev/null | awk '/^[^ ]/ { print $1 }'); do wlr-randr --output "$out" --scale "$2" --transform "$(transform)" || true; done
+    ELYIR_PANEL_URL="$PANEL_URL" python3 "$HERE/screen-helper.py" &
     # Chromium locks its profile under this machine's name and refuses to start, exit 21, when the name has changed
     # since -- which first boot does, to hub or to screen. Only this service runs a browser as this user, one at a
     # time, so a lock found here is always left over.

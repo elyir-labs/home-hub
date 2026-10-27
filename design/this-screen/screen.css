@@ -1,0 +1,125 @@
+/* The house sheet as it opens on a wall screen, shared by every board here: the shipped panel's
+   This house sheet (app/src/HousePanel.vue, panel.css .sheet / .hub-rows) at the wall's 1440x900,
+   copied from a screenshot of the panel on the mock brain. The boards differ only in what the sheet
+   says about the screen it is open on. */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Instrument Sans", -apple-system, "SF Pro Text", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  --bg: #0c0d10; --surface: rgba(26,28,34,.68); --surface-hi: rgba(255,255,255,.08);
+  --edge: rgba(255,255,255,.1); --edge-hi: rgba(255,255,255,.18);
+  --ink: #f1eee8; --ink-2: #b9b5ad; --muted: #7f7d77;
+  --lamp-rgb: 233, 184, 114; --lamp: rgb(var(--lamp-rgb)); --lamp-ink: #2a1c07;
+  --live-rgb: 116, 198, 157; --live: rgb(var(--live-rgb)); --danger: #e08a8a;
+  --r-lg: 22px; --r-md: 16px; --r-sm: 12px;
+}
+
+.wall { position: relative; width: 1440px; height: 900px; overflow: hidden; color: var(--ink); font-size: 15px; line-height: 1.4;
+        background: radial-gradient(900px 500px at 70% 0%, #121722, transparent), #07090d; }
+
+/* the sheet: 100 down from the top, round top corners, the nav column on the left */
+.house { position: absolute; left: 0; right: 0; top: 100px; bottom: 0; border-radius: 40px 40px 0 0;
+         background: linear-gradient(#141821, #0e1118 40%, #0c0e14); border: 1px solid var(--edge); border-bottom: 0;
+         box-shadow: 0 -30px 80px -40px #000; overflow: hidden; }
+.nav { position: absolute; left: 0; top: 0; bottom: 0; width: 320px; padding: 30px 18px 0 30px; border-right: 1px solid var(--edge); line-height: 1.25; }
+.nav .its { position: absolute; left: 30px; right: 18px; top: 72px; bottom: 54px; overflow: hidden; }
+.nav .cap { font-size: 16px; color: var(--ink-2); margin: 0 0 0 12px; }
+.nav .it { display: flex; gap: 12px; align-items: center; padding: 10px 10px; margin-bottom: 8px; border-radius: 18px; }
+.nav .it.on { background: rgba(255,255,255,.07); }
+.nav .ic { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.07); color: var(--ink-2); flex: none; }
+.nav .it.on .ic { background: var(--ink); color: var(--bg); }
+.nav .it.warn .ic { background: var(--lamp); color: var(--lamp-ink); }
+.nav .it.new .ic { box-shadow: 0 0 0 1.5px rgba(var(--lamp-rgb), .7); }
+.nav .nm { font-size: 16px; display: block; }
+.nav .ht { font-size: 13px; color: var(--muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.nav .it.warn .ht { color: var(--lamp); }
+.nav .conn { position: absolute; left: 42px; bottom: 22px; font-size: 12px; letter-spacing: .12em; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+.nav .conn::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--live); }
+
+.main { position: absolute; left: 320px; right: 0; top: 0; bottom: 0; }
+.head { height: 86px; border-bottom: 1px solid var(--edge); padding: 22px 0 0 48px; }
+.head h2 { margin: 0; font-size: 44px; font-weight: 400; letter-spacing: -.02em; line-height: 1; }
+.close { position: absolute; right: 30px; top: 26px; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.1);
+         display: grid; place-items: center; color: var(--ink-2); font-size: 20px; }
+.body { padding: 28px 0 0 48px; width: 808px; }
+.lede { margin: 0 0 22px; color: var(--ink-2); font-size: 17px; line-height: 1.35; }
+.label { margin: 0 0 10px; font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+.rows { list-style: none; margin: 0; padding: 0; }
+.rows > li { display: grid; grid-template-columns: 104px 1fr auto; align-items: center; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--edge); }
+.rows > li:last-child { border-bottom: 0; }
+.rows > li.mark { background: linear-gradient(90deg, rgba(var(--lamp-rgb), .07), transparent 70%); margin: 0 -14px; padding: 16px 14px; border-radius: 14px; border-bottom-color: transparent; }
+.k { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.v { font-size: 16px; line-height: 1.4; }
+.sub { color: var(--muted); font-size: 13.5px; display: block; margin-top: 3px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border-radius: 999px; background: var(--ink); color: var(--bg); font-weight: 500; font-size: 15px; white-space: nowrap; }
+.btn.ghost { background: var(--surface-hi); color: var(--ink); border: 1px solid var(--edge); }
+.btn.big { padding: 14px 26px; font-size: 17px; }
+.btn.off { opacity: .4; }
+.linkish { color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; }
+.warnline { color: var(--lamp); }
+
+/* light-or-dark and which-way-up share one picture: a small screen with the panel's three cards in it */
+.opts { display: flex; gap: 12px; }
+.opt { width: 200px; padding: 10px 10px 12px; border-radius: 18px; border: 1px solid var(--edge); background: rgba(255,255,255,.03); }
+.opt.on { border-color: rgba(var(--lamp-rgb), .75); background: rgba(var(--lamp-rgb), .06); }
+.opt.sm { width: 150px; }
+.mini { height: 104px; border-radius: 12px; position: relative; overflow: hidden; padding: 14px; display: grid; gap: 8px;
+        grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.opt.sm .mini { height: 78px; padding: 10px; gap: 6px; }
+.mini.dark { background: linear-gradient(#262842, #3a2a3a); }
+.mini.light { background: linear-gradient(#b9d6f2, #eef3f8); }
+.mini i { border-radius: 6px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.12); }
+.mini.light i { background: #f4f8fd; border-color: #fff; }
+.mini i.lit { background: linear-gradient(#f8c98a, #f0ac63); border: 0; }
+.mini i.wide { grid-column: span 2; }
+.mini.turned { transform: rotate(180deg); }
+.mini .arrow { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 30px; height: 30px; border-radius: 50%;
+               background: rgba(12,13,16,.7); color: var(--ink); display: grid; place-items: center; font-size: 16px; }
+.opt .nm { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 16px; }
+.opt .ht { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.tick { width: 18px; height: 18px; border-radius: 50%; background: var(--lamp); color: var(--lamp-ink); display: inline-grid; place-items: center; font-size: 11px; }
+.hint { margin: 10px 0 0; font-size: 14px; color: var(--ink-2); }
+
+/* a question laid over the sheet */
+.hush { position: absolute; inset: 0; background: rgba(6,7,10,.62); }
+.ask { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 640px; padding: 30px 32px 28px; border-radius: 26px;
+       background: rgba(22,24,30,.97); border: 1px solid var(--edge-hi); box-shadow: 0 40px 100px -30px rgba(0,0,0,.9); }
+.ask.wide { width: 860px; }
+.ask h3 { margin: 0; font-size: 34px; font-weight: 400; letter-spacing: -.02em; line-height: 1.08; }
+.ask .lede { font-size: 16px; margin: 10px 0 20px; }
+.choice { display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px; border-radius: var(--r-md); border: 1px solid var(--edge); background: rgba(255,255,255,.03); }
+.choice + .choice { margin-top: 10px; }
+.choice.on { border-color: rgba(var(--lamp-rgb), .75); background: rgba(var(--lamp-rgb), .07); }
+.choice .t1 { font-size: 17px; font-weight: 500; display: block; }
+.choice .t2 { font-size: 14px; color: var(--muted); display: block; margin-top: 3px; }
+.radio { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--edge-hi); flex: none; margin-top: 2px; }
+.choice.on .radio { border: 6px solid var(--lamp); }
+.ask .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+.ask .foot { margin: 16px 0 0; font-size: 13px; color: var(--muted); }
+.ask .foot.warnline { color: var(--lamp); }
+
+/* the flips under a board that has states; never part of the screen being argued about */
+.flips { position: absolute; right: 20px; bottom: 18px; display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted);
+         padding: 6px 8px; border-radius: 999px; background: rgba(0,0,0,.6); border: 1px solid var(--edge); z-index: 9; }
+.flips + .flips { bottom: 58px; }
+.flip { padding: 5px 11px; border-radius: 999px; cursor: pointer; color: var(--ink-2); }
+.flip.on { background: var(--ink); color: var(--bg); }
+
+/* which way up, any of four. Each picture is the panel turned that far from how it is drawn now, so on a
+   screen hung sideways the right answer is the one picture that looks upright to the person at it */
+.ways { display: flex; gap: 10px; }
+.way { width: 112px; padding: 8px 8px 10px; border-radius: 16px; border: 1px solid var(--edge); background: rgba(255,255,255,.03); text-align: center; }
+.way.on { border-color: rgba(var(--lamp-rgb), .75); background: rgba(var(--lamp-rgb), .06); }
+.way .cell { height: 92px; display: grid; place-items: center; }
+.way .m { width: 86px; height: 54px; border-radius: 8px; background: linear-gradient(#262842, #3a2a3a); padding: 6px; display: grid; gap: 4px;
+          grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.way .m i { border-radius: 4px; background: rgba(255,255,255,.14); }
+.way .m i.lit { background: linear-gradient(#f8c98a, #f0ac63); }
+.way .m i.wide { grid-column: span 2; }
+.way .m i.roof { display: grid; place-items: center; color: var(--ink); }
+.way.r90 .m { transform: rotate(90deg); }
+.way.r180 .m { transform: rotate(180deg); }
+.way.r270 .m { transform: rotate(-90deg); }
+.way .nm { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 6px; font-size: 14.5px; white-space: nowrap; }
