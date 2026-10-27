@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B, Shelves: the house's collection, laid out to browse</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap">
+<link rel="stylesheet" href="media.css">
+<style>
+  .tabs { position: absolute; left: 0; right: 0; top: 54px; display: flex; justify-content: center; gap: 8px; z-index: 3; }
+  .tabs span { padding: 12px 26px; border-radius: 999px; font-size: 24px; color: var(--ink-2); }
+  .tabs span.on { background: rgba(255,255,255,.14); color: var(--ink); }
+  .who { position: absolute; right: 96px; top: 54px; display: flex; align-items: center; gap: 12px; font-size: 22px; color: var(--ink-2); z-index: 3; }
+  .av { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; color: #1a1408; }
+  .band { position: absolute; left: 0; right: 0; top: 0; height: 600px; }
+  .shelf { position: absolute; left: 96px; right: 0; }
+  .shelf .row { display: flex; gap: 26px; margin-top: 16px; align-items: flex-end; }
+  .shelf .c { width: 400px; flex: none; } .shelf .c .still { height: 225px; }
+  .shelf .poster { width: 216px; height: 324px; flex: none; }
+  .dots { position: absolute; left: 96px; top: 548px; display: flex; gap: 10px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.3); } .dots i.on { width: 34px; border-radius: 6px; background: var(--ink); }
+  .pick { display: flex; flex-direction: column; align-items: center; gap: 22px; width: 220px; }
+  .pick .face { width: 200px; height: 200px; border-radius: 50%; display: grid; place-items: center; font-size: 76px; font-weight: 500; color: #1a1408; }
+  .pick span { font-size: 28px; }
+</style>
+</head>
+<body>
+<div class="tv">
+  <!-- who is watching, asked first -->
+  <div data-when="who">
+    <div style="position: absolute; inset: 0; background: radial-gradient(60% 60% at 50% 30%, rgba(72,63,135,.3), transparent 70%), radial-gradient(50% 40% at 80% 100%, rgba(92,63,57,.28), transparent 70%);"></div>
+    <div style="position: absolute; left: 0; right: 0; top: 230px; text-align: center;">
+      <div class="eyebrow">Maple Court &middot; 8:42</div>
+      <h1 style="margin: 18px 0 0; font-size: 72px; font-weight: 400; letter-spacing: -.02em;">Who&rsquo;s watching?</h1>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; top: 470px; display: flex; justify-content: center; gap: 64px;">
+      <div class="pick"><div class="face focus-ring" style="background: #e9b872;">J</div><span>Jordan</span></div>
+      <div class="pick"><div class="face" style="background: #9fc4d8;">R</div><span>Riley</span></div>
+      <div class="pick"><div class="face" style="background: #b9d79a;">K</div><span>The kids</span></div>
+      <div class="pick"><div class="face" style="background: rgba(255,255,255,.1); color: var(--ink); border: 1px solid var(--edge-hi);"><svg width="76" height="76" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg></div><span>Everyone</span></div>
+    </div>
+    <p class="muted" style="position: absolute; left: 0; right: 0; top: 820px; text-align: center; font-size: 22px;">The people are the house&rsquo;s own, from People. Nobody signs in.</p>
+  </div>
+
+  <!-- the shelves -->
+  <div data-when="home">
+    <div class="band s-north"></div>
+    <div class="shade-l" style="height: 600px;"></div>
+    <div style="position: absolute; left: 0; right: 0; top: 380px; height: 260px; background: linear-gradient(transparent, var(--bg));"></div>
+    <div class="tabs"><span class="on">Home</span><span>Films</span><span>Shows</span><span>Home videos</span><span>Music</span><span>&#9906;</span></div>
+    <div class="who"><span>Jordan</span><span class="av" style="background: #e9b872;">J</span></div>
+
+    <div style="position: absolute; left: 96px; top: 210px; width: 820px;">
+      <div class="eyebrow">New this week &middot; a film</div>
+      <h1 class="title" style="font-size: 96px; margin: 14px 0 16px;">Northbound</h1>
+      <p class="ink2" style="margin: 0 0 26px; font-size: 24px;">Two brothers, one truck, and the last road north before the snow. 2 h 4 min.</p>
+      <span class="btn" style="height: 64px; font-size: 24px;">&#9654;&ensp;Watch</span>&ensp;<span class="btn" style="height: 64px; font-size: 24px;">More about it</span>
+    </div>
+    <div class="dots"><i class="on"></i><i></i><i></i><i></i></div>
+
+    <div class="shelf" style="top: 596px;">
+      <div class="eyebrow">Keep watching</div>
+      <div class="row">
+        <div class="c focus-ring" style="border-radius: 18px;"><div class="still s-field"><div class="line"><i style="width: 40%"></i></div></div></div>
+        <div class="c"><div class="still s-harbor"><div class="line"><i style="width: 20%"></i></div></div></div>
+        <div class="c"><div class="still s-moons"><div class="line"><i style="width: 8%"></i></div></div></div>
+        <div class="c"><div class="still s-lake"><div class="line"><i style="width: 55%"></i></div></div></div>
+      </div>
+      <div style="display: flex; gap: 26px; font-size: 22px;"><div style="width: 400px; margin-top: 14px;">The Long Field<div class="cardsub">1 h 12 min left</div></div><div style="width: 400px; margin-top: 14px;" class="ink2">Harbor Lights<div class="cardsub">Episode 3</div></div><div style="width: 400px; margin-top: 14px;" class="ink2">Paper Moons<div class="cardsub">Episode 1</div></div><div style="width: 400px; margin-top: 14px;" class="ink2">The lake, August<div class="cardsub">Clip 21 of 38</div></div></div>
+    </div>
+    <div class="shelf" style="top: 960px;">
+      <div class="eyebrow">Films</div>
+      <div class="row">
+        <div class="poster s-ember"><div class="pt">Salt &amp; Ember</div></div><div class="poster s-tide"><div class="pt">Low Tide</div></div><div class="poster s-city"><div class="pt">Neon Saints</div></div><div class="poster s-quiet"><div class="pt">The Quiet Year</div></div><div class="poster s-garden"><div class="pt">Clover</div></div><div class="poster s-field"><div class="pt">The Long Field</div></div><div class="poster s-moons"><div class="pt">Paper Moons</div></div><div class="poster s-band"><div class="pt">Encore</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flips"><span style="padding: 6px 4px;">Showing</span>
+    <span class="flip on" data-to="who">switched on</span><span class="flip" data-to="home">Jordan picked</span></div>
+</div>
+<script src="flips.js"></script>
+</body>
+</html>

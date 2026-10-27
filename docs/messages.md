@@ -188,8 +188,12 @@ The first two are today's work and depend on nothing.
    there on the next look goes once to every phone that holds keys and has push (a blip, such as things gone for a
    moment while the engine restarts, tells nobody), signed with that phone's key, `sub` the maker's, tagged with the
    house's name as well as its id and subject, and held overnight until 07:00 in the phone's zone. The Houses app's half landed 20 October 2026 (`design/notify/`, B: one
-   switch under the houses, `app/houses/src/push.ts` and its worker). Not yet: APNs and the sealed sender, so the store
-   app hides the switch, and the switches in step 6 -- until they land, every owner's phone with push is told.*
+   switch under the houses, `app/houses/src/push.ts` and its worker). APNs and the sealed sender landed 20 October 2026
+   (`docs/apps.md`, *Notifications in the iOS app*): a phone in the iOS app hands each house its APNs token and a key
+   of its own, the house seals the same payload to that key and hands it to `POST /push` on the maker's service
+   (`relay/service/push.py`) with its relay secret, and a house with no web address keeps the phone and says so in
+   `/phones/me`. The sender answers 503 until Apple's key is in the operator's Terraform; Android waits for FCM. Not
+   yet: the switches in step 6 -- until they land, every owner's phone with push is told.*
    **Push: the keypair, `POST /phones/me/push`, `pywebpush`.** `docs/away.md` step 6.
 6. **The switches on *People*** — per phone, `attention` off by default and `alert` off by default, landing with the
    `remote` switch in the same step for the same reason: the panel never shows a promise it cannot keep.

@@ -16,7 +16,8 @@ until the product is ready, when it opens onto the product. Chosen 7 October 202
 | `say.sh`, `elyir-first-start.service` | A first start says which step it is on, and ends on Ready with a code to scan (`design/first-start/`) |
 | `look.sh` | Runs the splash in real Plymouth, in Docker, through every moment, and reads the Ready codes back off the screen |
 | `elyir-splash.service` | On a hub with no wall (a NUC's monitor): the splash held until the hub answers, then its ending |
-| `install.sh` | Sets all of it up on a unit with its own screen; first boot runs it when a DSI screen is connected |
+| `install.sh` | Sets all of it up on a unit with its own screen; first boot runs it when a DSI screen is connected, or on a Pi any screen |
+| `screen-update.sh`, `elyir-screen-update.*` | On another hub's screen, every night: this unit's own part moved to the release its hub runs, checked like a hub's update |
 
 **Changing it** goes board, then sequence, then render, the order AGENTS.md §1 sets:
 

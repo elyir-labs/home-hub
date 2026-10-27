@@ -1,0 +1,12 @@
+# Watches for the two files the brain writes from the page for working on the hub (design/developer/).
+# install.sh copies this (with its own directory in place of /opt/home-hub) and enables it.
+[Unit]
+Description=Home Hub: watch for a change to what the hub follows, or to who can sign in
+
+[Path]
+PathExists=/opt/home-hub/driver-layer/brain-data/channel.request
+PathExists=/opt/home-hub/driver-layer/brain-data/ssh.request
+Unit=home-hub-developer.service
+
+[Install]
+WantedBy=multi-user.target

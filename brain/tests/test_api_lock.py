@@ -11,7 +11,7 @@ import unittest
 
 from hub.lock import needs_code
 from hub.phones import COOKIE, open_to_strangers
-from tests.apptest import ApiTest, signing_key, subscription
+from tests.apptest import ApiTest, apns_identity, signing_key, subscription
 
 
 class OpenHouseTests(ApiTest):
@@ -511,7 +511,86 @@ class PushTests(ApiTest):
         self.assertNotIn(self.key["privateKey"], self.hub.phones.path.read_text())
 
 
+class ApnsPushTests(PushTests):
+    """The store app's variant: an APNs token and a key to seal to, under the same rules as web push."""
+    def setUp(self):
+        super().setUp()
+        self.apns, _ = apns_identity()
+
+    def body(self, **kw):
+        return {"apns": {**self.apns, **kw.pop("apns", {})}, "tz": "America/Chicago", **kw}
+
+    def give_address(self):
+        self.hub.address._save({"house": "maple", "secret": "s" * 43, "zone": "elyir.app", "relay": {}, "claimed": 0, "want": "on"})
+
+    def test_a_phone_of_the_house_turns_it_on_without_the_code_and_its_record_keeps_it(self):
+        phone = self.as_phone()
+        self.give_address()
+        r = self.client.post("/phones/me/push", json=self.body(apns={"token": self.apns["token"].upper()}))
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.json()["phone"]["push"])
+        push = self.hub.phones.get(phone["id"])["push"]
+        self.assertEqual(push["apns"], self.apns)                                     # the token kept as lowercase hex
+        self.assertEqual(push["tz"], "America/Chicago")
+        self.assertNotIn("subscription", push); self.assertNotIn("vapid", push)
+        me = self.client.get("/phones/me").json()["phone"]
+        self.assertTrue(me["push"])
+        self.assertNotIn("push_note", me)
+
+    def test_the_phones_key_never_comes_back_out(self):
+        self.as_phone()
+        answers = [self.client.post("/phones/me/push", json=self.body()), self.client.get("/phones/me"), self.client.get("/phones")]
+        for r in answers:
+            self.assertEqual(r.status_code, 200)
+            for v in self.apns.values():
+                if v != "sandbox": self.assertNotIn(v, r.text)
+
+    def test_a_key_that_does_not_match_itself_is_refused(self):
+        phone = self.as_phone()
+        import base64
+        b = lambda raw: base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+        off_curve = b(b"\x04" + b"\x01" * 64)
+        compressed = b(b"\x02" + base64.urlsafe_b64decode(self.apns["p256dh"] + "==")[1:33])
+        for bad in ({"p256dh": off_curve}, {"p256dh": compressed}, {"p256dh": "not base64!"}, {"auth": b(b"short")},
+                    {"auth": b(bytes(17))}, {"p256dh": ""}):
+            self.assertEqual(self.client.post("/phones/me/push", json=self.body(apns=bad)).status_code, 400, bad)
+        self.assertNotIn("push", self.hub.phones.get(phone["id"]))
+
+    def test_anything_that_is_not_a_subscription_is_refused(self):
+        self.as_phone()
+        for bad in ({"token": "ab" * 31}, {"token": "ab" * 101}, {"token": "zz" * 32}, {"token": ""}, {"env": "staging"}, {"env": None}):
+            self.assertEqual(self.client.post("/phones/me/push", json=self.body(apns=bad)).status_code, 400, bad)
+        self.assertEqual(self.client.post("/phones/me/push", json={"apns": "nope"}).status_code, 400)
+        self.assertEqual(self.client.post("/phones/me/push", json=self.body(apns={"env": "production"})).status_code, 200)
+
+    def test_a_house_with_no_web_address_keeps_it_and_says_why_it_cannot_tell_this_phone(self):
+        self.as_phone()
+        self.assertEqual(self.client.post("/phones/me/push", json=self.body()).status_code, 200)
+        me = self.client.get("/phones/me").json()["phone"]
+        self.assertTrue(me["push"])
+        self.assertEqual(me["push_note"], "This house needs its web address to tell this phone.")
+        self.give_address()
+        self.assertNotIn("push_note", self.client.get("/phones/me").json()["phone"])
+
+    def test_a_web_push_phone_is_never_given_the_note(self):
+        self.as_phone()
+        self.client.post("/phones/me/push", json=PushTests.body(self))
+        self.assertNotIn("push_note", self.client.get("/phones/me").json()["phone"])
+
+    def test_turning_it_off_and_leaving_both_take_it(self):
+        phone = self.as_phone()
+        self.client.post("/phones/me/push", json=self.body())
+        self.assertEqual(self.client.delete("/phones/me/push").status_code, 200)
+        self.assertNotIn("push", self.hub.phones.get(phone["id"]))
+        self.client.post("/phones/me/push", json=self.body())
+        self.assertEqual(self.client.delete(f"/phones/{phone['id']}", headers={"x-hub-code": self.code}).status_code, 200)
+        self.assertNotIn(self.apns["token"], self.hub.phones.path.read_text())
+
+
 class OpenHousePushTests(ApiTest):
     def test_a_house_with_no_code_has_no_phones_to_tell(self):
         r = self.client.post("/phones/me/push", json={"subscription": subscription(), "vapid": signing_key()})
         self.assertEqual(r.status_code, 409)
+
+    def test_nor_any_phone_from_the_store_app(self):
+        self.assertEqual(self.client.post("/phones/me/push", json={"apns": apns_identity()[0]}).status_code, 409)

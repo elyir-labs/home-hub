@@ -28,6 +28,7 @@ import WhySheet from './WhySheet.vue'
 import BridgeSheet from './BridgeSheet.vue'
 import StripSheet from './StripSheet.vue'
 import YardSheet from './YardSheet.vue'
+import MusicPane from './MusicPane.vue'
 import { stripSheetOpen } from './adding'
 import HousePanel from './HousePanel.vue'
 import AskPane from './AskPane.vue'
@@ -379,6 +380,7 @@ onUnmounted(() => {
 
     <Viewer />
     <Opened v-if="store.opened" />
+    <MusicPane v-if="store.musicPane" />
     <PrinterPane v-if="store.printer" />
     <PowerPane v-if="store.powerOpen" />
     <WeatherPane v-if="store.outside" :now="shown" />

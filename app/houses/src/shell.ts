@@ -26,7 +26,8 @@ export const shell = (() => {
 export type ShellOs = 'ios' | 'android'
 export type ShellHouse = { id: string; name: string; origin: string; lan: string | null; token: string }
 export type ToShell = { type: 'houses:list'; houses: ShellHouse[] } | { type: 'houses:opened'; id: string }
-type Native = { webkit?: { messageHandlers?: { houses?: { postMessage(m: unknown): void } } }; HousesShell?: { postMessage(m: string): void } }
+  | { type: 'houses:push-identity' } | { type: 'houses:push-off' }
+export type Native = { webkit?: { messageHandlers?: { houses?: { postMessage(m: unknown): void } } }; HousesShell?: { postMessage(m: string): void } }
 
 export const osOf = (q: string): ShellOs | null => {
   const os = new URLSearchParams(q).get('shell')

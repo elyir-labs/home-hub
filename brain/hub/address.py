@@ -199,6 +199,10 @@ class Address:
         """The house's label in the zone (`jordan` of jordan.elyir.app): how the app names the house to claim from."""
         return self._state().get("house") or None
 
+    def secret(self) -> str | None:
+        """The house's credential to the maker's services. Never to the panel: pusher.py hands it only to the sender."""
+        return self._state().get("secret") or None
+
     def lan_name(self) -> str | None:
         """The house's name at home, as host/away.sh last wrote it into .env -- read from the driver layer the brain
         can see, because away.sh writes it after the brain started and the brain's own environment would be stale."""

@@ -8,13 +8,21 @@
  * once, keeps it, subscribes with its public half, and hands each house the subscription and the key; a house
  * added later gets the same, and turning it off takes it back from every house. The printer app does it this way.
  *
+ * Inside the store app on iOS there is no web push. The page asks the app instead, inside the tap, and the app
+ * answers with the phone's APNs token and a key of its own whose private half never leaves it; each house is
+ * handed those, seals what it has to say to that key, and gives it to the sender Elyir runs (docs/apps.md, What
+ * the page gives the shell). On Android the part stays hidden until FCM.
+ *
  * The rules the row leans on are plain functions, so tests/push.test.ts can pin them.
  */
 import { reactive } from 'vue'
 import { keep, kept } from './db'
 import { baseOf, save, state, type House } from './houses'
+import { osOf, postToShell, shell, type Native, type ShellOs } from './shell'
 
-export type PushState = 'unsupported' | 'needs-install' | 'blocked' | 'off' | 'on' | 'partial'
+export type PushState = 'unsupported' | 'needs-install' | 'blocked' | 'off' | 'on' | 'partial' | 'failed'
+export type Identity = { kind: 'apns'; token: string; env: 'sandbox' | 'production'; p256dh: string; auth: string }
+export type Answer = { identity: Identity } | { denied: true } | { error: string }
 export type Phone = { ua: string; touch: number; secure: boolean; standalone: boolean; worker: boolean; push: boolean; notify: boolean }
 type Vapid = { publicKey: string; privateKey: string }
 
@@ -53,13 +61,47 @@ export function lineFor(s: PushState, missing: string[] = [], ua = '', touch = 0
     case 'needs-install': return `On ${/iPad/.test(ua) || (/Macintosh/.test(ua) && touch > 1) ? 'iPad' : 'iPhone'} they work only from the Home Screen. Add Houses there first.`
     case 'blocked': return 'This phone is set not to allow them. You can change that in Settings.'
     case 'partial': return `${listed(missing)} can’t tell this phone yet. ${missing.length > 1 ? 'They' : 'It'} will be asked again.`
+    case 'failed': return 'This phone couldn’t turn them on just now. Try again in a moment.'
     default: return 'Your houses can tell this phone when something needs you.'
   }
 }
 
-export const fineFor = (ua: string, touch = 0) => {
-  const maker = makerOf(ua, touch)
+export const fineFor = (ua: string, touch = 0, os: ShellOs | null = null) => {
+  const maker = os === 'ios' ? 'Apple' : makerOf(ua, touch)
   return `Each house decides what is worth telling you. ${maker[0].toUpperCase()}${maker.slice(1)} sees that one of your houses sent this phone something, and when, never what.`
+}
+
+/** Where the part is drawn: everywhere but the Android app, which has no way to be told until FCM. */
+export const pushShown = (os: ShellOs | null) => os !== 'android'
+
+/** What the iOS app answered when asked for this phone's push identity, checked before any house is handed it. */
+export function answerOf(detail: unknown): Answer {
+  const d = (detail ?? {}) as Record<string, unknown>
+  if (d.denied === true) return { denied: true }
+  if (typeof d.error === 'string') return { error: d.error || 'unknown' }
+  const bytes = (v: unknown) => { try { return typeof v === 'string' && /^[A-Za-z0-9_-]+=*$/.test(v) ? unb64u(v.replace(/=+$/, '')) : null } catch { return null } }
+  const key = bytes(d.p256dh), auth = bytes(d.auth)
+  const ok = d.kind === 'apns' && typeof d.token === 'string' && /^[0-9a-fA-F]{64,200}$/.test(d.token) && (d.env === 'sandbox' || d.env === 'production') &&
+    key?.length === 65 && key[0] === 4 && auth?.length === 16
+  return ok ? { identity: { kind: 'apns', token: d.token as string, env: d.env as Identity['env'], p256dh: d.p256dh as string, auth: d.auth as string } } : { error: 'not an identity' }
+}
+
+/** What a house is handed for a phone in the store app (brain/hub/pusher.py, checked_apns). */
+export const apnsBody = (id: Identity, tz: string) => ({ apns: { token: id.token, env: id.env, p256dh: id.p256dh, auth: id.auth }, tz })
+
+type Listens = Pick<Window, 'addEventListener' | 'removeEventListener'>
+
+/** Asks the iOS app for this phone's push identity. Posted at once, so a tap that calls this is still the tap the
+    app needs to ask the phone's permission inside. No app to ask, or no answer in time, is an error. */
+export function askShell(os: ShellOs | null = osOf(shell), w: Listens & Native = window as Listens & Native, wait = 120_000): Promise<Answer> {
+  return new Promise(resolve => {
+    let finished = false
+    const done = (a: Answer) => { if (finished) return; finished = true; w.removeEventListener('houses:push-identity', heard); resolve(a) }
+    const heard = (ev: Event) => done(answerOf((ev as CustomEvent).detail))
+    w.addEventListener('houses:push-identity', heard)
+    if (os !== 'ios' || !postToShell({ type: 'houses:push-identity' }, os, w)) return done({ error: 'no app to ask' })
+    setTimeout(() => done({ error: 'no answer' }), wait)
+  })
 }
 
 /** The house a tapped notification names, if this phone has it. */
@@ -107,13 +149,18 @@ function sameKey(sub: PushSubscription, key: Uint8Array): boolean {
   return a.length === key.length && a.every((v, i) => v === key[i])
 }
 
+const inApp = () => osOf(shell) === 'ios'
+const zone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
+
 const ask = (h: House, init: RequestInit) => fetch(`${baseOf(h)}/phones/me/push`, {
   ...init, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${h.token}` }, signal: AbortSignal.timeout(8000),
 })
 
-async function tell(h: House, sub: PushSubscription, key: Vapid) {
+const webBody = (sub: PushSubscription, key: Vapid) => ({ subscription: sub.toJSON(), vapid: key, tz: zone() })
+
+async function tell(h: House, body: object) {
   try {
-    const r = await ask(h, { method: 'POST', body: JSON.stringify({ subscription: sub.toJSON(), vapid: key, tz: Intl.DateTimeFormat().resolvedOptions().timeZone }) })
+    const r = await ask(h, { method: 'POST', body: JSON.stringify(body) })
     if (r.ok) { h.push = true; await save(h) }
   } catch { /* not answering: asked again the next time Houses opens */ }
 }
@@ -134,19 +181,62 @@ function settle(subscribed: boolean) {
 
 /** Where things stand, and any house that has not got the key yet is handed it: the phone already said yes. */
 export async function look(again = false) {
+  if (inApp()) return lookInApp(again)
   const no = ruledOut(phone(), permission())
   if (no) { pushing.state = no; pushing.missing = []; return }
   const sub = await subscription()
   settle(!!sub)
   if (!sub || !again) return
   await Promise.all(state.houses.map(confirm))
-  const key = await vapid()
-  await Promise.all(state.houses.filter(h => !h.push).map(h => tell(h, sub, key)))
+  const body = webBody(sub, await vapid())
+  await Promise.all(state.houses.filter(h => !h.push).map(h => tell(h, body)))
   settle(true)
+}
+
+async function lookInApp(again: boolean) {
+  const id = await kept<Identity | null>('apns')
+  settle(!!id)
+  if (!id || !again) return
+  await Promise.all(state.houses.map(confirm))
+  await Promise.all(state.houses.filter(h => !h.push).map(h => tell(h, apnsBody(id, zone()))))
+  settle(true)
+}
+
+/** In the iOS app: the app is asked inside the tap, and every house is handed what it answered. */
+async function turnOnInApp() {
+  const asked = askShell()
+  pushing.busy = true
+  try {
+    const got = await asked
+    if ('denied' in got) { pushing.state = 'blocked'; pushing.missing = []; return }
+    if ('error' in got) { pushing.state = 'failed'; pushing.missing = []; return }
+    await keep('apns', got.identity)
+    const body = apnsBody(got.identity, zone())
+    await Promise.all(state.houses.map(async h => { h.push = false; await save(h); await tell(h, body) }))
+    settle(true)
+  } finally {
+    pushing.busy = false
+  }
+}
+
+async function turnOffInApp() {
+  pushing.busy = true
+  try {
+    postToShell({ type: 'houses:push-off' })
+    await Promise.all(state.houses.map(async h => {
+      await ask(h, { method: 'DELETE' }).catch(() => null)
+      h.push = false; await save(h)
+    }))
+    await keep('apns', null)
+    settle(false)
+  } finally {
+    pushing.busy = false
+  }
 }
 
 /** From the tap itself: iOS only asks for permission inside one, so nothing is awaited before asking. */
 export async function turnOn() {
+  if (inApp()) return turnOnInApp()
   const asked = Notification.requestPermission()
   pushing.busy = true
   try {
@@ -157,8 +247,8 @@ export async function turnOn() {
     let sub = await reg.pushManager.getSubscription()
     if (sub && !sameKey(sub, pub)) { await sub.unsubscribe(); sub = null }
     sub ??= await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: pub })
-    const s = sub
-    await Promise.all(state.houses.map(async h => { h.push = false; await save(h); await tell(h, s, key) }))
+    const body = webBody(sub, key)
+    await Promise.all(state.houses.map(async h => { h.push = false; await save(h); await tell(h, body) }))
   } finally {
     pushing.busy = false
     await look()
@@ -166,6 +256,7 @@ export async function turnOn() {
 }
 
 export async function turnOff() {
+  if (inApp()) return turnOffInApp()
   pushing.busy = true
   try {
     // A house that misses this still holds the key, but the push service turns it away once the phone has
@@ -183,8 +274,14 @@ export async function turnOff() {
 
 /** A house added while notifications are on is handed the key as it joins. */
 export async function tellNew(id: string) {
-  if (ruledOut(phone(), permission())) return
   const h = state.houses.find(x => x.id === id)
-  const sub = h && await subscription()
-  if (h && sub) await tell(h, sub, await vapid())
+  if (!h) return
+  if (inApp()) {
+    const identity = await kept<Identity | null>('apns')
+    if (identity) await tell(h, apnsBody(identity, zone()))
+    return
+  }
+  if (ruledOut(phone(), permission())) return
+  const sub = await subscription()
+  if (sub) await tell(h, webBody(sub, await vapid()))
 }

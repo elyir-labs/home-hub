@@ -231,6 +231,7 @@ jobs:
         tools/hooks/pre-commit
         tools/release.sh
         driver-layer/radios.sh
+        driver-layer/host-tier.sh
         driver-layer/mqtt-auth.sh
         driver-layer/host/harden.sh
         driver-layer/host/firstboot.sh
@@ -241,6 +242,9 @@ jobs:
         driver-layer/host/network.sh
         driver-layer/host/away.sh
         driver-layer/host/verify.sh
+        driver-layer/host/landed.sh
+        driver-layer/host/developer.sh
+        startup/screen-report.sh
         driver-layer/host/channel.sh
         driver-layer/host/wifi-awake.sh
         driver-layer/host/tests.sh
@@ -253,6 +257,7 @@ jobs:
         startup/wall.sh
         startup/find-hub.sh
         startup/keep-hub.sh
+        startup/screen-update.sh
     steps:
       - uses: actions/checkout@v4
       # `bash -n a.sh b.sh` reads a.sh as the script and everything after it as that script's
@@ -299,7 +304,10 @@ jobs:
             "$RUNNER_TEMP/gitleaks" git . -c .gitleaks.toml --redact --no-banner --log-opts="$BASE..$HEAD"
           fi
       - name: private words
-        # no person's name or email, real printer or home network: the repository is public (scripts/private-words.sh)
+        # no person's name or email, real printer or home network: the repository is public (scripts/private-words.sh).
+        # The words are a secret so the list does not publish them; a fork's pull request runs without it.
+        env:
+          PRIVATE_WORDS: ${{ secrets.PRIVATE_WORDS }}
         run: scripts/private-words.sh
 
   kiosk:

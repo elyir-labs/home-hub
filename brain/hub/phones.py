@@ -229,7 +229,8 @@ class Phones:
 
     # ---- being told things while away from a screen (docs/messages.md, step 5) ----
     # {subscription, vapid: {publicKey, privateKey}, tz, since}: the phone's own key, the same one it hands every
-    # house it has joined (docs/apps.md, Decided), so it lives on the record and Remove takes it.
+    # house it has joined (docs/apps.md, Decided), so it lives on the record and Remove takes it. A phone in the
+    # store app keeps {apns: {token, env, p256dh, auth}, tz, since} instead: the key the house seals to.
     def set_push(self, phone_id: str, push: dict | None) -> dict:
         p = self.get(phone_id)
         if not p: raise KeyError("No such phone.")
@@ -286,13 +287,14 @@ class Phones:
 # carries no secret -- the shipped image is blank until the cable writes to it -- and the only name
 # that answers is the hash the hub is offering today (hub/bridge_updates.py).
 OPEN_PREFIXES = ("/phones/claim/", "/assets/", "/sounds/", "/icons/", "/bridge/firmware/")
-OPEN_PATHS = {"/", "/alive", "/phones/me", "/phones/ask", "/phones/code", "/phones/move/claim", "/qr.svg", "/phone", "/index.html", "/manifest.webmanifest", "/sw.js", "/favicon.ico", "/favicon.svg", "/robots.txt"}
+OPEN_PATHS = {"/", "/alive", "/phones/me", "/phones/ask", "/phones/code", "/phones/move/claim", "/qr.svg", "/phone", "/index.html", "/manifest.webmanifest", "/sw.js", "/favicon.ico", "/favicon.svg", "/robots.txt",
+              "/screens/report"}   # a screen's own unit, which has no cookie: hub/developer.py names it by a key of its own
 OPEN_SUFFIXES = (".js", ".css", ".svg", ".png", ".ico", ".woff2", ".webmanifest", ".json", ".html", ".txt", ".map")
 NOT_THE_APP = {"/openapi.json"}
 
 
 # ---- how a request reached the house ----
-VIA, AWAY, SETUP = "x-hub-via", "relay", "setup"
+VIA, AWAY, SETUP, SCREEN = "x-hub-via", "relay", "setup", "screen"
 
 
 def from_away(headers) -> bool:
@@ -318,6 +320,16 @@ def from_setup(headers) -> bool:
     (docs/network.md, piece 5).
     """
     return (headers.get(VIA) or "").strip().lower() == SETUP
+
+
+def from_screen(headers, peer: str | None) -> bool:
+    """Is this the screen plugged into the hub itself?
+
+    Caddy stamps it only on a request from this machine, and deletes it on every other. The brain also
+    listens on :8300 where anything on the Wi-Fi can reach it and send whatever header it likes, so the
+    stamp counts only when the connection itself came from loopback, which is Caddy (design/screen-wifi/).
+    """
+    return (headers.get(VIA) or "").strip().lower() == SCREEN and peer in ("127.0.0.1", "::1")
 
 
 # What a phone on the setup Wi-Fi may do without the house's passcode: see the hub's network, look
