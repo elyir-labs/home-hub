@@ -38,7 +38,7 @@ import { mix, palette, rgb, wxOf } from './sky'
 import { FEELS, adjusted, feelFrom, lookOf, placeOf, TOUCHED_AT, type Feel, type FeelName } from './look'
 import { defaultChoice, pick as pickShade, picked, shade, type ShadeChoice } from './shade'
 import Icon from './Icon.vue'
-import { isScreen, keepScreenRoom, screenRoom } from './screen'
+import { isScreen } from './screen'
 
 const stored = computed<Partial<Look>>(() => store.ambient.look ?? {})
 const feel = computed(() => feelFrom(stored.value))
@@ -152,7 +152,8 @@ const SHADES: { id: ShadeChoice; label: string }[] = [
 const AUTO_LAYOUT = computed(() => LAYOUTS.find(l => l.id === place.value.layout)!)
 const AUTO_NAV = computed(() => NAVS.find(n => n.id === place.value.nav)!)
 /* A wall screen's own room (design/companion/, C): Change asks again, the way it was asked the first time. */
-const hangsIn = computed(() => isScreen() ? store.rooms.find(r => r.id === screenRoom())?.name ?? null : null)
+/* a screen's own light or dark, room and turn live on This screen (design/this-screen/, A) */
+const onScreen = isScreen()
 const AROUND = computed(() => place.value.nav === 'top' ? 'with tabs across the top' : 'with the rooms alongside')
 </script>
 
@@ -160,6 +161,8 @@ const AROUND = computed(() => place.value.nav === 'top' ? 'with tabs across the 
   <div class="page">
     <p class="page-lede">Everyone sees what you pick here, on every screen in the house. Light or dark is the one thing each screen picks for itself.</p>
 
+    <p class="shade-hint" v-if="onScreen">Light or dark, and which way up, are on <button class="linkish" @click="store.sheet = 'screen'">This screen</button>.</p>
+    <template v-else>
     <h3 class="label">{{ wide ? 'This screen' : 'This phone' }}</h3>
     <div class="shade-opts" :class="{ two: wide }">
       <button v-for="s in SHADES" :key="s.id" class="shade-opt" :class="{ on: shadeChoice === s.id }" @click="pickShade(s.id)">
@@ -172,7 +175,7 @@ const AROUND = computed(() => place.value.nav === 'top' ? 'with tabs across the 
       </button>
     </div>
     <p class="shade-hint">{{ wide ? 'Only this screen. Phones pick their own.' : 'Only this phone. The wall screen is set on the wall screen.' }}</p>
-    <p class="shade-hint" v-if="hangsIn">This screen is in <b>{{ hangsIn }}</b>. <button class="linkish" @click="keepScreenRoom(null)">Change</button></p>
+    </template>
 
     <div class="look-feels">
       <button v-for="f in FEELS" :key="f.id" class="look-feel"

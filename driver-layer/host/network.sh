@@ -192,8 +192,13 @@ online() { ip route show default 2>/dev/null | grep -v "dev $SETUP_IF" | grep -q
 # can run at once; both modes have to be in the same combination. Without `iw` there is no asking, and
 # the answer is no: the single-radio way still works, it just cannot say a password was wrong on the
 # phone that typed it.
+#
+# The Pi's own chip (brcmfmac) lists the combination but cannot keep it up: with the card's own interface
+# joined to nothing, it keeps scanning, and the setup Wi-Fi on the second interface never reached a phone.
+# Found on a Pi 5 on 23 October 2026, "up on hubsetup0" in the log and invisible to every phone in the room.
 both_at_once() {
   have iw || return 1
+  [ "$(basename "$(readlink "$SYS_NET/$1/device/driver" 2>/dev/null)")" = brcmfmac ] && return 1
   local phy; phy="$(cat "$SYS_NET/$1/phy80211/name" 2>/dev/null)"; [ -n "$phy" ] || return 1
   iw phy "$phy" info 2>/dev/null | awk '/valid interface combinations/{on=1; next} on && /^\t[A-Z]/{on=0} on' \
     | tr -d '\n' | tr '*' '\n' | grep -q 'managed.*AP\|AP.*managed'
@@ -223,7 +228,8 @@ print(c[0] if c else 6)' "$DATA/network.scan" 2>/dev/null || echo 6)"
   nmcli connection add type wifi ifname "$ifname" con-name "$SETUP_CON" autoconnect no ssid "$SETUP_SSID" \
     802-11-wireless.mode ap 802-11-wireless.band bg 802-11-wireless.channel "$chan" \
     ipv4.method shared ipv4.addresses "$SETUP_ADDR/24" ipv6.method disabled \
-    wifi-sec.key-mgmt wpa-psk wifi-sec.psk "$SETUP_PASS" >/dev/null 2>&1
+    wifi-sec.key-mgmt wpa-psk wifi-sec.proto rsn wifi-sec.pairwise ccmp wifi-sec.group ccmp wifi-sec.pmf disable \
+    wifi-sec.psk "$SETUP_PASS" >/dev/null 2>&1
   if nmcli connection up "$SETUP_CON" >/dev/null 2>&1; then
     printf '{"ssid": %s, "both": %s, "since": %s, "chan": "%s"}' "$(json_str "$SETUP_SSID")" "$both" "$(date +%s)" "$chan" > "$SETUP"
     (umask 077; printf '%s' "$SETUP_PASS" > "$KEY")

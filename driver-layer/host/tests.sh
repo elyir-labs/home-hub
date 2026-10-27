@@ -910,6 +910,12 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
   fresh; BOTH=1 tick
   is "a card that can do both gets a second interface for it" "$(grep -c 'iw dev wlp1s0 interface add hubsetup0 type __ap' "$root/asked")" "1"
   is "...and says so" "$(field setup.both)" "true"
+  is "...WPA2 alone, as nmcli's own hotspot is, which the Pi's chip needs" \
+    "$(grep -c 'wifi-sec.key-mgmt wpa-psk wifi-sec.proto rsn wifi-sec.pairwise ccmp wifi-sec.group ccmp wifi-sec.pmf disable' "$root/asked")" "1"
+  fresh; mkdir -p "$net/wlp1s0/device"; ln -s ../../../bus/sdio/drivers/brcmfmac "$net/wlp1s0/device/driver"; BOTH=1 tick
+  is "the Pi's chip says it can do both and cannot: its own Wi-Fi goes on the card itself" \
+    "$(grep -c 'interface add hubsetup0' "$root/asked") $(field setup.both)" "0 false"
+  rm -rf "$net/wlp1s0/device"; fresh; BOTH=1 tick
   BOTH=1 ask '{"do": "join", "ssid": "Bluebell", "password": "right"}'
   is "the house's Wi-Fi is tried on its 2.4 GHz side, so the phone on the hub's stays on" \
     "$(grep -c 'device wifi connect Bluebell password right ifname wlp1s0 bssid AA:BB:CC:00:00:01' "$root/asked")" "1"
@@ -1173,9 +1179,96 @@ tiers() {
   rm -rf "$d"
 }
 
+
+# What This screen can change about the unit it is on (design/this-screen/, A). role.sh hands the change to
+# first boot, so first boot is a stub here that writes down what the conf said when it ran; find-hub.sh
+# answers with $FOUND or nothing. The helper is run for real, on a spare port, with a wlr-randr on PATH
+# that writes down what it was told.
+changing() {
+  group "a screen changes what it is only when asked at it, and turns only by quarters"
+  local root dir bin; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"
+  mkdir -p "$dir/startup" "$dir/driver-layer/host" "$bin" "$root/ask"
+  printf '#!/usr/bin/env bash\n[ -n "${FOUND:-}" ] && echo "$FOUND"\n' > "$dir/startup/find-hub.sh"
+  printf '#!/usr/bin/env bash\n. "$HUB_CONF"; echo "firstboot as ${HUB_ROLE:-hub} nvme=${HUB_AUTO_NVME:-1}" >> "%s/asked"; [ -z "${FAIL_FIRSTBOOT:-}" ] && touch "$HUB_FIRSTBOOT_MARK"; [ -z "${FAIL_FIRSTBOOT:-}" ]\n' "$root" > "$dir/driver-layer/host/firstboot.sh"
+  printf '#!/usr/bin/env bash\necho "systemctl $*" >> "%s/asked"\n' "$root" > "$bin/systemctl"
+  chmod +x "$dir/startup/find-hub.sh" "$dir/driver-layer/host/firstboot.sh" "$bin/systemctl"
+  ask() {   # what the unit is now, the word left for it, found
+    rm -f "$root/asked" "$root/done"; : > "$root/conf"
+    [ "$1" = screen ] && printf 'HUB_ROLE="screen"\nELYIR_PANEL_URL="http://hub.local/?screen=1"\nELYIR_READY_URL="http://hub.local/alive"\n' > "$root/conf"
+    printf '%s\n' "$2" > "$root/ask/role.request"
+    PATH="$bin:$PATH" FOUND="$3" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_FIRSTBOOT_MARK="$root/done" \
+      ELYIR_ROLE_REQUEST="$root/ask/role.request" "$HERE/../../startup/role.sh" >/dev/null 2>&1
+  }
+  ask screen hub ""
+  is "a screen asked to run a house here: first boot runs again as the hub, and never copies onto a drive" "$(grep firstboot "$root/asked")" "firstboot as hub nvme=0"
+  is "...it stops showing the other hub" "$(grep -c 'ELYIR_PANEL_URL\|ELYIR_READY_URL' "$root/conf")" "0"
+  is "...and stops following the other hub's version" "$(grep -c 'disable --now elyir-screen-update.timer' "$root/asked")" "1"
+  is "...and the word is used once" "$([ -f "$root/ask/role.request" ] && echo kept || echo gone)" "gone"
+  ask hub screen http://other.local
+  is "a hub asked to show another hub, with one on the Wi-Fi: first boot runs again as a screen" "$(grep firstboot "$root/asked")" "firstboot as screen nvme=0"
+  is "...and the wall starts again on what it now shows" "$(grep -c 'restart elyir-wall.service' "$root/asked")" "1"
+  ask hub screen ""; local code=$?
+  is "a hub asked to show another hub, and none found: nothing changes" "$(cat "$root/asked" 2>/dev/null | grep -c firstboot) $(grep -c HUB_ROLE "$root/conf")" "0 0"
+  is "...and says it did not" "$code" "1"
+  FAIL_FIRSTBOOT=1 ask hub screen http://other.local
+  is "a hub whose first boot could not make it a screen stays the hub" "$(grep '^HUB_ROLE=' "$root/conf")" 'HUB_ROLE="hub"'
+  ask screen screen http://other.local
+  is "asked to be what it already is: nothing runs" "$(cat "$root/asked" 2>/dev/null | grep -c .)" "0"
+  ask hub 'reboot; shutdown now' http://other.local
+  is "a word that is not hub or screen: nothing runs" "$(cat "$root/asked" 2>/dev/null | grep -c .)" "0"
+
+  # the helper, on a port of its own
+  printf '#!/usr/bin/env bash\nif [ $# -eq 0 ]; then printf "DSI-1 \\"panel\\"\\n  Enabled: yes\\n"; else echo "wlr-randr $*" >> "%s/randr"; fi\n' "$root" > "$bin/wlr-randr"
+  chmod +x "$bin/wlr-randr"
+  local port=$((20000 + RANDOM % 20000)) at origin='http://hub.local' pid
+  at="http://127.0.0.1:$port"
+  helper() {   # role, found
+    PATH="$bin:$PATH" WAYLAND_DISPLAY=wayland-0 HUB_ROLE="$1" FOUND="$2" ELYIR_SCREEN_PORT=$port ELYIR_PANEL_URL='http://hub.local/?screen=1' \
+      ELYIR_TURN_FILE="$root/turn" ELYIR_SCREEN_ASK="$root/ask" ELYIR_FIND_HUB="$dir/startup/find-hub.sh" \
+      python3 "$HERE/../../startup/screen-helper.py" & pid=$!
+    for _ in $(seq 1 50); do curl -s -o /dev/null "$at/this" && break; sleep 0.1; done
+  }
+  call() { curl -s -o /dev/null -w '%{http_code}' -H "Origin: ${3:-$origin}" -H 'Content-Type: application/json' ${2:+-d "$2"} "$at$1"; }
+  rm -f "$root/ask/role.request"
+  helper screen ""
+  is "the panel it was opened on asks what this screen is: a screen, drawn the way it was made" "$(curl -s -H "Origin: $origin" "$at/this")" '{"role": "screen", "turn": 0, "turns": true, "other": null}'
+  is "...any other page is refused" "$(call /this '' 'http://elsewhere.example')" "403"
+  is "a quarter turn is done and kept" "$(call /turn '{"turn": 90}') $(cat "$root/turn") $(cat "$root/randr")" "200 90 wlr-randr --output DSI-1 --transform 90"
+  is "...and left for turn.sh, so the startup turns too" "$(cat "$root/ask/turn.request")" "90"
+  is "...an eighth is not" "$(call /turn '{"turn": 45}')" "400"
+  is "a screen asked to show another hub, which it already does, is refused" "$(call /role '{"to": "screen"}')" "400"
+  is "a screen asked to run a house leaves the one word for role.sh" "$(call /role '{"to": "hub"}') $(cat "$root/ask/role.request")" "200 hub"
+  kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
+  rm -f "$root/ask/role.request"
+  helper "" ""
+  is "a hub asked to become a screen with no other hub to show is refused, and leaves nothing" "$(call /role '{"to": "screen"}') $([ -f "$root/ask/role.request" ] && echo left || echo nothing)" "409 nothing"
+  kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
+  rm -rf "$root"
+
+  # turn.sh: the startup is turned on the boot line, for the screens plugged in, keeping what else it says
+  root=$(mktemp -d); mkdir -p "$root/drm/card1-DSI-1" "$root/drm/card1-HDMI-A-1" "$root/drm/card1-HDMI-A-2"
+  echo connected > "$root/drm/card1-DSI-1/status"; echo disconnected > "$root/drm/card1-HDMI-A-1/status"
+  echo connected > "$root/drm/card1-HDMI-A-2/status"
+  boot() {   # the turn asked for, then the boot line after turn.sh has read it
+    printf '%s\n' "$1" > "$root/turn.request"
+    ELYIR_TURN_REQUEST="$root/turn.request" ELYIR_CMDLINE="$root/cmdline.txt" HUB_DRM="$root/drm" \
+      "$HERE/../../startup/turn.sh" >/dev/null 2>&1
+    cat "$root/cmdline.txt"
+  }
+  echo 'console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60' > "$root/cmdline.txt"
+  is "a screen turned upside down starts upside down, its mode kept and HDMI added" "$(boot 180)" \
+    "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60,panel_orientation=upside_down video=HDMI-A-2:panel_orientation=upside_down"
+  is "...the request is used once" "$([ -f "$root/turn.request" ] && echo kept || echo gone)" "gone"
+  is "turned a quarter, the orientation is changed rather than another added" "$(boot 90)" \
+    "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60,panel_orientation=left_side_up video=HDMI-A-2:panel_orientation=left_side_up"
+  is "turned back, only what it added goes" "$(boot 0)" "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60"
+  is "a turn that is not a quarter leaves the boot line alone" "$(boot '45; reboot')" "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60"
+  rm -rf "$root"
+}
+
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; usb_first; following; developing; reporting; keeping; speaking; awake; setting_up; moving_in; moving; describing
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; keeping; speaking; awake; setting_up; moving_in; moving; describing
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

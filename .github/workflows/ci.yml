@@ -248,6 +248,7 @@ jobs:
         driver-layer/host/channel.sh
         driver-layer/host/wifi-awake.sh
         driver-layer/host/tests.sh
+        driver-layer/caddy/tests.sh
         driver-layer/host/pi-image/stage-hub/prerun.sh
         driver-layer/host/pi-image/stage-hub/00-home-hub/*.sh
         startup/install.sh
@@ -258,6 +259,8 @@ jobs:
         startup/find-hub.sh
         startup/keep-hub.sh
         startup/screen-update.sh
+        startup/role.sh
+        startup/turn.sh
     steps:
       - uses: actions/checkout@v4
       # `bash -n a.sh b.sh` reads a.sh as the script and everything after it as that script's
@@ -275,6 +278,10 @@ jobs:
       # the hold. This runs them, against a real keypair and a file:// releases server.
       - name: the update path, run rather than read
         run: driver-layer/host/tests.sh
+
+      # The same for the front door: Caddy runs a block's directives in its own order, not the written one.
+      - name: the front door, asked rather than read
+        run: driver-layer/caddy/tests.sh
 
   # This repository is public and every hub clones it whole, so a secret that reaches a branch here has
   # already been handed out. gitleaks, with the rules in .gitleaks.toml, over the tree as it stands and, on

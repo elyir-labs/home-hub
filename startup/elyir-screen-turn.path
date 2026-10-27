@@ -1,0 +1,11 @@
+# Watches for the number screen-helper.py leaves when somebody asks on This screen to turn this screen, so its
+# startup turns too. Installed by startup/install.sh.
+[Unit]
+Description=Elyir's screen: watch for a turn of this screen, for its startup
+
+[Path]
+PathExists=/var/lib/elyir-screen/turn.request
+Unit=elyir-screen-turn.service
+
+[Install]
+WantedBy=multi-user.target

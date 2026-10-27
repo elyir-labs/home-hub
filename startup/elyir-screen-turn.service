@@ -1,0 +1,8 @@
+# Runs turn.sh once per request. Started by elyir-screen-turn.path; never on its own.
+[Unit]
+Description=Elyir's screen: turn the startup the way the screen was turned
+
+[Service]
+Type=oneshot
+ExecStart=/opt/home-hub/startup/turn.sh
+StandardOutput=journal

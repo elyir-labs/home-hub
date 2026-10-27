@@ -7,6 +7,7 @@ import { computed, ref } from 'vue'
 import { addRoom, placeScreen, type Phone, type Room } from './api'
 import { keepScreenRoom, openOn, roomLine } from './screen'
 import Icon from './Icon.vue'
+import TurnPill from './TurnPill.vue'
 
 /* Which room this screen is in (design/companion/, C). Asked once, after it has joined, never before:
    a device on the Wi-Fi without the passcode never sees the house's rooms. */
@@ -57,7 +58,8 @@ async function done() {
       <div class="setup-actions">
         <button class="button big" :class="{ busy }" :disabled="!chosen" @click="done">{{ chosen ? openOn(chosen.name) : 'Pick a room' }}</button>
       </div>
-      <p class="setup-foot">You can change it later from this screen, under How it looks.</p>
+      <p class="setup-foot">You can change it later, under This screen.</p>
     </section>
+    <TurnPill />
   </main>
 </template>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A, from the table to a wall, hung tall</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="screen.css">
+<style>
+  /* the screen as it now hangs: 900 wide, 1440 tall */
+  .tall { position: relative; width: 900px; height: 1440px; overflow: hidden; background: #07090d; }
+  /* before: the panel still drawn for the table, so to the person at the wall it lies on its side */
+  .tall .wall.side { position: absolute; left: 0; top: 0; transform-origin: top left; transform: translate(900px, 0) rotate(90deg); }
+  /* after: the same page, laid out for the shape it now is (the sheet as the shipped panel draws it at 900 wide) */
+  .tall .wall.up { width: 900px; height: 1440px; }
+  .tall .wall.up .house { top: 120px; }
+  .tall .wall.up .body { width: auto; padding-right: 36px; }
+  .tall .wall.up .ways { gap: 8px; }
+  .tall .wall.up .way { width: 104px; }
+  .tall .wall.up .rows > li { grid-template-columns: 88px 1fr auto; }
+  .tap { position: absolute; width: 64px; height: 64px; border-radius: 50%; border: 2px solid rgba(var(--lamp-rgb), .9);
+         box-shadow: 0 0 0 10px rgba(var(--lamp-rgb), .16); pointer-events: none; }
+</style>
+</head>
+<body data-step="side">
+<div class="tall">
+  <div class="wall side" data-if="step:side">
+    <div class="house">
+      <nav class="nav" data-on="screen" data-screen="Hallway · shows Maple Court"></nav>
+      <div class="main">
+        <div class="head"><h2>This screen</h2></div><span class="close"></span>
+        <div class="body">
+          <p class="lede">What you set here is for this screen alone, not the house.</p>
+          <ul class="rows">
+            <li>
+              <span class="k">Which way up</span>
+              <span>
+                <span class="ways" id="ways-side"></span>
+                <span class="sub">Tap the one that looks the right way up from where you stand. Everything turns with it, and taps land where you touch.</span>
+              </span>
+              <span></span>
+            </li>
+            <li><span class="k">Room</span><span class="v">Hallway<span class="sub">It opens on the hallway, and goes back to it after resting.</span></span><span class="btn">Change</span></li>
+            <li><span class="k">Light or dark</span><span class="v">Dark<span class="sub">Only this screen. Phones pick their own.</span></span><span style="display: flex; gap: 6px;"><span class="btn ghost">Light</span><span class="btn">Dark</span></span></li>
+            <li><span class="k">What it does</span><span class="v">Shows Maple Court from the hub.<span class="sub">The hub is the small computer that runs the house. This screen runs nothing itself, so unplugging it changes nothing in the house.</span></span><span class="btn">Change</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="tap" data-if="step:side" id="tap"></span>
+
+  <div class="wall up" data-if="step:up">
+    <div class="house">
+      <nav class="nav" data-on="screen" data-screen="Hallway · shows Maple Court"></nav>
+      <div class="main">
+        <div class="head"><h2>This screen</h2></div><span class="close"></span>
+        <div class="body">
+          <p class="lede">What you set here is for this screen alone, not the house.</p>
+          <p class="label">Which way up</p>
+          <span class="ways" id="ways-up"></span>
+          <p class="hint">Turned left a moment ago. <span class="linkish">Put it back</span></p>
+          <ul class="rows" style="margin-top: 18px; border-top: 1px solid var(--edge);">
+            <li><span class="k">Room</span><span class="v">Hallway<span class="sub">It opens on the hallway, and goes back to it after resting.</span></span><span class="btn">Change</span></li>
+            <li><span class="k">Light or dark</span><span class="v">Dark<span class="sub">Only this screen.</span></span><span style="display: flex; gap: 6px;"><span class="btn ghost">Light</span><span class="btn">Dark</span></span></li>
+            <li><span class="k">What it does</span><span class="v">Shows Maple Court from the hub.<span class="sub">This screen runs nothing itself, so unplugging it changes nothing in the house.</span></span><span class="btn">Change</span></li>
+            <li><span class="k">Restart</span><span class="v">Restart this screen.<span class="sub">Only the screen. The house keeps running.</span></span><span class="btn ghost">Restart</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flips" data-k="step"><span style="padding: 0 6px;">Showing</span>
+    <span class="flip" data-v="side">hung tall, still lying on its side</span><span class="flip" data-v="up">after Turn left</span></div>
+</div>
+<script>
+  // the same four pictures as A's row; drawn here so both states carry identical markup
+  const roof = '<i class="roof"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg></i>'
+  const way = (cls, nm, on) => `<span class="way ${cls}${on ? ' on' : ''}"><span class="cell"><span class="m">${roof}<i class="lit"></i><i class="wide"></i></span></span><span class="nm">${nm}${on ? ' <span class="tick">&#10003;</span>' : ''}</span></span>`
+  const four = () => way('r0', 'As it is', true) + way('r90', 'Turn right') + way('r180', 'Turn over') + way('r270', 'Turn left')
+  document.getElementById('ways-side').innerHTML = four()
+  document.getElementById('ways-up').innerHTML = four()
+</script>
+<script src="screen.js"></script>
+<script>
+  // a ring where the finger goes: on the one picture that looks upright from the wall
+  const place = () => { const t = document.querySelector('#ways-side .r270 .cell'); if (!t || document.body.dataset.step !== 'side') return
+    const r = t.getBoundingClientRect(), o = document.querySelector('.tall').getBoundingClientRect()
+    const tap = document.getElementById('tap'); tap.style.left = (r.left - o.left + r.width / 2 - 32) + 'px'; tap.style.top = (r.top - o.top + r.height / 2 - 32) + 'px' }
+  place(); document.querySelectorAll('.flip').forEach(f => f.addEventListener('click', place))
+</script>
+</body>
+</html>
