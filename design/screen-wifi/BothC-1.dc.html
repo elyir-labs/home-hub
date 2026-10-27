@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C1: ask here, with the code beside it</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Instrument+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="screen-wifi.css">
+<style>
+  .side { position: absolute; left: 860px; width: 380px; padding: 26px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--edge); }
+  .side .or { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
+  .side .qr { width: 196px; height: 196px; border-radius: 14px; background: #fff; padding: 11px; margin-bottom: 20px; }
+  .side .qr img { display: block; width: 100%; height: 100%; }
+  .side .t { font-size: 19px; line-height: 1.3; letter-spacing: -.01em; }
+  .side .s { margin-top: 6px; font-size: 14px; color: var(--muted); line-height: 1.45; }
+  .side .pair { display: flex; gap: 28px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--edge); font-size: 12.5px; color: var(--muted); }
+  .side .pair b { display: block; margin-top: 3px; font-size: 16px; font-weight: 600; color: var(--ink); letter-spacing: .02em; }
+</style>
+</head>
+<body>
+<div class="wall">
+  <div class="stars"></div><div class="moon"></div><div class="hills"></div>
+
+  <div class="col" style="left: 200px; width: 580px; top: 196px;">
+    <div class="mark"><svg class="i" width="30" height="30" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></div>
+    <h1>Which Wi&#8209;Fi is yours?</h1>
+    <p class="lede">The hub will use it from now on.</p>
+    <div class="nets">
+      <div class="net"><svg class="i lock" width="15" height="15" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Downstairs
+        <svg class="i bars" width="18" height="18" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r=".9" fill="currentColor"/></svg></div>
+      <div class="net"><svg class="i lock" width="15" height="15" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>BT-HUB-9QK2
+        <svg class="i bars" width="18" height="18" viewBox="0 0 24 24"><path d="M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r=".9" fill="currentColor"/></svg></div>
+      <div class="net"><span class="lock"></span>Flat 3 guest
+        <svg class="i bars" width="18" height="18" viewBox="0 0 24 24"><path d="M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r=".9" fill="currentColor"/></svg></div>
+      <div class="net other"><svg class="i lock" width="15" height="15" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>A network that isn&rsquo;t listed</div>
+    </div>
+    <div class="foot">Or plug a cable from the hub into your router, and this step goes by itself.</div>
+  </div>
+
+  <div class="side" style="top: 196px;">
+    <div class="or">Or from your phone</div>
+    <div class="qr"><img src="qr-wifi.svg" alt=""></div>
+    <div class="t">Point your phone&rsquo;s camera at this code.</div>
+    <div class="s">Easier for a long password. Your phone joins the hub, then asks the same question.</div>
+    <div class="pair"><span>Network<b>Elyir Hub 4F2A</b></span><span>Password<b>kite-maple-41</b></span></div>
+  </div>
+
+  <div class="ann" style="left: 860px; top: 686px; width: 380px;">
+    <span class="cap">Whichever is started first wins</span>
+    Tap a network and the code goes (B2, B3). Scan it and the list gives way to A2. On a screen with no touch the list isn&rsquo;t drawn at all, and C is A.
+  </div>
+  <div class="ann" style="left: 200px; top: 70px; width: 580px;">
+    <span class="cap">The wall&rsquo;s width, used</span>
+    Two whole answers side by side, at the wall&rsquo;s size rather than a phone column pinned to the middle. Every other first-run screen keeps the 600px column.
+  </div>
+</div>
+</body>
+</html>

@@ -2,3 +2,8 @@ git
 curl
 ca-certificates
 avahi-daemon
+iw
+dnsmasq-base
+cage
+wlr-randr
+chromium

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # One-line install on any fresh Linux box: a Raspberry Pi 5, an Intel NUC, a VM, anything running
 # Debian, Ubuntu, Raspberry Pi OS or Fedora with systemd:
-#   curl -fsSL https://raw.githubusercontent.com/topeysoft/home-hub/main/install.sh | sudo bash
+#   curl -fsSL https://raw.githubusercontent.com/elyir-labs/home-hub/main/install.sh | sudo bash
 # or, from a checkout:  sudo ./install.sh
 #
 # Installs Docker, names the machine "hub" so it answers at http://hub.local, finds any Zigbee or
@@ -12,15 +12,40 @@
 # fills in what is missing. Nothing in here is specific to a Pi; that lives in host/firstboot.sh.
 set -euo pipefail
 
-REPO="${HOME_HUB_REPO:-https://github.com/topeysoft/home-hub.git}"
+REPO="${HOME_HUB_REPO:-https://github.com/elyir-labs/home-hub.git}"
 DIR="${HOME_HUB_DIR:-/opt/home-hub}"
 HOSTNAME_WANTED="${HOME_HUB_HOSTNAME:-hub}"
+# A hub installed before the repository moved (18 October 2026) still fetched from the old one, which stopped
+# that day: its code stood still while the brain image, named by branch, moved on without it.
+case "$(git -C "$DIR" remote get-url origin 2>/dev/null)" in
+  https://github.com/topeysoft/home-hub|https://github.com/topeysoft/home-hub.git) git -C "$DIR" remote set-url origin "$REPO" ;;
+esac
 # Which code this hub follows. "release" is the newest version tag: nothing reaches a house until
 # somebody tags it. "main" and "development" follow those branches commit by commit, which is what a
 # hub being worked on wants — HOME_HUB_CHANNEL=development sudo ./install.sh. The brain is told, so
-# the panel offers the same one. Anything else is a typo, and a typo lands on releases.
+# the panel offers the same one. Anything else is a typo, and a typo lands on releases -- except a branch
+# this script wrote into .env itself, which update.sh and network.sh hand back as the channel.
 CHANNEL="${HOME_HUB_CHANNEL:-release}"
+case "$CHANNEL" in release|main|development) ;; *)
+  [ -z "${HOME_HUB_BRANCH:-}" ] && grep -qxF "HUB_CHANNEL=$CHANNEL" "$DIR/driver-layer/.env" 2>/dev/null && HOME_HUB_BRANCH="$CHANNEL" ;;
+esac
 case "$CHANNEL" in main|development) BRANCH="$CHANNEL" ;; *) CHANNEL="release"; BRANCH="main" ;; esac
+# An image built from a branch rather than a release tag (a test image: pi-image.yml, x86-image.yml writes this into
+# /etc/home-hub.conf) follows that branch, the way a development hub follows development. Otherwise its first install
+# would move it onto the newest release, which has never heard of what the image was built to test, and run that
+# release's brain. Once the branch has landed (host/landed.sh) it follows development instead, for good.
+if [ -n "${HOME_HUB_BRANCH:-}" ]; then
+  CHANNEL="$HOME_HUB_BRANCH"; BRANCH="$HOME_HUB_BRANCH"
+  # shellcheck source=driver-layer/host/landed.sh
+  if [ -f "$DIR/driver-layer/host/landed.sh" ] && . "$DIR/driver-layer/host/landed.sh" && landed "$BRANCH" "$DIR"; then
+    echo "$BRANCH has landed in development; this hub follows development from now on"
+    CHANNEL=development; BRANCH=development
+  fi
+fi
+# The Matter bridge is only published for releases and the two main branches, so a branch hub stays on latest.
+case "$CHANNEL" in release|main|development) ;; *)
+  export HUB_BRIDGE_IMAGE="${HUB_BRIDGE_IMAGE:-ghcr.io/elyir-labs/home-hub-matter-bridge:latest}" ;;
+esac
 
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 # Where this has got to, for the panel to draw. Only when update.sh asks for it: somebody running
@@ -56,6 +81,13 @@ VERSION=""
 want_ref() {
   [ "$CHANNEL" != "release" ] && { echo "origin/$BRANCH"; return; }
   git -C "$DIR" tag -l 'v*' --sort=-v:refname | head -1
+}
+# A hub runs driver-layer/ and pulls the rest as images, so the drawings in design/ (half the
+# repository) and the website in site/ never land on it. driver-layer/host/pi-image clones with the
+# same list. A git too old for this keeps the whole checkout, which still works.
+trim_checkout() {
+  git -C "$DIR" sparse-checkout set --no-cone '/*' '!/design/' '!/site/' 2>/dev/null \
+    || git -C "$DIR" sparse-checkout set '/*' '!/design/' '!/site/' 2>/dev/null || true
 }
 # Whether a release is what the maker says it is, and what it says to run. host/verify.sh comes from
 # the checkout as it is *now* -- the one the last verified update left behind -- and is read before
@@ -93,11 +125,14 @@ if [ -d "$DIR/.git" ]; then
   # `fetch origin development` lands in FETCH_HEAD only, origin/development never exists, and a
   # development hub's checkout stood still through every update.
   if git -C "$DIR" fetch -q --tags --force origin "+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" 2>/dev/null; then
+    trim_checkout
     # 3, not 1: a release that could not be checked is a different thing from an install that broke,
     # and a household tapping Try again cannot fix it. host/update.sh tells the two apart.
     go_to_ref || exit 3
   else
     echo "  could not reach $REPO; keeping the code that is here"
+    # ...and the version it is, so the brain this image carries is the one compose asks for.
+    VERSION="$(git -C "$DIR" describe --tags --exact-match 2>/dev/null | sed -n 's/^v//p')" || true
   fi
 elif [ -f "$HERE/driver-layer/docker-compose.yml" ] && [ "$HERE" != "$DIR" ]; then
   mkdir -p "$DIR"; cp -R "$HERE/." "$DIR/"     # a first install from a copied checkout, without internet
@@ -107,9 +142,12 @@ else
   # experiment on one of them would land in every house installed while it existed. The single
   # branch carries only the tags inside its own history, and a release can be tagged off it (v0.5.0
   # was on development, not main), so every tag is fetched straight after. Without that fetch a new
-  # hub would install the release before the newest one.
+  # hub would install the release before the newest one. Without file contents, though
+  # (--filter=blob:none): git fetches those only for what is checked out, so the history of the
+  # trimmed folders never arrives either.
   command -v git >/dev/null 2>&1 || pkg git
-  git clone -q --single-branch --branch "$BRANCH" "$REPO" "$DIR" \
+  git clone -q --filter=blob:none --no-checkout --single-branch --branch "$BRANCH" "$REPO" "$DIR" \
+    && trim_checkout \
     && git -C "$DIR" fetch -q --tags --force origin \
     && { go_to_ref || exit 3; }
 fi
@@ -119,8 +157,8 @@ cd "$DIR/driver-layer"
 # a branch, whose image is tagged with the branch's name, and for the first install of a release that
 # predates the signing.
 if [ -z "${HUB_BRAIN_IMAGE:-}" ]; then
-  if [ -n "$VERSION" ]; then export HUB_BRAIN_IMAGE="ghcr.io/topeysoft/home-hub-brain:${VERSION}"
-  elif [ "$CHANNEL" != "release" ]; then export HUB_BRAIN_IMAGE="ghcr.io/topeysoft/home-hub-brain:${BRANCH}"
+  if [ -n "$VERSION" ]; then export HUB_BRAIN_IMAGE="ghcr.io/elyir-labs/home-hub-brain:${VERSION}"
+  elif [ "$CHANNEL" != "release" ]; then export HUB_BRAIN_IMAGE="ghcr.io/elyir-labs/home-hub-brain:${BRANCH//\//-}"
   fi
 fi
 # The Matter bridge is ours too, and it and the brain have a contract between them -- what the bridge
@@ -128,8 +166,8 @@ fi
 # against a bridge it had cached from a month ago is a version skew nobody would enjoy finding, so it
 # is named by the release exactly the way the brain is rather than left on :latest. docs/matter.md.
 if [ -z "${HUB_BRIDGE_IMAGE:-}" ]; then
-  if [ -n "$VERSION" ]; then export HUB_BRIDGE_IMAGE="ghcr.io/topeysoft/home-hub-matter-bridge:${VERSION}"
-  elif [ "$CHANNEL" != "release" ]; then export HUB_BRIDGE_IMAGE="ghcr.io/topeysoft/home-hub-matter-bridge:${BRANCH}"
+  if [ -n "$VERSION" ]; then export HUB_BRIDGE_IMAGE="ghcr.io/elyir-labs/home-hub-matter-bridge:${VERSION}"
+  elif [ "$CHANNEL" != "release" ]; then export HUB_BRIDGE_IMAGE="ghcr.io/elyir-labs/home-hub-matter-bridge:${BRANCH}"
   fi
 fi
 export HUB_CHANNEL="$CHANNEL"
@@ -156,6 +194,30 @@ mkdir -p /etc/avahi/services 2>/dev/null && cat > /etc/avahi/services/home-hub.s
 MDNS
 systemctl enable --now avahi-daemon >/dev/null 2>&1 || true
 systemctl reload-or-restart avahi-daemon >/dev/null 2>&1 || true
+# A Wi-Fi of its own, for a hub with no cable and nobody to type its Wi-Fi in (docs/network.md, piece 5).
+# host/network.sh starts it only while the hub is on nothing. Its name and password are this hub's
+# alone and go on its label; a flashed unit has them written in before it ships, and anything else gets
+# a pair made here. `iw` asks whether the card can hold it and join the house's at once; NetworkManager
+# hands out addresses on it with dnsmasq, which also answers every name with the hub so a phone that
+# joins is sent straight to the setup screen.
+SETUP_CONF="${HUB_CONF:-/etc/home-hub.conf}"
+if command -v nmcli >/dev/null 2>&1; then
+  pkg iw 2>/dev/null || true
+  command -v dnsmasq >/dev/null 2>&1 || pkg dnsmasq-base 2>/dev/null || pkg dnsmasq 2>/dev/null || true
+  mkdir -p /etc/NetworkManager/dnsmasq-shared.d
+  echo "address=/#/10.42.0.1" > /etc/NetworkManager/dnsmasq-shared.d/home-hub-setup.conf
+  if ! grep -q '^HUB_SETUP_PASS=' "$SETUP_CONF" 2>/dev/null; then
+    python3 - "$SETUP_CONF" <<'PY' || true
+import hashlib, secrets, sys
+words = "amber birch cedar cloud coral daisy delta ember fable fern frost glade harbor hazel indigo ivory juniper kite lark linen maple meadow mint moss nectar oak opal orchid pebble pine plum quartz quill rain reed river robin sage shell slate sparrow spruce stone sun tide tulip velvet willow wren".split()
+unit = hashlib.sha256(open("/etc/machine-id").read().encode()).hexdigest()[:4].upper()
+with open(sys.argv[1], "a") as f:
+    f.write(f'HUB_SETUP_SSID="Elyir Hub {unit}"\n')
+    f.write(f'HUB_SETUP_PASS="{secrets.choice(words)}-{secrets.choice(words)}-{secrets.randbelow(90) + 10}"\n')
+PY
+    chmod 0600 "$SETUP_CONF" 2>/dev/null || true
+  fi
+fi
 
 say "4/5  Settings"
 # The host as an appliance: watchdog, a cap on container logs, a cap on the journal. Exit 10 means
@@ -214,6 +276,10 @@ for v in ${HUB_IMAGE_VARS:-}; do echo "$v=${!v}" >> .env; done
 # Messages take a password: made once, written into .env, handed to every part by compose.
 chmod +x mqtt-auth.sh
 ./mqtt-auth.sh
+# What this machine is big enough for, measured on every run so a house restored onto a bigger box
+# grows into it. docs/host-tiers.md.
+chmod +x host-tier.sh
+./host-tier.sh
 # radios: only start what is plugged in, now and whenever a stick is plugged in or pulled later
 chmod +x radios.sh
 ./radios.sh detect
@@ -226,18 +292,24 @@ udevadm control --reload 2>/dev/null || true
 # updates, restores and restarts: the panel writes brain-data/<thing>.request; these units see it and act.
 # The watchdog is the one with no request behind it: it runs on its own clock and catches a house that
 # stopped answering when nobody is there to notice (docs/restart.md, piece 5).
-chmod +x host/update.sh host/restore.sh host/channel.sh host/restart.sh host/watchdog.sh host/network.sh host/away.sh
+chmod +x host/update.sh host/restore.sh host/channel.sh host/restart.sh host/watchdog.sh host/network.sh host/away.sh \
+         host/drive.sh host/move-early.sh host/move-to-drive.sh host/developer.sh
 for u in home-hub-update.service home-hub-update.path home-hub-restore.service home-hub-restore.path \
          home-hub-restart.service home-hub-restart.path home-hub-watchdog.service home-hub-watchdog.timer \
          home-hub-channel.service home-hub-channel.timer \
          home-hub-network.service home-hub-network.path home-hub-network.timer \
-         home-hub-away.service home-hub-away.path; do
+         home-hub-away.service home-hub-away.path home-hub-drive.service home-hub-drive.path home-hub-move.service \
+         home-hub-developer.service home-hub-developer.path; do
   sed "s#/opt/home-hub#$DIR#g" "host/$u" > "/etc/systemd/system/$u"
 done
 systemctl daemon-reload 2>/dev/null || true
 systemctl enable --now home-hub-update.path home-hub-restore.path home-hub-restart.path \
                        home-hub-watchdog.timer home-hub-channel.timer \
-                       home-hub-network.path home-hub-network.timer home-hub-away.path >/dev/null 2>&1 || true
+                       home-hub-network.path home-hub-network.timer home-hub-away.path \
+                       home-hub-drive.path home-hub-drive.service home-hub-move.service \
+                       home-hub-developer.path >/dev/null 2>&1 || true
+# Whether SSH is on, as the card was flashed, so the page for working on the hub says what is true (design/developer/).
+HOME_HUB_DIR="$DIR" ./host/developer.sh >/dev/null 2>&1 || true
 # ...and write the first picture of this hub's network now, so the panel's Network row is a fact
 # from the first minute rather than blank until the timer's first tick (docs/network.md, piece 2).
 HOME_HUB_DIR="$DIR" ./host/network.sh >/dev/null 2>&1 || true
@@ -245,6 +317,19 @@ HOME_HUB_DIR="$DIR" ./host/network.sh >/dev/null 2>&1 || true
 HOME_HUB_DIR="$DIR" ./host/channel.sh >/dev/null 2>&1 || true
 
 say "5/5  Starting the house"
+# No internet yet, on a box that brought the brain and the front door with it: start those two and stop.
+# That is all the Wi-Fi step needs (docs/network.md, piece 5). host/network.sh runs this again once the
+# hub is online, and the rest of the house downloads then, behind "Getting things ready".
+FINISH="${HUB_FINISH:-/var/lib/home-hub/finish-install}"
+if [ "$(curl -s -m 8 -o /dev/null -w '%{http_code}' https://ghcr.io/v2/ 2>/dev/null)" = 000 ] \
+   && docker image inspect "${HUB_BRAIN_IMAGE:-ghcr.io/elyir-labs/home-hub-brain:latest}" >/dev/null 2>&1 \
+   && docker image inspect "${HUB_IMG_CADDY:-caddy:2}" >/dev/null 2>&1; then
+  docker compose up -d --no-deps brain caddy
+  mkdir -p "$(dirname "$FINISH")" && echo "$CHANNEL" > "$FINISH"
+  say "Started without internet. The rest of the house downloads once the hub is online."
+  exit 0
+fi
+rm -f "$FINISH"
 phase downloading
 # Pre-pull everything the compose file pins. A tag that no longer exists on the registry would
 # otherwise surface as a wall of daemon errors from `up`, with none of the other images fetched and
@@ -253,7 +338,11 @@ if ! PULLED="$(docker compose pull -q --ignore-buildable 2>&1)"; then
   echo "$PULLED" | sed -n 's/.*failed to resolve reference "\([^"]*\)".*/  could not fetch \1 — that pin is not on the registry/p' | sort -u
 fi
 if PULL="$(docker compose pull -q brain 2>&1)"; then
-  echo "  brain image: $(docker image inspect "${HUB_BRAIN_IMAGE:-ghcr.io/topeysoft/home-hub-brain:latest}" --format '{{index .RepoDigests 0}}' 2>/dev/null | cut -d@ -f2 | cut -c1-19)"
+  echo "  brain image: $(docker image inspect "${HUB_BRAIN_IMAGE:-ghcr.io/elyir-labs/home-hub-brain:latest}" --format '{{index .RepoDigests 0}}' 2>/dev/null | cut -d@ -f2 | cut -c1-19)"
+elif [ -n "${HUB_BRAIN_IMAGE:-}" ] && docker image inspect "$HUB_BRAIN_IMAGE" >/dev/null 2>&1; then
+  # A flashed image brought this brain with it (firstboot.sh loaded it), and a branch's brain may not be published
+  # yet. Building it again here took longer than anybody would wait in front of the splash.
+  echo "  the registry doesn't have $HUB_BRAIN_IMAGE; using the copy this image brought"
 else
   case "$PULL" in
     *denied*|*unauthorized*|*401*|*403*) echo "  the published brain image is not public (GitHub package visibility); building it here from the code above, which takes a few minutes" ;;
@@ -265,7 +354,7 @@ else
   # hubs that had to build their own. The checkout this was built from is the answer, and it is
   # right there.
   BUILT_COMMIT="$(git -C "$DIR" rev-parse HEAD 2>/dev/null || echo "")"
-  BUILT_VERSION="${VERSION:-main-$(git -C "$DIR" rev-parse --short HEAD 2>/dev/null || echo unknown)}"
+  BUILT_VERSION="${VERSION:-$BRANCH-$(git -C "$DIR" rev-parse --short HEAD 2>/dev/null || echo unknown)}"
   # A digest names an image that exists on a registry, and nothing can build one: docker refuses
   # outright with "refusing to create a tag with a digest reference". So a verified release, which
   # pins by digest on purpose, could not fall back to building at all -- the install would fail on
@@ -325,3 +414,11 @@ IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 say "Done. On a phone or tablet on the same Wi‑Fi open:"
 echo "    http://$HOSTNAME_WANTED.local      (or http://$IP)"
 echo "The screen walks you through the rest. The first start takes a minute or two."
+if grep -q '^HUB_SETUP_PASS=' "$SETUP_CONF" 2>/dev/null; then
+  S_SSID="$(sed -n 's/^HUB_SETUP_SSID=//p' "$SETUP_CONF" | tail -1 | tr -d '"')"
+  S_PASS="$(sed -n 's/^HUB_SETUP_PASS=//p' "$SETUP_CONF" | tail -1 | tr -d '"')"
+  echo
+  echo "With no cable, this hub makes a Wi-Fi of its own for a phone to set it up from:"
+  echo "    $S_SSID    password $S_PASS"
+  echo "    for its label: WIFI:T:WPA;S:$S_SSID;P:$S_PASS;;"
+fi

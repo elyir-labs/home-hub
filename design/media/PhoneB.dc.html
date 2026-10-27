@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B on the phone: the same shelves, in your hand</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap">
+<link rel="stylesheet" href="media.css">
+<style>
+  .seg { display: flex; gap: 6px; overflow: hidden; margin-top: 14px; }
+  .seg span { padding: 8px 14px; border-radius: 999px; font-size: 14px; color: var(--ink-2); background: rgba(255,255,255,.06); white-space: nowrap; }
+  .seg span.on { background: var(--ink); color: var(--bg); }
+  .strip { display: flex; gap: 12px; margin-top: 10px; }
+  .strip .still { width: 210px; height: 118px; flex: none; border-radius: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+  .grid .poster { height: 158px; border-radius: 12px; } .grid .pt { font-size: 14px; left: 10px; right: 10px; bottom: 10px; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 26px 26px 0 0; padding: 20px 20px 54px; background: #1a1c22; border-top: 1px solid var(--edge-hi); box-shadow: 0 -30px 60px rgba(0,0,0,.6); }
+  .opt { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.05); margin-top: 8px; font-size: 15.5px; }
+  .opt.on { box-shadow: inset 0 0 0 1.5px var(--lamp); }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top"><span style="flex: 1; font-size: 15px;">Maple Court</span><span style="width: 32px; height: 32px; border-radius: 50%; background: #e9b872; color: #1a1408; display: grid; place-items: center; font-weight: 600; font-size: 14px;">J</span></div>
+  <div style="position: absolute; left: 20px; right: 0; top: 98px;">
+    <h2>Watch</h2>
+    <div class="seg"><span class="on">Home</span><span>Films</span><span>Shows</span><span>Home videos</span><span>Music</span></div>
+    <div class="label" style="margin-top: 22px;">Keep watching</div>
+    <div class="strip"><div class="still s-field"><div class="line"><i style="width: 40%"></i></div></div><div class="still s-harbor"><div class="line"><i style="width: 20%"></i></div></div></div>
+    <div class="label" style="margin-top: 22px;">Films</div>
+    <div class="grid" style="margin-right: 20px;">
+      <div class="poster s-north"><div class="pt">Northbound</div></div><div class="poster s-ember"><div class="pt">Salt &amp; Ember</div></div><div class="poster s-tide"><div class="pt">Low Tide</div></div>
+    </div>
+  </div>
+  <div class="sheet" data-when="where">
+    <div style="font-family: var(--display); font-size: 24px;">Northbound</div>
+    <div class="ink2" style="font-size: 14px; margin: 2px 0 10px;">2 h 4 min &middot; play it where?</div>
+    <div class="opt on"><span style="flex: 1">Living room TV</span><span class="muted" style="font-size: 13px;">on</span></div>
+    <div class="opt"><span style="flex: 1">Bedroom TV</span><span class="muted" style="font-size: 13px;">off</span></div>
+    <div class="opt"><span style="flex: 1">This phone</span></div>
+  </div>
+  <div class="flips"><span class="flip on" data-to="home">the shelves</span><span class="flip" data-to="where">tapped a film</span></div>
+</div>
+<script src="flips.js"></script>
+</body>
+</html>

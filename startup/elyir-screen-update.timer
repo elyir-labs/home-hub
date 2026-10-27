@@ -1,0 +1,11 @@
+# After the hub's own window, 2 to 5 in the morning (brain/hub/updates.py), so a screen moves to the
+# version its hub moved to that night. Not at boot: somebody who just switched a screen on is looking at it.
+[Unit]
+Description=Bring this screen to its hub's version, every night
+
+[Timer]
+OnCalendar=*-*-* 05:15
+RandomizedDelaySec=30min
+
+[Install]
+WantedBy=timers.target

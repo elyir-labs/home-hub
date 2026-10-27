@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Today, the household's films on Jellyfin's own screens</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap">
+<link rel="stylesheet" href="media.css">
+<style>
+  .cap { font-size: 15px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .frame { position: absolute; width: 845px; height: 475px; border-radius: 12px; overflow: hidden; border: 1px solid var(--edge-hi); box-shadow: 0 30px 70px -34px rgba(0,0,0,.95); }
+  .frame > .jf { transform: scale(.44); transform-origin: 0 0; }
+  .note { padding: 18px 22px 20px; border-radius: 20px; background: var(--surface); border: 1px solid var(--edge); }
+  .t1 { font-size: 20px; font-weight: 500; margin-bottom: 6px; }
+  .t2 { font-size: 16.5px; color: var(--ink-2); line-height: 1.45; }
+  code { color: var(--lamp); font-size: .92em; }
+  .bad { color: var(--danger); }
+
+  /* Jellyfin's own TV home and its library dialog, as a household meets them */
+  .jf { position: relative; width: 1920px; height: 1080px; background: #101010; color: #eee; font-family: "Noto Sans", system-ui, sans-serif; font-size: 22px; }
+  .jf .bar { height: 96px; display: flex; align-items: center; gap: 40px; padding: 0 56px; background: #181818; }
+  .jf .tab { color: #aaa; } .jf .tab.on { color: #fff; border-bottom: 4px solid #00a4dc; padding-bottom: 6px; }
+  .jf h3 { margin: 34px 0 16px 56px; font-size: 30px; font-weight: 500; }
+  .jf .row { display: flex; gap: 22px; padding-left: 56px; }
+  .jf .lib { width: 400px; height: 225px; border-radius: 6px; position: relative; overflow: hidden; }
+  .jf .lib span { z-index: 1; position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px; background: rgba(0,0,0,.6); font-size: 24px; }
+  .jf .th { width: 400px; } .jf .th > div { height: 225px; border-radius: 6px; position: relative; overflow: hidden; }
+  .jf .th .bar2 { position: absolute; left: 0; bottom: 0; height: 8px; background: #00a4dc; }
+  .jf .th p { margin: 10px 0 0; font-size: 22px; } .jf .th small { color: #999; font-size: 19px; }
+  .jf .po { width: 240px; height: 360px; border-radius: 6px; position: relative; overflow: hidden; }
+  .jf .dlg { position: absolute; left: 380px; top: 60px; width: 1160px; height: 960px; background: #202020; border-radius: 8px; padding: 36px 48px; box-shadow: 0 30px 90px rgba(0,0,0,.8); }
+  .jf .dlg h2 { margin: 0 0 26px; font-size: 36px; font-weight: 500; }
+  .jf label { display: block; color: #aaa; font-size: 20px; margin: 18px 0 8px; }
+  .jf .in { height: 58px; border-radius: 4px; background: #2c2c2c; padding: 0 18px; display: flex; align-items: center; justify-content: space-between; }
+  .jf .ck { display: flex; gap: 16px; align-items: center; margin: 14px 0; font-size: 22px; }
+  .jf .ck i { width: 28px; height: 28px; border-radius: 4px; background: #00a4dc; flex: none; }
+  .jf .ck i.off { background: transparent; border: 2px solid #777; }
+</style>
+</head>
+<body>
+<div class="tv">
+  <div style="position: absolute; top: 56px; left: 96px; right: 96px;">
+    <h1 style="margin: 0; font-size: 54px; font-weight: 400; letter-spacing: -.02em;">Today, the household&rsquo;s films on Jellyfin&rsquo;s own screens.</h1>
+    <p style="margin: 12px 0 0; font-size: 21px; color: var(--ink-2); max-width: 118ch;">Jellyfin is to films what Home Assistant is to lights: a good engine, open source, with a complete API, and its own screens are made for whoever runs the server. This is what a household gets if the hub ran it and stopped there.</p>
+  </div>
+
+  <div class="cap" style="position: absolute; top: 214px; left: 96px;">the TV, Jellyfin&rsquo;s app, on a Tuesday evening</div>
+  <div class="frame" style="top: 246px; left: 96px;">
+    <div class="jf">
+      <div class="bar"><span style="font-size: 30px; color: #00a4dc; font-weight: 600;">&#9776;</span><span class="tab on">Home</span><span class="tab">Favorites</span><span style="flex:1"></span><span class="tab">&#9906; Search</span><span style="width: 44px; height: 44px; border-radius: 50%; background: #444;"></span></div>
+      <h3>My Media</h3>
+      <div class="row">
+        <div class="lib s-field"><span>Movies</span></div><div class="lib s-harbor"><span>Shows</span></div><div class="lib s-band"><span>Music</span></div><div class="lib s-lake"><span>Home Videos and Photos</span></div>
+      </div>
+      <h3>Continue Watching</h3>
+      <div class="row">
+        <div class="th"><div class="s-field"><i class="bar2" style="width: 62%"></i></div><p>The Long Field</p><small>2024</small></div>
+        <div class="th"><div class="s-harbor"><i class="bar2" style="width: 20%"></i></div><p>Harbor Lights</p><small>S1:E3 - The Breakwater</small></div>
+        <div class="th"><div class="s-moons"><i class="bar2" style="width: 8%"></i></div><p>Paper Moons</p><small>S2:E1 - Pilot</small></div>
+        <div class="th"><div class="s-lake"><i class="bar2" style="width: 40%"></i></div><p>VID_20250814_1832.mp4</p><small>Home Videos and Photos</small></div>
+      </div>
+      <h3>Recently Added in Movies</h3>
+      <div class="row"><div class="po s-ember"></div><div class="po s-north"></div><div class="po s-city"></div><div class="po s-quiet"></div><div class="po s-tide"></div><div class="po s-garden"></div><div class="po s-kitchen"></div></div>
+    </div>
+  </div>
+  <div style="position: absolute; top: 740px; left: 96px; width: 845px;" class="t2"><span class="ink2" style="color: var(--ink);">It opens on a library.</span> The four places the films are kept come first, and the evening you were in the middle of is second. A home video is named by the file the phone gave it.</div>
+
+  <div class="cap" style="position: absolute; top: 214px; left: 979px;">adding the films, the first thing it asks</div>
+  <div class="frame" style="top: 246px; left: 979px;">
+    <div class="jf">
+      <div class="bar"><span style="font-size: 30px; color: #00a4dc;">&#9776;</span><span class="tab">Dashboard</span><span class="tab on">Libraries</span><span class="tab">Playback</span><span class="tab">Networking</span></div>
+      <div class="dlg">
+        <h2>New Library</h2>
+        <label>Content type</label><div class="in">Movies <span>&#9662;</span></div>
+        <label>Display name</label><div class="in"></div>
+        <label>Folders</label><div class="in" style="color: #00a4dc;">+ /mnt/media/movies</div>
+        <div class="ck" style="margin-top: 28px;"><i></i>Enable real time monitoring</div>
+        <label>Automatically refresh metadata from the internet</label><div class="in">Never <span>&#9662;</span></div>
+        <label>Metadata downloaders (Movies)</label>
+        <div class="ck"><i></i>TheMovieDb</div><div class="ck"><i></i>The Open Movie Database</div>
+        <div class="ck"><i class="off"></i>Save artwork into media folders</div>
+        <div class="ck"><i class="off"></i>Enable trickplay image extraction</div>
+      </div>
+    </div>
+  </div>
+  <div style="position: absolute; top: 740px; left: 979px; width: 845px;" class="t2"><span style="color: var(--ink);">It asks in a server&rsquo;s words.</span> A folder path, a content type, which databases to download from. The household has a drive in a drawer and wants the films on it.</div>
+
+  <div style="position: absolute; top: 852px; left: 96px; right: 96px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px;">
+    <div class="note"><div class="t1">Its own people</div><div class="t2">Jellyfin keeps its own users and passwords. The hub already knows who lives here, and nobody should be asked to sign in to watch a film on their own TV.</div></div>
+    <div class="note"><div class="t1">Its own words when it fails</div><div class="t2"><span class="bad">&ldquo;This client isn&rsquo;t compatible with the media and the server isn&rsquo;t sending a compatible media format.&rdquo;</span> That is what a slow box says on a 4K film.</div></div>
+    <div class="note"><div class="t1">It does not know the house</div><div class="t2">Which room the TV is in, that the lights are on, that it is past bedtime for one of the people watching. The hub knows all of it.</div></div>
+    <div class="note"><div class="t1">What the hub has today</div><div class="t2">One card: the wall already shows what a TV is playing (<code>design/player</code>, A). There is no library, no phone screen, and nothing on the TV itself.</div></div>
+  </div>
+</div>
+</body>
+</html>

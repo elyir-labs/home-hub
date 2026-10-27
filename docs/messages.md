@@ -135,7 +135,7 @@ per send is enough — pushes are a handful per day, not a stream. The alternati
 `httpx` already in dev requirements, is roughly eighty lines of our own and native async; it is the right trade only
 if `requests` in the image is judged worse than owning the encoding, and it is not.
 
-**The keypair is the hub's, made once**, kept beside `phones.json` in the data directory so it **rides the backup** —
+*Changed 19 October 2026: the key is the phone's, one for every house it has joined, as the printer app does it, and the store app's are carried by a sender Elyir runs, sealed (`docs/apps.md`, Decided).* **The keypair is the hub's, made once**, kept beside `phones.json` in the data directory so it **rides the backup** —
 a house restored onto a new box keeps its phones' subscriptions working, which is the same property pairing already
 has and for the same reason. The VAPID `sub:` claim must be the maker's address, never the household's: it is sent to
 Apple and Google on every message and it is not the house's business to identify itself to them.
@@ -172,16 +172,29 @@ class on one transport, not a feature anybody writes twice. That is the four-ite
 
 The first two are today's work and depend on nothing.
 
-1. **Wire the orphan.** A `message` branch in `connect()`, `notify()` on the far end of it, a test that a rule's note
+1. *Done 19 October 2026 (`app/e2e/note.spec.ts`).* **Wire the orphan.** A `message` branch in `connect()`, `notify()` on the far end of it, a test that a rule's note
    reaches a screen. Five lines against a documented outcome that has never worked.
-2. **`brain/hub/messages.py` and the classes.** Move the 19 `e.message` receipts and everything in `health.py` onto
+2. *Done 19 October 2026 (`brain/tests/test_messages.py`): Needs a look and a rule's note are on ids; the panel's receipts already carry the brain's sentence, and the few that glue one on are left for the wording pass.* **`brain/hub/messages.py` and the classes.** Move the 19 `e.message` receipts and everything in `health.py` onto
    ids. The panel keeps the receipts that describe its own hand and loses the rest. No delivery work at all in this
    step — it is a refactor whose output is a file you can read the house's whole voice out of.
 3. **The band and the log read the catalog** rather than each assembling its own sentence. *Recent* can then say
    what a message was, not just that one happened.
-4. **The service worker**, with the offline shell only. This is `docs/apps.md` step 2 and it lands as soon as there is
+4. *Changed 19 October 2026: the worker is the Houses app's, not the panel's, and it keeps no offline shell -- see
+   `docs/apps.md`, Decided. What follows is the plan as first written.* **The service worker**, with the offline shell only. This is `docs/apps.md` step 2 and it lands as soon as there is
    a trusted origin — `docs/away.md` step 5 — and not before, because a service worker on the wall's plain `http://hub.local` is inert, and on the hub's own CA it is only as trusted as the certificate a phone was made to install.
-5. **Push: the keypair, `POST /phones/me/push`, `pywebpush`.** `docs/away.md` step 6.
+5. *Built 19 October 2026, the house's half (`brain/hub/pusher.py`, `brain/tests/test_pusher.py`): `POST` and
+   `DELETE /phones/me/push` keep `{subscription, vapid, tz, since}` on the phone's own record in `phones.json`, now
+   0600, and the key never leaves it; on the drivers' half-minute look, an `attention` line that is new and still
+   there on the next look goes once to every phone that holds keys and has push (a blip, such as things gone for a
+   moment while the engine restarts, tells nobody), signed with that phone's key, `sub` the maker's, tagged with the
+   house's name as well as its id and subject, and held overnight until 07:00 in the phone's zone. The Houses app's half landed 20 October 2026 (`design/notify/`, B: one
+   switch under the houses, `app/houses/src/push.ts` and its worker). APNs and the sealed sender landed 20 October 2026
+   (`docs/apps.md`, *Notifications in the iOS app*): a phone in the iOS app hands each house its APNs token and a key
+   of its own, the house seals the same payload to that key and hands it to `POST /push` on the maker's service
+   (`relay/service/push.py`) with its relay secret, and a house with no web address keeps the phone and says so in
+   `/phones/me`. The sender answers 503 until Apple's key is in the operator's Terraform; Android waits for FCM. Not
+   yet: the switches in step 6 -- until they land, every owner's phone with push is told.*
+   **Push: the keypair, `POST /phones/me/push`, `pywebpush`.** `docs/away.md` step 6.
 6. **The switches on *People*** — per phone, `attention` off by default and `alert` off by default, landing with the
    `remote` switch in the same step for the same reason: the panel never shows a promise it cannot keep.
 

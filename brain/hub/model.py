@@ -245,6 +245,9 @@ class Home:
         # to 2700K, and the difference -- who decided -- is the whole of what Automatic means. Kept
         # in settings beside `kinds` so a restore brings it back with the rest of the house.
         self.color_pinned: set[str] = set()
+        # What the household said never to show on Home (design/home-keep/, B). The house's answer rather than
+        # a screen's, because a plug that is noise on the wall is noise on every phone. Kept in settings.
+        self.off_home: set[str] = set()
         self.room_colors: dict[str, list] = {}   # kept per room, from settings, so a restore brings them back
         self.lamps: dict[str, str] = {}    # camera id -> the light built into the same unit (Ring floodlight and spotlight cams)
         self.eyes: dict[str, str] = {}     # light/switch/fan id -> the motion sensor built into the same unit (a Brilliant switch, a Ring pathlight): docs/units.md
@@ -266,6 +269,16 @@ class Home:
         # the tile. A folded light stays a device -- rules, the log and a tap on the roofline still reach
         # it -- and is only left out of its room's list. Written by hub/roofline.py.
         self.folded: dict[str, str] = {}
+        # SPEAKERS THE MUSIC ENGINE CAN PLAY ON (hub/music.py). The engine hands each speaker it reaches to the driver
+        # layer as a second media player, so a Cast speaker arrives twice: as itself, and as the engine's. The house
+        # shows it once. The engine's copy is folded into the speaker's own device -- its state and what it is playing
+        # while it is the one playing, and the way music is started there -- and is never a device of its own, unless
+        # the engine is the only way the house has to reach that speaker at all, when it is the speaker.
+        self.players: dict[str, dict] = {}       # device id -> {"entity": the engine's player, "kind": what sort of speaker}
+        self.twins: dict[str, str] = {}          # the engine's player -> the device it is folded into
+        self.together: dict[str, list] = {}      # device id -> the devices playing in step with it, the leader first
+        self._own: dict[str, dict] = {}          # a folded speaker's own latest state, to fall back to when the engine stops
+        self._engine: dict[str, dict] = {}       # the engine's latest state of each player
 
     def attrs_for(self, eid, cap, a):
         """HA's attributes plus what the brain knows. While the brain runs a fan timer the fan is on whatever the
@@ -279,6 +292,7 @@ class Home:
         out.update(self.told.get(eid, {}))
         if extra.get("fan_until", 0) > time.time(): out["fan_mode"] = "on"
         if cap.split(".")[0] == "light" and eid in self.color_pinned: out["color_pinned"] = True
+        if eid in self.off_home: out["off_home"] = True
         return out
 
     @staticmethod
@@ -299,6 +313,22 @@ class Home:
                 "fan": ("percentage",), "sensor": ("unit_of_measurement",)}.get(cap.split(".")[0], ())
         return {k: a[k] for k in keys if k in a}
 
+    @staticmethod
+    def engine_players(entities) -> dict[str, str]:
+        """The engine's media player -> the speaker's own one, where the driver layer has both. The engine names its player
+        after the speaker's own id: the same id the speaker's own integration uses (a Cast or Sonos speaker), or the
+        speaker's entity id itself when the engine reaches it through the driver layer. An engine player with no such
+        partner maps to itself -- it is the only way to that speaker."""
+        mine = {e["entity_id"]: e for e in entities if e.get("platform") == "music_assistant" and e["entity_id"].startswith("media_player.")}
+        others = {e.get("unique_id"): e["entity_id"] for e in entities
+                  if e.get("platform") != "music_assistant" and e["entity_id"].startswith("media_player.") and e.get("unique_id")}
+        ids = {e["entity_id"] for e in entities}
+        out = {}
+        for eid, e in mine.items():
+            uid = str(e.get("unique_id") or "")
+            out[eid] = others.get(uid) or (uid if uid in ids and uid not in mine else eid)
+        return out
+
     def build(self, areas, ha_devices, entities, states):
         was = self.rooms
         self.rooms = {a["area_id"]: Room(a["area_id"], a["name"]) for a in areas}
@@ -317,6 +347,9 @@ class Home:
         st = {s["entity_id"]: s for s in states}
         camera_devices = {e["device_id"] for e in entities if e["entity_id"].startswith("camera.") and e.get("device_id")}
         self.devices = {}
+        self.twins = {e: own for e, own in self.engine_players(entities).items() if own != e}
+        self._engine = {e: st[e] for e in self.engine_players(entities) if e in st}
+        self._own = {own: st[own] for own in self.twins.values() if own in st}
         units = chargers(entities, st)
         self.charger_parts = {parts["plug"]: parts for parts in units.values()}
         self.part_of = {eid: parts["plug"] for parts in units.values() for eid in parts.values()}
@@ -324,6 +357,7 @@ class Home:
         for eid, s in st.items():
             e = reg.get(eid, {})
             if e.get("device_id") in units: continue   # a charger is one device, made below
+            if eid in self.twins: continue              # the engine's copy of a speaker the house already has
             if e.get("disabled_by") or e.get("hidden_by") or e.get("entity_category"):
                 continue      # diagnostics and config entities are not product surface
             domain = eid.split(".")[0]
@@ -389,6 +423,13 @@ class Home:
                 self.fixtures[fid] = {"light": d.id, "leads": lead}
                 self.fixtures[d.id] = {"fan": fid, "leads": lead}
         for eid, more in self.fixtures.items(): self.devices[eid].attrs.update(more)
+        self.players = {}
+        for e in self.engine_players(entities):
+            own = self.twins.get(e, e)
+            if own in self.devices:
+                kind = (reg.get(own) or {}).get("platform") or "speaker"
+                self.players[own] = {"entity": e, "kind": "speaker" if kind == "music_assistant" else kind}
+        for own in self.players: self._speaker(self.devices[own])
         # A thermostat with sensors of its own in other rooms -- each one its own device hanging off the
         # thermostat's -- is told how many, so the pane can say "its own sensors" rather than "its own".
         self.companions, self.told = {}, {}
@@ -444,7 +485,42 @@ class Home:
         d.since = changed_at(parts["plug"]) if parts.get("plug") else time.time()
         if d.state == "charging" and parts.get("charging"): d.since = changed_at(parts["charging"])
 
+    def _speaker(self, d: Device):
+        """A speaker the engine can play on: its own state, or the engine's while the engine is the one playing it."""
+        p = self.players.get(d.id)
+        if not p: return
+        mine, engine = self._own.get(d.id), self._engine.get(p["entity"])
+        if engine and engine["state"] in ("playing", "paused", "buffering") and p["entity"] != d.id:
+            a = {**((mine or {}).get("attributes") or {}), **{k: v for k, v in engine["attributes"].items()
+                                                         if k.startswith("media_") or k in ("entity_picture", "volume_level")}}
+            d.state = engine["state"]
+            d.attrs = self.attrs_for(d.id, d.capability, {**a, "app_name": None})
+        elif mine:
+            d.state, d.attrs = mine["state"], self.attrs_for(d.id, d.capability, mine["attributes"])
+        d.attrs["music"] = True
+        members = [self.twins.get(m, m) for m in ((engine or {}).get("attributes") or {}).get("group_members") or []]
+        mates = [m for m in members if m in self.devices]
+        if len(mates) > 1 and d.id in mates:
+            self.together[d.id] = mates
+            d.attrs["together"] = [m for m in mates if m != d.id]
+        else:
+            self.together.pop(d.id, None)
+
     def apply_state(self, entity_id, new_state) -> Device | None:
+        if entity_id in self._engine or entity_id in self.twins:
+            if new_state: self._engine[entity_id] = new_state
+            d = self.devices.get(self.twins.get(entity_id, entity_id))
+            if d and entity_id in self.twins:
+                self._speaker(d)
+                return d
+        if entity_id in self._own and new_state:
+            self._own[entity_id] = new_state
+            d = self.devices.get(entity_id)
+            if d:
+                d.name = new_state["attributes"].get("friendly_name", d.name)
+                d.seen, d.since = seen_at(new_state), changed_at(new_state)
+                self._speaker(d)
+            return d
         if entity_id in self.companions and new_state:
             cid, kind = self.companions[entity_id]
             d = self.devices.get(cid)
@@ -466,6 +542,7 @@ class Home:
         d.name = new_state["attributes"].get("friendly_name", d.name)   # a rename shows up here first
         d.seen = seen_at(new_state)
         d.since = changed_at(new_state)
+        if d.id in self.players: self._speaker(d)
         return d
 
     def to_dict(self):

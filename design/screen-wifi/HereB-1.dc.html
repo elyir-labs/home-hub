@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B1: the wall asks which Wi-Fi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Instrument+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="screen-wifi.css">
+</head>
+<body>
+<div class="wall">
+  <div class="stars"></div><div class="moon"></div><div class="hills"></div>
+
+  <div class="col" style="top: 206px;">
+    <div class="mark"><svg class="i" width="30" height="30" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg></div>
+    <h1>Which Wi&#8209;Fi is yours?</h1>
+    <p class="lede">The hub will use it from now on.</p>
+    <div class="nets">
+      <div class="net"><svg class="i lock" width="15" height="15" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Downstairs
+        <svg class="i bars" width="18" height="18" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r=".9" fill="currentColor"/></svg></div>
+      <div class="net"><svg class="i lock" width="15" height="15" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>BT-HUB-9QK2
+        <svg class="i bars" width="18" height="18" viewBox="0 0 24 24"><path d="M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r=".9" fill="currentColor"/></svg></div>
+      <div class="net"><span class="lock"></span>Flat 3 guest
+        <svg class="i bars" width="18" height="18" viewBox="0 0 24 24"><path d="M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r=".9" fill="currentColor"/></svg></div>
+      <div class="net other"><svg class="i lock" width="15" height="15" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>A network that isn&rsquo;t listed</div>
+    </div>
+    <div class="foot">Or plug a cable from the hub into your router, and this step goes by itself.</div>
+  </div>
+
+  <div class="ann" style="left: 1076px; top: 206px;">
+    <span class="cap">The phone&rsquo;s question, asked where you are standing</span>
+    SetupWifi.vue as it is, on the wall, in front of Welcome home: the way first run already opens on the drive question when there is one. <b>No phone, no code, no password on show.</b> Welcome home follows once the hub is online.
+  </div>
+  <div class="ann" style="left: 1076px; top: 424px;">
+    <span class="cap">The hub hears these itself</span>
+    The list is the hub&rsquo;s own scan, the same one the phone is shown. The hub&rsquo;s own Wi&#8209;Fi stays up meanwhile for a phone, and is never in the list.
+  </div>
+  <div class="ann bad" style="left: 64px; top: 560px;">
+    <span class="cap">Against</span>
+    It needs a screen you can touch. A Pi on an HDMI monitor with no touch shows a question it can&rsquo;t answer, and a long password is typed on glass.
+  </div>
+</div>
+</body>
+</html>

@@ -25,6 +25,8 @@ PARTS = [
     ("ring-mqtt", ("logs", "*.log")),
     ("matter-server", ()),
     ("caddy/data", ()),
+    # The music engine's owner has to travel with the brain's settings, which hold its password (hub/music.py).
+    ("music-data", (".cache", "*.log", "*.log.*")),
 ]
 REQUEST, STATE, ARCHIVE = DATA / "restore.request", DATA / "restore.json", DATA / "restore.tar.gz"
 

@@ -26,12 +26,16 @@ from . import notes as notes_mod
 from .updates import Updates
 from .address import Address, Unreachable
 from .health import Health
+from .glance import glance as glance_of
 from .happened import Happened, Changes
 from .healed import Healed
 from .backup import Backup
 from .network import Network
+from .drive import Drive
 from .restart import Restart
+from .developer import Developer
 from .sounds import Sounds, DIR as SOUNDS_DIR
+from .music import Music, MusicError
 from .commands import Commands, NotUnderstood, refusal_aloud
 from .voice import Voice
 from .suggest import Suggestions
@@ -42,6 +46,7 @@ from .bridge import Bridges
 from .strip import Strips, StripError
 from .roofline import Roofline
 from .printers import Printers
+from .power import Power
 from .signals import Signals
 from . import things
 from .things import Things
@@ -49,7 +54,8 @@ from .share import Share
 from .nightlight import Nightlight
 from .ears import Ears
 from .relay import Relay
-from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, away_refused, away_refusal
+from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, from_setup, from_screen, SETUP_OPEN, away_refused, away_refusal
+from .pusher import NEEDS_ADDRESS as PUSH_NEEDS_ADDRESS, Pusher, checked as push_checked
 from . import camera
 
 log = logging.getLogger("hub")
@@ -106,6 +112,7 @@ class Hub:
         self.home.kinds = dict(self.settings.get("kinds") or {})   # what the owner said things are; kept in settings so a restore brings it back with the rest of the house
         self.home.color_pinned = set(self.settings.get("color_pinned") or [])   # and which lights somebody chose a color for, rather than leaving to the house
         self.home.room_colors = {k: list(v) for k, v in (self.settings.get("room_colors") or {}).items()}
+        self.home.off_home = set(self.settings.get("off_home") or [])   # what is never on Home, on any screen (design/home-keep/)
         self.home.leads = dict(self.settings.get("leads") or {})   # which part of a fan-with-a-light is the tile, where the owner has said (docs/units.md)
         self.log = EventLog(DATA / "events.db")
         self.streams: set[WebSocket] = set()
@@ -133,12 +140,16 @@ class Hub:
         self.strip = Strips(self)          # a light strip knocking over Bluetooth: hub/strip.py
         self.roofline = Roofline(self)     # several strip controllers as one light outside, its evenings and its holidays
         self.printers = Printers(self)     # 3D printers on the Wi-Fi, let in at the printer and followed: hub/printers.py
+        self.power = Power()               # the sun on the roof, the battery and the grid: hub/power.py
+        self._power_sent: tuple[float, tuple | None] = (0.0, None)
         self.net = Network(self)           # how this hub is connected, and what it hands out: docs/network.md
+        self.drive = Drive(self)           # what it runs from, and the drive beside it: design/move-to-drive/
         self.share = Share(self)           # what this house lets a Matter bridge publish: docs/matter.md
         self.share_status: dict = {}       # what the bridge last said about itself (pairing codes, who holds it)
         self.relay = Relay(self)           # two switches on one light: the hub carries the press across
         self.nightlight = Nightlight(self)  # a bridge's own light, lifted when somebody walks past it
         self.phones = Phones(self)                     # which phones belong to the house, once it has a code
+        self.pusher = Pusher(self)                     # what needs a look, told once to the phones that can act on it
         self.engine = Engine(self)                     # rules: signals in, room intents out
         self.signals = Signals(self)                   # what the lights tell you: arriving, leaving, a door left open
         self.presence = Presence(self)                 # who is home, from HA's persons and the alarm's mode
@@ -151,7 +162,9 @@ class Hub:
         self.backup = Backup(self)                     # the house as one file, and back
         self.restart = Restart(self)                   # turning it off and on again, at the smallest rung that could help
         self.address = Address(self)                   # the house's own name outside, and the switch for it: hub/address.py
+        self.developer = Developer(self)               # for working on the hub: what it follows, SSH, the screens (design/developer/)
         self.sounds = Sounds(self)                     # noise and rain on a speaker, looped here, with a sleep timer
+        self.music = Music(self)                       # radio and the household's own music, on any speaker the engine reaches
         self.commands = Commands(self)                 # plain words into moves, by a fixed grammar first and the assistant after
         self.voice = Voice(self)                       # the same answers, said out loud -- inert until a hub has an engine
         self.suggest = Suggestions(self)               # names and rooms for things not placed yet; proposes, never moves
@@ -163,6 +176,7 @@ class Hub:
         self._tick_task = self._drivers_task = None
         self._wake = asyncio.Event()
         self._rebuild_task = None
+        self._music_task = None
         self._loop_task = None
         self._loop: asyncio.AbstractEventLoop | None = None   # the server's loop, for broadcasts from worker threads
         self.roofline._fold()                          # the boxes folded into the roofline's one tile, before the first build
@@ -262,6 +276,7 @@ class Hub:
         else: log.info("no home location yet: the panel will ask for one")
         snap = await self.ha.snapshot()
         self.home.build(*snap)
+        self.power.load(snap[2], snap[3])
         self.presence.load(snap[3]); self.presence.seed(self.log)
         self.engine.load(force=True); self.engine.seed()
         self.comfort.load()
@@ -271,13 +286,22 @@ class Hub:
         self._set("ready")
         asyncio.create_task(self.provision.refresh())   # look at the driver layer now, not at the next half-minute
         asyncio.create_task(self.sounds.ensure())        # the generated noises, once
+        if not self._music_task or self._music_task.done(): self._music_task = asyncio.create_task(self._keep_music())   # the music engine, set up unseen
         asyncio.create_task(self.bridge.watch())         # what appears on the USB from now on
         asyncio.create_task(self.bridge.firmware.watch())   # a build parked by tools/dev.sh puck
         asyncio.create_task(self.strip.listen())         # the strips the house already has
         asyncio.create_task(self.strip.watch())          # and any that start knocking
         self._broadcast(json.dumps({"type": "home", "home": self.home_dict()}))
         self._broadcast(json.dumps({"type": "ambient", "ambient": self.ambient()}))
+        self.power_changed(force=True)
         log.info("home: %d rooms, %d devices, weather=%s", len(self.home.rooms), len(self.home.devices), self.weather and self.weather["id"])
+
+    async def _keep_music(self):
+        """The music engine comes up on its own clock, so it is looked for until it answers and then twice a day,
+        which is what catches its yearly key running out before anybody reaches for a speaker."""
+        while self.driver == "ready":
+            state = await self.music.ensure()
+            await asyncio.sleep(12 * 3600 if state == "ready" else 60)
 
     def ready(self):
         if self.driver != "ready": raise HTTPException(503, "The hub is still starting.")
@@ -405,7 +429,7 @@ class Hub:
         parts = code.split("-")
         self.language = "-".join([parts[0].lower(), *parts[1:]])
         self.settings.set(language=self.language)
-        self.onboarding._strings.clear(); self.onboarding._names.clear()
+        self.add._strings.clear(); self.add._names.clear()
         self._broadcast(json.dumps({"type": "status", "status": self.status()}))
         return self.language
 
@@ -468,6 +492,8 @@ class Hub:
         await asyncio.sleep(1.0)
         snap = await self.ha.snapshot()
         self.home.build(*snap)
+        self.power.load(snap[2], snap[3])
+        self.power_changed(force=True)
         self.presence.load(snap[3])
         self.engine.load(force=True); self.engine.seed()
         self.comfort.load()
@@ -482,8 +508,18 @@ class Hub:
         self._broadcast(json.dumps({"type": "home", "home": self.home_dict()}))
         log.info("home rebuilt: %d rooms, %d devices", len(self.home.rooms), len(self.home.devices))
 
+    POWER_EVERY = 10.0   # the gateway reports every few seconds; the panel is told at most this often unless the band changes
+
+    def power_changed(self, force=False):
+        now, (at, said) = time.time(), self._power_sent
+        if not force and said == self.power.said() and now - at < self.POWER_EVERY: return
+        self._power_sent = (now, self.power.said())
+        self._broadcast(json.dumps({"type": "power", "power": self.power.now()}))
+
     def _on_state(self, ev):
         d = ev["data"]
+        if self.power.on_state(d["entity_id"], d.get("new_state")):
+            return self.power_changed()
         if d["entity_id"].startswith("weather.") and d.get("new_state"):
             if not self.weather or self.weather["id"] == d["entity_id"]:
                 self.weather = self._weather_of(d["new_state"])
@@ -758,7 +794,11 @@ async def settings_lock(request: Request, call_next):
     """
     request.state.phone = None
     request.state.away = from_away(request.headers)   # off the Wi-Fi, or in through the relay: docs/away.md piece 2
+    request.state.setup = from_setup(request.headers)  # on the hub's own setup Wi-Fi: docs/network.md piece 5
+    request.state.screen = from_screen(request.headers, request.client.host if request.client else None)  # plugged into the hub
     m, path = request.method, request.url.path
+    if request.state.setup and ((m, path) in SETUP_OPEN or open_to_strangers(m, path)):
+        return await call_next(request)
     phone = hub.phones.identify(_phone_token(request)) if hub.lock.locked else None
     # Who is asking, for anything this request writes down. Set before call_next so the copy the
     # endpoint's task starts with has it, and only ever read for source="user" (events.py). A house
@@ -777,6 +817,7 @@ async def settings_lock(request: Request, call_next):
         if not open_to_strangers(m, path):
             if not phone: return JSONResponse({"detail": "phone"}, status_code=401)
             request.state.phone = phone
+            if phone.get("kind") == "screen" and request.client: hub.developer.saw_screen(phone, request.client.host)
         if needs_code(m, path):
             who = request.client.host if request.client else ""
             wait = hub.lock.waiting(who)
@@ -1080,6 +1121,24 @@ async def set_device_lead(device_id: str, body: dict):
     hub.log.add("home", dev.id, None, lead, source="user", detail={"leads": True})
     for part in parts: hub._broadcast(json.dumps({"type": "device", "device": part.__dict__}))
     return {"ok": True, "leads": lead}
+
+
+@app.post("/devices/{device_id}/home")
+async def set_device_home(device_id: str, body: dict):
+    """Whether this shows on Home: `{"show": "never"}` leaves it off every screen's Home, `{"show": "on"}` puts
+    it back to showing while it is on. Always is a screen's own and is kept on the screen (design/home-keep/)."""
+    hub.ready()
+    dev = hub.home.devices.get(device_id)
+    if not dev: raise HTTPException(404, "unknown device")
+    show = (body.get("show") or "").strip()
+    if show not in ("never", "on"): raise HTTPException(400, "On Home is never, or when it's on.")
+    never = show == "never"
+    if never: hub.home.off_home.add(dev.id); dev.attrs["off_home"] = True
+    else: hub.home.off_home.discard(dev.id); dev.attrs.pop("off_home", None)
+    hub.settings.set(off_home=sorted(hub.home.off_home))
+    hub.log.add("home", dev.id, None, show, source="user", detail={"off_home": never})
+    hub._broadcast(json.dumps({"type": "device", "device": dev.__dict__}))
+    return {"ok": True, "show": show}
 
 
 @app.post("/devices/{device_id}/kind")
@@ -1431,6 +1490,19 @@ async def bridge_wifi(body: dict):
 # ---------- 3D printers: found on the Wi-Fi, let in at the printer, and followed (docs/printers.md) ----------
 @app.get("/printers")
 def printers_status(): return hub.printers.status()
+
+
+@app.get("/power")
+def power_now():
+    """The sun, the house, the battery and the grid right now; null where the house has no such system."""
+    return hub.power.now()
+
+
+@app.get("/power/day")
+async def power_day():
+    """Today so far, for the pane: made and used since midnight, and the sun and the house through the day."""
+    if not hub.power.exists() or not hub.ha: return None
+    return await hub.power.day(hub.ha, hub.tz)
 
 
 @app.post("/printers/look")
@@ -1806,15 +1878,26 @@ async def strip_forget(strip_id: str):
 
 
 @app.get("/network")
-def network_state():
+def network_state(request: Request):
     """What the hub is on, and what the bridges are on. Two different questions on most hubs."""
     wifi = hub.bridge.wifi_for_pucks()
-    return {**hub.net.state(),
+    return {**hub.net.state(own_screen=request.state.screen),
             "bridges": {"ssid": wifi["ssid"], "checked": wifi["checked"], "known": wifi["known"],
                         "count": sum(1 for p in hub.bridge.pucks.values() if p.get("online"))},
             # Two different journeys, and they must not share a key: `moving` is this hub changing
             # network (the host is watching it), `bridges_moving` is the pucks doing the same.
             "bridges_moving": hub.bridge.move_status()}
+
+
+@app.get("/network/setup.svg")
+def network_setup_qr(request: Request):
+    """The hub's own Wi-Fi as a code for a phone's camera, on the screen plugged into the hub (design/screen-wifi/, C).
+
+    Built here from what the host wrote, like the bridge's pairing code, and only for that screen: anywhere else
+    it would be the label's password handed to whoever asked."""
+    code = hub.net.setup_code() if request.state.screen else None
+    if not code: raise HTTPException(404, "the hub's own Wi-Fi is not up")
+    return Response(content=qr_svg_bytes(code), media_type="image/svg+xml", headers={"Cache-Control": "no-store"})
 
 
 @app.post("/network/scan")
@@ -1841,7 +1924,9 @@ async def network_hub(body: dict, request: Request):
     reached. Doing it the other way round would mean the hub changing networks and only then
     discovering it can no longer tell anybody.
     """
-    hub.ready()
+    # From the setup Wi-Fi, or the screen on a hub with no network, the house may not have started yet -- it
+    # may have nothing to start with -- and the one thing being asked is which Wi-Fi to use, which needs nothing from it.
+    if not (request.state.setup or request.state.screen): hub.ready()
     if request.state.away:
         # The one refusal this design makes that restarting does not. A restart away from home is
         # caught by a watchdog on the machine; a wrong network away from home can be right and still
@@ -1849,10 +1934,39 @@ async def network_hub(body: dict, request: Request):
         raise HTTPException(403, "Changing the network has to be done in the house.")
     ssid, password = str(body.get("ssid") or ""), str(body.get("password") or "")
     try:
-        if sum(1 for p in hub.bridge.pucks.values() if p.get("online")):
+        if hub.driver == "ready" and sum(1 for p in hub.bridge.pucks.values() if p.get("online")):
             await hub.bridge.move(ssid, password)
         return hub.net.join(ssid, password)
     except ValueError as e: raise HTTPException(400, str(e))
+
+
+# ---------------------------------------------------------------- the drive beside a hub on a USB stick
+#
+# design/move-to-drive/. Looking is open; moving erases a drive, so it is a change to the house (lock.py), and
+# it is never done from away, where nobody can see which computer it is.
+
+
+@app.get("/drive")
+def drive_state():
+    return hub.drive.state()
+
+
+@app.post("/drive/move")
+def drive_move(body: dict, request: Request):
+    if request.state.away:
+        raise HTTPException(403, "Moving the hub onto its drive has to be done in the house.")
+    try: return hub.drive.move(str(body.get("name") or ""), str(body.get("serial") or ""))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.post("/drive/keep")
+def drive_keep():
+    return hub.drive.keep()
+
+
+@app.post("/drive/seen")
+def drive_seen():
+    return hub.drive.seen()
 
 
 @app.post("/network/done")
@@ -2457,8 +2571,10 @@ def phones_me(request: Request):
         return {"locked": True, "paired": False, "home": "the house", "phone": None, "away": True}   # no name, no way in
     paired = (not hub.lock.locked) or bool(phone)
     # The house's name at home, for the app to reach the hub directly on the Wi-Fi -- told to its own phones only.
+    me = hub.phones._public(phone) if phone else None
+    if me and ((phone.get("push") or {}).get("apns")) and not hub.address.secret(): me["push_note"] = PUSH_NEEDS_ADDRESS
     return {"locked": hub.lock.locked, "paired": paired, "home": hub.settings.get("home_name") or "Home",
-            "phone": hub.phones._public(phone) if phone else None, "away": request.state.away,
+            "phone": me, "away": request.state.away,
             "lan": hub.address.lan_name() if paired else None, "address": hub.address.public_origin() if paired else None}
 
 
@@ -2473,6 +2589,36 @@ def phones_me_room(body: dict, request: Request):
     phone = request.state.phone
     if not phone: return {"room": room.id, "phone": None}
     return {"room": room.id, "phone": hub.phones.place(phone["id"], room.id, room.name)}
+
+
+def _told(request: Request) -> dict:
+    """A phone of the house's own, and not a screen on its wall: a wall is in the room and is never pushed to.
+
+    `kind` "wall" alone is only a guess from the browser (an iPad says it is a Mac), so what counts as the wall is
+    a screen that said so (?screen=1) or the one that set the house up from a desktop browser."""
+    phone = request.state.phone
+    if not phone: raise HTTPException(409, "Only a phone that belongs to the house can be told things.")
+    if phone.get("kind") == "screen" or (phone.get("how") == "setup" and phone.get("kind") == "wall"):
+        raise HTTPException(403, "A screen on the wall isn't told things; it shows them.")
+    return phone
+
+
+@app.post("/phones/me/push")
+def phones_me_push(body: dict, request: Request):
+    """{subscription, vapid: {publicKey, privateKey}, tz}: this phone's way of being told things, signed with its own
+    key, the one it hands every house it joins (docs/apps.md, Decided). A new one replaces the old.
+
+    Or {apns: {token, env, p256dh, auth}, tz} from the store app: its APNs token and the key the house seals to,
+    handed to the sender Elyir runs (pusher.py)."""
+    phone = _told(request)
+    try: push = push_checked(body, time.time())
+    except ValueError as e: raise HTTPException(400, str(e))
+    return {"phone": hub.phones.set_push(phone["id"], push)}
+
+
+@app.delete("/phones/me/push")
+def phones_me_push_off(request: Request):
+    return {"phone": hub.phones.set_push(_told(request)["id"], None)}
 
 
 @app.post("/phones/move")
@@ -2632,6 +2778,79 @@ async def sounds():
     return {"sounds": hub.sounds.catalog(), "playing": {k: hub.sounds.describe(k) for k in hub.sounds.sessions}, "folder": str(SOUNDS_DIR)}
 
 
+# ---------- music ----------
+def _music_rooms(room: str | None) -> list[dict]:
+    playing = {}
+    for d in hub.home.devices.values():
+        if d.id in hub.home.players and d.state in ("playing", "paused") and d.attrs.get("media_title"): playing.setdefault(d.room_id, d.attrs["media_title"])
+    rooms = [hub.home.rooms[r] for r in hub.music.rooms() if r in hub.home.rooms]
+    rooms.sort(key=lambda r: (r.id != room, r.name))
+    return [{"id": r.id, "name": r.name, "here": r.id == room, "playing": playing.get(r.id)} for r in rooms]
+
+
+@app.get("/music")
+async def music(room: str | None = None):
+    """The pane's two sides (design/music/RoomA): what to play -- again, radio, the household's own -- and where, this room
+    first. `again` is every room's last two, for the speakers' cards."""
+    hub.ready()
+    out = await hub.music.catalog(room)
+    return {**out, "rooms": _music_rooms(room), "again_by_room": {r: hub.music.again(r) for r in hub.music.rooms()}}
+
+
+@app.get("/music/find")
+async def music_find(q: str = ""):
+    hub.ready()
+    try: return {"items": await hub.music.find(q)}
+    except MusicError as e: raise HTTPException(409, str(e))
+    except Exception as e: raise HTTPException(502, f"The music could not be searched: {e}")
+
+
+def _music_item(body: dict) -> dict:
+    it = (body or {}).get("item") or {}
+    if not isinstance(it, dict) or not it.get("uri") or not it.get("name") or it.get("kind") not in ("radio", "playlist", "album", "track", "artist"):
+        raise HTTPException(400, "Say what to play.")
+    return {k: it.get(k) for k in ("uri", "name", "kind", "by", "art")}
+
+
+@app.post("/music/play")
+async def music_play(body: dict):
+    """{"item": {...}, "rooms": [room ids]} or "everywhere": true. The first room leads; the rest play in step with it."""
+    hub.ready()
+    item = _music_item(body)
+    rooms = hub.music.rooms() if body.get("everywhere") else [r for r in body.get("rooms") or [] if isinstance(r, str)]
+    if not rooms: raise HTTPException(400, "Say which room.")
+    try: return {"ok": True, **await hub.music.play(item, rooms)}
+    except MusicError as e: raise HTTPException(409, str(e))
+    except Exception as e: raise HTTPException(502, f"The speaker did not take it: {e}")
+
+
+@app.post("/music/join")
+async def music_join(body: dict):
+    """{"room": the room to add, "into": the room whose music it joins}."""
+    hub.ready()
+    try: await hub.music.join(str(body.get("room") or ""), str(body.get("into") or ""))
+    except MusicError as e: raise HTTPException(409, str(e))
+    except Exception as e: raise HTTPException(502, f"The speaker did not take it: {e}")
+    return {"ok": True}
+
+
+@app.post("/music/leave")
+async def music_leave(body: dict):
+    hub.ready()
+    try: await hub.music.leave(str(body.get("room") or ""))
+    except MusicError as e: raise HTTPException(409, str(e))
+    except Exception as e: raise HTTPException(502, f"The speaker did not take it: {e}")
+    return {"ok": True}
+
+
+@app.post("/music/stop")
+async def music_stop(body: dict):
+    hub.ready()
+    rooms = hub.music.rooms() if body.get("everywhere") else [r for r in body.get("rooms") or [] if isinstance(r, str)]
+    try: return {"ok": True, "devices": [d.id for d in await hub.music.stop(rooms)]}
+    except MusicError as e: raise HTTPException(409, str(e))
+
+
 # ---------- health ----------
 @app.post("/drivers/{part_id}/retry")
 async def retry_part(part_id: str):
@@ -2649,6 +2868,13 @@ async def retry_part(part_id: str):
 def health():
     """What needs a look, in plain words: [{"kind", "text", "since", "subject"}]. Empty is good news."""
     return {"notes": hub.health.notes() if hub.driver == "ready" else []}
+
+
+@app.get("/glance")
+def glance():
+    """How the house is, in a few words, for a phone's home screen: docs/apps.md, What the page gives the shell."""
+    hub.ready()
+    return glance_of(hub)
 
 
 # ---------- backup and restore ----------
@@ -2813,6 +3039,91 @@ def address_forget(request: Request):
     """Give the address back. Anyone may have it after this."""
     if not _may_restart(request): raise HTTPException(403, "Giving the web address back needs the passcode.")
     return hub.address.forget(_who(request))
+
+
+# ---------- for working on the hub (design/developer/, B) ----------
+@app.get("/developer")
+def developer(): return hub.developer.summary()
+
+
+@app.post("/developer/show")
+def developer_show(request: Request):
+    """Whether This house lists the page. Unset, it is listed exactly when the hub is not on releases."""
+    if not _may_restart(request): raise HTTPException(403, "Showing or hiding this page needs the passcode.")
+    return hub.developer.show(True)
+
+
+@app.post("/developer/hide")
+def developer_hide(request: Request):
+    if not _may_restart(request): raise HTTPException(403, "Showing or hiding this page needs the passcode.")
+    return hub.developer.show(False)
+
+
+@app.post("/developer/channel")
+def developer_channel(body: dict, request: Request):
+    """{"channel": "release" | "main" | "development" | <branch>}: what this hub follows. The host moves it, as an update."""
+    if not _may_restart(request): raise HTTPException(403, "Changing what the hub follows needs the passcode.")
+    try: return hub.developer.choose_channel(str(body.get("channel") or ""))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.get("/developer/github-keys")
+def developer_github_keys(request: Request, user: str = ""):
+    if not _may_restart(request): raise HTTPException(403, "Adding a key needs the passcode.")
+    try: return {"keys": hub.developer.github_keys(user.strip())}
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+def _may_ssh(request: Request) -> None:
+    if not _may_restart(request): raise HTTPException(403, "Changing who can sign in to the hub needs the passcode.")
+    if request.state.away: raise HTTPException(403, "Who can sign in to the hub is changed at home, on the Wi\u2011Fi.")
+
+
+@app.post("/developer/ssh/keys")
+def developer_ssh_add(body: dict, request: Request):
+    """{"keys": [authorized_keys lines], "source": "pasted" | "github:<user>"}"""
+    _may_ssh(request)
+    keys = body.get("keys")
+    if not isinstance(keys, list): raise HTTPException(400, "There was no key in that.")
+    try: return hub.developer.add_keys([str(k) for k in keys], str(body.get("source") or "pasted"))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.delete("/developer/ssh/keys/{fingerprint:path}")
+def developer_ssh_remove(fingerprint: str, request: Request):
+    _may_ssh(request)
+    try: return hub.developer.remove_key(fingerprint)
+    except KeyError: raise HTTPException(404, "That key isn't one this hub has.")
+
+
+@app.post("/developer/ssh")
+def developer_ssh(body: dict, request: Request):
+    """{"on": true | false}. On needs a key: with none, nothing could sign in anyway."""
+    _may_ssh(request)
+    try: return hub.developer.set_ssh(bool(body.get("on")))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.post("/developer/screens/update")
+def developer_screens_update(request: Request):
+    if not _may_restart(request): raise HTTPException(403, "Updating the screens needs the passcode.")
+    return hub.developer.update_screen(None)
+
+
+@app.post("/developer/screens/{unit}/update")
+def developer_screen_update(unit: str, request: Request):
+    if not _may_restart(request): raise HTTPException(403, "Updating a screen needs the passcode.")
+    try: return hub.developer.update_screen(unit)
+    except KeyError: raise HTTPException(404, "That screen hasn't been heard from.")
+
+
+@app.post("/screens/report")
+def screens_report(body: dict, request: Request):
+    """A screen's own unit, once a minute (startup/screen-report.sh): what it runs. The answer says whether to update now."""
+    if request.state.away: raise HTTPException(403)
+    try: return hub.developer.report(body or {}, request.client.host if request.client else "")
+    except PermissionError: raise HTTPException(403, "That isn't the key this screen gave before.")
+    except ValueError: raise HTTPException(400)
 
 
 # ---------- the assistant: writes and explains, never runs ----------

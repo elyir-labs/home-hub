@@ -66,6 +66,11 @@ button { background: none; border: 0; padding: 0; cursor: pointer; }
 .hs-btn:disabled { opacity: 0.5; }
 .hs-link { color: var(--lamp); font-size: 15px; margin-top: 22px; align-self: flex-start; }
 
+/* a phone with no house: what the app is, then two ways on, stacked (design/pretend-in-app/, B) */
+.hs-doors { margin: auto 0; color: var(--lamp); }
+.hs-doors .hs-title { margin-top: 22px; color: var(--ink); }
+.hs-doors-go { margin-top: 0; flex-direction: column; gap: 12px; }
+
 /* the code: eight boxes, read off one screen and typed on another (AppSafari, AppFirst) */
 .hs-code { position: relative; display: flex; gap: 6px; margin-top: 22px; }
 .hs-code i {
@@ -134,3 +139,17 @@ button { background: none; border: 0; padding: 0; cursor: pointer; }
 .hs-row-s .here { color: var(--live); }
 .hs-row-s .needs { color: var(--lamp); }
 .hs-rule { height: 1px; background: var(--edge); margin: 10px 26px; }
+
+/* This phone (design/notify/, B): one switch under the houses, for every house; the toggle is the panel's own */
+.hs-phone { margin: 16px 26px 0; padding-top: 26px; border-top: 1px solid var(--edge); }
+.hs-phone-cap { margin: 0; font-size: 12px; line-height: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.hs-phone-row { display: grid; grid-template-columns: 36px 1fr auto; gap: 14px; align-items: center; margin-top: 14px; }
+.hs-phone-row .hs-icon { width: 36px; height: 36px; }
+.hs-phone-t { display: block; font-size: 16px; line-height: 22px; }
+.hs-phone-s { display: block; font-size: 13px; line-height: 18px; color: var(--muted); }
+.hs-phone-fine { margin: 18px 0 0; font-size: 13px; line-height: 18px; color: var(--muted); }
+.hs-toggle { position: relative; width: 50px; height: 30px; border-radius: 999px; background: var(--surface-hi); border: 1px solid var(--edge-hi); }
+.hs-toggle i { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--ink-2); transition: left 0.18s ease, background-color 0.18s ease; }
+.hs-toggle.on { background: var(--lamp); border-color: transparent; }
+.hs-toggle.on i { left: 23px; background: var(--lamp-ink); }
+.hs-toggle[aria-busy="true"] { opacity: 0.6; }

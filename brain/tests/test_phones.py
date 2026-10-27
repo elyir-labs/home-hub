@@ -93,6 +93,29 @@ class PhonesTests(unittest.TestCase):
         again = Phones(self.hub, self.phones.path)                                     # gone from disk too
         self.assertEqual(again.list()["phones"], [])
 
+    def test_a_phone_can_be_told_things_and_removing_it_takes_its_key(self):
+        p, _ = self.phones.with_code("Sam's iPhone")
+        push = {"subscription": {"endpoint": "https://push.example/x"}, "vapid": {"publicKey": "PUB", "privateKey": "SECRET"}, "tz": None, "since": 1}
+        self.assertTrue(self.phones.set_push(p["id"], push)["push"])
+        again = Phones(self.hub, self.phones.path)
+        self.assertEqual(again.get(p["id"])["push"], push)                          # on the record, on disk
+        self.assertNotIn("SECRET", json.dumps(self.phones.list(me=p)))             # and never in what is shown
+        self.assertFalse(self.phones.set_push(p["id"], None)["push"])
+        self.assertNotIn("push", self.phones.get(p["id"]))
+        self.phones.set_push(p["id"], push)
+        self.phones.remove(p["id"])
+        self.assertNotIn("SECRET", self.phones.path.read_text())
+        with self.assertRaises(KeyError): self.phones.set_push("nope", push)
+
+    def test_the_list_is_readable_by_the_hub_alone(self):
+        self.phones.with_code("Mine")
+        self.assertEqual(self.phones.path.stat().st_mode & 0o777, 0o600)
+
+    def test_one_written_before_that_is_closed_up_when_the_hub_starts(self):
+        self.phones.path.write_text("[]"); self.phones.path.chmod(0o644)
+        Phones(self.hub, self.phones.path)
+        self.assertEqual(self.phones.path.stat().st_mode & 0o777, 0o600)
+
     def test_home_only_until_promoted(self):
         p, _ = self.phones.with_code("Mine")
         self.assertFalse(p["remote"])

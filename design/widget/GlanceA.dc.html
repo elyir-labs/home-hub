@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; -webkit-font-smoothing: antialiased; }
+    .phone { position: relative; width: 390px; height: 844px; overflow: hidden; }
+    .shot { position: absolute; left: 0; top: 0; width: 390px; height: 844px; display: block; }
+    /* the wallpaper under the two rows of icons, so a widget can sit where the empty space is */
+    .cover { position: absolute; left: 0; right: 0; top: 268px; height: 300px; background: linear-gradient(180deg, rgba(10,22,60,0) 0%, rgba(10,22,60,0) 100%); }
+    /* a widget in the house's own colors: the night of the app's icon, its ink and its lamp (app/public/icon.svg) */
+    .w { position: absolute; border-radius: 22px; overflow: hidden; color: #f1eee8; font-family: "Plus Jakarta Sans", -apple-system, system-ui, sans-serif;
+         background: linear-gradient(#1a1d24, #0c0d10); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    .w::before { content: ""; position: absolute; inset: 0; background: radial-gradient(70% 60% at 50% 100%, rgba(233,184,114,.18), transparent 70%); }
+    .w > * { position: relative; }
+    .cap { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #8d8a84; }
+    .big { font-size: 26px; font-weight: 400; letter-spacing: -.02em; }
+    .line { font-size: 13px; line-height: 17px; color: #b9b5ad; }
+    .needs { color: #e9b872; }
+    .lamp { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e9b872; box-shadow: 0 0 10px rgba(233,184,114,.8); }
+    .pill { height: 34px; border-radius: 999px; display: grid; place-items: center; font-size: 13px; font-weight: 500; }
+    .label { position: absolute; font-family: -apple-system, system-ui, sans-serif; font-size: 12px; color: #fff; text-align: center; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+  </style>
+</helmet>
+<!-- A -- HOW THE HOUSE IS. A small widget per house, saying what Houses' own line says, and nothing to press but the widget itself, which opens the house. -->
+<div class="phone"><img class="shot" src="shots/home.png" alt="">
+  <div class="w" style="left: 24px; top: 288px; width: 164px; height: 164px; padding: 16px;">
+    <div style="display: flex; align-items: center; justify-content: space-between;"><svg width="26" height="26" viewBox="0 0 512 512" fill="none" stroke="#f1eee8" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"><path d="M112 248 256 120l144 128"/><path d="M148 226v170h216V226"/><circle cx="256" cy="306" r="30" fill="#e9b872" stroke="none"/></svg><span style="display: flex; align-items: center; gap: 4px; font-size: 13px;"><svg width="22" height="16" viewBox="0 0 210 150" fill="none"><circle cx="150" cy="44" r="30" fill="rgba(214,206,186,.62)"/><ellipse cx="72" cy="96" rx="56" ry="36" fill="rgba(238,240,246,.9)"/><ellipse cx="118" cy="84" rx="44" ry="34" fill="rgba(226,230,240,.92)"/><ellipse cx="96" cy="108" rx="72" ry="24" fill="rgba(206,212,226,.85)"/></svg>78°</span></div>
+    <div style="font-size: 17px; font-weight: 500; margin-top: 22px;">Home</div>
+    <div class="line" style="margin-top: 4px;">On in 5 rooms<br>2 people home</div>
+  </div>
+  <div class="w" style="left: 202px; top: 288px; width: 164px; height: 164px; padding: 16px;">
+    <div style="display: flex; align-items: center; justify-content: space-between;"><svg width="26" height="26" viewBox="0 0 512 512" fill="none" stroke="#f1eee8" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"><path d="M112 248 256 120l144 128"/><path d="M148 226v170h216V226"/><circle cx="256" cy="306" r="30" fill="#e9b872" stroke="none"/></svg><span style="font-size: 13px;">58°</span></div>
+    <div style="font-size: 17px; font-weight: 500; margin-top: 22px;">Elm Street</div>
+    <div class="line needs" style="margin-top: 4px;">The back door lock needs a look</div>
+  </div>
+  <div class="label" style="left: 24px; width: 164px; top: 458px;">Houses</div>
+  <div class="label" style="left: 202px; width: 164px; top: 458px;">Houses</div>
+</div>
+</x-dc>
+</body>
+</html>

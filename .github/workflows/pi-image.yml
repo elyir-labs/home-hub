@@ -29,6 +29,8 @@ jobs:
           mkdir -p driver-layer/host/pi-image/stage-hub/00-home-hub/files
           printf 'HOME_HUB_REF=%s\nHOME_HUB_REPO=https://github.com/%s.git\n' "${GITHUB_REF_NAME}" "${GITHUB_REPOSITORY}" \
             > driver-layer/host/pi-image/stage-hub/00-home-hub/files/home-hub.conf
+          # Built from a branch by hand, not a tag: the hub follows that branch (install.sh, HOME_HUB_BRANCH).
+          case "$GITHUB_REF_NAME" in v[0-9]*) ;; *) echo "HOME_HUB_BRANCH=${GITHUB_REF_NAME}" >> driver-layer/host/pi-image/stage-hub/00-home-hub/files/home-hub.conf ;; esac
           cat driver-layer/host/pi-image/stage-hub/00-home-hub/files/home-hub.conf
       - name: Room on the runner
         # The action's own "increase-runner-disk-size" purges packages with apt and fails on today's runner image
@@ -37,6 +39,31 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /usr/share/swift /usr/local/share/boost /opt/hostedtoolcache/CodeQL /usr/local/lib/node_modules
           sudo docker image prune -af >/dev/null 2>&1 || true
           df -h /
+      - name: The containers a hub starts with before it has internet
+        # The brain and the front door serve the Wi-Fi step on a box with no cable (docs/network.md, piece 5),
+        # and the broker's image is what install.sh hashes its password with. Saved under the names compose
+        # will ask for on this version; firstboot.sh loads them. The brain is published by brain-image.yml from
+        # the same tag, so it may not be there yet.
+        run: |
+          F=driver-layer/host/pi-image/stage-hub/00-home-hub/files/preload; mkdir -p "$F"
+          # As the x86 image does: a release pulls its published brain, a branch builds its own here (natively: this runner is arm64).
+          case "$GITHUB_REF_NAME" in
+            v*) B="ghcr.io/elyir-labs/home-hub-brain:${GITHUB_REF_NAME#v}"
+                for i in $(seq 1 60); do docker pull -q --platform linux/arm64 "$B" && break; echo "waiting for $B"; sleep 30; done ;;
+            *)  B="ghcr.io/elyir-labs/home-hub-brain:$(echo "$GITHUB_REF_NAME" | tr '/' '-')"
+                docker build -q -f brain/Dockerfile --build-arg HUB_VERSION="$GITHUB_REF_NAME-$GITHUB_SHA" --build-arg HUB_COMMIT="$GITHUB_SHA" -t "$B" . ;;
+          esac
+          docker pull -q --platform linux/arm64 caddy:2
+          docker pull -q --platform linux/arm64 eclipse-mosquitto:2
+          docker save "$B" -o "$F/brain.tar"; docker save caddy:2 -o "$F/caddy.tar"; docker save eclipse-mosquitto:2 -o "$F/mosquitto.tar"
+          ls -lh "$F"
+      - name: A password nobody keeps
+        # pi-gen turns off Raspberry Pi OS's first-boot "enter new username" prompt only for an image built with a
+        # password. On a hub with a screen, that prompt took the screen and held the boot until someone answered it.
+        # This one is never written down, and the stage locks the account before the image is made (00-run.sh).
+        id: pass
+        run: |
+          P=$(openssl rand -hex 24); echo "::add-mask::$P"; echo "value=$P" >> "$GITHUB_OUTPUT"
       - uses: usimd/pi-gen-action@v1
         id: build
         with:
@@ -44,9 +71,11 @@ jobs:
           stage-list: stage0 stage1 stage2 ./driver-layer/host/pi-image/stage-hub
           hostname: hub
           username: hub
+          password: ${{ steps.pass.outputs.value }}
+          disable-first-boot-user-rename: 1
+          # Without a country pi-gen ships the Wi-Fi switched off, so a Pi with no cable could not offer its own setup Wi-Fi.
+          wpa-country: US
           enable-ssh: 0
-          # No password baked in, so the first-boot user rename stays on (pi-gen refuses to turn it off without one).
-          # Headless, nothing waits on it: the hub's own first-boot unit runs regardless.
           locale: en_US.UTF-8
           keyboard-layout: English (US)
           keyboard-keymap: us

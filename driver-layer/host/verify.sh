@@ -30,7 +30,7 @@
 # install or it can never be there at all -- and without one, losing the first means no hub in any
 # house can be updated again, ever. Any key in here may sign a release.
 KEYS="${HOME_HUB_KEYS:-/etc/home-hub/release-keys.d}"
-RELEASES="${HOME_HUB_RELEASES:-https://github.com/topeysoft/home-hub/releases/download}"
+RELEASES="${HOME_HUB_RELEASES:-https://github.com/elyir-labs/home-hub/releases/download}"
 
 # The manifest's own fields, read with sed. Safe here for one reason only: nothing reads this file
 # until openssl has said the maker signed it, so the parser is looking at something our own tool

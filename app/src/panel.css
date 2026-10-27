@@ -125,6 +125,12 @@
 :root[data-shade='light'] .sheet-back {
   background: oklch(0.4 0.04 265 / 0.28);
 }
+/* A sheet, and what the command box says above itself, were drawn as dark glass for a dark page;
+   with the ink turned dark they hid their own words. */
+:root[data-shade='light'] :is(.sheet, .bottombar .say-hint, .bottombar .say-note, .bottombar .say-answer, .bottombar .drafts) {
+  background: rgba(var(--surface-rgb), 0.94);
+  box-shadow: 0 40px 100px -30px rgba(var(--wash-rgb), 0.35);
+}
 :root[data-shade='light'] .house-veil {
   background: oklch(0.4 0.04 265 / 0.22);
 }
@@ -366,7 +372,7 @@ input:focus-visible {
 .tile,
 .scene,
 .back,
-.banner,
+.reach-band,
 .offline-icon,
 .recent-icon,
 .button.ghost {
@@ -703,6 +709,9 @@ input:focus-visible {
 }
 .link.up::before {
   background: var(--live);
+}
+.link.out::before {
+  background: var(--lamp);
 }
 
 /* ---------- stage ---------- */
@@ -1366,6 +1375,14 @@ input:focus-visible {
     color: var(--card-ink-2, var(--muted));
     opacity: 0.7;
   }
+/* the pin that says why an off thing is on Home: kept there from its pane (design/home-keep/KeepB) */
+.tile-maker.tile-always {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
   .tiles > .tile[data-size='third'] .tile-maker {
     display: none;
   }
@@ -1673,6 +1690,36 @@ input:focus-visible {
   .tiles > .tile.media[data-size='third'] .media-when {
     display: inline;
   }
+  /* A quiet speaker the hub can play on (design/music/RoomA): its name and Nothing playing beside the drawing, and
+     under them Play something with the last two things again. */
+  .tiles > .tile.media[data-size='half'] {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  /* ...and the same card once it is playing, which it can be without changing size: the room is arranged for
+     the state it was found in. Its transport along the foot, and under that the rooms it is playing in. */
+  .tiles > .tile.media[data-size='half'] .media-controls {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    align-self: end;
+  }
+  .tiles > .tile.media[data-size='half'] .music-rooms {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+  .tiles > .tile.media[data-size='full'] .music-rooms {
+    margin-top: 16px;
+  }
+  .tiles > .tile.media[data-size='third'] .music-rooms {
+    display: none;
+  }
+  .tiles > .tile.media[data-size='half'] .media-art {
+    grid-row: 1;
+  }
+  .tiles > .tile.media[data-size='half'] .music-start {
+    grid-column: 1 / -1;
+    grid-row: 2 / span 2;
+    align-self: end;
+  }
   /* likewise the sound presets on a media tile */
   .tiles > .tile[data-size='half'] .sounds,
   .tiles > .tile[data-size='third'] .sounds {
@@ -1807,6 +1854,23 @@ input:focus-visible {
   color: var(--lamp-ink);
 }
 .tile.on .tile-state {
+  color: var(--ink-2);
+}
+/* a change that never reached the hub (design/out-of-reach/): the card keeps its place, drained, and says so */
+.tile.unreached {
+  border-color: rgba(var(--lamp-rgb), 0.22);
+  box-shadow: inset 0 0 0 999px rgba(12, 13, 16, 0.22);
+}
+.tile-said {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.tile-why {
+  display: block;
+  margin-top: 2px;
+  font-size: 13.5px;
   color: var(--ink-2);
 }
 /* a switch seeing motion through its own sensor (units.ts): its one line says so, in the room's ink rather than muted */
@@ -2401,6 +2465,12 @@ input:focus-visible {
 .onnow-chip.kept .onnow-place {
   color: var(--lamp-text);
 }
+/* Always here (onhome.ts): a thing this screen keeps, while it is off. Not faded like a chip that was just
+   tapped -- it is meant to be here -- only its icon is out. */
+.onnow-chip.unlit .onnow-icon {
+  background: var(--surface-hi);
+  color: var(--ink-2);
+}
 .onnow-leave-active {
   transition: opacity 0.26s ease, transform 0.26s ease;
 }
@@ -2667,36 +2737,94 @@ input:focus-visible {
   transform: translate(-50%, 10px);
 }
 
-.banner {
-  display: inline-flex;
+.reach-band {
+  position: fixed;
+  left: 40px;
+  right: 40px;
+  bottom: calc(26px + env(safe-area-inset-bottom));
+  z-index: 47;
+  min-height: 72px;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  padding: 9px 14px;
-  border-radius: var(--r-sm);
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: var(--r-lg);
   background:
     linear-gradient(rgba(var(--lamp-rgb), 0.12), rgba(var(--lamp-rgb), 0.12)),
     var(--surface);
-  border: 1px solid rgba(var(--lamp-rgb), 0.25);
-  color: var(--ink-2);
+  border: 1px solid rgba(var(--lamp-rgb), 0.28);
+  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.8);
+  color: var(--ink);
+}
+.reach-band-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(var(--lamp-rgb), 0.9);
+  color: var(--lamp-ink);
+}
+.reach-band-text {
+  min-width: 0;
+}
+.reach-band-text b {
+  display: block;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 23px;
+}
+.reach-band-text small {
+  display: block;
   font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-2);
 }
-.banner svg {
-  color: var(--lamp-text);
-  animation: spin 2.4s linear infinite;
+.reach-band-act {
+  flex: none;
+  margin-left: auto;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--edge);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+.reach-band-act svg {
+  color: var(--ink-2);
+}
+@media (max-width: 860px) {
+  .reach-band {
+    left: 16px;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    flex-wrap: wrap;
+    align-items: flex-start;
+    padding: 16px;
+  }
+  .reach-band-text {
+    flex: 1 1 0;
+  }
+  .reach-band-act {
+    flex: 1 0 100%;
+    justify-content: center;
+    margin-left: 0;
   }
 }
-.banner-enter-active,
-.banner-leave-active {
-  transition: opacity 0.3s var(--ease);
+.toast.over-band {
+  bottom: calc(118px + env(safe-area-inset-bottom));
 }
-.banner-enter-from,
-.banner-leave-to {
-  opacity: 0;
+/* What is shown may be old: the room as it was, hushed, under the band */
+.stage.hushed {
+  filter: saturate(0.12) brightness(0.6);
+  transition: filter 0.6s var(--ease);
 }
 
 .offline {
@@ -3632,8 +3760,9 @@ input:focus-visible {
 }
 .address-row {
   display: flex;
+  flex-wrap: wrap;               /* on a phone the verdict goes under the field rather than off the edge (design/store-app/, C) */
   align-items: center;
-  gap: 18px;
+  gap: 8px 18px;
 }
 .address-name {
   display: flex;
@@ -3701,6 +3830,12 @@ input:focus-visible {
 }
 .address-step .setup-actions {
   margin-top: 18px;
+}
+.address-out {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
 }
 .address-pay {
   display: flex;
@@ -14051,6 +14186,138 @@ button.reading[data-held] {
 .tile.plain.charger.on .tile-icon { color: var(--live); }
 .nudge.charging .nudge-icon { background: var(--live); color: #0b2216; }
 
+/* ---------- the house's power (design/energy/, B with C's sun) ----------
+   PowerPane.vue, on the device pane's frame, and the band's line for the power going out. The picture is
+   drawn in a 700 x 400 box that keeps its shape, so the circles placed in percentages land where the lines
+   in power-lines end. */
+.nudge.power-out {
+  border-color: rgba(var(--danger-rgb), 0.45);
+  background: linear-gradient(rgba(var(--danger-rgb), 0.12), rgba(var(--danger-rgb), 0.12)), var(--surface);
+}
+.nudge.power-out .nudge-icon { background: var(--danger); color: #2a0e0e; }
+.power-big-unit {
+  margin-left: 12px;
+  font-size: 22px;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.power-rig { flex-direction: column; gap: 14px; container-type: inline-size; }
+.power-flow {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  aspect-ratio: 700 / 400;
+}
+.power-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+.power-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 2 8;
+  vector-effect: non-scaling-stroke;
+}
+.power-line.to-house { stroke: var(--lamp); }
+.power-line.to-battery { stroke: var(--live); }
+.power-line.to-grid { stroke: var(--muted); }
+.power-line.power-still { opacity: 0.18; }
+.power-amount {
+  position: absolute;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.power-amount.at-house { left: calc(50% + 36px); top: 29%; }
+.power-amount.at-battery { left: 23%; top: 9%; }
+.power-amount.at-grid { left: 77%; top: 9%; }
+.power-node {
+  position: absolute;
+  width: 170px;
+  text-align: center;
+  transform: translateX(-50%);
+}
+.power-node.power-sun { left: 50%; top: calc(13% - 44px); }
+.power-node.power-house { left: 50%; top: 42%; }
+.power-node.power-battery { left: 15.7%; top: 42%; }
+.power-node.power-grid { left: 84.3%; top: 42%; }
+.power-node.power-car { left: 50%; top: 75%; width: 240px; }
+.power-orb {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(var(--wash-rgb), 0.07);
+  border: 1px solid var(--edge);
+  color: var(--ink-2);
+}
+.power-node.power-sun .power-orb { width: 88px; height: 88px; }
+.power-node.power-sun.up .power-orb {
+  background: var(--lamp);
+  color: var(--lamp-ink);
+  border-color: transparent;
+  box-shadow: 0 0 40px -6px rgba(var(--lamp-rgb), 0.6);
+}
+.power-node.power-house .power-orb { color: var(--ink); }
+.power-node.power-battery .power-orb {
+  color: var(--live);
+  background: conic-gradient(rgba(var(--live-rgb), 0.4) 0 var(--charge), rgba(var(--wash-rgb), 0.05) var(--charge) 100%);
+}
+.power-node.power-grid .power-orb { color: var(--muted); }
+.power-node.power-grid.out .power-orb { color: var(--danger); border-color: rgba(var(--danger-rgb), 0.5); }
+.power-node.power-car .power-orb { width: 56px; height: 56px; }
+.power-node b { display: block; margin-top: 10px; font-size: 15px; font-weight: 500; }
+.power-node small { display: block; font-size: 13px; color: var(--muted); }
+.power-reserve {
+  margin: auto 0 0;
+  padding: 0 4px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.power-reserve .opened-fact-k { margin: 0; }
+.power-reserve b { color: var(--ink); font-weight: 500; }
+.power-node .power-narrow { display: none; }
+/* A phone's rig is too narrow for the picture's circles and their words to keep apart, so there they are two
+   columns of circles, each with its words, and the lines between them are left out. */
+@container (max-width: 520px) {
+  .power-flow {
+    aspect-ratio: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 12px;
+  }
+  .power-lines,
+  .power-amount { display: none; }
+  .power-node,
+  .power-node.power-car {
+    position: static;
+    width: auto;
+    transform: none;
+  }
+  .power-node .power-orb,
+  .power-node.power-sun .power-orb,
+  .power-node.power-car .power-orb { width: 56px; height: 56px; }
+  .power-node .power-narrow { display: block; }
+}
+.power-day-chart { position: relative; flex: 1 1 auto; min-width: 0; }
+.power-day-chart svg { display: block; width: 100%; height: 44px; overflow: visible; }
+.power-day-sun { fill: rgba(var(--lamp-rgb), 0.28); stroke: var(--lamp); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.power-day-house { fill: none; stroke: var(--ink); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.power-day-now { stroke: rgba(var(--wash-rgb), 0.4); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.power-day-ticks { position: relative; height: 18px; margin-top: 6px; }
+.power-day-ticks span {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 /* ---------- the wall's keyboard (design/keyboard/, C) ----------
    Keys.vue, mounted only on the wall unit, which has no keyboard of its own. Docked along the bottom on the panel's
    glass; the page moves up by --keys-lift so the field stays in view. Sized off the screen's height so a key is a
@@ -14189,4 +14456,343 @@ html[data-wall] [data-moving] *::after {
   /* the standard property only: with the -webkit- one beside it the build's minifier keeps just the prefixed
      copy, which this Chromium ignores, and the rule ships empty */
   backdrop-filter: none !important;
+}
+
+/* FOR WORKING ON THE HUB (design/developer/PageB.dc.html, KeyPhone.dc.html). Wider than a page of rows: two
+   columns of cards, the screens table needing the width. Every class here is dev-, so nothing else is restyled. */
+.house-page > .page.page-developer {
+  max-width: 1030px;
+}
+.hub-version {
+  cursor: default;
+}
+.dev-mono {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.92em;
+  letter-spacing: 0;
+}
+.dev-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.dev-head .page-lede {
+  margin: 0;
+  color: var(--ink-2);
+}
+.dev-head .button {
+  margin-top: -4px;
+  white-space: nowrap;
+}
+.dev-cards {
+  display: grid;
+  grid-template-columns: minmax(0, 470fr) minmax(0, 530fr);
+  gap: 24px;
+  align-items: start;
+}
+.dev-col {
+  display: grid;
+  gap: 18px;
+}
+.dev-card {
+  padding: 18px 20px;
+  border-radius: var(--r-lg);
+  background: rgba(var(--wash-rgb), 0.035);
+  border: 1px solid var(--edge-hi);
+}
+.dev-card h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 500;
+}
+.dev-say {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.dev-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.dev-ink {
+  color: var(--ink-2);
+}
+.dev-warn {
+  color: var(--lamp);
+}
+.dev-opt {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: start;
+  width: 100%;
+  padding: 10px 0;
+  border-top: 1px solid var(--edge);
+  text-align: left;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.dev-opt:disabled {
+  opacity: 0.5;
+}
+.dev-opt b {
+  display: block;
+  font-weight: 500;
+  font-size: 14.5px;
+}
+.dev-opt b + span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.dev-opt b + span.dev-warn {
+  color: var(--lamp);
+}
+.dev-dot {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 1.5px solid var(--edge-hi);
+}
+.dev-opt.on .dev-dot {
+  border: 5px solid var(--lamp);
+}
+.dev-ask {
+  padding: 0 0 12px 32px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.dev-ask p {
+  margin: 0 0 10px;
+}
+.dev-ask .input {
+  height: 42px;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+.dev-acts {
+  display: flex;
+  gap: 8px;
+}
+.dev-cmd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 10px;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--edge);
+  font-size: 15px;
+}
+:root[data-shade='light'] .dev-cmd {
+  background: var(--surface-hi);
+}
+.dev-copy {
+  display: inline-grid;
+  place-items: center;
+  color: var(--ink-2);
+}
+.dev-key {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid var(--edge);
+  font-size: 14px;
+}
+.dev-key > span > span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+.dev-none {
+  padding: 4px 0 2px;
+}
+.dev-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+.dev-off {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.dev-off .dev-sub {
+  display: block;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.dev-qr {
+  flex: none;
+  width: 92px;
+  height: 92px;
+  border-radius: 10px;
+  background: var(--ink);
+}
+.dev-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.dev-table th {
+  padding: 0 0 8px;
+  text-align: left;
+  font-weight: 400;
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dev-table td {
+  padding: 11px 10px 11px 0;
+  border-top: 1px solid var(--edge);
+  vertical-align: middle;
+}
+.dev-m {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+.dev-end {
+  text-align: right;
+  white-space: nowrap;
+}
+.dev-end .button {
+  margin: 0;
+}
+.dev-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--live);
+}
+.dev-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+  color: var(--ink-2);
+  font-size: 15px;
+}
+.dev-seg {
+  display: flex;
+  max-width: 420px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface-hi);
+  border: 1px solid var(--edge);
+}
+.dev-seg button {
+  flex: 1;
+  padding: 8px 0;
+  text-align: center;
+  border-radius: 999px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.dev-seg button.on {
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 500;
+}
+.dev-form {
+  max-width: 420px;
+  margin-top: 18px;
+}
+.dev-flabel {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.dev-flabel.dev-warn {
+  color: var(--lamp);
+}
+.dev-found {
+  margin: 14px 0 8px;
+}
+.dev-paste {
+  height: 112px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: none;
+  word-break: break-all;
+}
+.dev-paste + .dev-pk {
+  margin-top: 14px;
+}
+.dev-pk {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: start;
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  text-align: left;
+  color: var(--ink);
+}
+.dev-pk + .dev-pk {
+  margin-top: 6px;
+}
+.dev-pk b {
+  display: block;
+  font-weight: 500;
+  font-size: 15px;
+}
+.dev-pk b + span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.dev-box {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--edge-hi);
+}
+.dev-pk.on .dev-box {
+  background: var(--lamp);
+  border-color: transparent;
+  color: var(--lamp-ink);
+}
+.button.dev-cta {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 18px;
+}
+.dev-foot {
+  max-width: 420px;
+  margin-top: 14px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.dev-foot .dev-mono {
+  color: var(--ink-2);
+}
+@media (max-width: 1180px) {
+  .dev-cards {
+    grid-template-columns: 1fr;
+  }
 }

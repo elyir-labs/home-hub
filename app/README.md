@@ -51,6 +51,10 @@ the dev server against it instead of the real brain. `WX=rainy`, `FOUND=0`, `ENG
 screen at kiosk, wall, tablet and phone sizes into `mock/shots/`, which is the quickest way to see a layout
 change everywhere it lands.
 
+The house itself is `mock/house.mjs`, which needs no Node: `brain.mjs` is the server around it. `npm run build:try`
+builds the pretend house for hub.elyir.com/try into `dist-try/` -- the same panel, entered through `src/try.ts`, which
+runs that house inside the page, with made-up names for every show and brand and taps that stay until a reload.
+
 Kiosk: open http://hub.local/ full-screen on the wall tablet (Add to Home Screen on iOS/Android).
 `?room=<id>` opens straight into a room. After three minutes without a touch the panel rests on a
 clock over the sky; a touch brings it back to Home.

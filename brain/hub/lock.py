@@ -34,6 +34,8 @@ def needs_code(method: str, path: str) -> bool:
     # The house's address outside: taking one, turning it on or off, giving it back. It costs money and
     # it opens a door, so it sits behind the code like every other change to what the house is.
     if path.startswith("/address") and m in ("POST", "DELETE"): return True
+    # For working on the hub: what code it runs and who can sign in to the machine (design/developer/).
+    if path.startswith("/developer/") and (m in ("POST", "DELETE") or path == "/developer/github-keys"): return True
     if path.startswith("/rules") and m in ("PUT", "POST", "DELETE"): return True
     # The one GET on this list. Reading what the house DID never needs the code -- that is the
     # household's own situation, and the catch-up is open like the network page. Reading who did it
@@ -72,6 +74,8 @@ def needs_code(method: str, path: str) -> bool:
     # reading how a move went changes nothing. A code in front of either would be a code in front of
     # a household finding out what happened to their own house.
     if path.startswith("/network") and m == "POST" and path not in ("/network/scan", "/network/done"): return True
+    # Moving onto the computer's drive erases it (design/move-to-drive/). Keeping it, or reading that it moved, does not.
+    if path == "/drive/move" and m == "POST": return True
     # Sharing the house with Apple Home, Google Home or Alexa is a change to the house, not a tap on
     # it. The bridge's own routes are not here: they never reach this function, because the service
     # token answered for them before the gate. docs/matter.md.
@@ -80,7 +84,9 @@ def needs_code(method: str, path: str) -> bool:
     # and the same `remote`, carried to the house's own name (design/away/, C) -- nothing about who may do what
     # changes, and the page on the new name has no code yet to send with the claim. A screen saying which room it
     # hangs in changes only itself (design/companion/, C), and one let in from another screen has no code to send.
-    if path.startswith("/phones") and m != "GET": return path not in ("/phones/ask", "/phones/code", "/phones/move", "/phones/move/claim", "/phones/me/room")
+    # Nor is a phone asking to be told things, or to stop: it changes only how that one phone hears about the house.
+    if path.startswith("/phones") and m != "GET":
+        return path not in ("/phones/ask", "/phones/code", "/phones/move", "/phones/move/claim", "/phones/me/room", "/phones/me/push")
     return False
 
 

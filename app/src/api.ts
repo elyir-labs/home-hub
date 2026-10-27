@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { request, plainError } from './code'
+import type { MusicItem } from './music'
 import { apiUrl, withToken, wsProtocols, wsUrl } from './door'
 /* `capability` is the driver's word for what this is and it picks the Home Assistant service; `kind` is
    the owner's, where they have given one. Read the two together through cap() in store.ts, never the raw
@@ -12,14 +13,15 @@ export type Home = { name?: string | null; temp_unit?: string; entry?: string[];
 export type Driver = 'down' | 'fresh' | 'needs-login' | 'connecting' | 'ready'
 export type Part = { id: string; name: string; state: 'unknown' | 'off' | 'adding' | 'ready' | 'failed' | 'sign-in' | 'waiting'; text: string; port: number }
 /* channel: which code this hub follows — 'release' (version tags, what a house runs), or 'main' or
-   'development' (that branch, for a hub being worked on). `available` is null when the hub genuinely cannot tell, and
+   'development' (that branch, for a hub being worked on), or any other branch an image was built from, until it lands
+   in development (`latest.landed` names it then). `available` is null when the hub genuinely cannot tell, and
    `offer` is the same answer minus a version that was installed, would not start, and was put back:
    the hub stops raising that one on its own, and the button under This hub still installs it. */
 /** What changed, in words a household reads. Written by hand into releases/<version>.md and shipped
    inside the brain's image, so these are the notes for the code this hub is actually running. */
 export type ReleaseNotes = { version: string; what: string[]; details: string }
 export type UpdateNotes = { notes: ReleaseNotes | null; history: ReleaseNotes[] }
-export type Update = { version: string; commit: string; channel: 'release' | 'main' | 'development'; latest: { version: string; sha: string; when: string; title: string; what: string[] } | null; whats_new: ReleaseNotes | null; held: boolean; reached_us: boolean; available: boolean | null; offer: boolean | null; rejected: string | null; auto: boolean; verified: boolean; checked: number | null; requested: boolean; state: { state: 'running' | 'done' | 'failed' | 'reverted' | 'refused'; started?: number; finished?: number; commit?: string; to?: string; bad?: string; reverted?: boolean } | null; error: string | null
+export type Update = { version: string; commit: string; channel: string; latest: { version: string; sha: string; when: string; title: string; what: string[]; landed?: string } | null; whats_new: ReleaseNotes | null; held: boolean; reached_us: boolean; available: boolean | null; offer: boolean | null; rejected: string | null; auto: boolean; verified: boolean; checked: number | null; requested: boolean; state: { state: 'running' | 'done' | 'failed' | 'reverted' | 'refused'; started?: number; finished?: number; commit?: string; to?: string; bad?: string; reverted?: boolean } | null; error: string | null
   /* Where the host has got to, while it is getting there. The brain is alive for nearly all of an
      update -- the code, the signature and the pull all happen with it running -- so this is a real
      answer for most of the wait rather than a spinner. null when nothing is happening. */
@@ -47,7 +49,13 @@ export type Act = { do: string; act: 'flow' | 'entry' | 'part' | 'check' | 'forg
   yes?: string        // the words that answer it, with the name in them
   no?: string }       // ...and the ones that decline, where "Keep it" is not what is being kept
 export type Quiet = { id: string; name: string; where: string }
+/* Something the house said, as brain/hub/messages.py says it. The class decides where it goes, never the
+   screen that hears it (docs/messages.md). */
+export type MessageClass = 'receipt' | 'house' | 'attention' | 'alert'
+export type Message = { id: string; class: MessageClass; text: string; subject: string | null; at: number }
 export type Note = { kind: 'offline' | 'storage' | 'driver' | 'update' | 'restart' | 'bridge' | 'healed' | 'held' | 'printer'; text: string; since: number | null; subject: string | null
+  id?: string         // the message it is, from the brain's catalog (brain/hub/messages.py)
+  class?: MessageClass
   band?: string       // a strip held dark: the band's few words for it ("The kitchen strip is staying off")
   more?: string       // the second sentence, quieter: what a pattern means, under the line that names it
   where?: string      // an offline thing: which room, and what sort of thing it is -- enough to go and look at it
@@ -174,6 +182,10 @@ export type NetState = {
   stale?: true                             // the host's picture has not been refreshed lately
   moving?: { ssid: string; since: number }  // the hub is being moved right now, and the host is watching it
   reverted?: string                        // ...and one did not take, so this is the name that failed
+  reverted_why?: 'password' | 'unreachable' // ...and why, when the router said
+  setup?: { ssid: string; both: boolean; phones?: number   // the hub's own Wi-Fi is up, for a phone to set it up from (design/setup-network/)
+            password?: string }                         // ...told only to the screen plugged into the hub (design/screen-wifi/)
+  joined?: string                          // ...and the house's Wi-Fi it joined from there, before it goes
   bridges: { ssid: string; checked: boolean; known: boolean; count: number }
   bridges_moving?: NetMove | null          // the pucks' journey; `moving` above is the hub's own
 }
@@ -187,6 +199,16 @@ export type NetMove = {
   waiting?: string[]
   late?: string[]
 }
+/* What the hub runs from, and the drive beside it (design/move-to-drive/). `ask` is first run's question;
+   `drive` is the one with something on it. The host checks every move again (driver-layer/host/drive.sh). */
+export type Drive = { name: string; serial: string; model: string; bytes: number; empty: boolean; system: string | null; used: number | null; last: number | null }
+export type DriveState = { from: 'stick' | 'drive' | 'unknown'; drives: Drive[]; drive: Drive | null; ask: boolean; kept: boolean; moved: boolean; moving: boolean; refused?: string | null; failed?: string | null }
+export async function getDrive(): Promise<DriveState> {
+  const r = await request('/drive'); if (!r.ok) await fail(r); return r.json()
+}
+export const moveToDrive = (name: string, serial: string) => post<DriveState>('/drive/move', { name, serial })
+export const keepDrive = () => post<DriveState>('/drive/keep')
+export const driveSeen = () => post<DriveState>('/drive/seen')
 export type SeenNetwork = { ssid: string; signal?: 'strong' | 'ok' | 'faint'; band?: string | null; secure: boolean }
 export async function getNetwork(): Promise<NetState> {
   const r = await request('/network'); if (!r.ok) await fail(r); return r.json()
@@ -198,6 +220,8 @@ export const moveBridges = (ssid: string, password: string) => post<NetMove>('/n
    arrives second finds the other already there; the host puts the old connection back if this hub
    never turns up on the new one. */
 export const moveHub = (ssid: string, password: string) => post<NetState>('/network/hub', { ssid, password })
+/* The hub's own Wi-Fi as a code, drawn by the brain for the screen plugged into the hub and nothing else (design/screen-wifi/). */
+export const setupWifiQrUrl = '/network/setup.svg'
 export const networkDone = () => post<Bridge>('/network/done')
 
 /* Letting a NEW switch in, two ways, because a switch arrives in a hand or already screwed to a wall.
@@ -476,6 +500,18 @@ export type AskState = 'waiting' | 'allowed' | 'refused' | 'expired' | 'failed'
 export type PrinterAsk = { id: string; name: string; state: AskState; title: string; detail: string; until: number | null }
 export type Printers = { printers: Printer[]; found: FoundPrinter[]; asking: Record<string, AskState>; asks?: PrinterAsk[] }
 export async function getPrinters(): Promise<Printers> { const r = await request('/printers'); if (!r.ok) await fail(r); return r.json() }
+
+/* THE HOUSE'S OWN POWER (brain/hub/power.py, design/energy/): the sun on the roof, the house, the battery and the
+   grid, in kW. `battery` is into the battery and `grid` is from the grid, so a negative is the battery giving and
+   the house sending power away. `spare`, `out_since` and `back` are the brain's judgments, and the band's lines. */
+export type Power = {
+  solar: number | null; house: number | null; battery: number | null; grid: number | null
+  charge: number | null; reserve: number | null; grid_up: boolean | null; left: number | null; has_battery: boolean
+  spare: boolean; out_since: number | null; back: { at: number; lasted: number } | null
+}
+export type PowerDay = { made: number | null; used: number | null; peak: number | null; since: number; curve: { at: number; solar: number | null; house: number | null }[] }
+export async function getPower(): Promise<Power | null> { const r = await request('/power'); if (!r.ok) await fail(r); return r.json() }
+export async function getPowerDay(): Promise<PowerDay | null> { const r = await request('/power/day'); if (!r.ok) await fail(r); return r.json() }
 export const lookForPrinters = () => post<Printers>('/printers/look')
 export const askPrinter = (id: string) => post<Printers>(`/printers/${encodeURIComponent(id)}/add`)
 export async function stopAsking(id: string): Promise<Printers> {
@@ -532,6 +568,7 @@ export async function getDeviceKinds(id: string): Promise<Kinds> {
 }
 /** A fan with a light in it: which part is the tile. 'fan' is the default and clears the record (docs/units.md). */
 export const setDeviceLead = (id: string, lead: 'fan' | 'light') => post<{ ok: boolean; leads: string }>(`/devices/${encodeURIComponent(id)}/lead`, { lead })
+export const setDeviceHome = (id: string, show: 'never' | 'on') => post<{ ok: boolean; show: string }>(`/devices/${encodeURIComponent(id)}/home`, { show })
 /** Say what a thing is. The driver's own word puts it back. */
 export const setDeviceKind = (id: string, kind: string | null) => post<{ ok: boolean; kind: string }>(`/devices/${encodeURIComponent(id)}/kind`, { kind })
 /* Every service the house has signed into: how it stands, and how much of the house came in with it.
@@ -756,6 +793,19 @@ export type Sound = { id: string; name: string; ready: boolean }
 export async function getSounds(): Promise<{ sounds: Sound[]; folder: string }> {
   const r = await request('/sounds'); if (!r.ok) await fail(r); return r.json()
 }
+/* Music in every room (hub/music.py, design/music/). */
+export type MusicRoom = { id: string; name: string; here: boolean; playing: string | null }
+export type MusicCatalog = { ready: boolean; again: MusicItem[]; radio: MusicItem[]; own: MusicItem[]; rooms: MusicRoom[]; again_by_room: Record<string, MusicItem[]> }
+export async function getMusic(room?: string | null): Promise<MusicCatalog> {
+  const r = await request(`/music${room ? `?room=${encodeURIComponent(room)}` : ''}`); if (!r.ok) await fail(r); return r.json()
+}
+export async function findMusic(q: string): Promise<MusicItem[]> {
+  const r = await request(`/music/find?q=${encodeURIComponent(q)}`); if (!r.ok) await fail(r); return (await r.json()).items
+}
+export const playMusic = (item: MusicItem, rooms: string[], everywhere = false) => post<{ ok: true; rooms: string[] }>('/music/play', { item, rooms, everywhere })
+export const joinMusic = (room: string, into: string) => post('/music/join', { room, into })
+export const leaveMusic = (room: string) => post('/music/leave', { room })
+export const stopMusic = (rooms: string[]) => post('/music/stop', { rooms })
 export const approveDraft = (id: string) => post<Routine>(`/drafts/${encodeURIComponent(id)}/approve`)
 export async function discardDraft(id: string) {
   const r = await request(`/drafts/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (!r.ok) await fail(r)
@@ -788,7 +838,7 @@ let live: WebSocket | null = null
 export function kickStream() { live?.close() }
 
 /** Live updates from the brain. Reconnects with backoff; reports link state. */
-export function connect(on: { device: (d: Device) => void; home: (h: Home) => void; ambient: (a: Ambient) => void; status: (s: Status) => void; intent: (i: Intent) => void; drafts: (d: Routine[]) => void; presence: (p: Presence) => void; phones: () => void; share: () => void; signals: (t: TryBrief | null) => void; roofline?: (r: Roofline) => void; printers?: (p: Printers) => void; link: (up: boolean) => void }) {
+export function connect(on: { device: (d: Device) => void; home: (h: Home) => void; ambient: (a: Ambient) => void; status: (s: Status) => void; intent: (i: Intent) => void; drafts: (d: Routine[]) => void; presence: (p: Presence) => void; phones: () => void; share: () => void; signals: (t: TryBrief | null) => void; roofline?: (r: Roofline) => void; printers?: (p: Printers) => void; power?: (p: Power | null) => void; note?: (m: Message) => void; link: (up: boolean) => void }) {
   let delay = 1000, ws: WebSocket | null = null, closed = false
   const open = () => {
     ws = live = new WebSocket(wsUrl('/stream'), wsProtocols())   // the token rides as a subprotocol, never in the URL (door.ts)
@@ -807,6 +857,8 @@ export function connect(on: { device: (d: Device) => void; home: (h: Home) => vo
       else if (m.type === 'signals') on.signals(m.trying ?? null)   // a try moved on, or a row was switched; the brief is for the band
       else if (m.type === 'roofline') on.roofline?.(m.roofline)   // its evenings, its look, the way round, a box gone dark
       else if (m.type === 'printers') on.printers?.(m.printers)   // the whole printer status: what each is doing, found, asking
+      else if (m.type === 'power') on.power?.(m.power)   // the sun, the battery and the grid: at once when the band changes, else every ten seconds
+      else if (m.type === 'message' && m.class === 'house') on.note?.(m)   // a rule's note, for now; the band's classes come with docs/messages.md step 3
     }
     ws.onclose = () => { on.link(false); if (!closed) setTimeout(open, delay = Math.min(delay * 2, 15000)) }
     ws.onerror = () => ws?.close()
@@ -847,7 +899,7 @@ export const qrUrl = (text: string) => `/qr.svg?text=${encodeURIComponent(text)}
 
 /* The phones that belong to the house, once it has a code. A phone gets in by typing the code, or by asking and being
    allowed from a screen that is already in; the hub keeps a hash and the phone a cookie, so removing one is instant. */
-export type Phone = { id: string; name: string; kind: 'wall' | 'phone' | 'screen' | null; joined: number; expires: number | null; remote: boolean; last_seen: number | null; how: 'code' | 'wall' | 'setup'; me: boolean; moved?: boolean; in_app?: boolean; room?: string | null }
+export type Phone = { id: string; name: string; kind: 'wall' | 'phone' | 'screen' | null; joined: number; expires: number | null; remote: boolean; last_seen: number | null; how: 'code' | 'wall' | 'setup'; me: boolean; moved?: boolean; in_app?: boolean; room?: string | null; push?: boolean }
 export type Ask = { id: string; name: string; kind: string | null; asked: number }
 export type Me = { locked: boolean; paired: boolean; home: string; phone: Phone | null; away?: boolean; lan?: string | null; address?: string | null }
 export async function getMe(): Promise<Me> { const r = await fetch(apiUrl('/phones/me'), { headers: withToken(new Headers()) }); if (!r.ok) await fail(r); return r.json() }
@@ -925,3 +977,30 @@ export async function claimAddress(name: string): Promise<AddressState> {
   return r.json()
 }
 export const turnAddress = (on: boolean) => post<AddressState>(`/address/${on ? 'on' : 'off'}`)
+
+/* For working on the hub (design/developer/, B): what this hub follows, SSH, and the screens in the house.
+   `shown` is the brain's answer to whether the page is on This house's list -- by default exactly when the hub
+   is not on releases. A brain older than the page answers 404, and then there is no page. */
+export type DevKey = { name: string; type: string; fingerprint: string; added: number; source: string }
+export type DevScreen = { id: string; name: string; host: string; ip: string; version: string; commit: string; channel: string
+  landed: boolean; current: boolean | null; seen: number | null; updating: boolean }
+export type Developer = { shown: boolean; channel: string; version: string; commit: string; landed: string | null; behind: number | null
+  ssh: { on: boolean; user: string; host: string; ip: string; keys: DevKey[]; pending: boolean }
+  screens: DevScreen[]; requested: { channel: string | null } }
+export type GithubKey = { line: string; type: string; fingerprint: string; name: string }
+export async function getDeveloper(): Promise<Developer | null> {
+  const r = await request('/developer'); if (r.status === 404) return null; if (!r.ok) await fail(r); return r.json()
+}
+export const showDeveloper = () => post<Developer>('/developer/show')
+export const hideDeveloper = () => post<Developer>('/developer/hide')
+export const followChannel = (channel: string) => post<Developer>('/developer/channel', { channel })
+export async function githubKeys(user: string): Promise<GithubKey[]> {
+  const r = await request(`/developer/github-keys?user=${encodeURIComponent(user)}`); if (!r.ok) await fail(r); return (await r.json()).keys
+}
+export const allowKeys = (keys: string[], source: string) => post<Developer>('/developer/ssh/keys', { keys, source })
+export async function removeKey(fingerprint: string): Promise<Developer> {
+  const r = await request(`/developer/ssh/keys/${encodeURIComponent(fingerprint)}`, { method: 'DELETE' }); if (!r.ok) await fail(r); return r.json()
+}
+export const turnSsh = (on: boolean) => post<Developer>('/developer/ssh', { on })
+export const updateScreen = (id: string) => post<Developer>(`/developer/screens/${encodeURIComponent(id)}/update`)
+export const updateScreens = () => post<Developer>('/developer/screens/update')

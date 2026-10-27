@@ -11,4 +11,7 @@ import '@fontsource-variable/instrument-sans'
 import '@fontsource-variable/plus-jakarta-sans'
 import './panel.css'
 import App from './App.vue'
-createApp(App).directive('hold', vHold).mount('#app')
+import SetupWifi from './SetupWifi.vue'
+import { onSetupWifi } from './wifi'
+/* On the hub's own Wi-Fi only the one question is asked, and none of the house is loaded behind it. */
+createApp(onSetupWifi(location) ? SetupWifi : App).directive('hold', vHold).mount('#app')

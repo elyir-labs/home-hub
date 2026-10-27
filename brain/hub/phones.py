@@ -53,12 +53,17 @@ class Phones:
         self.asks: dict[str, dict] = {}      # in memory: id -> {"id", "name", "asked", "token": str | None, "denied": bool, "expires"}
         try: self.data = json.loads(self.path.read_text()) if self.path.exists() else []
         except Exception: self.data = []
+        try: os.chmod(self.path, 0o600)   # one written before it held phones' push keys, or put back by a restore
+        except OSError: pass
 
     # ---- the list ----
     def _save(self):
+        """Readable by the hub alone: a phone that turned notifications on left its signing key here (docs/apps.md)."""
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_suffix(".tmp")
-        tmp.write_text(json.dumps(self.data, indent=1))
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        os.fchmod(fd, 0o600)
+        with os.fdopen(fd, "w") as f: f.write(json.dumps(self.data, indent=1))
         os.replace(tmp, self.path)
 
     def _sweep(self):
@@ -77,7 +82,8 @@ class Phones:
         return {k: p.get(k) for k in ("id", "name", "kind", "joined", "expires", "remote", "last_seen", "how", "room")} | {
             "me": bool(me and me["id"] == p["id"]), "moved": bool((p.get("moved_to") or {}).get("at")),
             # in the Houses app: the move since 3 October. A phone that moved only to the house's own name is offered it once more.
-            "in_app": bool((p.get("moved_to") or {}).get("app"))}
+            "in_app": bool((p.get("moved_to") or {}).get("app")),
+            "push": bool(p.get("push"))}
 
     def list(self, me: dict | None = None) -> dict:
         """What this phone may see. A phone that holds no keys sees itself and nothing else.
@@ -221,6 +227,18 @@ class Phones:
         self._changed()
         return True
 
+    # ---- being told things while away from a screen (docs/messages.md, step 5) ----
+    # {subscription, vapid: {publicKey, privateKey}, tz, since}: the phone's own key, the same one it hands every
+    # house it has joined (docs/apps.md, Decided), so it lives on the record and Remove takes it. A phone in the
+    # store app keeps {apns: {token, env, p256dh, auth}, tz, since} instead: the key the house seals to.
+    def set_push(self, phone_id: str, push: dict | None) -> dict:
+        p = self.get(phone_id)
+        if not p: raise KeyError("No such phone.")
+        if push: p["push"] = push
+        else: p.pop("push", None)
+        self._save(); self._changed()
+        return self._public(p)
+
     # ---- where a screen hangs (design/companion/, C) ----
     GENERIC = ("A screen", "Wall screen")
 
@@ -269,13 +287,14 @@ class Phones:
 # carries no secret -- the shipped image is blank until the cable writes to it -- and the only name
 # that answers is the hash the hub is offering today (hub/bridge_updates.py).
 OPEN_PREFIXES = ("/phones/claim/", "/assets/", "/sounds/", "/icons/", "/bridge/firmware/")
-OPEN_PATHS = {"/", "/alive", "/phones/me", "/phones/ask", "/phones/code", "/phones/move/claim", "/qr.svg", "/phone", "/index.html", "/manifest.webmanifest", "/sw.js", "/favicon.ico", "/favicon.svg", "/robots.txt"}
+OPEN_PATHS = {"/", "/alive", "/phones/me", "/phones/ask", "/phones/code", "/phones/move/claim", "/qr.svg", "/phone", "/index.html", "/manifest.webmanifest", "/sw.js", "/favicon.ico", "/favicon.svg", "/robots.txt",
+              "/screens/report"}   # a screen's own unit, which has no cookie: hub/developer.py names it by a key of its own
 OPEN_SUFFIXES = (".js", ".css", ".svg", ".png", ".ico", ".woff2", ".webmanifest", ".json", ".html", ".txt", ".map")
 NOT_THE_APP = {"/openapi.json"}
 
 
 # ---- how a request reached the house ----
-VIA, AWAY = "x-hub-via", "relay"
+VIA, AWAY, SETUP, SCREEN = "x-hub-via", "relay", "setup", "screen"
 
 
 def from_away(headers) -> bool:
@@ -290,6 +309,32 @@ def from_away(headers) -> bool:
     Nothing is refused on the strength of this yet; step 2 in docs/away.md is the gate that reads it.
     """
     return (headers.get(VIA) or "").strip().lower() == AWAY
+
+
+def from_setup(headers) -> bool:
+    """Did this request come from a phone on the hub's own setup Wi-Fi?
+
+    Only Caddy's catch-all for that Wi-Fi's addresses stamps it, and every other door deletes or replaces
+    the header, so it cannot be claimed from the house's Wi-Fi or from away. Being on that Wi-Fi means
+    holding the password printed under the hub, which is the same proof a button press on the thing is
+    (docs/network.md, piece 5).
+    """
+    return (headers.get(VIA) or "").strip().lower() == SETUP
+
+
+def from_screen(headers, peer: str | None) -> bool:
+    """Is this the screen plugged into the hub itself?
+
+    Caddy stamps it only on a request from this machine, and deletes it on every other. The brain also
+    listens on :8300 where anything on the Wi-Fi can reach it and send whatever header it likes, so the
+    stamp counts only when the connection itself came from loopback, which is Caddy (design/screen-wifi/).
+    """
+    return (headers.get(VIA) or "").strip().lower() == SCREEN and peer in ("127.0.0.1", "::1")
+
+
+# What a phone on the setup Wi-Fi may do without the house's passcode: see the hub's network, look
+# around, and give it the house's Wi-Fi. Nothing else -- the house itself is not open to it.
+SETUP_OPEN = {("GET", "/network"), ("POST", "/network/scan"), ("POST", "/network/hub")}
 
 
 # ---- and what may pass from outside it ----

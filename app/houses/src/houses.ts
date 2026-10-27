@@ -11,6 +11,7 @@
  */
 import { reactive } from 'vue'
 import { all, put } from './db'
+import { handHouses } from './shell'
 
 export type HouseRecord = {
   id: string          // the house's label in the zone: `jordan` of jordan.elyir.app
@@ -20,6 +21,7 @@ export type HouseRecord = {
   token: string       // this phone's pass for this house
   added: number
   opened: number      // when it was last opened here: where the app opens when no house answers at home
+  push?: boolean      // the house holds this phone's notification key (push.ts)
 }
 
 /** Where a house was found: on its own Wi-Fi, over the internet, there but not letting this phone in from out there, or not at all. */
@@ -48,6 +50,11 @@ export function originOf(label: string, here: { hostname: string; protocol: stri
   if (here.hostname === 'localhost' || here.hostname === '127.0.0.1') return dev
   return `https://${label}.${here.hostname.split('.').slice(1).join('.')}`
 }
+
+/** Where the pretend house is (design/pretend-in-app/, B): the hub's own site, never a name under elyir.app, which
+    are houses' own. On a developer's machine, the mock brain. */
+export const pretendAt = (here: { hostname: string }, dev = 'http://localhost:8399') =>
+  here.hostname === 'localhost' || here.hostname === '127.0.0.1' ? dev : 'https://hub.elyir.com/try'
 
 /** The house a house's address names: `jordan` of https://jordan.elyir.app or jordan.elyir.app. */
 export function labelOf(address: string): string {
@@ -129,6 +136,9 @@ export async function reach(h: House): Promise<{ reach: Reach; base: string }> {
   return { reach: 'offline', base: h.origin }
 }
 
+/** Where to ask a house something: its Wi-Fi name when this phone is on it, else its own name. */
+export const baseOf = (h: Pick<House, 'reach' | 'lan' | 'origin'>) => (h.reach === 'here' && h.lan ? `https://${h.lan}` : h.origin)
+
 /** One line of how a house is, for Houses (HereB-sheet): its weather, and anything that needs somebody. */
 export async function glance(h: House, base: string): Promise<Glance | null> {
   try {
@@ -145,22 +155,24 @@ export async function glance(h: House, base: string): Promise<Glance | null> {
 // ---- the list ----------------------------------------------------------------------------------
 
 function record(h: HouseRecord): HouseRecord {
-  const { id, name, origin, lan, token, added, opened } = h
-  return { id, name, origin, lan, token, added, opened }
+  const { id, name, origin, lan, token, added, opened, push } = h
+  return { id, name, origin, lan, token, added, opened, push }
 }
 
-export async function save(h: HouseRecord) { await put(record(h)) }
+export async function save(h: HouseRecord) { await put(record(h)); handHouses(state.houses) }
 
 export async function load() {
   const got = await all<HouseRecord>()
   state.houses = got.map(h => ({ ...h, reach: 'checking' as Reach, glance: null }))
   state.loaded = true
+  handHouses(state.houses)
 }
 
 export async function add(h: HouseRecord) {
-  await save(h)
+  await put(record(h))
   const i = state.houses.findIndex(x => x.id === h.id)
   const live: House = { ...h, reach: 'checking', glance: null }
   if (i >= 0) state.houses[i] = live
   else state.houses.push(live)
+  handHouses(state.houses)
 }

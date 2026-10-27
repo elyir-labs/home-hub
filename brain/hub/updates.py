@@ -20,9 +20,10 @@ things. `release` (the default, and what every hub ships as) follows version tag
 family until it is tagged. `main` and `development` follow those branches, commit by commit, which is
 what a hub being worked on wants -- `development` being the one day-to-day work lands on, and `main`
 what is about to be tagged. install.sh writes HUB_CHANNEL into the compose environment; nothing else
-chooses.
+chooses. An image built from any other branch follows that branch until it lands in development, and then
+development (driver-layer/host/landed.sh); the brain offers the same.
 """
-import asyncio, hashlib, json, logging, os, re, time, urllib.request
+import asyncio, hashlib, json, logging, os, re, time, urllib.error, urllib.parse, urllib.request
 from datetime import datetime
 
 from . import notes
@@ -30,7 +31,7 @@ from .restart import plainly
 from .settings import DATA
 
 log = logging.getLogger("hub.updates")
-REPO = os.environ.get("HUB_REPO") or "topeysoft/home-hub"
+REPO = os.environ.get("HUB_REPO") or "elyir-labs/home-hub"
 RELEASE_API = f"https://api.github.com/repos/{REPO}/releases/latest"
 BRANCHES = ("main", "development")    # the channels that follow a branch rather than tags, each named for its branch
 # A branch hub is offered the newest commit whose BRAIN IMAGE finished building, not the branch's head.
@@ -40,6 +41,9 @@ BRANCHES = ("main", "development")    # the channels that follow a branch rather
 # pushes that built; brain-image.yml's paths are the files a hub runs, so every commit that changes
 # a hub gets one.
 BUILDS_API = f"https://api.github.com/repos/{REPO}/actions/workflows/brain-image.yml/runs?branch={{branch}}&event=push&status=success&per_page=1"
+# Any other branch has no published image (install.sh builds it on the hub), so its head is what is offered.
+COMMIT_API = f"https://api.github.com/repos/{REPO}/commits/{{branch}}"
+COMPARE_API = f"https://api.github.com/repos/{REPO}/compare/development...{{branch}}"
 EVERY = 6 * 3600
 RECHECK = 5 * 60                      # how soon opening This hub can make the hub ask GitHub again
 TICK = 300                            # how often the loop looks at the clock, as against at GitHub
@@ -90,7 +94,8 @@ class Updates:
         self.version = os.environ.get("HUB_VERSION") or "dev"   # a tag, or <branch>-<short sha>
         self.commit = os.environ.get("HUB_COMMIT") or ""
         channel = (os.environ.get("HUB_CHANNEL") or "release").lower()
-        self.channel = channel if channel in BRANCHES else "release"
+        # A branch of any other name only when this build says it came from it, so a stray value is no channel.
+        self.channel = channel if channel in BRANCHES or self.version.lower().startswith(channel + "-") else "release"
         # Whether the host holds release keys, written into the compose environment by install.sh.
         # It decides the default below and nothing else; the checking itself is the host's, and this
         # being wrong would make the hub shy rather than reckless.
@@ -112,10 +117,14 @@ class Updates:
         for one. A panel showing "up to date" when it does not know would be a lie a person acts on.
         """
         if not self.latest: return None
-        if self.channel in BRANCHES:
+        if self.follows_branch:
             return self.latest["sha"] != self.commit if self.commit else None
         if not RELEASE.match(self.version): return None     # this build is not on the release channel at all
         return self._norm(self.latest["version"]) != self._norm(self.version)
+
+    @property
+    def follows_branch(self) -> bool:
+        return self.channel != "release"
 
     @staticmethod
     def _norm(v: str) -> str:
@@ -423,13 +432,30 @@ class Updates:
                 # to three was never tapped, so the panel cannot have asked for these first.
                 "progress": self.progress(), "seconds": self.seconds(), "dark_seconds": self.seconds(dark=True)}
 
+    @staticmethod
+    def _built(branch: str) -> dict:
+        runs = _get(BUILDS_API.format(branch=branch)).get("workflow_runs") or []
+        if not runs: raise ValueError(f"nothing has been built for {branch} yet")
+        r = runs[0]; c = r.get("head_commit") or {}
+        return {"version": f"{branch}-{r['head_sha'][:7]}", "sha": r["head_sha"], "when": c.get("timestamp") or r.get("updated_at") or "",
+                "title": (c.get("message") or "").splitlines()[0][:120] if c.get("message") else ""}
+
+    def _landed(self) -> bool:
+        """Whether development holds every commit of this hub's branch and has moved past it, or the
+        branch is gone: the moment install.sh moves the hub onto development (host/landed.sh)."""
+        try: return _get(COMPARE_API.format(branch=urllib.parse.quote(self.channel, safe=""))).get("status") == "behind"
+        except urllib.error.HTTPError as e:
+            if e.code == 404: return True
+            raise
+
     def fetch(self) -> dict:
-        if self.channel in BRANCHES:
-            runs = _get(BUILDS_API.format(branch=self.channel)).get("workflow_runs") or []
-            if not runs: raise ValueError(f"nothing has been built for {self.channel} yet")
-            r = runs[0]; c = r.get("head_commit") or {}
-            return {"version": f"{self.channel}-{r['head_sha'][:7]}", "sha": r["head_sha"], "when": c.get("timestamp") or r.get("updated_at") or "",
-                    "title": (c.get("message") or "").splitlines()[0][:120] if c.get("message") else ""}
+        if self.channel in BRANCHES: return self._built(self.channel)
+        if self.follows_branch:
+            if self._landed(): return {**self._built("development"), "landed": self.channel}
+            c = _get(COMMIT_API.format(branch=urllib.parse.quote(self.channel, safe="")))
+            msg = (c.get("commit") or {}).get("message") or ""
+            return {"version": f"{self.channel}-{c['sha'][:7]}", "sha": c["sha"],
+                    "when": ((c.get("commit") or {}).get("committer") or {}).get("date") or "", "title": msg.splitlines()[0][:120] if msg else ""}
         d = _get(RELEASE_API)
         # A release with no title of its own is named by its tag; the panel puts this in a sentence.
         # `what` is the same lines that ship inside the next image, taken here from the release body

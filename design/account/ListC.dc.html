@@ -1,0 +1,120 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Plus Jakarta Sans", -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      /* the panel's own tokens, from app/src/panel.css */
+      --ink: #f1eee8;
+      --ink-2: #b9b5ad;
+      --ink-3: #7f7d77;
+      --lamp: #e9b872;
+      --live: #74c69d;
+      --warn: #e08a8a;
+      --muted: oklch(0.594 0.01 269);
+      --surface: rgba(26,28,34,.68);
+      --surface-hi: rgba(255,255,255,.08);
+      --edge: rgba(255,255,255,.1);
+      --edge-hi: rgba(255,255,255,.18);
+      --lamp-ink: #2a1c07;
+      --glass: linear-gradient(148deg, oklch(0.397 .014 281 / .34), oklch(0.327 .012 281 / .12) 46%, oklch(0.357 .014 281 / .24));
+      --rim: linear-gradient(158deg, rgba(255,255,255,0.69), rgba(255,255,255,.08) 34%, rgba(14,14,22,0.04) 62%, rgba(255,255,255,0.40));
+      --inner: inset 0 -46px 56px -48px rgba(20,23,31,0.9);
+      --drop: 0 27px 61px -26px rgba(15,17,26,0.67), 0 2px 10px rgba(15,17,26,0.32);
+      --sweep: .12;
+    }
+    .gl {
+      position: relative;
+      background: var(--glass);
+      backdrop-filter: blur(26px) saturate(1.6) brightness(1.04);
+      -webkit-backdrop-filter: blur(26px) saturate(1.6) brightness(1.04);
+      box-shadow: var(--inner), var(--drop);
+    }
+    .gl::after {
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      padding: 1.2px; background: var(--rim);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+    }
+    .gl::before {
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      background: linear-gradient(112deg, transparent 26%, rgba(255,255,255,var(--sweep)) 45%, rgba(255,255,255,.02) 56%, transparent 64%);
+    }
+    .gl > * { position: relative; z-index: 1; }
+    .dsp { font-family: inherit; font-weight: 400; letter-spacing: -.025em; }
+    .cap { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+    .ic { flex: 0 0 auto; }
+    /* a nudge, as the panel draws it on a phone: 358x57, radius 18 */
+    .nudge { position: absolute; left: 16px; width: 358px; height: 57px; border-radius: 18px;
+             display: grid; grid-template-columns: 32px 1fr; align-items: center; gap: 12px; padding: 0 16px 0 9px;
+             background: var(--surface); border: 1px solid rgba(233,184,114,.28); }
+    .nudge-ic { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: var(--lamp); color: var(--lamp-ink); }
+    .nudge-t { display: block; font-size: 15px; font-weight: 500; line-height: 21px; }
+    .nudge-s { display: block; font-size: 13px; color: var(--ink-2); line-height: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .round { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--live); display: inline-block; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.88); border: 2px solid rgba(12,13,16,.6); }
+    .tile { position: absolute; left: 16px; width: 358px; border-radius: 28px; overflow: hidden; background: var(--surface); border: 1px solid var(--edge); }
+    .chip { display: inline-grid; place-items: center; height: 25px; padding: 0 11px; border-radius: 999px; background: rgba(12,13,16,.55);
+            font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+    .row { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 14px; }
+    .row-ic { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: var(--surface-hi); color: var(--ink-2); }
+    .row-t { display: block; font-size: 16px; line-height: 22px; }
+    .row-s { display: block; font-size: 13px; line-height: 18px; color: var(--muted); }
+  </style>
+</helmet>
+
+<!-- C, IN THE APP -- a new phone, after Sign in with Elyir: every house the account belongs to is already in the list, by its own name. Nothing is opened yet -- each house still lets this phone in itself, the way it lets in any phone, so the account remembers houses and opens none. -->
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #0c0d10; color: var(--ink); font-size: 17px; line-height: 1.4;">
+  <div style="position: absolute; inset: 0; background: linear-gradient(#171a2a 0%, #13151f 55%, #0f1016 100%);"></div>
+  <div style="position: absolute; left: 16px; top: 14px; width: 358px; height: 40px; display: flex; align-items: center;">
+    <span style="font-size: 15px; color: var(--ink-2);">Wednesday, October 21</span>
+  </div>
+  <div class="dsp" style="position: absolute; left: 16px; top: 52px; font-size: 40px; line-height: 44px;">Your houses</div>
+  <div style="position: absolute; left: 16px; top: 104px; font-size: 14px; color: var(--muted);">From your Elyir account &middot; alex@example.com</div>
+  <div style="position: absolute; left: 16px; top: 140px; width: 358px; height: 150px; border-radius: 28px; overflow: hidden; border: 1px solid var(--edge-hi); box-shadow: var(--drop);">
+    <div style="position: absolute; inset: 0; background: linear-gradient(rgb(40,54,82), rgb(92,80,68)); opacity: .55;"></div>
+    <div style="position: absolute; inset: 0; background: linear-gradient(rgba(12,13,16,0) 20%, rgba(12,13,16,.6));"></div>
+    <div style="position: absolute; left: 20px; top: 18px; right: 18px;">
+      <span class="dsp" style="font-size: 26px; line-height: 30px;">Jordan&rsquo;s house</span>
+      <div style="font-size: 14px; color: var(--ink-2); margin-top: 6px;">jordan.elyir.app</div>
+    </div>
+    <div style="position: absolute; left: 14px; right: 14px; bottom: 14px; height: 44px; border-radius: 14px; background: rgba(26,28,34,.78); display: flex; align-items: center; justify-content: space-between; padding: 0 14px;">
+      <span style="font-size: 14px; color: var(--ink-2);">Somebody there says yes</span><span style="font-size: 14px; font-weight: 500; color: var(--lamp);">Ask to join</span>
+    </div>
+  </div>
+  <div style="position: absolute; left: 16px; top: 306px; width: 358px; height: 150px; border-radius: 28px; overflow: hidden; border: 1px solid var(--edge-hi); box-shadow: var(--drop);">
+    <div style="position: absolute; inset: 0; background: linear-gradient(rgb(64,70,80), rgb(42,46,54)); opacity: .55;"></div>
+    <div style="position: absolute; inset: 0; background: linear-gradient(rgba(12,13,16,0) 20%, rgba(12,13,16,.6));"></div>
+    <div style="position: absolute; left: 20px; top: 18px; right: 18px;">
+      <span class="dsp" style="font-size: 26px; line-height: 30px;">Lake house</span>
+      <div style="font-size: 14px; color: var(--ink-2); margin-top: 6px;">lake-alex.elyir.app</div>
+    </div>
+    <div style="position: absolute; left: 14px; right: 14px; bottom: 14px; height: 44px; border-radius: 14px; background: rgba(26,28,34,.78); display: flex; align-items: center; justify-content: space-between; padding: 0 14px;">
+      <span style="font-size: 14px; color: var(--ink-2);">Somebody there says yes</span><span style="font-size: 14px; font-weight: 500; color: var(--lamp);">Ask to join</span>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 16px; top: 476px; width: 358px; padding: 14px 16px; border-radius: 18px; background: var(--surface); border: 1px solid var(--edge); font-size: 14px; line-height: 1.45; color: var(--ink-2);">
+    Your account only remembers your houses. Each one still lets this phone in itself &mdash; with its code, or a yes from a phone already in it.
+  </div>
+  <div style="position: absolute; left: 16px; top: 586px; width: 358px; height: 58px; border-radius: 20px; border: 1.5px dashed var(--edge-hi); display: flex; align-items: center; gap: 12px; padding: 0 16px; color: var(--ink-2);">
+    <span class="row-ic" style="width: 32px; height: 32px; border-radius: 10px;"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-2)" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+    <span style="font-size: 16px;">Add a house</span>
+  </div>
+  <div style="position: absolute; left: 0; right: 0; bottom: 34px; text-align: center; font-size: 14px; color: var(--muted);">Signed in as alex@example.com &middot; <span style="color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px;">Sign out</span></div>
+</div>
+</x-dc>
+</body>
+</html>

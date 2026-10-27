@@ -1,0 +1,10 @@
+# Brings a screen's own part to the version its hub runs. Installed by startup/install.sh.
+[Unit]
+Description=Bring this screen to its hub's version
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/home-hub/startup/screen-update.sh
+TimeoutStartSec=30min

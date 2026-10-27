@@ -270,6 +270,14 @@ Do not reopen these, and do not propose around them.
   them -- every one a sentence the grammar runs, never a guess. `app/src/Keys.vue`, `keys.ts`,
   `Commands.complete`; pinned by `app/tests/keys.test.ts` and `app/e2e/keyboard.touch.spec.ts`.
 
+- **The phone app is a native shell around the Houses app, never Capacitor and never a second panel** (19 October
+  2026, `docs/apps.md`, Decided). Swift and Kotlin in `elyir-labs/home-hub-apps` under Apache-2.0, never in this
+  tree; the panel always comes from the hub and is never bundled. One pretend house, run in the browser at
+  `hub.elyir.com/try` (never a name on the shared `elyir.app`), serves the website, App Review and anyone without a box yet. What the stores require is listed
+  there and settled before shell code. The address offer inside the app is `design/store-app/`, C: on the US
+  storefront its button opens the payment page in the browser, on every other storefront setup has no such step.
+  Pinned by `app/tests/storefront.test.ts` and `app/e2e/houses.spec.ts`.
+
 - **The Brilliant work lives in a repository of its own, and public code never reaches into it**
   (5 October 2026). This repository is public and every hub clones it whole. The bridge puck here (`puck/`) is
   the hub's own device -- cable, finding the hub, updates, the ear, errands, its light -- and it is whole
@@ -279,6 +287,73 @@ Do not reopen these, and do not propose around them.
   hub nor a puck ever hands one to the other (`Bridges.kind()`, `fwupdate.cpp`). A house's own names, keys
   and network scans never come into this tree either: the secret scan in CI and `tools/hooks/pre-commit`
   are there for that.
+- **There are two hubs, one image, and the house always comes first** (20 October, `docs/host-tiers.md`). **Hub**
+  (CM5 or Pi 5) runs the house, the voice and music to the speakers. **Hub Plus** is an off-the-shelf N100/N150 mini
+  PC, 16 GB and 512 GB, flashed with our image, with no ODM. It adds films, camera recording and the assistant. A box is
+  offered what `driver-layer/host-tier.sh` measures (`HOST_CAN`), never what it is sold as. Films need a video
+  encoder, so a Pi never gets them. Every extra runs under the `x-extra` caps in `driver-layer/docker-compose.yml`, and
+  a light never waits on a film. Pinned by the tiers group in `driver-layer/host/tests.sh`.
+- **A screen that can't reach the hub says so before anyone taps** (9 October, `design/out-of-reach/`, C with
+  B's card). An open live connection is not proof: the screen makes a fresh request every half minute, and two
+  misses put a band along the foot ("Changes made here aren't reaching the hub", since when, the switches on the
+  wall still work). The corner stops saying Connected. While cut off, a tap guesses nothing, and the card it
+  touched says Still on rather than flipping back. A request that never arrived names the hub; only one the hub
+  answered with a failure names the light. The band replaces the Reconnecting banner. Pinned by
+  `app/tests/reach.test.ts` and `app/e2e/reach.spec.ts`; the rules and words are `app/src/reach.ts`.
+- **A hub with no cable makes a Wi-Fi of its own, and the code on its label joins it** (19 October,
+  `design/setup-network/`, A now, B once there is an app). Only while it is on nothing, never without the password
+  printed under it, and gone once it is online. The phone's sign-in sheet opens on the panel's own Wi-Fi step, where
+  a card that can do both tries the house's Wi-Fi without dropping the phone. Holding the label's password lets a phone
+  give the hub a Wi-Fi and nothing else. B (the same over Bluetooth, no network switch) waits for an app, because
+  Safari has no Bluetooth. Pinned by `app/tests/wifi.test.ts`, `app/e2e/setup-wifi.spec.ts`, `brain/tests/test_setup_wifi.py` and the
+  `setting_up` group in `driver-layer/host/tests.sh`; the host's half is `host/network.sh`.
+- **A hub with a screen and no network asks which Wi-Fi on that screen** (22 October, `design/screen-wifi/`, C). The
+  question is the phone's, before Welcome home, with the hub's own Wi-Fi as a code beside it; whichever is started
+  first wins, and a phone on the hub's Wi-Fi gets the screen to step aside. A screen nobody can touch or point at shows
+  only the code. Only the screen plugged into the hub is told the password (`network.setup-key`, Caddy's `screen`
+  stamp, believed only from loopback). Pinned by `app/tests/wifi.test.ts`, `app/e2e/screen-wifi.spec.ts`,
+  `brain/tests/test_setup_wifi.py` and the `setting_up` group in `driver-layer/host/tests.sh`.
+- **A hub on its USB stick asks before it erases the drive beside it** (20 October, `design/move-to-drive/`, A with
+  B's sheet). An empty drive is moved onto without asking; anything else only on the screen. First run opens on the
+  question, naming the drive and what is on it, and erases only on the typed word; Keep is an answer, and This hub's
+  first row offers the move again on a hold, behind the passcode. There is no band on Home for it. The move happens
+  at the start of a boot with the disk read-only (`host/move-early.sh`), the host checks the drive's serial against
+  the one the screen showed, and the stick is never written, so one stick sets up hub after hub. Pinned by
+  `app/tests/drive.test.ts`, `app/e2e/move-to-drive.spec.ts`, `brain/tests/test_drive.py` and the `moving_in`,
+  `moving` and `describing` groups in `driver-layer/host/tests.sh`.
+- **The hub's front page is Elyir Bench's shape, with one line for a hub ready to plug in** (16 October,
+  `design/site/`, D). It lives at `hub.elyir.com`, as Bench lives at `bench.elyir.com`; never under `elyir.app`, where
+  names are houses' own. On a computer, Put it on a computer you have leads; on a phone, Try it live. Under the two
+  buttons, one quiet email box for anyone who wants one ready to plug in, writing to the one Elyir waitlist. Its
+  pictures are the panel on the pretend house with `NAMES=plain` (`npm run site-shots`), never somebody else's show or
+  brand. `site/`, pinned by `site/site.test.mjs`; made by `site/terraform/`, deployed by `.github/workflows/site.yml`.
+- **Music lives on the speaker's card, and every hub plays it** (20 October, `design/music/`, A with C's sentences).
+  A quiet speaker offers Play something and its last two things again; one pane chooses what (left) and which rooms
+  (right, this room ticked); music in several rooms plays in step and is a row of rooms on the card; the command box
+  plays by name ("play Dinner in the kitchen") from a fixed grammar, completing only what the house has played. The
+  wall's tabs stay three. Music is on every hub, a Pi included; films are Hub Plus's (`design/media/`). Music has no
+  lamps rule. A player is a room, a name and a kind, the kind is open, and the panel never branches on it. **Spotify
+  plays only on speakers that have it built in**: the music engine's Spotify parts and AirPlay receiver are never
+  switched on and nothing on screen offers them, until there is a partnership. Pinned by `app/tests/music.test.ts`,
+  `app/e2e/music.spec.ts` and `brain/tests/test_music.py`; the engine and its setup are `brain/hub/music.py` and
+  `docs/music.md`.
+- **The Elyir account pays for a house's address, and the house belongs to it; nobody signs in to use the house**
+  (21 October, `design/account/`, B). It is the same account as Elyir Bench, at `account.elyir.com`. The code at the end
+  of the address step opens it instead of a bare payment page, and it pays the relay as a ticket payer beside Bench
+  Cloud, so the relay stays the only place that checks money. A house belongs to one or more accounts, which buys two
+  things only: getting back in when the code is forgotten -- a signed-in phone, at home only, said on the wall and told
+  to every phone that can change things -- and handing the house over when somebody moves out. A person in a house is
+  still a phone: phones at home and the wall never sign in, and the Houses app keeps its list without an account. On
+  the wall it is never called "Account", which is already the page for the services the house signed into. Not built yet.
+- **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
+  B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
+  development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this
+  page away removes it on either. It holds what the hub follows, SSH, and the house's screens with Update now. An SSH key
+  is added from a phone or computer (`?sheet=developer&key=1`, the wall's code opens it), never typed on the wall; the request names keys, never
+  commands, and the host writes them (`driver-layer/host/developer.sh`). A unit flashed from a branch follows it until
+  it lands in development, then development (`driver-layer/host/landed.sh`). The image still ships with SSH off. Pinned by
+  `app/tests/developer.test.ts`, `app/e2e/developer.spec.ts`, `brain/tests/test_developer.py` and the `developing` and
+  `reporting` groups in `driver-layer/host/tests.sh`.
 
 ---
 

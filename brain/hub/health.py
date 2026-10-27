@@ -20,9 +20,13 @@ doing is worth a second's thought first -- the question and the words that answe
 in them, because "Are you sure?" is not a question anybody can answer. The panel draws them as buttons and invents none of its own, because
 it does not know what it is looking at. An empty `acts` is a line worth saying and not worth tapping --
 which should be rare, and where it is not, the thing to fix is here rather than in the panel.
+
+The sentences and the words on the buttons are messages.py's, by id. This file decides when a line exists
+and what fills its holes.
 """
 import shutil, time
 from datetime import datetime
+from .messages import said as message, way
 from .model import kind_of
 from .provision import PARTS
 from .restart import DEEPER, HOUR, WEARY
@@ -53,14 +57,16 @@ def when(ts, tz, now=None) -> str:
 
 
 
-def said(p: dict) -> str:
+def said(p: dict) -> dict:
     """A connection that is not working, as a sentence with its name in it. Its own line follows when
     there is one -- "Not plugged in. Plug a stick in..." says what to do, and an error's words are the
     only clue anybody has -- but never as a bare fragment after a colon."""
     name, text = p["name"], (p.get("text") or "").strip()
-    if text.startswith("Not plugged in."): return f"{name} is not plugged in.{text[len('Not plugged in.'):]}"
-    if not text or text.lower().startswith(("not working", "not running")): return f"{name} is not working."
-    return f"{name} is not working. {text[0].upper()}{text[1:]}{'' if text[-1] in '.!?' else '.'}"
+    if text.startswith("Not plugged in."):
+        then = text[len("Not plugged in."):].strip()
+        return message("part.unplugged", None if then else "bare", name=name, then=then)
+    if not text or text.lower().startswith(("not working", "not running")): return message("part.stopped", "quiet", name=name)
+    return message("part.stopped", name=name, why=text)
 
 class Health:
     def __init__(self, hub): self.hub = hub
@@ -105,10 +111,8 @@ class Health:
         for d in gone:
             ts = since.get(d.id)
             out.append({"kind": "offline", "subject": d.id, "since": ts, "where": self.where(d), "name": d.name,
-                        "text": f"{d.name} has not answered since {when(ts, self.hub.tz)}." if ts else f"{d.name} is not answering.",
-                        "acts": [{"do": "Check again", "act": "check", "to": d.id},
-                                 {"do": "It’s gone, remove it", "act": "forget", "to": d.id, "yes": f"Yes, remove {d.name}",
-                                  "ask": f"Remove {d.name} from the house? It comes off the app or account it came from too."}]})
+                        **(message("device.offline", name=d.name, when=when(ts, self.hub.tz)) if ts else message("device.offline", "unsure", name=d.name)),
+                        "acts": [way("device.offline", "check", d.id), way("device.offline", "forget", d.id, name=d.name)]})
         return out
 
     def bridges(self) -> list:
@@ -130,16 +134,13 @@ class Health:
         out = []
         for b in self.hub.bridge.quiet():
             it = f"The {b['room']} bridge" if b["room"] else "A bridge"
-            since = f" since the Wi‑Fi changed to {b['missed']}" if b["missed"] else \
-                    (f" since {when(b['since'], self.hub.tz)}" if b["since"] else "")
+            if b["missed"]: line = message("bridge.quiet", "moved", name=it, network=b["missed"])
+            elif b["since"]: line = message("bridge.quiet", name=it, when=when(b["since"], self.hub.tz))
+            else: line = message("bridge.quiet", "unsure", name=it)
             out.append({
                 "kind": "bridge", "subject": b["chip"], "since": b["since"], "where": b["room"],
-                "name": it,
-                "text": (f"{it} has not answered{since}. Its switches still work on the wall — the hub "
-                         "just can’t see them. Plug it into the hub for a minute to set it right."),
-                "acts": [{"do": "It’s gone, remove it", "act": "bridge", "to": b["chip"],
-                          "yes": "Yes, remove it", "no": "Keep it",
-                          "ask": f"Remove {it[0].lower() + it[1:]}? Its switches stop appearing here; they keep working on the wall."}],
+                "name": it, **line,
+                "acts": [way("bridge.quiet", "forget", b["chip"], name=it)],
             })
         return out
 
@@ -149,8 +150,7 @@ class Health:
         if u.free < LOW_FREE or u.free < u.total / 10:
             gb = u.free / 1024 ** 3
             left = f"{gb:.1f} GB" if gb >= 1 else f"{u.free / 1024 ** 2:.0f} MB"
-            return [{"kind": "storage", "subject": None, "since": None, "acts": [],
-                     "text": f"The hub's storage is nearly full: {left} left."}]
+            return [{"kind": "storage", "subject": None, "since": None, "acts": [], **message("storage.low", left=left)}]
         return []
 
     def drivers(self, gone=()) -> list:
@@ -177,35 +177,33 @@ class Health:
 
         # accounts waiting for a person. `flow` is the conversation that finishes it, so the panel can offer it here.
         for w in self.hub.provision.sign_ins:
-            checking = w.get("source") == "reconfigure"
-            what = "needs a setting checked" if checking else "needs signing in again"
+            mid, act = ("account.check", "check") if w.get("source") == "reconfigure" else ("account.signed_out", "sign_in")
             who = w.get("kind") or w.get("title") or "An account"
-            tail = f": {w['title']}" if w.get("title") and w["title"] != who else ""
-            out.append({"kind": "driver", "subject": w.get("handler"), "since": None, "text": f"{who} {what}{tail}.",
+            titled = bool(w.get("title") and w["title"] != who)
+            out.append({"kind": "driver", "subject": w.get("handler"), "since": None,
+                        **message(mid, "titled" if titled else None, name=who, title=w.get("title")),
                         "with": took(domain=w.get("handler")),
-                        "acts": [{"do": "Check it" if checking else "Sign in again", "act": "flow", "to": w["flow_id"]}]})
+                        "acts": [way(mid, act, w["flow_id"])]})
         for p in self.hub.provision.summary():
             mine = took(domain=PART_DOMAIN.get(p["id"]))
             if p.get("state") == "sign-in":
                 out.append({"kind": "driver", "subject": p["id"], "since": None, "acts": [], "with": mine,
-                            "text": f"{p['name']} needs signing in again."})
+                            **message("part.signed_out", name=p["name"])})
             elif p.get("state") == "failed":
-                out.append({"kind": "driver", "subject": p["id"], "since": None, "with": mine,
-                            "text": said(p),
+                out.append({"kind": "driver", "subject": p["id"], "since": None, "with": mine, **said(p),
                             "acts": self.part_acts(p)})
             elif p.get("state") == "off" and mine:
                 # A part that is simply not there is only news when something was depending on it. A Zigbee
                 # stick nobody has plugged in is not a fault; a Zigbee stick six devices are waiting on is.
-                out.append({"kind": "driver", "subject": p["id"], "since": None, "with": mine,
-                            "text": said(p),
+                out.append({"kind": "driver", "subject": p["id"], "since": None, "with": mine, **said(p),
                             "acts": self.part_acts(p)})
             else:
                 claimed.difference_update(w["id"] for w in mine)   # a part that is fine explains nothing
         # something HA has but could not start. `retry` is the entry to ask again, once whatever it complained about is fixed.
         for q in self.hub.provision.problems:
             out.append({"kind": "driver", "subject": q.get("entry_id"), "since": None, "with": took(entry=q.get("entry_id")),
-                        "text": f"{q.get('title')} could not connect{': ' + q['reason'] if q.get('reason') else '.'}",
-                        "acts": [{"do": "Try again", "act": "entry", "to": q.get("entry_id")}]})
+                        **message("entry.failed", None if q.get("reason") else "bare", name=q.get("title"), reason=q.get("reason")),
+                        "acts": [way("entry.failed", "again", q.get("entry_id"))]})
         return out
 
     def part_acts(self, p: dict) -> list:
@@ -219,11 +217,9 @@ class Health:
         drawn as a menu nobody can choose from.
         """
         tried = self.hub.provision.retried_at.get(p["id"], 0)
-        acts = [{"do": f"Restart {p['name']}", "act": "part", "to": p["id"]}]
+        acts = [way("part.stopped", "restart", p["id"], name=p["name"])]
         if time.time() - tried < RETRIED:
-            acts.append({"do": "Quick restart", "act": "restart", "to": "hub",
-                         "ask": f"{p['name']} did not come back. Restart the hub? Lights and switches keep working.",
-                         "yes": "Quick restart", "no": "Not now"})
+            acts.append(way("part.stopped", "quick", "hub", name=p["name"]))
         return acts
 
     def restarts(self) -> list:
@@ -240,17 +236,14 @@ class Health:
         if len(asked) >= WEARY:
             rung = asked[0]["old"]
             deeper = DEEPER.get(rung)
-            out.append({"kind": "restart", "subject": None, "since": asked[-1]["ts"],
-                        "text": f"The hub has restarted {len(asked)} times in the past hour. Something is wrong that restarting is not fixing.",
-                        "acts": ([{"do": "Full restart" if deeper == "everything" else "Power off and on", "act": "restart", "to": deeper,
-                                   "ask": f"{'A quick restart' if rung == 'hub' else 'A full restart'} has not helped. Try the next one up?",
-                                   "yes": "Yes, try that", "no": "Not now"}] if deeper else [])})
+            out.append({"kind": "restart", "subject": None, "since": asked[-1]["ts"], **message("hub.restarts", count=len(asked)),
+                        "acts": [way("hub.restarts", "full" if rung == "hub" else "power", deeper)] if deeper else []})
         # One that came back on its own. `source` is the host's watchdog rather than a person, and the
         # line says the time because that is the fact a household can act on.
         alone = next((e for e in events if e["new"] == "back" and e["source"] == "watchdog"), None)
         if alone:
             out.append({"kind": "restart", "subject": None, "since": alone["ts"], "acts": [],
-                        "text": f"The hub stopped answering at {when(alone['ts'], self.hub.tz)} and started itself again. Nobody asked it to."})
+                        **message("hub.restarted_itself", when=when(alone["ts"], self.hub.tz))})
         return out
 
     def update(self) -> list:
@@ -262,20 +255,15 @@ class Health:
         """
         st = self.hub.updates.state() or {}
         state, bad = st.get("state"), st.get("bad")
-        what = f"Version {bad}" if bad else "The last update"
+        how = None if bad else "unnamed"
         if state == "refused":
             # Nothing was installed and nothing is broken, so this is news rather than a job. And it
             # carries no Try again: the same tap would refuse the same release, and sending somebody
             # round that loop is worse than telling them plainly that it is not theirs to fix.
-            return [{"kind": "update", "subject": None, "since": st.get("finished"), "acts": [],
-                     "text": f"{what} could not be checked, so the hub did not install it. Nothing has changed and the house is working normally."}]
-        if state == "reverted":
-            text = f"{what} did not start, so the hub put back the one it was on. Everything is working; you can try it again from here."
-        elif state == "failed" and st.get("reverted") is False:
-            text = f"{what} did not start, and the hub could not put back the one it was on. Try it again; if this keeps happening, get in touch with us."
-        elif state == "failed":
-            text = "The last update did not finish. You can try it again from here."
-        else:
-            return []
-        return [{"kind": "update", "subject": None, "since": st.get("finished"), "text": text,
-                 "acts": [{"do": "Try again", "act": "update", "to": None}]}]
+            return [{"kind": "update", "subject": None, "since": st.get("finished"), "acts": [], **message("update.refused", how, version=bad)}]
+        if state == "reverted": mid = "update.put_back"
+        elif state == "failed" and st.get("reverted") is False: mid = "update.stuck"
+        elif state == "failed": mid, how = "update.unfinished", None
+        else: return []
+        return [{"kind": "update", "subject": None, "since": st.get("finished"), **message(mid, how, version=bad),
+                 "acts": [way(mid, "again", None)]}]

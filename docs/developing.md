@@ -10,7 +10,7 @@ Any Linux box with systemd is a hub host: a Raspberry Pi 5, an Intel NUC, a mini
 Proxmox, running Debian, Ubuntu, Raspberry Pi OS or Fedora. One line:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/topeysoft/home-hub/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/elyir-labs/home-hub/main/install.sh | sudo bash
 ```
 
 `install.sh` installs Docker, names the machine `hub` (so it answers at `hub.local`), writes

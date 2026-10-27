@@ -3,7 +3,8 @@
 """The registration service: names for houses, and the relay's yes or no.
 
 Two audiences on one port. Hubs, from anywhere, at https://api.elyir.app: is this name free, take it
-(with an invite code, if somebody was handed one), how is it doing, bring an invite to it later, let it go. And frps, on this same box, asking before it carries a house (docs/service.md,
+(with an invite code, if somebody was handed one), how is it doing, bring an invite to it later, let it go, and
+hand a sealed notification to a phone in the store app (push.py). And frps, on this same box, asking before it carries a house (docs/service.md,
 Where the check goes) -- which must never be reachable from outside, because whoever could answer it
 could open the relay to anybody. The api name reaches this service the way a house reaches its own
 door, through frps and a local Caddy (relay/terraform), so every request from outside arrives with
@@ -20,14 +21,15 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from home import Home, serve
-from registry import Registry
+from push import Apns, Limit, problem
+from registry import RESERVED, Payers, Registry, read_ticket
 
 CLAIMS_PER_DAY = 5               # per address: enough for a household changing its mind, not for a script
 WRONG_INVITES_PER_DAY = 10       # per house: typos, not guessing
 
 
 def make(registry: Registry, now=time.time, relay: dict | None = None, offer: dict | None = None, home: Home | None = None,
-         nearby_origins: tuple = ()) -> FastAPI:
+         nearby_origins: tuple = (), payers: Payers | None = None, apns: Apns | None = None, limit: Limit | None = None) -> FastAPI:
     """`relay` is how a carried house reaches frps -- its address and the shared token, which is not the gate
     (the house's own secret is) but which frps wants, so the hub is handed it rather than anybody typing it.
     `offer` is what a household is shown: whether the service is open to them, at what price, and where to pay."""
@@ -37,6 +39,8 @@ def make(registry: Registry, now=time.time, relay: dict | None = None, offer: di
     relay = relay or {"addr": f"relay.{registry.zone}", "token": ""}
     offer = offer or {"open": False, "price": None, "pay": None}
     home = home or Home(registry, now=now)
+    payers = payers or Payers()
+    limit = limit or Limit(now=now)
 
     def owner(name: str, authorization: str | None):
         secret = (authorization or "").removeprefix("Bearer ").strip()
@@ -101,6 +105,18 @@ def make(registry: Registry, now=time.time, relay: dict | None = None, offer: di
             raise HTTPException(403, {"why": "invite", "message": str(e)}) from None
         return {"name": name, "address": f"{name}.{registry.zone}", **registry.status(name), "relay": relay}
 
+    class Ticket(BaseModel):
+        ticket: str
+
+    @app.post("/houses/{name}/carry")
+    def carry(name: str, body: Ticket, authorization: str | None = Header(default=None)):
+        """A paid plan elsewhere carries the house: its holder brings the payer's ticket (registry.py, Payers)."""
+        owner(name, authorization)
+        try: until, note = read_ticket(body.ticket, name, payers.keys(), now())
+        except PermissionError as e: raise HTTPException(403, {"why": "ticket", "message": str(e)}) from None
+        registry.carry(name, until, note)
+        return {"name": name, "address": f"{name}.{registry.zone}", **registry.status(name), "relay": relay}
+
     @app.get("/houses/{name}")
     def status(name: str, authorization: str | None = Header(default=None)):
         owner(name, authorization)
@@ -110,6 +126,32 @@ def make(registry: Registry, now=time.time, relay: dict | None = None, offer: di
     def release(name: str, authorization: str | None = Header(default=None)):
         owner(name, authorization)
         registry.release(name)
+
+    class Push(BaseModel):
+        house: str
+        token: str
+        env: str
+        sealed: str
+        urgency: str
+        collapse: str
+        ttl: int
+
+    @app.post("/push")
+    def push(body: Push, authorization: str | None = Header(default=None)):
+        """A notification a house sealed to a phone's own key, handed to Apple with Elyir's (push.py). Only a house
+        that is carried, as itself, a few times a minute at most."""
+        if body.house in RESERVED: raise HTTPException(404, "No house by that name holds that key.")
+        owner(body.house, authorization)
+        if not registry.status(body.house)["carried"]: raise HTTPException(403, "This house isn't carried by the relay.")
+        why = problem(body.model_dump())
+        if why: raise HTTPException(422, why)
+        if not apns: raise HTTPException(503, "The sender isn't set up yet.")
+        if not limit.allow(body.house): raise HTTPException(429, "Too many from this house just now.")
+        status = apns.send(body.house, body.model_dump())
+        if status == 200: return {"sent": True}
+        if status == 410: return JSONResponse({"gone": True}, status_code=410)
+        if status == 429: raise HTTPException(429, "Apple asked for a pause.")
+        raise HTTPException(502, "Apple didn't take it just now.")
 
     # ---- the house's LAN name: its certificate, proved over DNS-01 (home.py) ----
     # Shaped exactly like lego's `httpreq` DNS provider, so the hub needs a stock ACME client and nothing
@@ -185,7 +227,11 @@ def main():
     # The address in the name (home.py): authoritative for home.<zone>, on 53 when RELAY_DNS_PORT says so.
     if os.environ.get("RELAY_DNS_PORT"):
         serve(home, ns=os.environ.get("RELAY_NS", f"ns1.{registry.zone}"), port=int(os.environ["RELAY_DNS_PORT"]))
-    uvicorn.run(make(registry, relay=relay, offer=offer, home=home, nearby_origins=nearby_origins(registry.zone)), host="127.0.0.1", port=int(os.environ.get("RELAY_PORT", "7100")),
+    payers = Payers(data / "payers", os.environ.get("RELAY_PAYERS", ""))
+    # The sender's key (push.py): from an env file on the box only the service reads. Without it /push answers 503.
+    apns = Apns.from_env()
+    uvicorn.run(make(registry, relay=relay, offer=offer, home=home, nearby_origins=nearby_origins(registry.zone), payers=payers, apns=apns),
+                host="127.0.0.1", port=int(os.environ.get("RELAY_PORT", "7100")),
                 proxy_headers=True, forwarded_allow_ips="127.0.0.1")
 
 

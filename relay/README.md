@@ -45,6 +45,28 @@ it, and `terraform apply`. The wildcard and the CAA pair land at the same time a
   provider so the hub uses a stock ACME client (`driver-layer/lan-cert/`). No house causes a DNS
   write and there is still no wildcard certificate anywhere under the zone.
 
+- `service/push.py` — the sender, since 20 October 2026 (`docs/apps.md`, Decided 19 October). A phone
+  in the store app has no web push, so a house seals its notification to a key only that phone holds and
+  hands it to `POST /push` with the phone's APNs token, proving itself with its relay secret; the service
+  passes it to Apple signed with Elyir's key and keeps nothing. Only a house that is carried, at most ten a
+  minute and sixty an hour per house (counted in memory, so a restart forgets them). Apple sees a fixed
+  sentence, "One of your houses needs a look.", and the house's label; the house's words are sealed inside.
+
+**Turning the sender on.** It needs Apple's push key: made once in the developer account (Certificates,
+Identifiers & Profiles → Keys, with Apple Push Notifications service), a `.p8` file Apple shows exactly once,
+with a ten-character key id beside it and the team id on the membership page. All three go in the operator's
+`terraform.tfvars` (`apns_key`, `apns_key_id`, `apns_team_id`; the example shows the shape) and nowhere else --
+never in the repository, never on a hub. `terraform apply` then writes them into `/etc/relay/apns.env` on the
+box (0600, read by the service through `--env-file`, so they never appear on its command line), which is a
+change to cloud-init and so a new box: the volume carries every house across and open tunnels drop for the
+minute it takes, as with any new `relay_service_ref`. Like `relay_auth_token`, the key also sits in the box's
+user data at Hetzner and in Terraform's state, which is why the state stays off the repository. Until the
+key is there, `/push` answers 503 and every house keeps its store-app phones for when it is on; a box built
+before the sender existed also lacks `/push` on the api door and answers 404, which a house treats as worth
+trying again. `deploy-service.sh` moves the code only, so it never brings the key. Running your own box
+(`relay_ipv4`), set `RELAY_APNS_KEY` (the `.p8`, or base64 of it on one line), `RELAY_APNS_KEY_ID` and
+`RELAY_APNS_TEAM_ID` for the service yourself.
+
 **Carrying a house, by hand, until payments exist.** The relay is an optional paid service
 (`docs/service.md`) and the payment side is not built, so the operator grants entitlements:
 
@@ -73,6 +95,14 @@ ssh root@<relay> docker exec relay-service python cli.py invite 2027-10-05 "a pr
 ssh root@<relay> docker exec relay-service python cli.py invites          # used by whom, or still good until
 ssh root@<relay> docker exec relay-service python cli.py uninvite 9HTF    # an unused code, by its last four
 ```
+
+**Or a paid plan elsewhere, with a ticket.** A service the house pays (a payer: Elyir Bench Cloud for
+printers) signs "carry this name until then" with a key it shares with the relay and hands that to the
+house; the house brings it with its own secret (`POST /houses/<name>/carry {"ticket"}`). Both are
+needed, so a payer can't carry a name its holder didn't ask for. A ticket is good for an hour and
+carries at most 45 days ahead, never shortening a longer grant: a plan that stops just runs out, and
+the name stays the house's. Payers and their keys are lines of `name key` in `/var/lib/relay/service/payers`
+on the volume (read again when it changes, kept across a new box), or `RELAY_PAYERS=name=key`.
 
 **The printer app** (`printers.elyir.app`, since 2 October 2026) is static files served by the same
 Caddy as `api`, carried through frps as one more always-carried name whose secret is derived from the

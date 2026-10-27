@@ -5,7 +5,8 @@
 #   panel   the screens: types, linter, unit tests, coverage floor, and that it builds
 #   e2e     the built panel driven in a real browser against the mock brain, in four shards
 #   shell   the scripts that run on the hub host
-#   secrets that no key or token is being published: the repository is public and every hub clones it
+#   secrets that no key or token is being published, nor a person's name, a real printer or a home network:
+#           the repository is public and every hub clones it
 #   kiosk   the wall's launcher: its own tests, and that it still builds
 #   image   the brain's container, built for both kinds of host but not pushed
 #
@@ -127,6 +128,10 @@ jobs:
       # named and in an area, a canvas opening on the board that won
       - name: the artboard viewer still reads design/ as drawn
         run: node --test tools/artboards/lib.test.mjs
+      # hub.elyir.com is design/site's D; this fails when the page drifts from the board, or when /install
+      # could hand bash a web page
+      - name: the front page still matches its board
+        run: node --test site/site.test.mjs
 
   # The Matter bridge. It is the one part of the hub whose bugs land in somebody ELSE's app, so the
   # unit conversions are checked here: three of them are inversions -- a cover counted from the other
@@ -171,6 +176,7 @@ jobs:
       # The mock brain serves ../dist, so the panel has to exist before a browser can be pointed at it.
       - run: cd app && npm run build
       - run: cd app && npm run build:houses     # the Houses app, which e2e/houses.spec.ts serves itself
+      - run: cd app && npm run build:try        # the pretend house, which e2e/try.spec.ts serves itself
       # The browser is the same download every run until Playwright itself moves, so key it on the
       # version the lockfile pins. The system libraries it needs are not in the cache and are
       # installed either way.
@@ -225,6 +231,7 @@ jobs:
         tools/hooks/pre-commit
         tools/release.sh
         driver-layer/radios.sh
+        driver-layer/host-tier.sh
         driver-layer/mqtt-auth.sh
         driver-layer/host/harden.sh
         driver-layer/host/firstboot.sh
@@ -235,13 +242,20 @@ jobs:
         driver-layer/host/network.sh
         driver-layer/host/away.sh
         driver-layer/host/verify.sh
+        driver-layer/host/landed.sh
+        driver-layer/host/developer.sh
+        startup/screen-report.sh
         driver-layer/host/channel.sh
+        driver-layer/host/wifi-awake.sh
         driver-layer/host/tests.sh
         driver-layer/host/pi-image/stage-hub/prerun.sh
         driver-layer/host/pi-image/stage-hub/00-home-hub/*.sh
         startup/install.sh
+        startup/splash.sh
         startup/wall.sh
         startup/find-hub.sh
+        startup/keep-hub.sh
+        startup/screen-update.sh
     steps:
       - uses: actions/checkout@v4
       # `bash -n a.sh b.sh` reads a.sh as the script and everything after it as that script's
@@ -287,6 +301,12 @@ jobs:
           if [ -n "$BASE" ]; then
             "$RUNNER_TEMP/gitleaks" git . -c .gitleaks.toml --redact --no-banner --log-opts="$BASE..$HEAD"
           fi
+      - name: private words
+        # no person's name or email, real printer or home network: the repository is public (scripts/private-words.sh).
+        # The words are a secret so the list does not publish them; a fork's pull request runs without it.
+        env:
+          PRIVATE_WORDS: ${{ secrets.PRIVATE_WORDS }}
+        run: scripts/private-words.sh
 
   kiosk:
     runs-on: ubuntu-latest

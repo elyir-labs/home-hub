@@ -24,6 +24,18 @@ export const inApp = (() => {
   try { return window.parent !== window && new URLSearchParams(location.search).has('app') } catch { return false }
 })()
 
+/** The store app around the Houses app, and its storefront as two letters ('' when it could not say). Read only
+    inside the app: design/store-app/ (C) is about what the stores allow, and a browser is not a store. */
+export type Shell = { os: 'ios' | 'android'; store: string }
+export function readShell(search: string): Shell | null {
+  const q = new URLSearchParams(search)
+  const os = q.get('shell')
+  if (os !== 'ios' && os !== 'android') return null
+  const store = (q.get('store') ?? '').toUpperCase()
+  return { os, store: /^[A-Z]{2}$/.test(store) ? store : '' }
+}
+export const shell = inApp ? readShell(location.search) : null
+
 /** What the app says about the houses: this one's name on this phone, and whether another house wants somebody. */
 export const app = reactive({ name: '', others: false })
 

@@ -16,7 +16,8 @@
  */
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { claimAddress, getAddress, lookAddress, qrUrl, type AddressState, type NameLook } from './api'
-import { cleanName, payUrl, price, takeWords, verdict, ZONE } from './address'
+import { browserFor, cleanName, payUrl, price, takeWords, verdict, ZONE } from './address'
+import { shell } from './inapp'
 import Icon from './Icon.vue'
 
 const props = defineProps<{ state: AddressState }>()
@@ -25,7 +26,7 @@ const emit = defineEmits<{ done: [] }>()
 const typed = ref(props.state.guess)
 const look = ref<NameLook | null>(null)
 const suggestions = ref<string[]>([])
-const moment = ref<'ask' | 'phone' | 'waiting'>('ask')
+const moment = ref<'ask' | 'phone' | 'browser' | 'waiting'>('ask')
 const house = ref('')
 const busy = ref(false), error = ref('')
 const said = computed(() => verdict(look.value, typed.value))
@@ -54,7 +55,8 @@ async function take() {
   try {
     const a = await claimAddress(cleanName(typed.value))
     house.value = a.house ?? ''
-    moment.value = props.state.offer.pay ? 'phone' : 'waiting'
+    moment.value = !props.state.offer.pay ? 'waiting' : shell ? 'browser' : 'phone'
+    if (moment.value === 'browser') openPay()
     poll = window.setInterval(async () => {
       try { if ((await getAddress()).carried) { clearInterval(poll); emit('done') } } catch {}
     }, 3000)
@@ -65,6 +67,8 @@ async function take() {
   busy.value = false
 }
 function pick(s: string) { typed.value = s }
+// The store app opens this in the system browser (docs/apps.md): paying never happens inside it.
+function openPay() { if (pay.value) window.open(pay.value, '_blank', 'noopener') }
 onUnmounted(() => { clearTimeout(timer); clearInterval(poll) })
 </script>
 
@@ -90,11 +94,12 @@ onUnmounted(() => { clearTimeout(timer); clearInterval(poll) })
       <p class="address-stop">If you stop, phones go back to Home only. Everything at home carries on as it is, and we keep the web address for you for 60 days.</p>
       <p class="error" v-if="error">{{ error }}</p>
       <div class="setup-actions">
-        <button class="button big" :class="{ busy }" :disabled="!free" @click="take">{{ takeWords(state.offer) }}</button>
+        <button class="button big" :class="{ busy }" :disabled="!free" @click="take">{{ takeWords(state.offer, shell) }}<Icon v-if="shell && state.offer.pay" name="opens" :size="17" /></button>
         <button class="button ghost" @click="emit('done')">Not now</button>
       </div>
+      <p class="address-out" v-if="shell && state.offer.pay">Opens the payment page for {{ cleanName(typed) }}.{{ ZONE }}. You come back here when it&rsquo;s done.</p>
     </div>
-    <p class="setup-foot">Have a server of your own? <a href="https://github.com/topeysoft/home-hub/blob/main/relay/README.md" target="_blank" rel="noopener">Use it instead</a>, free.</p>
+    <p class="setup-foot">Have a server of your own? <a href="https://github.com/elyir-labs/home-hub/blob/main/relay/README.md" target="_blank" rel="noopener">Use it instead</a>, free.</p>
   </section>
 
   <section class="setup-page address-step" v-else-if="moment === 'phone'">
@@ -107,6 +112,17 @@ onUnmounted(() => { clearTimeout(timer); clearInterval(poll) })
         <p class="setup-status"><span class="pulse-dot"></span> Waiting for your phone&hellip;</p>
         <button class="button ghost" @click="emit('done')">Not now</button>
       </div>
+    </div>
+  </section>
+
+  <section class="setup-page address-step" v-else-if="moment === 'browser' && shell">
+    <p class="setup-step">Optional</p>
+    <h1 class="display">Finish in {{ browserFor(shell) }}.</h1>
+    <p class="setup-lede">The payment page for <b>{{ house }}.{{ ZONE }}</b> is open in {{ browserFor(shell) }}. This screen moves on by itself when it is done.</p>
+    <p class="setup-status"><span class="pulse-dot"></span> Waiting for the payment&hellip;</p>
+    <div class="setup-actions">
+      <button class="button big" @click="openPay">Open it again</button>
+      <button class="button ghost" @click="emit('done')">Not now</button>
     </div>
   </section>
 

@@ -5,12 +5,14 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { imageUrl, type Device } from '../api'
-import { perform, shortName, roomOf, store, isDead } from '../store'
+import { perform, shortName, roomOf, store, isDead, keepLeft, forgetLeft, leftOf, notify } from '../store'
+import { cardFor, type MusicItem } from '../music'
+import { joinMusic, leaveMusic, playMusic } from '../api'
 import Icon from '../Icon.vue'
 import DeviceArt from '../DeviceArt.vue'
 import { useSlide } from '../panes/slide'
 
-const props = defineProps<{ device: Device }>()
+const props = defineProps<{ device: Device; always?: boolean }>()
 const s = computed(() => props.device.state)
 const off = computed(() => s.value === 'off' || s.value === 'standby')
 const dead = computed(() => isDead(props.device))
@@ -18,7 +20,8 @@ const playing = computed(() => s.value === 'playing')
 const pending = computed(() => !!store.pending[props.device.id])
 const isTv = computed(() => /\b(tv|television|roku|apple tv|chromecast)\b/i.test(props.device.name))
 const name = computed(() => shortName(props.device, roomOf(props.device)))
-const title = computed(() => props.device.attrs.media_title || (playing.value ? 'Playing' : s.value === 'paused' ? 'Paused' : off.value ? 'Off' : dead.value ? 'Not answering' : 'Nothing playing'))
+/* a speaker the hub can play on is never just Off: it is somewhere music can start (design/music/RoomA) */
+const title = computed(() => props.device.attrs.media_title || (playing.value ? 'Playing' : s.value === 'paused' ? 'Paused' : dead.value ? 'Not answering' : off.value && props.device.attrs.music !== true ? 'Off' : 'Nothing playing'))
 const sub = computed(() => [props.device.attrs.media_artist, props.device.attrs.app_name].filter(Boolean).join(' · '))
 const volume = computed(() => Math.round((props.device.attrs.volume_level ?? 0) * 100))
 /* How far through it is, for the bar the board draws beside the play button on a
@@ -52,6 +55,23 @@ const minutes = ref(45)
 const left = computed(() => { const u = props.device.attrs.sound_until as number | undefined; if (!u) return ''; const m = Math.max(0, Math.round((u * 1000 - Date.now()) / 60000)); return m >= 60 ? `${Math.floor(m / 60)} h ${m % 60 ? `${m % 60} min` : ''}`.trim() : `${m} min` })
 const playSound = (id: string) => perform(d(), 'sound', { sound: id, minutes: minutes.value || undefined }, { state: 'playing', attrs: { sound: id } })
 const stopSound = () => perform(d(), 'sound_off', undefined, { state: 'idle', attrs: { sound: null, sound_until: null } })
+
+/* Music (design/music/RoomA): a quiet speaker the hub can play on offers Play something and the last two things again;
+   music shared with other rooms is a row of rooms along the foot, and a tap takes a room out or puts it back. */
+const card = computed(() => cardFor(props.device, store.rooms, store.musicAgain[props.device.room_id] ?? [], leftOf(props.device.room_id)))
+const together = computed(() => card.value.rooms.filter(r => r.on).length)
+const choose = () => { store.musicPane = props.device.room_id }
+async function again(item: MusicItem) {
+  try { await playMusic(item, [props.device.room_id]) } catch (e) { notify((e as Error).message, 'error') }
+}
+async function room(r: { id: string; on: boolean }) {
+  const here = props.device.room_id
+  if (r.id === here) return
+  try {
+    if (r.on) { keepLeft(here, r.id); await leaveMusic(r.id) }
+    else { await joinMusic(r.id, here); forgetLeft(here, r.id) }
+  } catch (e) { notify((e as Error).message, 'error') }
+}
 </script>
 
 <template>
@@ -67,6 +87,7 @@ const stopSound = () => perform(d(), 'sound_off', undefined, { state: 'idle', at
     <!-- which player, because a house has several. Only the wall draws it; everywhere else the
          name is the line above the title, as it was -->
     <span class="media-which" aria-hidden="true">{{ name }}</span>
+    <span class="tile-maker tile-always" v-if="always" title="Always on Home"><Icon name="keep" :size="13" /></span>
     <!-- the pane of glass the wall lays over the cover's foot. Nothing to any other arrangement:
          it is display: contents there, so the words and the buttons are the grid's own children -->
     <div class="media-foot">
@@ -75,7 +96,16 @@ const stopSound = () => perform(d(), 'sound_off', undefined, { state: 'idle', at
       <span class="media-title">{{ title }}</span>
       <span class="media-sub" v-if="sub">{{ sub }}</span>
     </div>
-    <div class="media-controls" v-if="!off && !dead">
+    <div class="music-start" v-if="card.moment === 'quiet' && !dead">
+      <button class="button music-play" @click.stop="choose"><Icon name="play" :size="16" />Play something</button>
+      <div class="music-again-row" v-if="card.again.length">
+        <span class="music-again-label">Again</span>
+        <button v-for="i in card.again" :key="i.uri" class="clim-chip music-again" @click.stop="again(i)" :title="`Play ${i.name} again`">
+          <img v-if="i.art" :src="i.art" alt="" @error="($event.target as HTMLImageElement).remove()" /><span>{{ i.name }}</span>
+        </button>
+      </div>
+    </div>
+    <div class="media-controls" v-else-if="!off && !dead">
       <button v-if="!isTv" class="ctl" @click="perform(device, 'previous')" aria-label="Previous"><Icon name="prev" :size="20" /></button>
       <button class="ctl primary" @click="toggle" :aria-label="playing ? 'Pause' : 'Play'"><Icon :name="playing ? 'pause' : 'play'" :size="22" /></button>
       <span class="media-when">{{ when }}</span>
@@ -96,7 +126,11 @@ const stopSound = () => perform(d(), 'sound_off', undefined, { state: 'idle', at
       <span class="media-hint">Tap to turn on</span>
     </div>
     </div>
-    <div class="sounds" v-if="!isTv && !dead && store.sounds.length">
+    <div class="music-rooms" v-if="card.rooms.length">
+      <button v-for="r in card.rooms" :key="r.id" class="clim-chip" :class="{ on: r.on }" :disabled="r.name === 'Here'" @click.stop="room(r)">{{ r.name }}</button>
+      <span class="music-together" v-if="together > 1">Same song, {{ together === 2 ? 'both rooms' : `${together} rooms` }}</span>
+    </div>
+    <div class="sounds" v-else-if="!isTv && !dead && store.sounds.length">
       <button v-for="s in store.sounds" :key="s.id" class="clim-chip" :class="{ on: sound === s.id }" @click="sound === s.id ? stopSound() : playSound(s.id)">{{ s.name }}</button>
       <select class="snd-for" v-model.number="minutes" aria-label="For how long" :disabled="!!sound">
         <option :value="0">Until stopped</option><option :value="30">30 min</option><option :value="45">45 min</option><option :value="60">1 hour</option><option :value="90">1½ hours</option><option :value="480">8 hours</option>
@@ -156,6 +190,68 @@ const stopSound = () => perform(d(), 'sound_off', undefined, { state: 'idle', at
 /* the wall's card only: panel.css draws these under .wall-stage, and nowhere else has them */
 .media-foot {
   display: contents;
+}
+.music-start {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+.music-again-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+.music-play {
+  height: 40px;
+  gap: 8px;
+  white-space: nowrap;
+  flex: none;
+}
+.music-again-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-right: 2px;
+}
+.music-again {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.music-again span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.music-again img {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  object-fit: cover;
+  flex: none;
+}
+.music-rooms {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.music-rooms .clim-chip:disabled {
+  opacity: 1;
+}
+.music-together {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-2);
 }
 .media-which,
 .vol-lo,

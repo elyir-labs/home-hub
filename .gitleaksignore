@@ -1,0 +1,8 @@
+# Findings checked by hand and known not to be secrets, one per line, by gitleaks fingerprint. The history was
+# rewritten on 20 October 2026, so each finding is listed by its old commit and its new one.
+# A test that read a phone's time zone beside its key; the assertion is split since 2201562.
+372c482de84f6ae1c48a981368440ea6742120fe:brain/tests/test_api_lock.py:generic-api-key:461
+9504df1737078804faf4799e019b1bea083f251e:brain/tests/test_api_lock.py:generic-api-key:461
+# A test's sample push subscription, published in RFC 8291; made up at run time since the next commit.
+c3ca3ec34c3f626a24f676c7a0ffb8827e9e4ebb:app/e2e/houses.spec.ts:generic-api-key:256
+c9e8a8255fe2a7b7753049064c48197360c14848:app/e2e/houses.spec.ts:generic-api-key:256

@@ -1,0 +1,197 @@
+{
+  "name": "Music in every room",
+  "areas": [
+    "Watching and listening",
+    "Wall screens"
+  ],
+  "reading": [
+    "pick",
+    "why",
+    "Today.dc.html",
+    "today",
+    "RoomA.dc.html",
+    "a",
+    "PhoneA.dc.html",
+    "a-phone",
+    "HouseB.dc.html",
+    "b",
+    "PhoneB.dc.html",
+    "b-phone",
+    "SayC.dc.html",
+    "c",
+    "PhoneC.dc.html",
+    "c-phone",
+    "same",
+    "open"
+  ],
+  "pages": [
+    {
+      "id": "music",
+      "name": "Music in every room",
+      "decided": {
+        "on": "2026-10-20",
+        "chose": "A, with C's sentences",
+        "board": "RoomA.dc.html"
+      }
+    },
+    {
+      "id": "music-lost",
+      "name": "Music in every room: not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "music",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today — the house can pause music, but cannot start it"
+    },
+    {
+      "file": "RoomA.dc.html",
+      "page": "music",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A — In the room, with C's sentences: music is something a room does, and can be said"
+    },
+    {
+      "file": "PhoneA.dc.html",
+      "page": "music",
+      "x": 1560,
+      "y": 1300,
+      "w": 390,
+      "h": 844,
+      "title": "A on the phone — the same pane, from the foot"
+    },
+    {
+      "file": "HouseB.dc.html",
+      "page": "music-lost",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "B — The house: one music card on Your evening, rooms under it"
+    },
+    {
+      "file": "PhoneB.dc.html",
+      "page": "music-lost",
+      "x": 1560,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "B on the phone — the music card leads Your evening"
+    },
+    {
+      "file": "SayC.dc.html",
+      "page": "music-lost",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "C — Say it: the wall plays what you say, the phone is the library"
+    },
+    {
+      "file": "PhoneC.dc.html",
+      "page": "music-lost",
+      "x": 1560,
+      "y": 1300,
+      "w": 390,
+      "h": 844,
+      "title": "C on the phone — where the library is"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "music",
+      "x": -680,
+      "y": 0,
+      "w": 560,
+      "text": "WHY THIS EXISTS\n\nA household should be able to put music on in a room from the wall or a phone: their playlists, a radio station, or the music they own. They should be able to put the same thing on in two rooms, and have \"good night\" stop it. Today the house can only take hold of music somebody started elsewhere.\n\nThe engine underneath is rented, the way the house's devices are: an open-source music server runs beside the rest of the hub and does the playing. It reaches the household's music services and their own files, and it sends the same song to several speakers in step. None of its words reach the screen.\n\nThis collection is about choosing music and where it plays. Films, shows and home videos are design/media/ (D, picked 20 October), which owns the TV. A TV in a room opens D's phone page; nothing here redraws it."
+    },
+    {
+      "id": "today",
+      "page": "music",
+      "x": 0,
+      "y": 960,
+      "w": 1440,
+      "text": "TODAY — DRAWN FROM THE SHIPPED PANEL\n\nThe speaker's card is MediaTile.vue at its wide size: art, the speaker's name, the title, then previous, play, next, how far through, volume and off, with the hub's own sounds along the foot (white noise, rain, the fire). Your evening carries the same music as design/player A's card.\n\nWhat it can do: pause, skip and turn down music that somebody started from a phone, and play the hub's own sounds, including by saying \"rain in the bedroom for an hour\".\n\nWhat it cannot do: start music. With nothing playing, Play has nothing to play. It cannot put the kitchen with the living room, and \"All off\" still says \"media paused\", a word this collection is a chance to retire."
+    },
+    {
+      "id": "a",
+      "page": "music",
+      "x": 0,
+      "y": 2260,
+      "w": 1440,
+      "text": "A — IN THE ROOM, WITH C'S SENTENCES\n\nFOR: music lives where the speaker is, the way light lives where the lamp is, so nothing new has to be learned and nothing moves on the wall. A quiet speaker's card offers Play something and its last two things again, so the commonest evening is one tap. Choosing opens one pane over the room: what to play on the left, which rooms on the right, with this room already ticked. Playing in two rooms stays visible on the card as a row of rooms, and a tap on a room adds or drops it. The Your evening card (design/player A) is unchanged; it simply has something to show more often.\n\nFROM C, KEPT: the command box completes from the house's own playlists, stations and rooms (\"play Dinner in the kitchen\", \"music everywhere\", \"stop the music\"), and every suggestion is a sentence the fixed grammar runs as written. The fourth state on the board. The wall can browse and be told; neither needs the other.\n\nAGAINST: music that spans the house has no single home. Joining the kitchen is done from the living room's card and shows on both cards. That is right for two rooms, and clumsy for \"music everywhere\" on a Saturday."
+    },
+    {
+      "id": "a-phone",
+      "page": "music",
+      "x": 1560,
+      "y": 2260,
+      "w": 560,
+      "text": "A ON THE PHONE\n\nThe same pane, as a sheet from the foot of the room's page: again, playlists, then which rooms, with this room already chosen. Radio and the household's own music are further down the same sheet."
+    },
+    {
+      "id": "b",
+      "page": "music-lost",
+      "x": 0,
+      "y": 960,
+      "w": 1440,
+      "text": "B — THE HOUSE\n\nFOR: music is the one thing in a house that crosses rooms, so it gets one card on Your evening. It is design/player A's card, with its chip naming every room the music is in and a row of rooms under the volume. When nothing is playing, the card stays and says so, with Play something. Choosing asks where first, which is the question a house has and a phone app does not. Music everywhere is one tap.\n\nAGAINST: it puts a permanent card on Your evening, which is curated, and the card is there even in a house that rarely plays music. A room's page shows only a line about what is playing in it, so turning the bedroom down means leaving the bedroom's page. The rule \"one now-playing card per room\" becomes \"one per group of rooms\"."
+    },
+    {
+      "id": "b-phone",
+      "page": "music-lost",
+      "x": 1560,
+      "y": 960,
+      "w": 560,
+      "text": "B ON THE PHONE\n\nThe music card leads Your evening at the phone's width, with the same row of rooms. With nothing playing, Play something opens the same where-then-what sheet."
+    },
+    {
+      "id": "c",
+      "page": "music-lost",
+      "x": 0,
+      "y": 2260,
+      "w": 1440,
+      "text": "C — SAY IT\n\nFOR: the wall is a poor place to browse a library, and the command box already completes from the house's own names (design/keyboard C). Here it also completes from the house's playlists and stations: \"play Dinner in the kitchen\", \"music everywhere\", \"stop the music\". Every suggestion is a sentence the fixed grammar runs, so no model guesses. A quiet speaker offers its last three things again beside the hub's sounds, as plain chips. Browsing belongs to the phone, which gets a proper Music page per speaker.\n\nAGAINST: anything new on the wall has to be typed. A guest at the wall cannot see what there is to play. The wall gets the least, so the phone becomes necessary for music in a way it is not for anything else in the house."
+    },
+    {
+      "id": "c-phone",
+      "page": "music-lost",
+      "x": 1560,
+      "y": 2260,
+      "w": 560,
+      "text": "C ON THE PHONE\n\nThe browsing the wall gave up: a speaker's Music page with search, the household's playlists, stations and own music, and, along the foot, which rooms it plays in."
+    },
+    {
+      "id": "same",
+      "page": "music",
+      "x": -680,
+      "y": 1300,
+      "w": 560,
+      "text": "THE SAME IN EVERY DIRECTION\n\nEVERY HUB GETS ALL OF IT. Music is light work, so a small hub (a Pi) plays everything here, the household's own music included, read straight off a plugged-in drive. Films are Hub Plus only (docs/host-tiers.md); music is not.\n\nTHE HOUSE COMES FIRST. The music engine runs in its own container, capped and at lower priority, like every extra.\n\nONE CARD, WHATEVER IS PLAYING. What is playing is always design/player A's card, whether the music came from this screen, a phone app or the hub's own sounds. A TV in a room opens design/media/PhoneD.dc.html.\n\nSCENES STOP IT. Sleep and All off stop music in that room, and \"good night\" stops it everywhere. Nothing turns music on by itself.\n\nSPOTIFY IS THE SPEAKER'S (decided 20 October 2026). Spotify plays only on speakers the house already owns that have it built in; the hub controls what is playing there and never signs in to Spotify itself. The music engine's own Spotify parts stay off and are never set up, and nothing on screen offers them, until there is a partnership. What the hub itself plays is radio and the household's own music.\n\nPLAYERS ARE ANY KIND. A speaker is a room, a name and a kind, and the kind is open: a Cast or Sonos speaker today, an AirPlay speaker as a place to send music, and later a device of our own. The screen never asks which kind it is.\n\nWORDS. Playlist, station, your own music, play it in, everywhere. Never the engine's name or its words."
+    },
+    {
+      "id": "open",
+      "page": "music",
+      "x": -680,
+      "y": 2600,
+      "w": 560,
+      "text": "OPEN QUESTIONS\n\nLAMPS. Films have \"Lamps down while it plays\" (design/media D). No direction here gives music a lamps rule. If one should, it has to read the same as D's, so check with whoever holds design/media first.\n\nTWO SPEAKERS IN ONE ROOM. These boards assume one speaker per room. A room with two would play on both, as one, unless somebody says otherwise.\n\nTHE WALL'S OWN SPEAKER. A wall screen will have a small speaker of its own for its voice. When a room has both the wall and a real speaker, music goes to the real speaker. Not built; to be drawn when the wall's speaker exists."
+    },
+    {
+      "id": "pick",
+      "page": "music",
+      "x": -680,
+      "y": -760,
+      "w": 560,
+      "text": "DECIDED 20 OCTOBER 2026\n\nA, with C's sentences. Music stays on the speaker's card in its room, Play something opens the pane for what and where, and the command box can say the same thing in one line. B and C are kept on their own page with their cases.\n\nNext: Today's All off line \"Lights off and media paused\" becomes \"Lights and music off\" (docs/wording.md); the build pins the card and the pane with a test."
+    }
+  ]
+}

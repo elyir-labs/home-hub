@@ -4,21 +4,30 @@
 -->
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { store, notify, installUpdate, restartHub } from './store'
+import { store, notify, installUpdate, restartHub, loadDeveloper } from './store'
 import { askRestart, askUpdate, checkForUpdate, downloadBackup, getNetwork, getUpdateNotes, listBridges, markNotesRead, setAutoUpdate, setLanguage, type BridgeRow, type NetState, type RestartAsk, type Rung, type UpdateAsk, type UpdateNotes } from './api'
 import Restore from './Restore.vue'
 import AdvancedLink from './AdvancedLink.vue'
 import Drivers from './Drivers.vue'
 import NetworkSheet from './NetworkSheet.vue'
+import DriveSheet from './DriveSheet.vue'
+import { getDrive, type DriveState } from './api'
+import { rowLine } from './drive'
 import { getAddress, turnAddress, type AddressState } from './api'
 import { outsideRow } from './address'
 import BridgeCard from './BridgeCard.vue'
 import Icon from './Icon.vue'
 import { locale, languageName, LANGUAGES } from './lang'
+import { showDeveloper } from './api'
+import { tapper, versionLabel } from './developer'
 
 /* This hub: which build it is, whether a newer one exists, a backup to take away and a way to put one back.
    The phones that belong to the house are on the People page: they are about who, not about this computer. */
 const update = computed(() => store.status?.update ?? null)
+/* Running from the USB stick, by choice (design/move-to-drive/): the first row until the hub is on its drive. */
+const drive = ref<DriveState | null>(null)
+const driveOpen = ref(false)
+getDrive().then(s => (drive.value = s)).catch(() => {})
 const busy = ref(false)
 async function backup() {
   if (busy.value) return
@@ -236,6 +245,16 @@ async function pickLanguage(code: string) {
 }
 function closeNet() { netOpen.value = false; loadNet() }
 
+/* Seven taps on the version put For working on the hub on This house's list, behind the passcode
+   (design/developer/, B). A hub not on releases has it there already; a hub too old for it has none. */
+const taps = tapper()
+async function tapVersion() {
+  const d = store.developer
+  if (!d || d.shown || !taps()) return
+  try { await showDeveloper(); await loadDeveloper(); store.sheet = 'developer' }
+  catch (e: any) { if (!e?.canceled) notify(e.message, 'error') }
+}
+
 const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(locale(), { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : ''
 </script>
 
@@ -244,6 +263,11 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
     <p class="page-lede">The small computer running the house. It looks after itself; this is where you check on it.</p>
 
     <ul class="hub-rows">
+      <li v-if="drive?.from === 'stick' && drive.drive">
+        <span class="hub-k">Runs from</span>
+        <span class="hub-v">The USB stick.<span class="hub-sub line">{{ rowLine(drive.drive) }}</span></span>
+        <button class="button small" @click="driveOpen = true">Move…</button>
+      </li>
       <li :class="{ asking: !!uask }">
         <span class="hub-k">Software</span>
         <template v-if="uask">
@@ -266,7 +290,7 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
           </span>
         </template>
         <template v-else>
-        <span class="hub-v">{{ !store.status?.version || store.status.version === 'dev' ? 'Development build' : store.status.version }}<span class="hub-sub" v-if="held"> · {{ update?.latest?.version }} was paused by the people who make the hub</span><span class="hub-sub" v-else-if="refused"> · {{ refused }} couldn’t be checked, so it wasn’t installed</span><span class="hub-sub" v-else-if="rolledBack"> · {{ rolledBack }} didn’t start, so this one was put back</span><span class="hub-sub" v-else-if="update?.checked"> · checked {{ when(update.checked) }}</span>
+        <span class="hub-v"><span class="hub-version" @click="tapVersion">{{ versionLabel(store.status?.version) }}</span><span class="hub-sub" v-if="held"> · {{ update?.latest?.version }} was paused by the people who make the hub</span><span class="hub-sub" v-else-if="refused"> · {{ refused }} couldn’t be checked, so it wasn’t installed</span><span class="hub-sub" v-else-if="rolledBack"> · {{ rolledBack }} didn’t start, so this one was put back</span><span class="hub-sub" v-else-if="update?.checked"> · checked {{ when(update.checked) }}</span>
           <!-- What the hub is doing right now, said in its own words rather than three dots. It is a
                line here and not a screen over the panel because the house still works: for all of
                this but the last stretch the brain is up and every light still answers. -->
@@ -382,6 +406,7 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
 
     <AdvancedLink />
     <NetworkSheet v-if="netOpen" @close="closeNet" />
+    <DriveSheet v-if="driveOpen && drive" :state="drive" @close="driveOpen = false" />
     <BridgeCard v-if="opened" :bridge="opened" @close="open = null; loadBridges()" @changed="changed" />
   </div>
 </template>

@@ -1,0 +1,9 @@
+# Tells the hub what this screen runs, and updates when asked. Installed by startup/install.sh.
+[Unit]
+Description=Tell the hub what this screen runs
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/home-hub/startup/screen-report.sh

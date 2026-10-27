@@ -1,0 +1,9 @@
+# Runs developer.sh once per request from the page for working on the hub. Started by home-hub-developer.path.
+[Unit]
+Description=Home Hub: what the hub follows, and SSH
+
+[Service]
+Type=oneshot
+Environment=HOME_HUB_DIR=/opt/home-hub
+ExecStart=/opt/home-hub/driver-layer/host/developer.sh
+StandardOutput=journal

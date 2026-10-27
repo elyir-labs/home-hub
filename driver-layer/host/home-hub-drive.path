@@ -1,0 +1,10 @@
+# Watches for the file the brain writes when somebody asks, on the screen, to move the hub onto its drive.
+[Unit]
+Description=Home Hub: watch for a request to move onto this computer's drive
+
+[Path]
+PathExists=/opt/home-hub/driver-layer/brain-data/drive.request
+Unit=home-hub-drive.service
+
+[Install]
+WantedBy=multi-user.target

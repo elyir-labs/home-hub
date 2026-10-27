@@ -4,8 +4,13 @@
 -->
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { setupOwner, setupLogin, setupDone, addRoom, setPin, getAddress, type AddressState } from './api'
+import { setupOwner, setupLogin, setupDone, addRoom, setPin, getAddress, getDrive, getNetwork, type AddressState, type DriveState, type NetState } from './api'
+import { firstPage } from './drive'
+import { askHere, fetchingLine } from './wifi'
+import DriveStep from './DriveStep.vue'
+import SetupWifi from './SetupWifi.vue'
 import { offersOutside } from './address'
+import { shell } from './inapp'
 import { remember } from './code'
 import { store, load } from './store'
 import Icon from './Icon.vue'
@@ -21,8 +26,8 @@ import AddressStep from './AddressStep.vue'
    code, which cannot, because a house that is still open to the whole Wi-Fi is not set up yet.
    And one more after what to add, only when the address service is offering it: whether the house
    wants an address of its own for reaching it from outside (AddressStep.vue, design/address/). */
-type Page = 'welcome' | 'login' | 'owner' | 'starting' | 'code' | 'location' | 'rooms' | 'devices' | 'address' | 'done'
-const PAGES: Page[] = ['welcome', 'login', 'owner', 'starting', 'code', 'location', 'rooms', 'devices', 'address', 'done']
+type Page = 'drive' | 'erase' | 'moving' | 'moved' | 'welcome' | 'login' | 'owner' | 'starting' | 'code' | 'location' | 'rooms' | 'devices' | 'address' | 'done'
+const PAGES: Page[] = ['drive', 'erase', 'moving', 'moved', 'welcome', 'login', 'owner', 'starting', 'code', 'location', 'rooms', 'devices', 'address', 'done']
 const preview = new URLSearchParams(location.search).get('page') as Page | null   // ?setup=1&page=rooms previews one screen
 const page = ref<Page>(preview && PAGES.includes(preview) ? preview : 'welcome')
 const status = computed(() => store.status)
@@ -38,6 +43,25 @@ const advanced = `${location.protocol}//${location.hostname}:8123/`
    service, or a brain that predates it, simply never shows the step -- the house is complete without it. */
 const address = ref<AddressState | null>(null)
 getAddress().then(a => (address.value = a)).catch(() => {})
+/* A hub on its USB stick beside a drive with something on it asks about the drive before anything else, and
+   one that just moved onto its drive says so once (design/move-to-drive/, A). */
+const drive = ref<DriveState | null>(null)
+const onDrive = computed(() => ['drive', 'erase', 'moving', 'moved'].includes(page.value))
+const drivePage = computed(() => page.value as 'drive' | 'erase' | 'moving' | 'moved')
+getDrive().then(s => {
+  drive.value = s
+  const p = firstPage(s)
+  if (p && (!preview || PAGES.indexOf(preview) <= PAGES.indexOf('moved'))) page.value = preview ?? p
+}).catch(() => {})
+
+/* The screen plugged into a hub with no network asks which Wi-Fi before Welcome home, since nothing can be set up
+   until the rest of the hub has downloaded (design/screen-wifi/, C). Looked at until the house's engine is up. */
+const net = ref<NetState | null>(null), joinedHere = ref('')
+const wifiHere = computed(() => page.value === 'welcome' && !joinedHere.value && askHere(net.value))
+async function lookAtNetwork() { try { net.value = await getNetwork() } catch {} }
+lookAtNetwork()
+const netTimer = window.setInterval(() => { if (!engineReady.value) lookAtNetwork() }, 5000)
+onUnmounted(() => clearInterval(netTimer))
 
 function next(after: Page) {
   const s = status.value
@@ -52,7 +76,7 @@ function next(after: Page) {
   if (after === 'code') return (page.value = 'location')
   if (after === 'location') return (page.value = 'rooms')
   if (after === 'rooms') return (page.value = 'devices')
-  if (after === 'devices') return (page.value = offersOutside(address.value) ? 'address' : 'done')
+  if (after === 'devices') return (page.value = offersOutside(address.value, shell) ? 'address' : 'done')
 }
 watch(driver, d => { if (d === 'ready' && page.value === 'starting') next('starting') })
 watch(() => store.status?.owner, o => { if (o && !name.value) name.value = o })
@@ -128,6 +152,7 @@ onMounted(() => {
   if (scroller.value) ro.observe(scroller.value)
   window.addEventListener('resize', measure)
 })
+watch(scroller, (el, was) => { if (was) ro?.unobserve(was); if (el) ro?.observe(el); nextTick(measure) })
 onUnmounted(() => { ro?.disconnect(); window.removeEventListener('resize', measure) })
 /* A step change swaps the whole page under the transition, so re-measure once it has
    landed -- and again when what is on it grows, which `Adding` does as it goes. */
@@ -146,10 +171,16 @@ async function saveCode() {
 </script>
 
 <template>
-  <main class="setup" :class="{ docked }" ref="scroller">
+  <SetupWifi v-if="wifiHere" here @online="ssid => (joinedHere = ssid)" />
+  <main v-else class="setup" :class="{ docked }" ref="scroller">
     <Transition name="view" mode="out-in" @after-enter="measure">
+      <!-- the drive beside a hub on its stick, before anything else (design/move-to-drive/, A) -->
+      <section class="setup-page" v-if="onDrive && drive" :key="page">
+        <DriveStep :page="drivePage" :state="drive" @go="p => (page = p)" />
+      </section>
+
       <!-- welcome -->
-      <section class="setup-page" v-if="page === 'welcome'" key="welcome">
+      <section class="setup-page" v-else-if="page === 'welcome'" key="welcome">
         <span class="setup-mark"><Icon name="home" :size="30" /></span>
         <h1 class="display">Welcome home.</h1>
         <!-- No count in here, on purpose. It used to promise "one or two questions" and then ask
@@ -161,6 +192,7 @@ async function saveCode() {
           <button class="button big" :disabled="!engineReady" @click="next('welcome')">Get started</button>
         </div>
         <p class="setup-status" v-if="store.restoring"><span class="pulse-dot"></span> Restoring your backup. The hub restarts, and this screen comes back with your house on it.</p>
+        <p class="setup-status" v-else-if="!engineReady && joinedHere"><span class="pulse-dot" style="background: var(--live)"></span> {{ fetchingLine(joinedHere) }}</p>
         <p class="setup-status" v-else-if="!engineReady"><span class="pulse-dot"></span> Getting things ready. The first start takes a minute or two.</p>
         <p class="setup-status" v-else-if="driver === 'needs-login'">This hub was set up before. You’ll sign in with the name and password chosen then.</p>
         <p class="setup-foot">Moving from another hub? <button class="linkish" @click="fromBackup = !fromBackup">Bring its backup over</button></p>

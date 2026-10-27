@@ -14,7 +14,7 @@ const dev = (id: string, name: string, capability: string, state: string, attrs:
 const room = (id: string, name: string, devices: Device[] = []): Room =>
   ({ id, name, devices: devices.map(d => ({ ...d, room_id: id })), intent: 'unknown', set_by: null, hold_until: null })
 
-/* the house in app/mock/brain.mjs, which is the house both boards were drawn at */
+/* the house in app/mock/house.mjs, which is the house both boards were drawn at */
 const house = (): Room[] => [
   room('living', 'Living room', [
     dev('l1', 'Ceiling light', 'light', 'on', { brightness: 90 }),

@@ -9,10 +9,14 @@
  * half). The pass goes only to the frame this page loaded, and only at that house's origin.
  *
  * A tap on the house's name in its panel opens Houses over it (HereB-sheet): every house this phone has, how
- * each one is, and the way to add another.
+ * each one is, and the way to add another. Under them, the phone's own part (design/notify/, B): one switch that
+ * lets every house tell this phone what needs it. In the iOS app, whose web view has no web push, the switch asks
+ * the app instead and the houses go through the sealed sender (docs/apps.md, Decided); hidden on Android until FCM.
  */
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { glance, reach, save, state, type House } from './houses'
+import { baseOf, glance, reach, save, state, type House } from './houses'
+import { fineFor, lineFor, look, pushShown, pushing, turnOff, turnOn } from './push'
+import { osOf, postToShell, shell } from './shell'
 
 const props = defineProps<{ id: string; base: string }>()
 const emit = defineEmits<{ switch: [id: string]; add: []; reached: [id: string, base: string] }>()
@@ -22,7 +26,7 @@ const base = ref(props.base)
 const frame = ref<HTMLIFrameElement | null>(null)
 const sheet = ref(false)
 const connected = ref(false)
-const src = computed(() => (base.value ? `${base.value}/?app=1` : ''))
+const src = computed(() => (base.value ? `${base.value}/?app=1${shell}` : ''))
 const others = computed(() => state.houses.some(h => h.id !== props.id && (h.glance?.notes ?? 0) > 0))
 
 function tellHouse(type: string, data: Record<string, unknown>) {
@@ -40,7 +44,8 @@ function onMessage(ev: MessageEvent) {
     connected.value = !!m.connected
   } else if (m?.type === 'houses:open') {
     sheet.value = true
-    glanceAll()
+    look()
+    glanceAll().then(() => look(true))
   }
 }
 watch(others, v => tellHouse('houses:house', { name: house.value.name, others: v }))
@@ -60,18 +65,23 @@ watch(src, () => {
 async function glanceAll() {
   await Promise.all(state.houses.map(async h => {
     if (h.reach === 'checking') { const got = await reach(h); h.reach = got.reach; emit('reached', h.id, got.base) }
-    const b = h.reach === 'here' && h.lan ? `https://${h.lan}` : h.origin
-    if (h.reach === 'here' || h.reach === 'away') h.glance = await glance(h, b)
+    if (h.reach === 'here' || h.reach === 'away') h.glance = await glance(h, baseOf(h))
   }))
 }
 
 onMounted(async () => {
   window.addEventListener('message', onMessage)
   house.value.opened = Date.now(); save(house.value)
+  postToShell({ type: 'houses:opened', id: props.id })
   if (!base.value) { const got = await reach(house.value); house.value.reach = got.reach; base.value = got.base; emit('reached', props.id, got.base) }
   glanceAll()
 })
 onUnmounted(() => { window.removeEventListener('message', onMessage); clearTimeout(fallback) })
+
+const ua = navigator.userAgent, touch = navigator.maxTouchPoints || 0, os = osOf(shell)
+const pushOn = computed(() => pushing.state === 'on' || pushing.state === 'partial')
+const switchable = computed(() => pushOn.value || pushing.state === 'off' || pushing.state === 'failed')
+const flip = () => (pushing.busy ? undefined : pushOn.value ? turnOff() : turnOn())
 
 function line(h: House): { here: boolean; text: string; needs: boolean } {
   if (h.glance?.notes) return { here: h.reach === 'here', needs: true, text: h.glance.notes === 1 ? (h.glance.first || 'Something needs a look') : `${h.glance.notes} things need a look` }
@@ -115,6 +125,15 @@ function line(h: House): { here: boolean; text: string; needs: boolean } {
           </button>
         </li>
       </ul>
+      <section class="hs-phone" v-if="pushShown(os)" aria-label="This phone">
+        <p class="hs-phone-cap">This phone</p>
+        <div class="hs-phone-row">
+          <span class="hs-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 004 0"/></svg></span>
+          <span><span class="hs-phone-t">Notifications</span><span class="hs-phone-s">{{ lineFor(pushing.state, pushing.missing, ua, touch) }}</span></span>
+          <button v-if="switchable" class="hs-toggle" :class="{ on: pushOn }" role="switch" :aria-checked="pushOn" aria-label="Notifications" :aria-busy="pushing.busy" @click="flip"><i></i></button>
+        </div>
+        <p class="hs-phone-fine">{{ fineFor(ua, touch, os) }}</p>
+      </section>
     </section>
   </div>
 </template>

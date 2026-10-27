@@ -15,7 +15,7 @@ from unittest import mock
 
 from fastapi.testclient import TestClient
 
-from hub import address as address_mod, api, printers as printers_mod, backup as backup_mod, healed as healed_mod, phones as phones_mod, restart as restart_mod, rules as rules_mod, updates as updates_mod
+from hub import address as address_mod, api, developer as developer_mod, printers as printers_mod, backup as backup_mod, healed as healed_mod, phones as phones_mod, restart as restart_mod, rules as rules_mod, updates as updates_mod
 from hub.events import EventLog
 from hub.settings import Settings
 
@@ -29,7 +29,9 @@ DATA_BOUND = [(phones_mod, "DATA", lambda d: d), (rules_mod, "RULES_PATH", lambd
               (healed_mod, "FILE", lambda d: d / "healed.jsonl"),
               (address_mod, "STATE", lambda d: d / "address.json"), (address_mod, "VALUES", lambda d: d / "away.env"),
               (address_mod, "REQUEST", lambda d: d / "away.request"), (address_mod, "DONE", lambda d: d / "away.json"),
-              (printers_mod, "STATE", lambda d: d / "printers.json")]
+              (printers_mod, "STATE", lambda d: d / "printers.json"),
+              (developer_mod, "CHANNEL_REQUEST", lambda d: d / "channel.request"), (developer_mod, "SSH_REQUEST", lambda d: d / "ssh.request"),
+              (developer_mod, "SSH_STATE", lambda d: d / "ssh.json"), (developer_mod, "SCREENS", lambda d: d / "screens.json")]
 
 
 def area(area_id, name):
@@ -132,6 +134,33 @@ class FakeHA:
         """The recorded calls narrowed to the ones a test is asking about."""
         return [c for c in self.calls if (domain is None or c[0] == domain)
                 and (service is None or c[1] == service) and (entity_id is None or c[2] == entity_id)]
+
+
+def signing_key() -> dict:
+    """A phone's push signing key, as the phone sends it: {publicKey, privateKey}, raw P-256, base64url."""
+    import base64
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ec
+    k = ec.generate_private_key(ec.SECP256R1())
+    b = lambda raw: base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+    pub = k.public_key().public_bytes(serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint)
+    return {"publicKey": b(pub), "privateKey": b(k.private_numbers().private_value.to_bytes(32, "big"))}
+
+
+def apns_identity(env="sandbox") -> tuple[dict, object]:
+    """What the store app hands a house, made fresh each run (a sample written down reads as a credential to the
+    secret scan), with the private half the phone keeps, so a test can open what was sealed to it."""
+    import base64, os
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ec
+    k = ec.generate_private_key(ec.SECP256R1())
+    b = lambda raw: base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+    pub = k.public_key().public_bytes(serialization.Encoding.X962, serialization.PublicFormat.UncompressedPoint)
+    return {"token": os.urandom(32).hex(), "env": env, "p256dh": b(pub), "auth": b(os.urandom(16))}, k
+
+
+def subscription(endpoint="https://push.example/send/abc") -> dict:
+    return {"endpoint": endpoint, "keys": {"p256dh": "BPhone", "auth": "AuthAuth"}}
 
 
 def _no_service(*_a, **_k):
