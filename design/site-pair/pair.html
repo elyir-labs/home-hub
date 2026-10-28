@@ -107,6 +107,16 @@ const BOARDS = {
   'today-phone':   { shade: 'light', phone: 'today-phone-light.jpg', small: true },
   'b-phone':       { shade: 'light', phone: 'phone-day-room.jpg', small: true, caption: 'The living room, on a phone. The wall shows it the same way.' },
   'c-phone':       { shade: 'light', phone: 'phone-day.jpg', small: true },
+  d:               { shade: 'light', wall: 'wall-day-room.jpg', phone: 'phone-day-room.jpg', caption: 'The living room, on the wall and on a phone.' },
+  'd-dark':        { shade: 'dark', wall: 'wall-evening-room.jpg', phone: 'phone-evening-room.jpg', caption: 'The living room, on the wall and on a phone.' },
+  'd-more':        { shade: 'light', more: true, strip: ['wall-morning.jpg', 'wall-day.jpg', 'wall-evening-light.jpg'], say: 'either' },
+  'd-more-dark':   { shade: 'dark', more: true, strip: ['wall-morning-dark.jpg', 'wall-day-dark.jpg', 'wall-evening.jpg'], say: 'either' },
+  'd-phone':       { shade: 'light', phone: 'phone-day-room.jpg', small: true, caption: 'The living room, on the wall and on a phone.' },
+  'd-phone-dark':  { shade: 'dark', phone: 'phone-evening-room.jpg', small: true, caption: 'The living room, on the wall and on a phone.' },
+}
+const SAY = {
+  light: 'The wall tells the time by the color of its sky. Prefer it dark for a room with the lamps low? Choose that on the wall, and each phone chooses for itself.',
+  either: 'The wall tells the time by the color of its sky, in Light or in Dark. Choose which on the wall, and each phone chooses for itself.',
 }
 const id = new URLSearchParams(location.search).get('board') || 'today'
 const b = BOARDS[id] || BOARDS.today
@@ -141,12 +151,11 @@ const more = () => `${nav}
   <div class="lines">
     <p class="label">Through the day</p>
     <h2>It changes with the sky outside</h2>
-    <p>The wall tells the time by the color of its sky. Prefer it dark for a room with the lamps low? Choose that on the wall, and each phone chooses for itself.</p>
+    <p>${SAY[b.say || 'light']}</p>
   </div>
   <div class="three">
-    <figure><div class="wall"><img src="shots/wall-morning.jpg" alt=""></div><figcaption><b>8:30 in the morning</b></figcaption></figure>
-    <figure><div class="wall"><img src="shots/wall-day.jpg" alt=""></div><figcaption><b>1:00 in the afternoon</b></figcaption></figure>
-    <figure><div class="wall"><img src="shots/wall-evening-light.jpg" alt=""></div><figcaption><b>7:40 in the evening</b></figcaption></figure>
+    ${(b.strip || ['wall-morning.jpg', 'wall-day.jpg', 'wall-evening-light.jpg']).map((f, i) =>
+      `<figure><div class="wall"><img src="shots/${f}" alt=""></div><figcaption><b>${['8:30 in the morning', '1:00 in the afternoon', '7:40 in the evening'][i]}</b></figcaption></figure>`).join('')}
   </div>
 </section>`
 

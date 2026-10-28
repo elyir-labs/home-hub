@@ -9,6 +9,14 @@
     "TodayDark.dc.html",
     "Today-phone.dc.html",
     "today",
+    "decided",
+    "RoomAndDayD.dc.html",
+    "RoomAndDayD-more.dc.html",
+    "RoomAndDayD-phone.dc.html",
+    "RoomAndDayD-dark.dc.html",
+    "RoomAndDayD-more-dark.dc.html",
+    "RoomAndDayD-phone-dark.dc.html",
+    "d",
     "MatchedA.dc.html",
     "MatchedA-dark.dc.html",
     "a",
@@ -19,13 +27,21 @@
     "DaylightC.dc.html",
     "DaylightC-more.dc.html",
     "DaylightC-phone.dc.html",
-    "c",
-    "pick"
+    "c"
   ],
   "pages": [
     {
       "id": "pair",
-      "name": "The front page's two screens"
+      "name": "The front page's two screens",
+      "decided": {
+        "on": "2026-10-28",
+        "chose": "D, B's room with C's day, light or dark as the visitor has it",
+        "board": "RoomAndDayD.dc.html"
+      }
+    },
+    {
+      "id": "pair-rejected",
+      "name": "The front page's two screens: not chosen"
     }
   ],
   "artboards": [
@@ -59,73 +75,127 @@
     {
       "file": "MatchedA.dc.html",
       "x": 0,
-      "y": 1700,
+      "y": 0,
       "w": 1440,
       "h": 900,
       "title": "A · Same moment: the afternoon on both screens, in light",
-      "page": "pair"
+      "page": "pair-rejected"
     },
     {
       "file": "MatchedA-dark.dc.html",
       "x": 1580,
-      "y": 1700,
+      "y": 0,
       "w": 1440,
       "h": 900,
       "title": "A · Same moment, for a dark visitor: the evening on both",
-      "page": "pair"
+      "page": "pair-rejected"
     },
     {
       "file": "SameRoomB.dc.html",
       "x": 0,
-      "y": 3400,
+      "y": 1700,
       "w": 1440,
       "h": 900,
       "title": "B · Same room: the living room on the wall and on the phone, in light",
-      "page": "pair"
+      "page": "pair-rejected"
     },
     {
       "file": "SameRoomB-dark.dc.html",
       "x": 1580,
-      "y": 3400,
+      "y": 1700,
       "w": 1440,
       "h": 900,
       "title": "B · Same room, for a dark visitor: the living room in the evening",
-      "page": "pair"
+      "page": "pair-rejected"
     },
     {
       "file": "SameRoomB-phone.dc.html",
       "x": 3160,
-      "y": 3400,
+      "y": 1700,
       "w": 390,
       "h": 844,
       "title": "B · On a phone: the living room, the way the wall shows it",
-      "page": "pair"
+      "page": "pair-rejected"
     },
     {
       "file": "DaylightC.dc.html",
       "x": 0,
-      "y": 5100,
+      "y": 3400,
       "w": 1440,
       "h": 900,
       "title": "C · Daylight first: light for everyone, the afternoon on both screens",
-      "page": "pair"
+      "page": "pair-rejected"
     },
     {
       "file": "DaylightC-more.dc.html",
       "x": 1580,
-      "y": 5100,
+      "y": 3400,
       "w": 1440,
       "h": 900,
       "title": "C · One scroll down: the same wall at 8:30, 1:00 and 7:40",
-      "page": "pair"
+      "page": "pair-rejected"
     },
     {
       "file": "DaylightC-phone.dc.html",
       "x": 3160,
-      "y": 5100,
+      "y": 3400,
       "w": 390,
       "h": 844,
       "title": "C · On a phone: light whatever the phone is set to",
+      "page": "pair-rejected"
+    },
+    {
+      "file": "RoomAndDayD.dc.html",
+      "x": 0,
+      "y": 1700,
+      "w": 1440,
+      "h": 900,
+      "title": "D · B's room on both screens, following the visitor's light or dark: here, light",
+      "page": "pair"
+    },
+    {
+      "file": "RoomAndDayD-more.dc.html",
+      "x": 1580,
+      "y": 1700,
+      "w": 1440,
+      "h": 900,
+      "title": "D · One scroll down, C's day: the wall at 8:30, 1:00 and 7:40, in Light",
+      "page": "pair"
+    },
+    {
+      "file": "RoomAndDayD-phone.dc.html",
+      "x": 3160,
+      "y": 1700,
+      "w": 390,
+      "h": 844,
+      "title": "D · On a phone, light: the living room under the buttons",
+      "page": "pair"
+    },
+    {
+      "file": "RoomAndDayD-dark.dc.html",
+      "x": 0,
+      "y": 2700,
+      "w": 1440,
+      "h": 900,
+      "title": "D · The same for a dark visitor: the living room in the evening",
+      "page": "pair"
+    },
+    {
+      "file": "RoomAndDayD-more-dark.dc.html",
+      "x": 1580,
+      "y": 2700,
+      "w": 1440,
+      "h": 900,
+      "title": "D · The same day for a dark visitor, in Dark",
+      "page": "pair"
+    },
+    {
+      "file": "RoomAndDayD-phone-dark.dc.html",
+      "x": 3160,
+      "y": 2700,
+      "w": 390,
+      "h": 844,
+      "title": "D · On a phone, dark",
       "page": "pair"
     }
   ],
@@ -148,35 +218,43 @@
     },
     {
       "id": "a",
-      "page": "pair",
+      "page": "pair-rejected",
       "x": 0,
-      "y": 2660,
+      "y": 960,
       "w": 2970,
       "text": "A: THE SAME MOMENT\n\nThe smallest change. The page keeps following the visitor's setting, and now both pictures do too: a light visitor sees the afternoon on the wall and the phone, in Light; a dark one sees the evening on both, in Dark. The layout of the page is untouched.\n\nGOOD: Nothing about the page moves, and the clash of day beside night is gone. It's two extra pictures in npm run site-shots and one more media query.\n\nCOSTS: It fixes the hour, not the likeness. The wall still shows its Your evening cards and the phone its list of what's on, so the two still look like different apps to anyone who looks for a moment. And the page stays dark for every dark visitor, which is about half of them."
     },
     {
       "id": "b",
-      "page": "pair",
+      "page": "pair-rejected",
       "x": 0,
-      "y": 4360,
+      "y": 2660,
       "w": 4380,
       "text": "B: THE SAME ROOM\n\nBoth pictures are the living room. The same heading, the same line under it (2 lights on, Harbor Lights, Blind open, Motion), the same TV, the same Movie, Guests, Sleep and All off. One small line under them says so: The living room, on the wall and on a phone. Light and dark follow the visitor, matched as in A.\n\nGOOD: It's the only one of the three where the pictures prove the page's sentence. A visitor sees it's one app in a second, without reading a word. The room is also the screen people use most: it's where the house is changed, not just watched.\n\nCOSTS: The phone covers the wall's TV card, so its title is cut to \"Lights\". The weather and the big glass Your evening cards, the wall's most striking look, leave the top of the page; they'd go on lower down, or in the pretend house. One more picture to take, and the caption to keep true."
     },
     {
       "id": "c",
-      "page": "pair",
+      "page": "pair-rejected",
       "x": 0,
-      "y": 6060,
+      "y": 4360,
       "w": 4380,
       "text": "C: DAYLIGHT FIRST\n\nThe page is light for everyone, whatever the visitor's setting, and so are the pictures: the afternoon on both screens. One scroll down, a new section shows the same wall at 8:30, 1:00 and 7:40, all in Light, with the sky going from sand to blue to lavender, and one sentence for Dark: choose that on the wall, and each phone chooses for itself.\n\nGOOD: It's what was asked for, and a light page reads as a home, not a TV app. The new section turns the hour-to-hour difference into a feature instead of a contradiction, and it's true of the shipped panel.\n\nCOSTS: It undoes D's \"follows the visitor's setting\", which Bench's page also does, so the two Elyir pages stop matching. Visitors in dark mode at night get a bright page. On its own it leaves the hero the same as A's: matched hour, different layouts. The section adds length to a page D kept short."
     },
     {
-      "id": "pick",
+      "id": "d",
+      "page": "pair",
+      "x": 0,
+      "y": 3660,
+      "w": 3550,
+      "text": "D: B'S ROOM, C'S DAY, AND THE VISITOR'S OWN LIGHT OR DARK (CHOSEN, 28 OCTOBER)\n\nThe top of the page is B's: the living room on the wall and on the phone, one small line saying so. One scroll down, before Try it, is C's day: the same wall at 8:30, 1:00 and 7:40. Everything follows the visitor's setting, as D always has and as Bench's page does: a light visitor gets the afternoon room and the Light wall's sand, blue and lavender; a dark one gets the evening room and the Dark wall going from navy to near black.\n\nWHY: The room is the one picture that proves the sentence it sits under, one app on every screen. The day is what made the two pictures look like strangers, said out loud and turned into a reason to look. Keeping the visitor's setting keeps the two Elyir pages alike and never throws a bright page at somebody reading in the dark.\n\nTHE WORDS for the day work in either look: the wall tells the time by the color of its sky, in Light or in Dark; choose which on the wall, and each phone chooses for itself. Both are true of the shipped panel (design/appearance/, B).\n\nTry it's picture becomes the Rooms tab, every room at once, so the living room isn't shown twice and the picture says \"a whole house\" as its sentence does.\n\nPINNED by site/site.test.mjs: both pictures of the pair are the same room and switch together, and the day has its three walls in each look. The pictures are taken by npm run site-shots, with a passcode set so no Set a passcode band is ever on the page."
+    },
+    {
+      "id": "decided",
       "page": "pair",
       "x": -620,
       "y": 1700,
       "w": 500,
-      "text": "TO PICK\n\nA, B or C, or something else: say it and it gets drawn.\n\nThey combine. B's room pair can sit on C's light page, with C's day strip underneath, and A's rule of matched pictures in both looks is part of B already.\n\nNot drawn here, and worth a collection of their own: what the hub works with (the brands and kinds of things), a few lines on what it does, a short list of questions (do I need Home Assistant, does it need the internet), a preview picture for when the link is shared, and a way back to the front page from the pretend house on a phone."
+      "text": "DECIDED 28 OCTOBER 2026\n\nD: B's room pair on top, C's day one scroll down, and both following the visitor's light or dark setting rather than C's light for everyone.\n\nA, B and C are on the page that follows, with their cases.\n\nNot drawn here, and worth a collection of their own: what the hub works with, a few lines on what it does, a short list of questions, a preview picture for a shared link, and a way back to the front page from the pretend house on a phone."
     }
   ]
 }
