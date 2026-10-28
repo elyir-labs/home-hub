@@ -5,3 +5,9 @@
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+# The privacy page says a visit loads nothing from any other site. This holds it even when something at the edge adds a
+# script on the way out, such as Cloudflare's own visitor beacon: the browser refuses it and anything it would send.
+/
+  Content-Security-Policy: script-src 'self'; connect-src 'self'
+/privacy
+  Content-Security-Policy: script-src 'self'; connect-src 'self'

@@ -132,6 +132,10 @@ jobs:
       # could hand bash a web page
       - name: the front page still matches its board
         run: node --test site/site.test.mjs
+      # the privacy page promises nothing in a house reports on it; a crash reporter or analytics kit
+      # arriving as a dependency is how that breaks without anyone deciding to
+      - name: nothing in a house reports on it
+        run: node --test tools/nothing-reports.test.mjs
 
   # The Matter bridge. It is the one part of the hub whose bugs land in somebody ELSE's app, so the
   # unit conversions are checked here: three of them are inversions -- a cover counted from the other

@@ -91,6 +91,14 @@ class CreateOwnerTests(unittest.TestCase):
         for step in ("/api/onboarding/core_config", "/api/onboarding/analytics", "/api/onboarding/integration"):
             self.assertIn(step, asked)
 
+    def test_the_engine_is_told_to_report_nothing(self):
+        # An empty answer leaves every one of Home Assistant's own analytics switches off; the privacy page depends on it.
+        engine = FakeEngine(self.routes())
+        with mock.patch.object(ha_setup.urllib.request, "urlopen", engine):
+            ha_setup.create_owner(URL, "Jordan")
+        [body] = [body for _, path, body in engine.asked if path == "/api/onboarding/analytics"]
+        self.assertEqual(body, {})
+
     def test_two_hubs_set_up_the_same_day_do_not_get_the_same_password(self):
         with mock.patch.object(ha_setup.urllib.request, "urlopen", FakeEngine(self.routes())):
             first = ha_setup.create_owner(URL, "Jordan")

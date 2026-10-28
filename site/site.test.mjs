@@ -3,7 +3,7 @@
    `node --test site/site.test.mjs` */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { onRequest as install } from './functions/install.js'
@@ -11,6 +11,7 @@ import { onRequestPost as waitlist } from './functions/waitlist.js'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const page = readFileSync(path.join(HERE, 'index.html'), 'utf8')
+const pages = readdirSync(HERE).filter((f) => f.endsWith('.html'))
 const text = (html) => html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
 const at = (s) => { const i = page.indexOf(s); assert.notEqual(i, -1, `the page should have ${s}`); return i }
 
@@ -106,10 +107,26 @@ test('the waitlist says plainly when it has nowhere to write', async () => {
 })
 
 test('a visit asks nobody else for anything: no fonts, scripts or pictures from another site', () => {
-  const fetched = [...page.matchAll(/<(?:link|script|img|iframe)\b[^>]*\b(?:href|src)="([^"]+)"/g)].map((m) => m[1])
-  assert.ok(fetched.length > 0)
-  for (const url of fetched) assert.ok(url.startsWith('/'), `the page loads ${url}`)
-  assert.ok(!/url\(['"]?https?:/.test(page), 'nor from a stylesheet')
+  for (const name of pages) {
+    const html = readFileSync(path.join(HERE, name), 'utf8')
+    const fetched = [...html.matchAll(/<(?:link|script|img|iframe)\b[^>]*\b(?:href|src)="([^"]+)"/g)].map((m) => m[1])
+    for (const url of fetched) assert.ok(url.startsWith('/'), `${name} loads ${url}`)
+    assert.ok(!/url\(['"]?https?:/.test(html), `nor from ${name}'s stylesheet`)
+    assert.ok(!/<script(?![^>]*\bsrc=)[^>]*>/.test(html), `${name} has a script inline, which its policy would refuse`)
+    assert.ok(!/cloudflareinsights|data-cf-beacon|gtag|plausible/i.test((html.match(/<[^>]+>/g) || []).join('')), `${name} counts its visitors`)
+  }
+  for (const script of ['site.js']) assert.ok(!/https?:\/\//.test(readFileSync(path.join(HERE, script), 'utf8')), `${script} talks to another site`)
+})
+
+test('every page refuses a script from another site, even one added on the way out', () => {
+  const rules = Object.fromEntries(readFileSync(path.join(HERE, '_headers'), 'utf8').split(/\n(?=\/)/).map((block) => {
+    const [where, ...lines] = block.trim().split('\n')
+    return [where.trim(), lines.join('\n')]
+  }))
+  for (const name of pages) {
+    const where = name === 'index.html' ? '/' : `/${name.replace(/\.html$/, '')}`
+    assert.match(rules[where] || '', /Content-Security-Policy: script-src 'self'; connect-src 'self'/, `${where} has no policy`)
+  }
 })
 
 test('the privacy page is reachable from the waitlist, and says what it keeps', () => {
