@@ -1,6 +1,12 @@
 variable "account_id" {
   description = "The Cloudflare account the site and the list live in. Set TF_VAR_account_id, or terraform.tfvars."
   type        = string
+
+  # Every resource here is keyed on it, so a wrong value plans to destroy and remake the lot, the waitlist included.
+  validation {
+    condition     = can(regex("^[0-9a-f]{32}$", var.account_id))
+    error_message = "account_id is 32 hex characters (npx wrangler whoami prints it), not a placeholder."
+  }
 }
 
 variable "zone_name" {
