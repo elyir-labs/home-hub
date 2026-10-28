@@ -1,0 +1,34 @@
+/* The first start, on whatever screen is plugged in: the splash's own space, 1440x900, which a monitor shows
+   scaled to fit. Every board is the splash at one moment of a first start; first.js draws the house. */
+html, body { margin: 0; background: #000; }
+body { width: 1440px; height: 900px; overflow: hidden; font-family: 'Instrument Sans', -apple-system, sans-serif; }
+
+.glass { position: relative; width: 1440px; height: 900px; overflow: hidden; background: #000; color: #f1eee8; }
+
+/* The house exactly where the splash leaves it: 340 wide, centered on 720,430, its lamp breathing. */
+.house { position: absolute; left: 550px; top: 260px; width: 340px; height: 340px; }
+.house svg { position: absolute; inset: 0; overflow: visible; }
+.house .glow { position: absolute; left: 87px; top: 120px; width: 166px; height: 166px; border-radius: 50%;
+               background: radial-gradient(circle, rgba(233, 184, 114, .5), rgba(233, 184, 114, 0) 68%); }
+
+/* Words under the house. The splash's one existing sentence is 24px in this gray at y 640. */
+.say { position: absolute; left: 0; right: 0; text-align: center; }
+.line { top: 628px; font-size: 30px; font-weight: 400; color: #e6e2da; letter-spacing: .003em; }
+.quiet { top: 676px; font-size: 20px; color: #8f8b84; }
+.count { top: 600px; font-size: 15px; font-weight: 500; color: #8f8b84; letter-spacing: .16em; text-transform: uppercase; }
+.count + .line { top: 630px; }
+.nums { top: 676px; font-size: 20px; color: #8f8b84; font-variant-numeric: tabular-nums; }
+.slow { top: 640px; font-size: 24px; color: #b9b5ad; line-height: 1.35; }
+.ready { top: 620px; font-size: 34px; color: #f1eee8; }
+.ready + .quiet { top: 678px; font-size: 24px; color: #b9b5ad; }
+.ready + .quiet b { color: #f1eee8; font-weight: 500; }
+
+/* A code to scan: dark on a light tile, the way every phone camera expects one, with its quiet margin. */
+.tile { position: absolute; background: #f1eee8; border-radius: 18px; box-sizing: border-box; }
+.tile img { display: block; width: 100%; height: 100%; }
+.side { position: absolute; text-align: left; }
+.side .big { font-size: 28px; color: #f1eee8; line-height: 1.3; }
+.side .small { margin-top: 14px; font-size: 20px; color: #8f8b84; line-height: 1.45; }
+.side .small b { color: #d9d5cd; font-weight: 500; }
+.house.small { left: 655px; top: 115px; width: 130px; height: 130px; }
+.quiet b { color: #d9d5cd; font-weight: 500; }

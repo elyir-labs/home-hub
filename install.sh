@@ -52,6 +52,8 @@ say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 # this by hand is reading the output and needs no file. It writes A PHASE FROM A FIXED LIST and never
 # a sentence — brain/hub/updates.py owns the words, which is what stops anything that can write into
 # the data volume from putting a sentence on somebody's wall. Second argument is extra JSON.
+# A first start on a screen says which step it is on (startup/say.sh); anywhere else this does nothing.
+splash() { [ -x "$DIR/startup/say.sh" ] && "$DIR/startup/say.sh" step "$1"; return 0; }
 phase() { [ -n "${HUB_PROGRESS:-}" ] || return 0
   printf '{"phase":"%s","at":%s%s}\n' "$1" "$(date +%s)" "${2:-}" >> "$HUB_PROGRESS" 2>/dev/null || true; }
 [ "$(id -u)" -eq 0 ] || { echo "Run me with sudo."; exit 1; }
@@ -324,6 +326,7 @@ FINISH="${HUB_FINISH:-/var/lib/home-hub/finish-install}"
 if [ "$(curl -s -m 8 -o /dev/null -w '%{http_code}' https://ghcr.io/v2/ 2>/dev/null)" = 000 ] \
    && docker image inspect "${HUB_BRAIN_IMAGE:-ghcr.io/elyir-labs/home-hub-brain:latest}" >/dev/null 2>&1 \
    && docker image inspect "${HUB_IMG_CADDY:-caddy:2}" >/dev/null 2>&1; then
+  splash starting
   docker compose up -d --no-deps brain caddy
   mkdir -p "$(dirname "$FINISH")" && echo "$CHANNEL" > "$FINISH"
   say "Started without internet. The rest of the house downloads once the hub is online."
@@ -331,6 +334,7 @@ if [ "$(curl -s -m 8 -o /dev/null -w '%{http_code}' https://ghcr.io/v2/ 2>/dev/n
 fi
 rm -f "$FINISH"
 phase downloading
+splash downloading
 # Pre-pull everything the compose file pins. A tag that no longer exists on the registry would
 # otherwise surface as a wall of daemon errors from `up`, with none of the other images fetched and
 # nothing started, so say which reference is missing in one line instead.
@@ -407,6 +411,7 @@ MOVING=""
 # every ordinary first install would take the installer down with it.
 if [ -n "${HUB_PROGRESS:-}" ]; then MOVING="$(moving || true)"; fi
 case "$MOVING" in \[*\]) phase restarting ",\"moving\":$MOVING" ;; *) phase restarting ;; esac
+splash starting
 # shellcheck disable=SC2086
 docker compose up -d --remove-orphans $RECREATE
 
