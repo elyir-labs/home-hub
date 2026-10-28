@@ -385,6 +385,13 @@ class Hub:
         # are the same rows, and a broadcast is every open panel re-rendering a pane
         if self.forecast != had: self._broadcast(json.dumps({"type": "ambient", "ambient": self.ambient()}))
 
+    async def _address_loop(self):
+        """A paid web address is carried a month at a time; the hub asks for the next ticket well before it runs out."""
+        while True:
+            await asyncio.sleep(6 * 3600)
+            try: await asyncio.to_thread(self.address.renew)
+            except Exception: log.exception("address renew")
+
     async def _forecast_loop(self):
         """On the hour, near enough. A forecast that is an hour stale is still a forecast; one that
         is a day stale is a lie, and asking more often than the integration itself refreshes is the
@@ -774,6 +781,7 @@ async def lifespan(app):
     hub._suggest_task = asyncio.create_task(hub.assistant.run())
     hub._prune_task = asyncio.create_task(hub.log.run())      # the diary, kept a diary: events.py
     hub._roofline_task = asyncio.create_task(hub._roofline_loop())
+    hub._address_task = asyncio.create_task(hub._address_loop())
     hub._printers_task = asyncio.create_task(hub.printers.run())   # needs no engine: a printer is its own
     yield
     for t in (hub._loop_task, hub._tick_task, hub._signals_task, hub._drivers_task, hub._comfort_task, hub._update_task,
@@ -3023,6 +3031,16 @@ def address_claim(body: dict, request: Request):
     except LookupError as e: raise HTTPException(409, e.args[0])
     except ValueError as e: raise HTTPException(422, str(e))
     except Unreachable as e: raise HTTPException(503, str(e))
+
+
+@app.post("/address/pay")
+def address_pay(request: Request):
+    """A fresh link for the wall's code to the payment page, for a house that has its address and is paying for it now."""
+    if not _may_restart(request): raise HTTPException(403, "The house's web address is paid for from the wall screen, or a phone that joined with the passcode.")
+    try: pay = hub.address.pay_link()
+    except Unreachable as e: raise HTTPException(503, str(e))
+    if not pay: raise HTTPException(409, "There is nothing to pay for here.")
+    return {"pay": pay}
 
 
 @app.post("/address/{want}")

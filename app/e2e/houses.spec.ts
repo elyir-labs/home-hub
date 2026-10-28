@@ -195,7 +195,7 @@ test('the Houses app hands the store app\'s storefront on to the house it frames
 const OFFER = { open: true, price: '$3 a month', pay: 'https://pay.example/start' }
 async function lastStep(page: Page, shell: string) {
   await page.context().route(/\/address$/, r => r.request().method() === 'POST'
-    ? r.fulfill({ json: { offer: OFFER, guess: 'jordan', house: 'jordan', address: 'jordan.elyir.app', want: 'on', carried: false } })
+    ? r.fulfill({ json: { offer: OFFER, guess: 'jordan', house: 'jordan', address: 'jordan.elyir.app', want: 'on', carried: false, pay: 'https://pay.example/start?c=hc_1' } })
     : r.fulfill({ json: { offer: OFFER, guess: 'jordan', house: null } }))
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(`${APP}/stand-in?q=${encodeURIComponent(`&setup=1&page=devices&${shell}`)}`)
@@ -218,7 +218,7 @@ test('on the US storefront the offer stays, and its button opens the payment pag
   await page.context().route('https://pay.example/**', r => r.fulfill({ contentType: 'text/html', body: 'the payment page' }))
   const opened = page.context().waitForEvent('page')
   await step.getByRole('button', { name: 'Continue in Safari' }).click()
-  expect((await opened).url()).toContain('pay.example/start?house=jordan')
+  expect((await opened).url()).toContain('pay.example/start?c=hc_1')
   await expect(step.locator('h1')).toHaveText('Finish in Safari.')
   await expect(step.locator('.setup-lede')).toHaveText('The payment page for jordan.elyir.app is open in Safari. This screen moves on by itself when it is done.')
   await expect(step.locator('.setup-status')).toContainText('Waiting for the payment')

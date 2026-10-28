@@ -6,7 +6,7 @@
    drift from the board (OfferPlain.dc.html, and Named.dc.html for the row on This hub). */
 import { describe, expect, it } from 'vitest'
 import type { AddressState, Offer } from '../src/api'
-import { cleanName, offersOutside, outsideRow, payUrl, price, takeWords, verdict } from '../src/address'
+import { cleanName, offersOutside, outsideRow, price, takeWords, verdict } from '../src/address'
 
 const paid: Offer = { open: true, price: '$3 a month', pay: 'https://pay.example/start' }
 const byHand: Offer = { open: true, price: null, pay: null, by_hand: true }
@@ -46,9 +46,6 @@ describe('the offer, said plainly', () => {
   it('pays on a phone, never on the wall', () => {
     expect(takeWords(paid)).toBe('Continue on your phone')
     expect(takeWords(byHand)).toBe('Give it this address')
-    expect(payUrl(paid, 'jordan')).toBe('https://pay.example/start?house=jordan')
-    expect(payUrl({ ...paid, pay: 'https://pay.example/start?plan=a' }, 'jordan')).toBe('https://pay.example/start?plan=a&house=jordan')
-    expect(payUrl(byHand, 'jordan')).toBeNull()
   })
 })
 
@@ -66,6 +63,12 @@ describe('the row on This hub', () => {
     expect(outsideRow(state({ house: 'jordan', address: 'jordan.elyir.app', want: 'on', waiting: true }))!.sub).toBe('Getting the web address ready — about a minute.')
     expect(outsideRow(state({ house: 'jordan', address: 'jordan.elyir.app', want: 'on', carried: false }))!.sub).toBe('Waiting for the payment to go through.')
     expect(outsideRow(state({ offer: byHand, house: 'jordan', address: 'jordan.elyir.app', want: 'on', carried: false }))!.sub).toBe('We are turning it on.')
+    // paid from an Elyir account (design/account/, B): whose, by its masked email, how much, and when it next comes due
+    const account = { payer: 't•••i@example.com', price: '$3 a month', paid_until: Date.UTC(2026, 10, 1) / 1000, cancels: false }
+    const paidRow = outsideRow(state({ house: 'jordan', address: 'jordan.elyir.app', want: 'on', on: true, carried: true, entitled_until: until, paid: account }))!
+    expect(paidRow.sub).toBe('$3 a month from the Elyir account t•••i@example.com · next on November 1, 2026. If it ever stops, everything at home carries on as it is.')
+    const ending = outsideRow(state({ house: 'jordan', address: 'jordan.elyir.app', want: 'on', on: true, carried: true, paid: { ...account, cancels: true } }))!
+    expect(ending.sub).toMatch(/· ends on November 1, 2026\./)
     const off = outsideRow(state({ house: 'jordan', address: 'jordan.elyir.app', want: 'off' }))!
     expect(off.value).toBe('jordan.elyir.app · off'); expect(off.action).toBe('Turn on')
   })
