@@ -280,7 +280,8 @@ Do not reopen these, and do not propose around them.
 
 - **We watch our own services from the outside, and never the visitor or the house** (25 October 2026). Uptime, the
   relay's health and the site's traffic are read from what Cloudflare, Hetzner and GitHub already see, with no new
-  vendor. No script on the site counts visitors, Cloudflare's own beacon included: `site/_headers` refuses any script
+  vendor: `watch/`, a Worker that checks each service every minute and mails the operator, and reads the relay's numbers
+  from `/alive` with a key derived from the relay token. No script on the site counts visitors, Cloudflare's own beacon included: `site/_headers` refuses any script
   or request to another site, so one added at the edge is blocked too. Nothing in a hub sends crash reports or
   analytics, and Home Assistant's own analytics are left off. When a hub misbehaves, the household sends a
   diagnostics bundle themselves (`docs/shipping.md`). The one line allowed out is the update check-in in

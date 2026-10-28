@@ -285,6 +285,17 @@ class Registry:
                                (address, self.now())).fetchall()
         return [r["name"] for r in rows if r["name"] not in RESERVED]
 
+    def counts(self) -> dict:
+        """How the service is doing, in numbers only, for the maker's watcher (app.py, /alive). Never a name."""
+        self._sweep()
+        now = self.now()
+        rows = [r for r in self.db.execute("select name, entitled_until, seen_at from houses") if r["name"] not in RESERVED]
+        def dialed(days): return sum(1 for r in rows if r["seen_at"] and now - r["seen_at"] < days * DAY)
+        return {"names": len(rows),
+                "carried": sum(1 for r in rows if r["entitled_until"] and r["entitled_until"] > now),
+                "dialed_in_day": dialed(1), "dialed_in_week": dialed(7),
+                "invites_open": self.db.execute("select count(*) from invites where used_by is null and use_by > ?", (now,)).fetchone()[0]}
+
     def houses(self) -> list[dict]:
         self._sweep()
         return [dict(r) | {"secret_hash": None} for r in self.db.execute("select * from houses order by name")]

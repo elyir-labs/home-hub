@@ -6,7 +6,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from app import CLAIMS_PER_DAY, WRONG_INVITES_PER_DAY, make, nearby_origins, seed_own_names
+from app import CLAIMS_PER_DAY, WRONG_INVITES_PER_DAY, make, nearby_origins, seed_own_names, watch_key
 from registry import DAY, TICKET_REACH, Payers, Registry, sign_ticket
 
 
@@ -77,6 +77,29 @@ class Service(unittest.TestCase):
         self.assertEqual(self.local.post("/frps", json=ask).json(), {"reject": True, "reject_reason": "this house is not carried by this relay"})
         self.r.grant("jordan", self.t + 30 * DAY)
         self.assertEqual(self.local.post("/frps", json=ask).json(), {"reject": False, "unchange": True})
+
+    def test_the_watcher_reads_how_it_is_doing_and_nobody_else_does(self):
+        app = make(self.r, now=lambda: self.t, relay={"addr": "relay.elyir.app", "token": "shared"}, data=Path(self.dir.name))
+        c, local = TestClient(app), TestClient(app, client=("127.0.0.1", 50000))
+        secret = c.post("/houses", json={"name": "jordan"}).json()["secret"]
+        c.post("/houses", json={"name": "riley"})
+        self.r.grant("jordan", self.t + 30 * DAY)
+        self.r.seed("api", "own")                               # the box's own names are not houses
+        local.post("/frps", json={"op": "Login", "content": {"user": "jordan", "metas": {"house": "jordan", "secret": secret}, "client_address": "203.0.113.9:4000"}})
+        local.post("/frps", json={"op": "Login", "content": {"user": "riley", "metas": {"house": "riley", "secret": "wrong"}}})
+        self.assertEqual(c.get("/alive").json(), {"ok": True})
+        self.assertEqual(c.get("/alive", headers={"Authorization": "Bearer nope"}).json(), {"ok": True})
+        self.assertEqual(c.get("/alive", headers={"Authorization": f"Bearer {watch_key('')}"}).json(), {"ok": True})
+        seen = c.get("/alive", headers={"Authorization": f"Bearer {watch_key('shared')}"}).json()
+        self.assertEqual(seen["houses"], {"names": 2, "carried": 1, "dialed_in_day": 1, "dialed_in_week": 1, "invites_open": 0})
+        self.assertEqual(seen["since_start"], {"tunnels_refused": 1})
+        self.assertTrue(0 <= seen["box"]["disk_used"] <= 1 and len(seen["box"]["load"]) == 3)
+        for name in ("jordan", "riley", "203.0.113"): self.assertNotIn(name, str(seen))
+
+    def test_the_watchers_key_is_the_one_terraform_derives(self):
+        # relay/terraform: sha256("watch:${var.relay_auth_token}"), lowercase hex
+        self.assertEqual(watch_key("shared"), "1f49db9b320222078d981b6e1ecc61c380f33c8d472c8d70f26f43b37ffc60ba")
+        self.assertEqual(watch_key(""), "")
 
     def test_the_relays_door_is_not_open_to_anyone_else(self):
         ask = {"op": "Login", "content": {}}

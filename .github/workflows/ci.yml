@@ -136,6 +136,9 @@ jobs:
       # arriving as a dependency is how that breaks without anyone deciding to
       - name: nothing in a house reports on it
         run: node --test tools/nothing-reports.test.mjs
+      # the maker's watcher (watch/): what counts as down, when the operator is written to, the Monday note
+      - name: the watcher still judges as it should
+        run: node --test watch/watch.test.mjs
 
   # The Matter bridge. It is the one part of the hub whose bugs land in somebody ELSE's app, so the
   # unit conversions are checked here: three of them are inversions -- a cover counted from the other
