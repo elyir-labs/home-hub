@@ -17,3 +17,15 @@ variable "project_name" {
   type        = string
   default     = "elyir-home-hub"
 }
+
+variable "github_owner" {
+  description = "Where the deploy workflow runs: its repository's owner on GitHub."
+  type        = string
+  default     = "elyir-labs"
+}
+
+variable "github_repository" {
+  description = "The repository whose workflow deploys the site, and is given its token."
+  type        = string
+  default     = "home-hub"
+}
