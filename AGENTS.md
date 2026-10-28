@@ -334,7 +334,8 @@ Do not reopen these, and do not propose around them.
   names are houses' own. On a computer, Put it on a computer you have leads; on a phone, Try it live. Under the two
   buttons, one quiet email box for anyone who wants one ready to plug in, writing to the one Elyir waitlist. Its
   pictures are the panel on the pretend house with `NAMES=plain` (`npm run site-shots`), never somebody else's show or
-  brand. `site/`, pinned by `site/site.test.mjs`; made by `site/terraform/`, deployed by `.github/workflows/site.yml`.
+  brand: the living room on the wall and the phone, then the wall through a day, each in the visitor's own light or dark
+  (28 October, `design/site-pair/`, D). `site/`, pinned by `site/site.test.mjs`; made by `site/terraform/`, deployed by `.github/workflows/site.yml`.
 - **Music lives on the speaker's card, and every hub plays it** (20 October, `design/music/`, A with C's sentences).
   A quiet speaker offers Play something and its last two things again; one pane chooses what (left) and which rooms
   (right, this room ticked); music in several rooms plays in step and is a row of rooms on the card; the command box
