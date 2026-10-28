@@ -15,8 +15,8 @@
  * the step moves on by itself, and Not now is the same size as the button beside it at every moment.
  */
 import { computed, onUnmounted, ref, watch } from 'vue'
-import { claimAddress, getAddress, lookAddress, qrUrl, type AddressState, type NameLook } from './api'
-import { browserFor, cleanName, payUrl, price, takeWords, verdict, ZONE } from './address'
+import { claimAddress, getAddress, lookAddress, payLink, qrUrl, type AddressState, type NameLook } from './api'
+import { browserFor, cleanName, price, takeWords, verdict, ZONE } from './address'
 import { shell } from './inapp'
 import Icon from './Icon.vue'
 
@@ -32,7 +32,7 @@ const busy = ref(false), error = ref('')
 const said = computed(() => verdict(look.value, typed.value))
 const cost = computed(() => price(props.state.offer))
 const free = computed(() => said.value.tone === 'ok')
-const pay = computed(() => payUrl(props.state.offer, house.value))
+const pay = ref<string | null>(null)
 
 let timer: number | undefined
 watch(typed, t => {
@@ -55,9 +55,11 @@ async function take() {
   try {
     const a = await claimAddress(cleanName(typed.value))
     house.value = a.house ?? ''
+    pay.value = a.pay ?? null
     moment.value = !props.state.offer.pay ? 'waiting' : shell ? 'browser' : 'phone'
     if (moment.value === 'browser') openPay()
     poll = window.setInterval(async () => {
+      if (props.state.offer.pay && !pay.value) { try { pay.value = await payLink(); if (moment.value === 'browser') openPay() } catch {} }
       try { if ((await getAddress()).carried) { clearInterval(poll); emit('done') } } catch {}
     }, 3000)
   } catch (e: any) {

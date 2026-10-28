@@ -64,3 +64,46 @@ export const TIME = {
 export const BREATH = { period: 6.4, low: 0.72 }
 
 export const SLOW = 'This is taking longer than usual. If it stays like this, unplug it for ten seconds and plug it back in.'
+
+// What a first start says while it installs (design/first-start/, A with B's quieter line, and Ready, decided
+// 20 October 2026). Each step is sent by the step itself as it starts (startup/say.sh); every other start says
+// nothing but the name. The quiet line is only where there is something to know.
+export const FIRST = {
+  preparing: { line: 'Getting the hub ready' },
+  moving: { line: 'Moving onto this computer’s drive', quiet: 'Leave it plugged in. It restarts by itself when this is done.' },
+  downloading: { line: 'Downloading the rest of the hub' },
+  starting: { line: 'Starting the house for the first time' },
+}
+
+// The end of a first start on a screen that is not a wall: where to go next. The address, the Wi-Fi's name and
+// its password are this hub's own, so they are drawn on the unit from the letters in GLYPHS.
+export const READY = {
+  line: 'Your hub is ready',
+  cable: 'On a phone on the same Wi‑Fi, open ',
+  wifi: 'On your phone, join the Wi‑Fi ',
+  password: ', password ',
+}
+// Ready with a code to scan (design/first-start/, E): the house rises and gets small, and the code takes the middle,
+// made on the unit from this hub's own Wi-Fi or address. Without a code it is the words above, under the house.
+export const SCAN = {
+  house: { center: [720, 180], size: 130 },
+  tile: { left: 580, top: 355, size: 280, pad: 22, radius: 18, color: '#f1eee8' },
+  wifi: 'Scan with your phone’s camera to join the hub',
+  addr: 'Scan with your phone’s camera to open the hub',
+  orWifi: 'Or join the Wi‑Fi ',
+  orPassword: ', password ',
+  orAddr: 'Or open ',
+  orAddrAfter: ' on a phone on the same Wi‑Fi',
+}
+export const GLYPHS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-. '
+
+// Where and how big, in the boards' space, as design/first-start/first.css draws them.
+export const WORDS = {
+  line: { top: 628, size: 30, color: '#e6e2da' },
+  quiet: { top: 676, size: 20, color: '#8f8b84' },
+  ready: { top: 620, size: 34, color: '#f1eee8' },
+  where: { top: 678, size: 24, color: '#b9b5ad', value: '#f1eee8', weight: 500 },
+  scanReady: { top: 275, size: 34, color: '#f1eee8' },
+  scan: { top: 673, size: 30, color: '#e6e2da' },
+  or: { top: 721, size: 20, color: '#8f8b84', value: '#d9d5cd', weight: 500 },
+}

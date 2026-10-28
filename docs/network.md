@@ -158,7 +158,11 @@ channel means 2.4 GHz: the hub joins the house's 2.4 GHz side, moving its own ne
 has to, and lets go of the pin when its own network goes, so the house's Wi‑Fi can choose 5 GHz again (piece 4). A
 card that can't do both drops its own network to try; the phone is told what happens next before it goes, and a
 wrong password is said when somebody scans the label again (`OwnWiFiA-4-alone`). `nmcli` waits for the router's
-answer, so either way a wrong password is known in seconds rather than after the three-minute settle.
+answer, so either way a wrong password is known in seconds rather than after the three-minute settle. The Pi's own chip
+(brcmfmac) lists the combination and cannot keep it: while its own interface is joined to nothing it keeps scanning,
+and the setup network on the second interface reached no phone (a Pi 5, 23 October 2026). So a Pi runs it on the
+card itself, as a card that can't do both, and the setup network is WPA2 alone with no management-frame
+protection, as `nmcli device wifi hotspot` makes one.
 
 **Cables NetworkManager does not manage.** Ubuntu Server hands Ethernet to systemd-networkd, and NetworkManager
 reports it as unmanaged. A real port with carrier and an address now counts as a cable, and "online" is a default

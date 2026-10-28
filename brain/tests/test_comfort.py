@@ -95,9 +95,9 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         hub.ha.calls.clear()
         hub.s.state = "76.0"; await c.on_state(hub.s)                 # too soon after the last move: wait for the room
         self.assertEqual(hub.ha.calls, [])
-        c._acted["climate.nest"] = time.time() - 1000
-        hub.t.attrs["temperature"] = 67.0; await c.on_state(hub.s)
-        self.assertEqual(hub.ha.calls, [("set_temperature", "climate.nest", {"temperature": 68.0})])
+        c._acted["climate.nest"] = time.time() - comfort.NUDGE - 1
+        hub.t.attrs["temperature"] = 67.0; await c.on_state(hub.s)      # the bedroom is still 6° over: one step further
+        self.assertEqual(hub.ha.calls, [("set_temperature", "climate.nest", {"temperature": 66.0})])
 
     async def test_leaves_the_thermostat_alone_when_it_should(self):
         hub = FakeHub(); c = comfort.Comfort(hub)
@@ -105,7 +105,7 @@ class LoopTests(unittest.IsolatedAsyncioTestCase):
         hub.t.state = "heat_cool"; await c.check("climate.nest")        # auto keeps its own range
         hub.t.state = "off"; await c.check("climate.nest")
         hub.t.state = "cool"; hub.s.state = "unavailable"; await c.check("climate.nest")   # a dead sensor is not trusted
-        hub.s.state = "77.0"; hub.t.attrs["temperature"] = 71.0; await c.check("climate.nest")   # already where it should be
+        hub.s.state = "74.3"; hub.t.attrs["temperature"] = 71.0; await c.check("climate.nest")   # the far room is there already
         self.assertEqual(hub.ha.calls, [])
         await c.set_sensor(hub.t, None)
         self.assertNotIn("sense_from", hub.t.attrs)
@@ -163,7 +163,7 @@ class SafetyTests(unittest.IsolatedAsyncioTestCase):
             hub.s.seen = clock.time()                            # it comes back
             await c.check("climate.nest")
             self.assertEqual(len(hub.ha.calls), 1)
-            self.assertEqual(hub.log.rows[-1][3], str(77.0))
+            self.assertEqual(hub.log.rows[-1][3], str(73.0))
 
     async def test_a_restart_does_not_shorten_a_compressors_rest(self):
         hub = FakeHub(); c = comfort.Comfort(hub); clock = hub.clock
@@ -175,6 +175,80 @@ class SafetyTests(unittest.IsolatedAsyncioTestCase):
             hub.ha.calls.clear(); hub.t.attrs["current_temperature"] = 80.0
             await again.check("climate.nest")
             self.assertEqual(hub.ha.calls, [], "the wait is remembered across a restart, not started again")
-            clock.advance(comfort.SETTLE)
+            clock.advance(comfort.NUDGE)
             await again.check("climate.nest")
             self.assertEqual(len(hub.ha.calls), 1)
+
+
+class PersonTests(unittest.IsolatedAsyncioTestCase):
+    """A number set at the thermostat itself is the household's, and the house does not put it back."""
+
+    async def sensing(self):
+        hub = FakeHub(); c = comfort.Comfort(hub); clock = hub.clock
+        hub.s.seen = clock.time()
+        return hub, c, clock
+
+    async def test_a_number_set_at_the_thermostat_ends_sensing_from_elsewhere(self):
+        hub, c, clock = await self.sensing()
+        with mock.patch.object(comfort, "time", clock):
+            await c.set_sensor(hub.t, "sensor.bedroom_temp")
+            hub.t.attrs["temperature"] = 71.0; await c.on_state(hub.t)          # the house's own move, echoed back
+            self.assertTrue(c.sensing("climate.nest"))
+            hub.ha.calls.clear()
+            clock.advance(60); hub.t.attrs["temperature"] = 78.0; await c.on_state(hub.t)
+            self.assertFalse(c.sensing("climate.nest"))
+            self.assertEqual(hub.settings.data["comfort"], {})
+            self.assertNotIn("sense_from", hub.t.attrs)
+            self.assertEqual(hub.log.rows[-1][3:5], ("thermostat's own sensor", "comfort"))
+            for _ in range(10):
+                clock.advance(comfort.NUDGE); await c.tick(); await c.on_state(hub.s)
+            self.assertEqual(hub.ha.calls, [], "78 stays 78")
+
+    async def test_turning_it_off_and_back_on_with_a_new_number_counts_too(self):
+        hub, c, clock = await self.sensing()
+        with mock.patch.object(comfort, "time", clock):
+            await c.set_sensor(hub.t, "sensor.bedroom_temp"); hub.t.attrs["temperature"] = 71.0; await c.on_state(hub.t)
+            clock.advance(600)
+            hub.t.state, hub.t.attrs["temperature"] = "off", None; await c.on_state(hub.t)
+            self.assertTrue(c.sensing("climate.nest"))
+            hub.t.state, hub.t.attrs["temperature"] = "cool", 78.0; await c.on_state(hub.t)
+            self.assertFalse(c.sensing("climate.nest"))
+
+    async def test_the_houses_own_moves_are_not_mistaken_for_a_person(self):
+        hub, c, clock = await self.sensing()
+
+        class EchoingHA(FakeHA):
+            async def call(self, domain, service, eid, **data):
+                before = hub.t.attrs["temperature"]
+                await super().call(domain, service, eid, **data)
+                hub.t.attrs["temperature"] = before; await c.on_state(hub.t)   # a report from before the move, in flight
+                hub.t.attrs["temperature"] = data["temperature"]; await c.on_state(hub.t)   # answered before the call returns
+        hub.ha = EchoingHA()
+        hub.t.attrs["temperature"] = 72.0
+        with mock.patch.object(comfort, "time", clock):
+            await c.set_sensor(hub.t, "sensor.bedroom_temp")
+            for _ in range(6):
+                clock.advance(comfort.NUDGE); hub.s.seen = clock.time(); await c.tick()
+        self.assertTrue(c.sensing("climate.nest"))
+        self.assertGreater(len(hub.ha.calls), 1)
+
+    async def test_the_setpoint_does_not_follow_the_thermostats_own_room_down(self):
+        # 9 October: the far room sat at 73.6 wanting 73 while the thermostat's room cooled, and each look
+        # set it a degree lower, 72, 71, 70. Only the far room moves it now, and 0.6° off is close enough.
+        hub, c, clock = await self.sensing()
+        hub.t.attrs.update(temperature=72.0, current_temperature=73.0); hub.s.state = "73.6"
+        with mock.patch.object(comfort, "time", clock):
+            await c.set_sensor(hub.t, "sensor.bedroom_temp"); await c.want(hub.t, 73)
+            hub.t.attrs["temperature"] = hub.ha.calls[-1][2]["temperature"] if hub.ha.calls else 72.0
+            placed, hub.ha.calls[:] = hub.t.attrs["temperature"], []
+            for here in (72.0, 71.0, 70.0, 69.0):
+                clock.advance(comfort.NUDGE); hub.s.seen = clock.time()
+                hub.t.attrs["current_temperature"] = here; await c.on_state(hub.t)
+        self.assertEqual(hub.ha.calls, [])
+        self.assertEqual(hub.t.attrs["temperature"], placed)
+
+    def test_a_nudge_is_one_step_toward_the_far_room(self):
+        self.assertEqual(comfort.nudge(72, 73, 74.5, 1, 50, 90, 5), 71)
+        self.assertEqual(comfort.nudge(72, 73, 71.5, 1, 50, 90, 5), 73)
+        self.assertEqual(comfort.nudge(72, 73, 73.6, 1, 50, 90, 5), 72)
+        self.assertEqual(comfort.nudge(68, 73, 80, 1, 50, 90, 5), 68)

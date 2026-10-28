@@ -1,0 +1,11 @@
+# Runs role.sh once per request. Started by elyir-screen-role.path; never on its own.
+[Unit]
+Description=Elyir's screen: become the hub, or another hub's screen
+After=network-online.target
+
+[Service]
+Type=oneshot
+Environment=HOME_HUB_DIR=/opt/home-hub
+ExecStart=/opt/home-hub/startup/role.sh
+StandardOutput=journal
+TimeoutStartSec=0

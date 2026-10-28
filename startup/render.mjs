@@ -9,8 +9,8 @@
 // It borrows the panel's Playwright (app/node_modules) to draw; PLAYWRIGHT=<path to the package's
 // index.mjs> points it at another copy.
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { COLOR, NAME, HOUSE, TIME, SLOW } from './sequence.mjs'
-import { THEME, K, NAME_FRAMES, fingerprint, themeFile, timingSh, script } from './plymouth.mjs'
+import { COLOR, NAME, HOUSE, TIME, SLOW, FIRST, READY, GLYPHS, WORDS, SCAN } from './sequence.mjs'
+import { THEME, K, NAME_FRAMES, fingerprint, themeFile, timingSh, script, glyphFile, smallFile } from './plymouth.mjs'
 
 const OUT = new URL(`plymouth/${THEME}/`, import.meta.url)
 const from = process.env.PLAYWRIGHT ?? new URL('../app/node_modules/playwright/index.mjs', import.meta.url).href
@@ -23,7 +23,7 @@ const LINE = 'fill="none" stroke-linecap="round" stroke-linejoin="round"'
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 2000, height: 1400 } })
 await page.setContent(`<!doctype html><html><head>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&display=swap">
   <style>html,body{margin:0;background:transparent} #c{position:absolute;left:0;top:0}</style></head><body><div id="c"></div></body></html>`)
 await page.evaluate(() => document.fonts.ready)
 
@@ -77,10 +77,51 @@ await shoot('house-glow.png', hg, hg, `<div style="width:100%;height:100%;border
 const sw = 1100 * K, sh = 80 * K
 await shoot('slow.png', sw, sh, `<div style="width:${sw}px;text-align:center;font:400 ${24 * K}px/1.35 'Instrument Sans',sans-serif;color:#b9b5ad">${SLOW}</div>`)
 
+// A first start's words (design/first-start/): a line per step, centered in a box as wide as the screen, and the
+// quieter line under it where a step has one.
+const font = (w, weight = 400) => `font:${weight} ${w.size * K}px/1.3 'Instrument Sans',sans-serif`
+const across = (file, w, text, color = w.color, weight = 400) =>
+  shoot(file, 1400 * K, w.size * 1.3 * K, `<div style="text-align:center;white-space:nowrap;${font(w, weight)};color:${color}">${text}</div>`)
+for (const [id, w] of Object.entries(FIRST)) {
+  await across(`step-${id}.png`, WORDS.line, w.line)
+  if (w.quiet) await across(`quiet-${id}.png`, WORDS.quiet, w.quiet)
+}
+await across('ready.png', WORDS.ready, READY.line)
+
+// Where to go next is set on the unit from pieces laid side by side: the words, and this hub's own address, Wi-Fi
+// and password a letter at a time. Each piece is exactly as wide as its text, so the pieces meet as the line would.
+const wide = (text, weight, w = WORDS.where) => page.evaluate(([text, f]) => {
+  const span = document.createElement('span')
+  span.style.cssText = `${f};white-space:pre;position:absolute`
+  span.textContent = text
+  document.body.appendChild(span)
+  const w = span.getBoundingClientRect().width
+  span.remove()
+  return w
+}, [text, font(w, weight)])
+const piece = async (file, text, color, weight, w = WORDS.where) =>
+  shoot(file, Math.max(1, Math.round(await wide(text, weight, w))), w.size * 1.3 * K,
+    `<div style="white-space:pre;${font(w, weight)};color:${color}">${text}</div>`)
+await piece('where-cable.png', READY.cable, WORDS.where.color, 400)
+await piece('where-wifi.png', READY.wifi, WORDS.where.color, 400)
+await piece('where-password.png', READY.password, WORDS.where.color, 400)
+for (const c of GLYPHS) await piece(glyphFile(c), c, WORDS.where.value, WORDS.where.weight)
+
+// Ready with a code (E): the light tile the code sits on, the line over the words, and the words, smaller.
+const ts = SCAN.tile.size * K
+await shoot('tile.png', ts, ts, `<div style="width:${ts}px;height:${ts}px;border-radius:${SCAN.tile.radius * K}px;background:${SCAN.tile.color}"></div>`)
+await across('scan-wifi.png', WORDS.scan, SCAN.wifi)
+await across('scan-addr.png', WORDS.scan, SCAN.addr)
+await piece('or-wifi.png', SCAN.orWifi, WORDS.or.color, 400, WORDS.or)
+await piece('or-password.png', SCAN.orPassword, WORDS.or.color, 400, WORDS.or)
+await piece('or-addr.png', SCAN.orAddr, WORDS.or.color, 400, WORDS.or)
+await piece('or-addr-after.png', SCAN.orAddrAfter, WORDS.or.color, 400, WORDS.or)
+for (const c of GLYPHS) await piece(smallFile(c), c, WORDS.or.value, WORDS.or.weight, WORDS.or)
+
 await browser.close()
 
 writeFileSync(new URL(`${THEME}.plymouth`, OUT), themeFile())
 writeFileSync(new URL(`${THEME}.script`, OUT), script())
 writeFileSync(new URL('timing.sh', OUT), timingSh())
 writeFileSync(new URL('fingerprint', OUT), fingerprint() + '\n')
-console.log(`drew ${NAME_FRAMES} frames of the name and the splash's lamp, house and sentence into ${OUT.pathname}`)
+console.log(`drew ${NAME_FRAMES} frames of the name, the splash's lamp, house and sentence, and a first start's words into ${OUT.pathname}`)

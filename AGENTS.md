@@ -300,6 +300,14 @@ Do not reopen these, and do not propose around them.
   offered what `driver-layer/host-tier.sh` measures (`HOST_CAN`), never what it is sold as. Films need a video
   encoder, so a Pi never gets them. Every extra runs under the `x-extra` caps in `driver-layer/docker-compose.yml`, and
   a light never waits on a film. Pinned by the tiers group in `driver-layer/host/tests.sh`.
+- **What a screen is, and which way up, are set on the screen itself** (22 October, `design/this-screen/`, A with C's
+  pill). A screen has a This screen page, and its door says what it is: "Hallway · shows Maple Court" or "runs the
+  house". Which way up is any of four, each picture the panel turned that far from now, so the one that looks upright
+  is the answer; the first thing a new screen shows carries one pill drawn the other way up. What it does is asked with
+  both answers written out and changed only at the screen, with no passcode, for restarting's reason. The screen
+  answers through `startup/screen-helper.py`, and `startup/role.sh` changes the unit by running first boot again.
+  Pinned by `app/tests/thisScreen.test.ts`, `app/e2e/this-screen.spec.ts` and the `changing` group in
+  `driver-layer/host/tests.sh`. A tall home is not designed yet: do not promise a tall wall until it is.
 - **A screen that can't reach the hub says so before anyone taps** (9 October, `design/out-of-reach/`, C with
   B's card). An open live connection is not proof: the screen makes a fresh request every half minute, and two
   misses put a band along the foot ("Changes made here aren't reaching the hub", since when, the switches on the
