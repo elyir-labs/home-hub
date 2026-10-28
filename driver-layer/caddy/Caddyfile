@@ -23,10 +23,21 @@
 	}
 }
 
+# A request from this machine itself is the screen plugged into the hub (startup/wall.sh opens
+# http://localhost), so it is stamped as one: the brain shows that screen the hub's own Wi-Fi password while
+# the hub is on nothing (design/screen-wifi/, C). The relay comes in on loopback too, but at its own door below.
 {$HUB_HTTP:http://localhost:8080} {
 	encode gzip
-	reverse_proxy {$BRAIN_UPSTREAM:localhost:8300} {
-		header_up -X-Hub-Via
+	@screen remote_ip 127.0.0.1/32 ::1/128
+	handle @screen {
+		reverse_proxy {$BRAIN_UPSTREAM:localhost:8300} {
+			header_up X-Hub-Via screen
+		}
+	}
+	handle {
+		reverse_proxy {$BRAIN_UPSTREAM:localhost:8300} {
+			header_up -X-Hub-Via
+		}
 	}
 }
 
@@ -55,7 +66,11 @@ http:// {
 				header_up X-Hub-Via setup
 			}
 		}
-		redir http://10.42.0.1/ 302
+		# Its own handle, not a bare redir: Caddy runs redir before handle whatever the order written, so a bare
+		# one sent the panel's own address back to itself until the browser gave up (a Pi 5, 25 October 2026).
+		handle {
+			redir http://10.42.0.1/ 302
+		}
 	}
 	abort
 }

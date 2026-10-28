@@ -15,6 +15,7 @@ import Away from './Away.vue'
 import MovePage from './MovePage.vue'
 import ScreenRoom from './ScreenRoom.vue'
 import { homeRoom, isScreen, needsRoom, screenRoom } from './screen'
+import { lastTurn } from './thisScreen'
 import CodePrompt from './CodePrompt.vue'
 import Keys from './Keys.vue'
 import { onWall } from './keys'
@@ -244,6 +245,7 @@ async function rejoin() { halt(); await start() }                       // this 
 function checkIdle() {
   if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && Date.now() - lastTouch > IDLE_AFTER) idle.value = true
   forgetDone(idle.value)   // and the stale ones either way, for a screen that never rests
+  if (idle.value) lastTurn.value = null   // This screen's Put it back, by the same rule
 }
 /*
  * The panel has looked away, and that is the ONE moment Home may take back a

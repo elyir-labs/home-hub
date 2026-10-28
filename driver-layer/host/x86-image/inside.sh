@@ -78,6 +78,11 @@ if [ -x /opt/home-hub/startup/splash.sh ]; then
   HOME_HUB_DIR=/opt/home-hub /opt/home-hub/startup/splash.sh
   install -m 644 /opt/home-hub/startup/elyir-splash.service /etc/systemd/system/elyir-splash.service
   systemctl enable elyir-splash.service
+  # A first start says what it is doing, and ends on where to go next (design/first-start/).
+  if [ -f /opt/home-hub/startup/elyir-first-start.service ]; then
+    install -m 644 /opt/home-hub/startup/elyir-first-start.service /etc/systemd/system/elyir-first-start.service
+    systemctl enable elyir-first-start.service
+  fi
 fi
 
 # A USB stick is started through the firmware's removable-media path, EFI/BOOT/BOOTX64.EFI, which is shim. The cloud

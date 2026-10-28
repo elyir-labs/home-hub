@@ -58,6 +58,8 @@ test('taking it sends the paying to a phone, and Not now is still there', async 
   await step.getByRole('button', { name: 'Continue on your phone' }).click()
   await expect(page.locator('.address-step h1')).toHaveText('Finish on your phone.')
   await expect(page.locator('.address-step .phone-qr img')).toBeVisible()
+  // the code is for the Elyir account's payment page, told this house by a code of its own (design/account/, B)
+  expect(decodeURIComponent((await page.locator('.address-step .phone-qr img').getAttribute('src'))!)).toContain('https://pay.example/start?c=hc_mock')
   await expect(page.locator('.address-step')).toContainText('jordan.elyir.app')
   await expect(page.locator('.address-step').getByRole('button', { name: 'Not now' })).toBeVisible()
 })

@@ -1,0 +1,15 @@
+# Marks a boot as a first start, as early as the splash is up, so it says what it is doing from its first line
+# (design/first-start/) rather than after the network is found. Installed by the x86 image; inert once first boot is done.
+[Unit]
+Description=Elyir's startup: a first start
+DefaultDependencies=no
+After=plymouth-start.service local-fs.target
+Before=home-hub-move.service sysinit.target
+ConditionPathExists=!/var/lib/home-hub/firstboot.done
+
+[Service]
+Type=oneshot
+ExecStart=/opt/home-hub/startup/say.sh first
+
+[Install]
+WantedBy=sysinit.target

@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C, set it up again</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="screen.css">
+<style>
+  /* first run's sky and column (design/companion/companion.css, from panel.css's .setup-* block) */
+  .first { position: absolute; inset: 0; background: linear-gradient(#1b2b44 0%, #22344e 34%, #2c3c50 62%, #1d2a2a 78%, #141d18 100%); font-size: 17px; }
+  .first .sunlet { position: absolute; top: 96px; left: 1150px; width: 88px; height: 88px; border-radius: 50%; background: radial-gradient(rgba(255,228,170,.55), transparent 68%); }
+  .first .land { position: absolute; left: 0; right: 0; bottom: 0; height: 236px; background: linear-gradient(transparent, rgba(18,28,20,.85) 45%, #101a13); }
+  .col { position: absolute; left: 380px; width: 680px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; }
+  .eyebrow { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  h1 { margin: 0; font-size: 54px; line-height: 1.02; letter-spacing: -.025em; font-weight: 400; }
+  .first .lede { margin: 14px 0 24px; font-size: 18px; }
+  .found { display: flex; gap: 16px; align-items: center; border-radius: var(--r-md); background: rgba(26,28,34,.72); padding: 16px 18px; margin-bottom: 22px;
+           border: 1px solid rgba(var(--lamp-rgb), .55); box-shadow: 0 0 0 1px rgba(var(--lamp-rgb), .25), 0 24px 60px -30px rgba(0,0,0,.9); }
+  .found .hs { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; flex: none; background: rgba(var(--lamp-rgb), .16); color: var(--lamp); }
+  .found .t1 { font-size: 17px; font-weight: 500; display: block; }
+  .found .t2 { font-size: 14px; color: var(--muted); display: block; }
+  .acts { display: flex; gap: 12px; align-items: center; }
+  .foot2 { margin: 22px 0 0; font-size: 13px; color: var(--muted); }
+  .trail { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+
+  /* what an upside-down wall looks like to the person standing at it: everything turned, but the one
+     pill, which is drawn the other way up, reads right */
+  .upside .first { transform: rotate(180deg); }
+  .turnme { position: absolute; left: 50%; top: 26px; transform: translateX(-50%) rotate(180deg); display: inline-flex; align-items: center; gap: 10px;
+            padding: 11px 18px 11px 14px; border-radius: 999px; background: rgba(12,13,16,.55); border: 1px solid var(--edge-hi); color: var(--ink); font-size: 15px; white-space: nowrap; }
+  .turnme .ic { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; }
+</style>
+</head>
+<body data-step="hub" data-unit="screen">
+<div class="wall">
+
+  <div class="house" data-if="step:hub">
+    <nav class="nav" data-on="hub"></nav>
+    <div class="main">
+      <div class="head"><h2>The hub</h2></div><span class="close"></span>
+      <div class="body">
+        <p class="lede">The small computer running the house. It looks after itself; this is where you check on it.</p>
+        <ul class="rows">
+          <li><span class="k">Software</span><span class="v">v0.3.0</span><span></span></li>
+          <li><span class="k">Network</span><span class="v">On a cable.<span class="sub">The hub can't check that from a cable, so it takes your word for it.</span></span><span class="btn">Change</span></li>
+          <li><span class="k">Updates</span><span class="v">Installed when you tap, and not before.<span class="sub">This hub can't check an update yet, so it waits to be asked.</span></span><span class="btn ghost" style="width: 50px; height: 28px; padding: 0;"></span></li>
+          <li><span class="k">Backup</span><span class="v">Everything the house knows, in one file.<span class="sub">Settings, rooms, routines, connections and the radios' keys.</span></span><span class="btn">Download</span></li>
+          <li><span class="k">Restart</span><span class="v">If something's stuck, restart the hub.<span class="sub">Lights and switches keep working. It takes under a minute and this screen comes back on its own.</span></span><span class="btn">Restart</span></li>
+          <li class="mark" data-if="unit:screen"><span class="k">Start over</span><span class="v">Set this screen up again.<span class="sub">It asks again whether to show a house or run one of its own. Maple Court and its hub aren't touched.</span></span><span class="btn ghost">Set up again</span></li>
+          <li class="mark" data-if="unit:hub"><span class="k">Start over</span><span class="v">Set this screen up again.<span class="sub warnline">This screen runs Maple Court. It's saved to a backup here first, and the house stops until it's brought back or moved to another hub.</span></span><span class="btn ghost">Set up again</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="first" data-if="step:asked"><div class="sunlet"></div><div class="land"></div>
+    <div class="col">
+      <div class="eyebrow">Setting this screen up again</div>
+      <h1>What should this screen do?</h1>
+      <p class="lede" data-if="unit:screen">It found one house on your Wi-Fi.</p>
+      <p class="lede" data-if="unit:hub">Until a minute ago it ran Maple Court, which is kept in a backup here. It also found Maple Court's new hub on your Wi-Fi.</p>
+      <div class="found"><span class="hs"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg></span>
+        <span><span class="t1">Maple Court</span><span class="t2" data-if="unit:screen">Set up by Jordan &middot; 6 rooms &middot; 2 screens</span><span class="t2" data-if="unit:hub">On its new hub, from this screen's backup on 20 October</span></span></div>
+      <div class="acts"><span class="btn big">Show Maple Court here</span><span class="btn ghost big" data-if="unit:screen">Start a new house</span><span class="btn ghost big" data-if="unit:hub">Run it here again</span></div>
+      <p class="foot2" data-if="unit:screen">Showing it here asks for Maple Court's passcode, then which room this screen is in. <span class="linkish">Start a new house</span> sets up a separate one from the beginning.</p>
+      <p class="foot2" data-if="unit:hub">Run it here again puts the backup back on this screen. <span class="linkish">Start a new house</span> sets up a separate one from the beginning.</p>
+    </div>
+  </div>
+
+  <div class="upside" data-if="step:upside" style="position: absolute; inset: 0;">
+    <div class="first"><div class="sunlet"></div><div class="land"></div>
+      <div class="col">
+        <h1>This screen is for Maple Court.</h1>
+        <p class="lede">Its hub is on this Wi&#8209;Fi. Type the house passcode to finish.</p>
+        <div style="width: 260px; height: 62px; border-radius: var(--r-sm); background: rgba(26,28,34,.68); border: 1px solid var(--edge-hi); margin-bottom: 22px; display: grid; place-items: center start; padding-left: 20px; color: var(--muted); font-size: 26px; letter-spacing: .3em;">&bull;&bull;&bull;&bull;</div>
+        <div class="acts"><span class="btn big off">Continue</span><span class="btn ghost big">Ask from another screen</span></div>
+      </div>
+      <span class="turnme"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5.3L20 9"/><path d="M20 4v5h-5"/><path d="M20 12a8 8 0 0 1-14 5.3L4 15"/><path d="M4 20v-5h5"/></svg></span>Upside down? Tap to turn it</span>
+    </div>
+  </div>
+
+  <div class="flips" data-k="step"><span style="padding: 0 6px;">Showing</span>
+    <span class="flip" data-v="hub">Start over</span><span class="flip" data-v="asked">asked again</span><span class="flip" data-v="upside">first start, upside down</span></div>
+  <div class="flips" data-k="unit"><span style="padding: 0 6px;">On</span>
+    <span class="flip" data-v="screen">a screen for a hub</span><span class="flip" data-v="hub">a screen that is the hub</span></div>
+</div>
+<script src="screen.js"></script>
+</body>
+</html>

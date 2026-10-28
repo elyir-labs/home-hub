@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Every direction: a key is added from a phone, never typed on the wall</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="developer.css">
+<style>body[data-how="github"] [data-if-how]:not([data-if-how~="github"]) { display: none !important; }
+body[data-how="paste"] [data-if-how]:not([data-if-how~="paste"]) { display: none !important; }</style>
+</head>
+<body data-how="github">
+<div class="phone">
+  <div class="status-bar"><span>9:58 PM</span><span class="r"><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i></span></div>
+  <div class="col" style="top: 62px;">
+    <div style="display: flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 15px; margin-bottom: 14px;"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>The hub</div>
+    <h1>Add an SSH key</h1>
+    <p style="margin: 10px 0 18px; color: var(--ink-2); font-size: 15px;">A key added here can sign in to this hub as <span class="mono">pi</span>. Nothing else about the hub changes.</p>
+    <div class="seg"><span data-if-how="github" class="on">From GitHub</span><span data-if-how="paste">From GitHub</span><span data-if-how="github">Paste one</span><span data-if-how="paste" class="on">Paste one</span></div>
+
+    <div data-if-how="github" style="margin-top: 18px;">
+      <div class="flabel">GitHub username</div>
+      <div class="input">jordan</div>
+      <div class="flabel" style="margin: 14px 0 8px;">github.com/jordan.keys has 3</div>
+      <div class="pk on"><span class="box"><svg class="i" width="13" height="13" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span><b>jordan@laptop</b><span class="mono">ed25519 &middot; SHA256:Xk3v&hellip;9Qe</span></span></div>
+      <div class="pk on"><span class="box"><svg class="i" width="13" height="13" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span><b>jordan@studio</b><span class="mono">ed25519 &middot; SHA256:p0Lm&hellip;b2A</span></span></div>
+      <div class="pk"><span class="box"></span><span><b>old-laptop</b><span class="mono">rsa 4096 &middot; SHA256:Q8aa&hellip;K1c</span></span></div>
+      <div class="cta" style="margin-top: 18px;">Allow 2 keys</div>
+    </div>
+
+    <div data-if-how="paste" style="margin-top: 18px;">
+      <div class="flabel">The public key, one line</div>
+      <div class="input at mono" style="height: 112px; font-size: 13px; line-height: 1.5; word-break: break-all;">ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOq7bB3w2m8Yx0Vh4sFzK1rT9pQe jordan@laptop</div>
+      <div class="pk on" style="margin-top: 14px;"><span class="box"><svg class="i" width="13" height="13" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span><b>jordan@laptop</b><span class="mono">ed25519 &middot; SHA256:Xk3v&hellip;9Qe</span></span></div>
+      <div class="cta" style="margin-top: 18px;">Allow this key</div>
+    </div>
+
+    <p class="foot" style="margin-top: 14px;">It asks for the passcode, then SSH is on:<br><span class="mono" style="color: var(--ink-2);">ssh pi@hub.local</span></p>
+  </div>
+  <div class="home-ind"></div>
+<div class="flips"><div class="flipset"><span>Key</span><span class="flip on" data-g="how" data-to="github">From GitHub</span><span class="flip" data-g="how" data-to="paste">Pasted</span></div></div></div>
+<script>
+  document.querySelectorAll('.flip').forEach(f => f.addEventListener('click', () => {
+    document.body.dataset[f.dataset.g] = f.dataset.to
+    document.querySelectorAll('.flip[data-g="' + f.dataset.g + '"]').forEach(g => g.classList.toggle('on', g === f))
+  }))
+</script>
+</body>
+</html>

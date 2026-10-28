@@ -8,7 +8,7 @@ on:
   push:
     tags: ["v*"]
   pull_request:
-    paths: ["driver-layer/host/x86-image/**", "driver-layer/host/firstboot.sh", "startup/splash.sh", "startup/elyir-splash.service", ".github/workflows/x86-image.yml"]
+    paths: ["driver-layer/host/x86-image/**", "driver-layer/host/firstboot.sh", "startup/splash.sh", "startup/elyir-splash.service", "startup/say.sh", "startup/elyir-first-start.service", ".github/workflows/x86-image.yml"]
   workflow_dispatch:
 
 permissions:

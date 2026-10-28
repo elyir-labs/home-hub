@@ -20,6 +20,7 @@
    Nothing here talks to a real device. */
 import { printerNotes, printersAsked, printersRoute } from './printers.mjs'
 import { powerRoute } from './power.mjs'
+import { developerRoute, developerStatus } from './developer.mjs'
 
 export function createHouse({ env = {}, qr = null } = {}) {
   const now = Math.floor(Date.now() / 1000)
@@ -577,7 +578,8 @@ export function createHouse({ env = {}, qr = null } = {}) {
     }
     if (printersRoute(req, res, p, env)) return    // 3D printers, only for a page that asked for them: mock/printers.mjs
     if (powerRoute(req, res, p, env)) return       // a Tesla gateway, the same way: mock/power.mjs
-    if (p === '/setup/status') return json(res, status)
+    if (developerRoute(req, res, p)) return        // For working on the hub, ?dev= on the page: mock/developer.mjs
+    if (p === '/setup/status') return json(res, developerStatus(req, status))
     if (p === '/update/notes') return json(res, { notes: releaseNotes[0], history: releaseNotes })
     /* Install: on a hub the brain restarts and comes back as the next build, and the page follows it
        (store.ts, newBuild). The mock only takes the request; the e2e speaks the new version itself. */
@@ -911,7 +913,8 @@ export function createHouse({ env = {}, qr = null } = {}) {
       const offer = env.OUTSIDE === 'closed' ? { open: false, price: null, pay: null } : env.OUTSIDE === 'hand' ? { open: true, price: null, pay: null, by_hand: true } : { open: true, price: '$3 a month', pay: 'https://pay.example/start' }
       if (!mockAddress.house) return json(res, { offer, guess: 'jordan', house: null })
       const carried = Date.now() - mockAddress.claimedAt > 6000
-      return json(res, { offer, guess: 'jordan', house: mockAddress.house, address: `${mockAddress.house}.elyir.app`, want: mockAddress.want, on: carried, waiting: false, carried, held_until: null, entitled_until: carried ? Date.UTC(2027, 9, 1) / 1000 : null })
+      return json(res, { offer, guess: 'jordan', house: mockAddress.house, address: `${mockAddress.house}.elyir.app`, want: mockAddress.want, on: carried, waiting: false, carried, held_until: null, entitled_until: carried ? Date.UTC(2027, 9, 1) / 1000 : null,
+        paid: carried && offer.pay ? { payer: 't•••i@example.com', price: '$3 a month', paid_until: Date.UTC(2026, 10, 1) / 1000, cancels: false } : null })
     }
     if (p.startsWith('/address/names/')) {
       const n = decodeURIComponent(p.slice('/address/names/'.length))
@@ -921,8 +924,9 @@ export function createHouse({ env = {}, qr = null } = {}) {
       let name = ''; try { name = JSON.parse(b).name || '' } catch {}
       if (name === 'palace') { res.writeHead(409, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: { why: 'taken', suggestions: ['palace-house'] } })) }
       Object.assign(mockAddress, { house: name, claimedAt: Date.now(), want: 'on' })
-      json(res, { offer: { open: true, price: '$3 a month', pay: 'https://pay.example/start' }, guess: 'jordan', house: name, address: `${name}.elyir.app`, want: 'on', carried: false })
+      json(res, { offer: { open: true, price: '$3 a month', pay: 'https://pay.example/start' }, guess: 'jordan', house: name, address: `${name}.elyir.app`, want: 'on', carried: false, pay: 'https://pay.example/start?c=hc_mock' })
     }) }
+    if (p === '/address/pay' && req.method === 'POST') return json(res, { pay: 'https://pay.example/start?c=hc_mock' })
     if ((p === '/address/on' || p === '/address/off') && req.method === 'POST') { mockAddress.want = p.endsWith('on') ? 'on' : 'off'; return json(res, { offer: { open: true, price: '$3 a month', pay: null }, guess: 'jordan', house: mockAddress.house, address: `${mockAddress.house}.elyir.app`, want: mockAddress.want, carried: true, on: mockAddress.want === 'on', entitled_until: Date.UTC(2027, 9, 1) / 1000 }) }
     /* The house's own address and a phone that has not moved to it yet (design/away/, C). ADDRESS=1 gives the house
        one; the phone reading /phones/me is then Jordan's iPhone, so the band line and the Home only | Anywhere choice show. */
@@ -1239,12 +1243,17 @@ export function createHouse({ env = {}, qr = null } = {}) {
   }
 
   /* NET=setup is a hub on nothing with its own Wi-Fi up (design/setup-network/, A); NET=setup-alone is the
-     same on a card that can't do both. Joining takes three seconds; the password "wrong" is refused. */
+     same on a card that can't do both. Joining takes three seconds; the password "wrong" is refused.
+     NET=screen is that hub seen from the screen plugged into it (design/screen-wifi/, C), which alone is told the
+     password; PHONES=1 puts a phone on the hub's Wi-Fi. */
+  const SCREEN = NET.startsWith('screen')
   let setupTry = null
   function setupState() {
+    const setup = { ssid: 'Elyir Hub 4F2A', both: !NET.endsWith('-alone'), phones: Number(env.PHONES || 0), ...(SCREEN ? { password: 'kite-maple-41' } : {}) }
     const s = { how: 'none', ip: '10.42.0.1', name: 'hub', can_change: true, managed: true,
-                bridges: { ssid: '', checked: false, known: false, count: 0 }, setup: { ssid: 'Elyir Hub 4F2A', both: NET === 'setup' } }
+                bridges: { ssid: '', checked: false, known: false, count: 0 }, setup }
     if (setupTry && Date.now() > setupTry.at) {
+      if (setupTry.ok && SCREEN) return { how: 'wifi', ssid: setupTry.ssid, signal: 'strong', ip: '192.168.1.20', name: 'hub', can_change: true, managed: true, bridges: s.bridges, joined: setupTry.ssid }
       if (setupTry.ok) return { ...s, ip: '192.168.1.20', joined: setupTry.ssid }
       return { ...s, reverted: setupTry.ssid, reverted_why: 'password' }
     }
@@ -1252,7 +1261,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
   }
 
   function netState() {
-    if (NET.startsWith('setup')) return setupState()
+    if (NET.startsWith('setup') || SCREEN) return setupState()
     // Mirrors bridge.wifi_for_pucks(): a hub on Wi-Fi hands out the network it is ON, and when that is
     // not the one it holds a password for, `known` goes false and the name is the hub's, not the old one.
     const moved = NET === 'moved'
@@ -1266,7 +1275,12 @@ export function createHouse({ env = {}, qr = null } = {}) {
 
   function network(p, req, res) {
     if (p === '/network') return json(res, netState())
-    if (p === '/network/scan' && NET.startsWith('setup')) return json(res, { can_change: true, networks: [
+    if (p === '/network/setup.svg') {
+      if (!SCREEN || setupTry?.ok) { res.writeHead(404, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: "the hub's own Wi-Fi is not up" })) }
+      res.writeHead(200, { 'Content-Type': 'image/svg+xml' })
+      return res.end(qr?.('WIFI:T:WPA;S:Elyir Hub 4F2A;P:kite-maple-41;;') ?? FAKE_QR)
+    }
+    if (p === '/network/scan' && (NET.startsWith('setup') || SCREEN)) return json(res, { can_change: true, networks: [
       { ssid: 'Elyir Hub 4F2A', signal: 'strong', band: '2.4', secure: true },
       { ssid: 'Bluebell', signal: 'strong', band: '5', secure: true },
       { ssid: 'Bluebell Guest', signal: 'ok', band: '2.4', secure: true },
@@ -1285,7 +1299,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
     return req.on('end', () => {
       let b = {}
       try { b = JSON.parse(raw) } catch {}
-      if (NET.startsWith('setup') && p === '/network/hub') {
+      if ((NET.startsWith('setup') || SCREEN) && p === '/network/hub') {
         setupTry = { ssid: b.ssid, ok: b.password !== 'wrong', at: Date.now() + 3000 }
         return json(res, { ...setupState(), moving: { ssid: b.ssid, since: Date.now() / 1000 } })
       }

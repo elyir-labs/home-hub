@@ -293,6 +293,14 @@ Do not reopen these, and do not propose around them.
   offered what `driver-layer/host-tier.sh` measures (`HOST_CAN`), never what it is sold as. Films need a video
   encoder, so a Pi never gets them. Every extra runs under the `x-extra` caps in `driver-layer/docker-compose.yml`, and
   a light never waits on a film. Pinned by the tiers group in `driver-layer/host/tests.sh`.
+- **What a screen is, and which way up, are set on the screen itself** (22 October, `design/this-screen/`, A with C's
+  pill). A screen has a This screen page, and its door says what it is: "Hallway · shows Maple Court" or "runs the
+  house". Which way up is any of four, each picture the panel turned that far from now, so the one that looks upright
+  is the answer; the first thing a new screen shows carries one pill drawn the other way up. What it does is asked with
+  both answers written out and changed only at the screen, with no passcode, for restarting's reason. The screen
+  answers through `startup/screen-helper.py`, and `startup/role.sh` changes the unit by running first boot again.
+  Pinned by `app/tests/thisScreen.test.ts`, `app/e2e/this-screen.spec.ts` and the `changing` group in
+  `driver-layer/host/tests.sh`. A tall home is not designed yet: do not promise a tall wall until it is.
 - **A screen that can't reach the hub says so before anyone taps** (9 October, `design/out-of-reach/`, C with
   B's card). An open live connection is not proof: the screen makes a fresh request every half minute, and two
   misses put a band along the foot ("Changes made here aren't reaching the hub", since when, the switches on the
@@ -307,6 +315,12 @@ Do not reopen these, and do not propose around them.
   give the hub a Wi-Fi and nothing else. B (the same over Bluetooth, no network switch) waits for an app, because
   Safari has no Bluetooth. Pinned by `app/tests/wifi.test.ts`, `app/e2e/setup-wifi.spec.ts`, `brain/tests/test_setup_wifi.py` and the
   `setting_up` group in `driver-layer/host/tests.sh`; the host's half is `host/network.sh`.
+- **A hub with a screen and no network asks which Wi-Fi on that screen** (22 October, `design/screen-wifi/`, C). The
+  question is the phone's, before Welcome home, with the hub's own Wi-Fi as a code beside it; whichever is started
+  first wins, and a phone on the hub's Wi-Fi gets the screen to step aside. A screen nobody can touch or point at shows
+  only the code. Only the screen plugged into the hub is told the password (`network.setup-key`, Caddy's `screen`
+  stamp, believed only from loopback). Pinned by `app/tests/wifi.test.ts`, `app/e2e/screen-wifi.spec.ts`,
+  `brain/tests/test_setup_wifi.py` and the `setting_up` group in `driver-layer/host/tests.sh`.
 - **A hub on its USB stick asks before it erases the drive beside it** (20 October, `design/move-to-drive/`, A with
   B's sheet). An empty drive is moved onto without asking; anything else only on the screen. First run opens on the
   question, naming the drive and what is on it, and erases only on the typed word; Keep is an answer, and This hub's
@@ -339,6 +353,15 @@ Do not reopen these, and do not propose around them.
   to every phone that can change things -- and handing the house over when somebody moves out. A person in a house is
   still a phone: phones at home and the wall never sign in, and the Houses app keeps its list without an account. On
   the wall it is never called "Account", which is already the page for the services the house signed into. Not built yet.
+- **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
+  B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
+  development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this
+  page away removes it on either. It holds what the hub follows, SSH, and the house's screens with Update now. An SSH key
+  is added from a phone or computer (`?sheet=developer&key=1`, the wall's code opens it), never typed on the wall; the request names keys, never
+  commands, and the host writes them (`driver-layer/host/developer.sh`). A unit flashed from a branch follows it until
+  it lands in development, then development (`driver-layer/host/landed.sh`). The image still ships with SSH off. Pinned by
+  `app/tests/developer.test.ts`, `app/e2e/developer.spec.ts`, `brain/tests/test_developer.py` and the `developing` and
+  `reporting` groups in `driver-layer/host/tests.sh`.
 
 ---
 

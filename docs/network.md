@@ -141,6 +141,15 @@ Three rules keep it from becoming a liability:
 - **It is the same panel, not a second one.** The phone's "is there internet?" check is answered with the panel
   (dnsmasq answers every name with `10.42.0.1`; Caddy's catch-all sends anything from that Wi‑Fi to it and stamps
   `X-Hub-Via: setup`), so the phone opens its sign-in sheet on `SetupWifi.vue`, in first run's frame and words.
+- **A hub with a screen is its own label** (design/screen-wifi/, C, decided 22 October 2026). A card somebody flashed
+  themselves has no label, and its password is made on the card at first boot. So the screen plugged into the hub asks
+  which Wi‑Fi itself, on its own keyboard, with the hub's Wi‑Fi as a code beside the question for anyone who would
+  rather use a phone; a screen nobody can touch or point at shows only the code. Only that screen is told the
+  password: `host/network.sh` keeps it in `network.setup-key` (root's, never in `network.json`, gone with the
+  network), Caddy stamps `X-Hub-Via: screen` on requests from the machine itself, and the brain believes the stamp
+  only on a connection from loopback, because :8300 is reachable from the Wi‑Fi too. It draws the code at
+  `/network/setup.svg` and refuses it to anything else. A phone that joins is counted, and the screen steps aside
+  for it.
 
 **Both at once where the card can.** A card whose kernel lists managed and AP in one combination (the NUC's
 RTL8852BE does, on one channel) runs the setup network on a second interface, `hubsetup0`, and tries the house's
@@ -149,7 +158,11 @@ channel means 2.4 GHz: the hub joins the house's 2.4 GHz side, moving its own ne
 has to, and lets go of the pin when its own network goes, so the house's Wi‑Fi can choose 5 GHz again (piece 4). A
 card that can't do both drops its own network to try; the phone is told what happens next before it goes, and a
 wrong password is said when somebody scans the label again (`OwnWiFiA-4-alone`). `nmcli` waits for the router's
-answer, so either way a wrong password is known in seconds rather than after the three-minute settle.
+answer, so either way a wrong password is known in seconds rather than after the three-minute settle. The Pi's own chip
+(brcmfmac) lists the combination and cannot keep it: while its own interface is joined to nothing it keeps scanning,
+and the setup network on the second interface reached no phone (a Pi 5, 23 October 2026). So a Pi runs it on the
+card itself, as a card that can't do both, and the setup network is WPA2 alone with no management-frame
+protection, as `nmcli device wifi hotspot` makes one.
 
 **Cables NetworkManager does not manage.** Ubuntu Server hands Ethernet to systemd-networkd, and NetworkManager
 reports it as unmanaged. A real port with carrier and an address now counts as a cable, and "online" is a default

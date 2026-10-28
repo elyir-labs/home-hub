@@ -97,7 +97,7 @@ class Network:
     def links(self) -> list:
         return [l for l in self._host().get("links") or [] if isinstance(l, dict)]
 
-    def state(self) -> dict:
+    def state(self, own_screen: bool = False) -> dict:
         """One picture of this hub's connection, in the panel's terms.
 
         `how` is the only thing most of the panel cares about: cable, wifi, or unknown -- and unknown
@@ -139,11 +139,25 @@ class Network:
         # the phone on the setup Wi-Fi is told before the hub takes it down.
         setup = host.get("setup")
         if isinstance(setup, dict) and setup.get("ssid"):
-            out["setup"] = {"ssid": setup["ssid"], "both": bool(setup.get("both"))}
+            out["setup"] = {"ssid": setup["ssid"], "both": bool(setup.get("both")), "phones": int(host.get("setup_phones") or 0)}
+            # Its password, for the screen plugged into this hub and nothing else: that screen is where the
+            # label would be (design/screen-wifi/, C). The host keeps it in a file of its own, never in this picture.
+            if own_screen:
+                try: out["setup"]["password"] = self.state_path.with_name("network.setup-key").read_text().strip()
+                except OSError: pass
         joined = host.get("joined")
         if isinstance(joined, dict) and joined.get("ssid"):
             out["joined"] = joined["ssid"]
         return out
+
+    def setup_code(self) -> str | None:
+        """The hub's own Wi-Fi as the standard code a phone's camera offers to join, while it is up."""
+        setup = self._host().get("setup")
+        try: key = self.state_path.with_name("network.setup-key").read_text().strip()
+        except OSError: return None
+        if not (isinstance(setup, dict) and setup.get("ssid") and key): return None
+        esc = lambda v: "".join("\\" + c if c in '\\;,:"' else c for c in v)
+        return f"WIFI:T:WPA;S:{esc(setup['ssid'])};P:{esc(key)};;"
 
     def seen(self) -> list:
         """The networks the host last saw, strongest first, without the hub's own repeated."""
