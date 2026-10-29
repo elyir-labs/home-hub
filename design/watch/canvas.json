@@ -1,0 +1,161 @@
+{
+  "name": "A page for the watcher's numbers",
+  "areas": [
+    "The maker's services"
+  ],
+  "reading": [
+    "why",
+    "Today.dc.html",
+    "Today-phone.dc.html",
+    "today",
+    "behind",
+    "AnswerA.dc.html",
+    "AnswerA-phone.dc.html",
+    "a",
+    "WeekB.dc.html",
+    "WeekB-phone.dc.html",
+    "b",
+    "TimeC.dc.html",
+    "TimeC-phone.dc.html",
+    "c",
+    "pick"
+  ],
+  "pages": [
+    {
+      "id": "watch",
+      "name": "A page for the watcher's numbers"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today · the Monday note, the only place the numbers are seen",
+      "page": "watch"
+    },
+    {
+      "file": "Today-phone.dc.html",
+      "x": 1580,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Today · the same note on a phone",
+      "page": "watch"
+    },
+    {
+      "file": "AnswerA.dc.html",
+      "x": 0,
+      "y": 1700,
+      "w": 1440,
+      "h": 900,
+      "title": "A · The answer first: is everything up, then each service's week, then the week in four numbers",
+      "page": "watch"
+    },
+    {
+      "file": "AnswerA-phone.dc.html",
+      "x": 1580,
+      "y": 1700,
+      "w": 390,
+      "h": 844,
+      "title": "A · on a phone: the answer, and every service, before anything else",
+      "page": "watch"
+    },
+    {
+      "file": "WeekB.dc.html",
+      "x": 0,
+      "y": 3400,
+      "w": 1440,
+      "h": 900,
+      "title": "B · The week first: page loads by week, which pages, four numbers; the services are one line",
+      "page": "watch"
+    },
+    {
+      "file": "WeekB-phone.dc.html",
+      "x": 1580,
+      "y": 3400,
+      "w": 390,
+      "h": 844,
+      "title": "B · on a phone: one line for the services, then the week",
+      "page": "watch"
+    },
+    {
+      "file": "TimeC.dc.html",
+      "x": 0,
+      "y": 5100,
+      "w": 1440,
+      "h": 900,
+      "title": "C · One line of time: every measure in its own lane on one axis, so a cause sits above its effect",
+      "page": "watch"
+    },
+    {
+      "file": "TimeC-phone.dc.html",
+      "x": 1580,
+      "y": 5100,
+      "w": 390,
+      "h": 844,
+      "title": "C · on a phone: fourteen days, the same lanes",
+      "page": "watch"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "watch",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS (29 OCTOBER 2026)\n\nThe watcher (watch/, PR #30) checks every service we run once a minute, mails the operator when one stops answering, and sends the week in numbers on Monday mornings. Between Mondays, the only way to see a number is a database query in a terminal.\n\nThis is the page to look at in between: is everything up, how the relay is doing, and whether people are finding the site. It's for the maker, not a household, so nothing here is product wording, and it is never linked from the site or the panel."
+    },
+    {
+      "id": "today",
+      "page": "watch",
+      "x": 0,
+      "y": 960,
+      "w": 1440,
+      "text": "TODAY: A PLAIN-TEXT MAIL ONCE A WEEK\n\nThe Monday note is complete and honest, and it's all there is. It arrives once a week and can't be asked anything in between. It has no shape: a rising week and a falling week look the same until the numbers are read one by one. A Down mail says something broke, but nothing shows what the rest of the week looked like around it.\n\nThe note stays whichever direction is picked. The page is for the days between notes, and for looking back."
+    },
+    {
+      "id": "a",
+      "page": "watch",
+      "x": 0,
+      "y": 2660,
+      "w": 1440,
+      "text": "A: THE ANSWER FIRST\n\nThe first thing on the page is the one question you open it to ask: is everything up? A sentence answers it, in the words the mail would use. Below it, every service gets a row: up now, its last seven days as a strip of four-hour marks where a miss is the one red mark, the week's uptime, and how fast 95 answers in 100 came back. The week's four numbers sit to the right, with the relay's disk, memory and load beneath them.\n\nThe case: it's the page you open when a mail has said Down, and the page you glance at when nothing has. A real outage changes the sentence and turns that row's mark red, and nothing else moves. It's a status page first and a growth page second, which is the right order for a service households pay for."
+    },
+    {
+      "id": "b",
+      "page": "watch",
+      "x": 0,
+      "y": 4360,
+      "w": 1440,
+      "text": "B: THE WEEK FIRST\n\nThe services shrink to one line across the top: all 9 up, the week's uptime, and the one outage. That line becomes a red band naming the service when something is down. The page leads with what's changing: page loads by week, eight weeks with this one lit, which pages they were, and four numbers along the bottom.\n\nThe case: uptime is the mail's job, and it already does it well, so the page is for the question the mail answers badly, which is whether the hub is growing. It costs A's per-service week: you see an outage only as a line, and the detail is a click away."
+    },
+    {
+      "id": "c",
+      "page": "watch",
+      "x": 0,
+      "y": 6060,
+      "w": 1440,
+      "text": "C: ONE LINE OF TIME\n\nEvery measure gets its own lane on one shared time axis, thirty days by default: page loads a day, joins a day, houses dialed in, any outage, and the relay's disk against the 85% line where the watcher writes. Each lane has its own scale, so nothing pretends two measures share an axis. Hovering a day reads every lane at once.\n\nThe case: the useful question is usually why. Monday's spike in page loads sits directly above Monday's three waitlist joins, which is the post that brought them. Tuesday's outage sits under a quiet night. A and B show each number on its own; C shows them together. It's the hardest of the three to read at a glance: a glance tells you less about whether everything is up right now."
+    },
+    {
+      "id": "behind",
+      "page": "watch",
+      "x": -620,
+      "y": 1700,
+      "w": 500,
+      "text": "BEHIND ANY OF THEM\n\nThe page is served by the watcher itself, which already holds every number: its own database, the site's counts and the waitlist. It adds no server and no new company. It's kept private by Cloudflare Access, on the account the site is already on, with a one-time code sent to the operator's mailbox. It's made in watch/terraform like the rest. Nothing on it is a visitor's or a house's: counts only, the same as the mail."
+    },
+    {
+      "id": "pick",
+      "page": "watch",
+      "x": -620,
+      "y": 3400,
+      "w": 500,
+      "text": "TO PICK\n\nA, B or C, or a mix (B's chart under A's rows, say), or something else entirely: describe it. Whichever wins is built in watch/worker.js and pinned by a test, and the other two stay here with their cases."
+    }
+  ]
+}

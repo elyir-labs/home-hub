@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Watch Page Boards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* The maker's own page for the watcher's numbers (watch/), three ways. Reading chrome follows the viewer's theme; the
+   boards are drawn dark in the site's values (site/index.html), at real size. ?board=<id> shows one board alone, which
+   is how each .dc.html draws it. The notes are canvas.json's. Every number is made up, shaped like a quiet week. */
+:root {
+  --bg: #0c0d10; --surface: #15171c; --ink: #f1eee8; --ink-2: #b9b5ad; --ink-3: #8a877f;
+  --line: rgba(255,255,255,.1); --lamp-text: #e9b872;
+  --font: 'Instrument Sans', -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --bg: #f3f1ec; --surface: #fff; --ink: #1c1a16; --ink-2: #57534b; --ink-3: #6f6b62; --line: rgba(28,26,22,.12); --lamp-text: #8a5f1f; color-scheme: light; }
+}
+:root[data-theme="light"] { --bg: #f3f1ec; --surface: #fff; --ink: #1c1a16; --ink-2: #57534b; --ink-3: #6f6b62; --line: rgba(28,26,22,.12); --lamp-text: #8a5f1f; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 40px 16px 96px; }
+@media (min-width: 640px) { .wrap { padding-inline: 32px; } }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.top h1 { font-size: clamp(32px, 5vw, 48px); font-weight: 500; letter-spacing: -.02em; line-height: 1.05; margin: 10px 0 14px; text-wrap: balance; }
+.top p { color: var(--ink-2); max-width: 66ch; margin: 0; }
+.note { margin-top: 48px; max-width: 72ch; }
+.note h2 { font-size: 22px; font-weight: 500; letter-spacing: -.01em; margin: 0 0 10px; text-wrap: balance; }
+.note p { margin: 0 0 12px; color: var(--ink-2); }
+.note p b { color: var(--ink); font-weight: 600; letter-spacing: .02em; }
+.board { margin-top: 28px; }
+.board .cap { font-size: 14px; color: var(--ink-3); margin-bottom: 10px; }
+.fit { position: relative; overflow: hidden; border-radius: 10px; border: 1px solid var(--line); max-width: 100%; }
+.fit > .bd { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.fit.phone { max-width: 390px; }
+.row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.row > .board { flex: 1 1 560px; min-width: 0; }
+.row > .board.ph { flex: 0 1 320px; }
+body.solo { background: #000; overflow: hidden; }
+body.solo .wrap { display: none; }
+
+/* ---------- the boards ---------- */
+.bd { --s-bg: #0c0d10; --s-card: #15171c; --s-ink: #f1eee8; --s-ink-2: #b9b5ad; --s-ink-3: #8f8c85;
+  --s-lamp: #e9b872; --s-line: rgba(255,255,255,.08); --s-grid: rgba(255,255,255,.07);
+  --s-up: rgba(241,238,232,.26); --s-none: rgba(255,255,255,.06); --s-good: #0ca30c; --s-down: #d03b3b; --s-past: #4a4944;
+  color: var(--s-ink); background: var(--s-bg); font-family: var(--font); overflow: hidden; position: relative; line-height: 1.45; }
+.bd.computer { width: 1440px; height: 900px; }
+.bd.phone { width: 390px; height: 844px; }
+.bd .chrome { height: 40px; background: #1b1d22; border-bottom: 1px solid #000; display: flex; align-items: center; padding: 0 16px; gap: 8px; }
+.bd .chrome i { width: 12px; height: 12px; border-radius: 50%; background: #3a3d44; display: block; }
+.bd .chrome .url { margin: 0 auto; width: 520px; height: 26px; border-radius: 7px; background: #2a2d33; color: #c9c5bd; font: 13px/26px -apple-system, system-ui, sans-serif; text-align: center; }
+.bd .status { height: 47px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px 0 34px; font: 600 16px -apple-system, system-ui, sans-serif; color: #fff; }
+.bd .status .bat { width: 26px; height: 12px; border: 1.5px solid rgba(255,255,255,.6); border-radius: 4px; position: relative; }
+.bd .status .bat::after { content: ""; position: absolute; inset: 1.5px 6px 1.5px 1.5px; background: #fff; border-radius: 1.5px; }
+.bd .urlbar { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: rgba(30,32,37,.94); border-top: 1px solid rgba(255,255,255,.06); display: flex; justify-content: center; padding-top: 10px; z-index: 2; }
+.bd .urlbar span { width: 330px; height: 38px; border-radius: 12px; background: #34373d; color: #e6e2da; font: 15px/38px -apple-system, system-ui, sans-serif; text-align: center; }
+.bd .vp { position: relative; overflow: hidden; }
+.bd.computer .vp { height: 860px; }
+.bd.phone .vp { height: 733px; }
+
+.bd .nav { height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 48px; border-bottom: 1px solid var(--s-line); }
+.bd .nav .mark { width: 10px; height: 10px; border-radius: 50%; background: var(--s-lamp); box-shadow: 0 0 12px rgba(233,184,114,.6); }
+.bd .nav .name { font-weight: 500; font-size: 16px; }
+.bd .nav .name span { color: var(--s-ink-3); }
+.bd .nav .when { margin-left: auto; font-size: 14px; color: var(--s-ink-3); }
+.bd.phone .nav { height: 52px; padding: 0 20px; }
+.bd.phone .nav .when { font-size: 12px; }
+
+.bd .label { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--s-ink-3); }
+.bd .card { background: var(--s-card); border: 1px solid var(--s-line); border-radius: 14px; }
+.bd .num { font-variant-numeric: tabular-nums; }
+.bd .ok { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; color: var(--s-ink-2); }
+.bd .ok::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--s-good); }
+.bd .ok.no::before { background: var(--s-down); }
+.bd .strip { display: flex; gap: 2px; align-items: center; }
+.bd .strip i { display: block; width: 4px; height: 18px; border-radius: 2px; background: var(--s-up); }
+.bd .strip i.d { background: var(--s-down); }
+.bd .strip i.n { background: var(--s-none); }
+.bd .tile { padding: 18px 20px; }
+.bd .tile .v { font-size: 34px; font-weight: 600; letter-spacing: -.02em; margin: 6px 0 2px; }
+.bd .tile .d { font-size: 13px; color: var(--s-ink-3); }
+.bd .tile .d b { color: var(--s-ink-2); font-weight: 500; }
+.bd .tile.small { padding: 16px 16px 12px; }
+.bd .tile.small > div:last-child { flex-direction: column; align-items: flex-start !important; }
+.bd .tile.small .v { font-size: 30px; }
+.bd .meter { height: 6px; border-radius: 3px; background: rgba(241,238,232,.10); overflow: hidden; }
+.bd .meter i { display: block; height: 100%; border-radius: 3px; background: var(--s-up); }
+.bd .tip { position: absolute; background: #23262d; border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 10px 12px; font-size: 13px; color: var(--s-ink-2); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+.bd .tip b { color: var(--s-ink); font-weight: 600; display: block; margin-bottom: 4px; }
+.bd svg text { font-family: var(--font); }
+
+/* Today: the Monday note in a plain mail window */
+.bd .mail { position: absolute; inset: 0; background: #f6f5f2; color: #1c1a16; }
+.bd .mail .head { padding: 28px 48px 18px; border-bottom: 1px solid #e3e0da; }
+.bd .mail .head h2 { margin: 0 0 8px; font-size: 24px; font-weight: 600; }
+.bd .mail .head p { margin: 0; font-size: 14px; color: #6f6b62; }
+.bd .mail pre { margin: 0; padding: 22px 48px; font: 14px/1.6 var(--mono); color: #2a2824; white-space: pre-wrap; }
+.bd.phone .mail .head { padding: 18px 20px 12px; }
+.bd.phone .mail .head h2 { font-size: 19px; }
+.bd.phone .mail pre { padding: 14px 20px; font-size: 11.5px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="page">
+  <header class="top">
+    <div class="eyebrow">design/watch · 29 October 2026 · waiting for a pick</div>
+    <h1>A page for the watcher's numbers</h1>
+    <p>The watcher (watch/) already mails the operator when something stops answering, and sends the week in numbers on Mondays. This is the page to look at in between: what the services, the relay, the site and the waitlist are doing now. Today's mail is drawn first, then three directions. Every number is made up, shaped like a quiet week with one short outage.</p>
+  </header>
+  <div id="read"></div>
+</div>
+<div id="solo"></div>
+<script>
+// ---------- the made-up week ----------
+const SERVICES = [
+  ['The front page', '100.00%', 64], ['The privacy page', '100.00%', 61], ['The install command', '100.00%', 70],
+  ['The pretend house', '100.00%', 88], ['The relay', '99.93%', 142, 30], ['The address offer', '99.93%', 139, 30],
+  ['Which houses are on this Wi-Fi', '100.00%', 131], ['The Houses app', '100.00%', 97], ['The printer app', '100.00%', 95],
+]
+const LOADS_WEEKS = [96, 140, 118, 205, 262, 301, 338, 412]
+const JOINS_WEEKS = [1, 2, 1, 4, 3, 5, 4, 6]
+const CARRIED_WEEKS = [1, 1, 2, 2, 3, 3, 4, 4]
+const DOWNLOADS_WEEKS = [4, 6, 5, 9, 11, 10, 14, 18]
+// thirty days to 29 October, oldest first
+const DAYS = Array.from({ length: 30 }, (_, i) => { const d = new Date(Date.UTC(2026, 8, 30 + i)); return d })
+const LOADS_DAYS = [22, 31, 18, 27, 40, 35, 29, 33, 41, 38, 30, 44, 47, 36, 39, 52, 48, 41, 45, 50, 58, 49, 54, 47, 51, 49, 131, 63, 56, 52]
+const JOINS_DAYS = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 3, 0, 0, 1]
+const DIALED_DAYS = [2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 4]
+const DISK_DAYS = Array.from({ length: 30 }, (_, i) => 24 + i * 0.24)
+const OUTAGE_DAY = 27   // Tuesday 27 October, 7 minutes, the relay and the offer behind it; the post was the day before
+
+const strip = (n, downAt) => `<div class="strip">${Array.from({ length: n }, (_, i) => `<i class="${i === downAt ? 'd' : ''}"></i>`).join('')}</div>`
+const day = (d) => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })
+
+// a small line in the emphasis form: earlier points gray, the last one the accent with its end-dot
+function spark(values, w = 120, h = 34) {
+  const max = Math.max(...values), min = Math.min(...values, 0)
+  const x = (i) => 4 + i * (w - 8) / (values.length - 1), y = (v) => h - 4 - (v - min) / (max - min || 1) * (h - 8)
+  const pts = values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`)
+  const last = values.length - 1
+  return `<svg width="${w}" height="${h}" aria-hidden="true"><polyline points="${pts.slice(0, -1).join(' ')}" fill="none" stroke="#5c5a54" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <line x1="${x(last - 1)}" y1="${y(values[last - 1])}" x2="${x(last)}" y2="${y(values[last])}" stroke="#e9b872" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="${x(last)}" cy="${y(values[last])}" r="4" fill="#e9b872" stroke="#15171c" stroke-width="2"/></svg>`
+}
+
+function tile(label, value, delta, series) {
+  return `<div class="card tile"><div class="label">${label}</div><div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+    <div><div class="v num">${value}</div><div class="d">${delta}</div></div>${series ? spark(series) : ''}</div></div>`
+}
+
+const computer = (url, inner) => `<div class="bd computer"><div class="chrome"><i></i><i></i><i></i><div class="url">${url}</div></div><div class="vp">${inner}</div></div>`
+const phone = (url, inner) => `<div class="bd phone"><div class="status"><span>9:41</span><span class="bat"></span></div><div class="vp">${inner}</div><div class="urlbar"><span>${url}</span></div></div>`
+const nav = (when = 'Checked 14:32 UTC · every minute') => `<div class="nav"><span class="mark"></span><span class="name">Elyir <span>· watch</span></span><span class="when">${when}</span></div>`
+
+const WEEK_TILES = () => [
+  tile('Page loads', '412', '<b>+22%</b> on the week before (338)', LOADS_WEEKS),
+  tile('Joined the waitlist', '6', '<b>31</b> in all', JOINS_WEEKS),
+  tile('Houses carried', '4', 'of <b>5</b> with a name · 4 dialed in', CARRIED_WEEKS),
+  tile('Downloads', '18', '<b>143</b> in all', DOWNLOADS_WEEKS),
+]
+
+// Monday's note covers the week to 26 October, before Tuesday's outage
+const DIGEST = `How the week went.
+
+UP, AND HOW QUICKLY (95 in 100 answers were at least this fast)
+${SERVICES.map(([n, , ms]) => `  ${n}: 100.00%, ${ms} ms`).join('\n')}
+
+Nothing was down this week.
+
+THE RELAY
+  Houses with a name: 4 (was 3); carried: 4
+  Dialed in this week: 4; today: 4
+  Invites not yet used: 1
+  Disk 30% full, memory 41% used, load 0.10 0.08 0.08
+
+PAGE LOADS THIS WEEK (people, not the watcher or robots)
+  The front page: 251 (week before: 222)
+  The privacy page: 14 (week before: 13)
+  The install command: 30 (week before: 26)
+  The pretend house: 43 (week before: 40)
+
+THE WAITLIST: 4 joined this week, 25 in all
+
+DOWNLOADS FROM THE RELEASES: 125 in all, 14 this week`
+
+const BOARDS = {
+  // ---------- Today: the Monday mail ----------
+  today: () => computer('', `<div class="mail"><div class="head"><h2>The week, in numbers</h2><p>Elyir watch &lt;watch@elyir.app&gt; · Mon, 26 Oct 2026, 08:00 UTC</p></div><pre>${DIGEST}</pre></div>`),
+  'today-phone': () => phone('', `<div class="mail" style="top:0"><div class="head"><h2>The week, in numbers</h2><p>Elyir watch · Mon 08:00</p></div><pre>${DIGEST}</pre></div>`),
+
+  // ---------- A: the answer first ----------
+  a: () => computer('watch.elyir.com', `${nav()}
+    <div style="padding:36px 48px 0">
+      <div style="display:flex;align-items:center;gap:14px"><span class="ok" style="font-size:15px">Up</span><span class="label">Now</span></div>
+      <div style="font-size:52px;font-weight:500;letter-spacing:-.025em;line-height:1.05;margin:10px 0 10px">Everything is up.</div>
+      <div style="font-size:18px;color:var(--s-ink-2)">All 9 answered in the last minute. One outage this week: the relay, 7 minutes early on Tuesday.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 420px;gap:28px;padding:30px 48px 0;align-items:start">
+      <div class="card" style="padding:8px 0">
+        <div style="display:grid;grid-template-columns:64px 1fr 334px 76px 70px;align-items:center;gap:0 12px;padding:10px 22px;border-bottom:1px solid var(--s-line)" class="label">
+          <span></span><span>Service</span><span>The last 7 days, four hours a mark</span><span style="text-align:right">Up</span><span style="text-align:right">95th ms</span></div>
+        ${SERVICES.map(([n, p, ms, downAt]) => `<div style="display:grid;grid-template-columns:64px 1fr 334px 76px 70px;align-items:center;gap:0 12px;height:47px;padding:0 22px;border-bottom:1px solid var(--s-line)">
+          <span class="ok">Up</span><span style="font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>${strip(42, downAt === undefined ? -1 : 27).replace(/<i /g, '<i style="width:6px" ')}
+          <span class="num" style="text-align:right;font-size:15px">${p}</span><span class="num" style="text-align:right;font-size:15px;color:var(--s-ink-2)">${ms}</span></div>`).join('')}
+        <div style="display:flex;gap:18px;padding:12px 22px 6px;font-size:12px;color:var(--s-ink-3)"><span style="display:inline-flex;align-items:center;gap:6px"><i style="width:4px;height:12px;border-radius:2px;background:var(--s-up)"></i>Answered</span><span style="display:inline-flex;align-items:center;gap:6px"><i style="width:4px;height:12px;border-radius:2px;background:var(--s-down)"></i>Missed two in a row</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="label" style="margin:2px 0 -4px">This week</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">${WEEK_TILES().join('').replace(/class="card tile"/g, 'class="card tile small"')}</div>
+        <div class="card" style="padding:16px 20px">
+          <div class="label" style="margin-bottom:12px">The relay's box</div>
+          ${[['Disk', 31], ['Memory', 42], ['Load', 12]].map(([k, v]) => `<div style="display:grid;grid-template-columns:70px 1fr 44px;align-items:center;gap:12px;margin:8px 0;font-size:14px;color:var(--s-ink-2)">${k}<div class="meter"><i style="width:${v}%"></i></div><span class="num" style="text-align:right">${k === 'Load' ? '0.12' : v + '%'}</span></div>`).join('')}
+        </div>
+      </div>
+    </div>`),
+  'a-phone': () => phone('watch.elyir.com', `${nav('14:32 UTC')}
+    <div style="padding:22px 20px 0"><span class="ok">Up</span>
+      <div style="font-size:34px;font-weight:500;letter-spacing:-.02em;line-height:1.1;margin:8px 0">Everything is up.</div>
+      <div style="font-size:15px;color:var(--s-ink-2)">All 9 answered in the last minute. One outage this week: the relay, 7 minutes on Tuesday.</div></div>
+    <div class="card" style="margin:18px 16px 0;padding:4px 0">
+      ${SERVICES.map(([n, p, , downAt]) => `<div style="display:grid;grid-template-columns:1fr 66px;gap:6px 10px;padding:9px 16px;border-bottom:1px solid var(--s-line)">
+        <span style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span><span class="num" style="text-align:right;font-size:14px">${p}</span>
+        <div style="grid-column:1/-1">${strip(42, downAt === undefined ? -1 : 27).replace(/height:18px/g, '')}</div></div>`).join('').replace(/<i class/g, '<i style="width:5px;height:10px" class')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 16px 0">
+      ${[['Page loads', '412', '+22%'], ['Joined', '6', '31 in all'], ['Carried', '4', 'of 5'], ['Downloads', '18', '143 in all']].map(([l, v, d]) => `<div class="card" style="padding:12px 14px"><div class="label">${l}</div><div class="num" style="font-size:26px;font-weight:600;margin:4px 0 0">${v}</div><div style="font-size:12px;color:var(--s-ink-3)">${d}</div></div>`).join('')}
+    </div>`),
+
+  // ---------- B: the week's numbers first ----------
+  b: () => computer('watch.elyir.com', `${nav()}
+    <div style="margin:22px 48px 0;padding:12px 18px;display:flex;align-items:center;gap:18px;font-size:15px;color:var(--s-ink-2)" class="card">
+      <span class="ok" style="color:var(--s-ink)">All 9 up</span><span>99.98% this week</span><span style="color:var(--s-ink-3)">·</span><span>One outage: the relay and the address offer, 7 minutes, Tue 03:12 UTC</span>
+      <span style="margin-left:auto;color:var(--s-ink-3);font-size:14px">Every service ›</span></div>
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:28px;padding:28px 48px 0">
+      <div class="card" style="padding:24px 26px">
+        <div class="label">Page loads, by week</div>
+        <div style="display:flex;align-items:baseline;gap:14px;margin:8px 0 2px"><span class="num" style="font-size:56px;font-weight:600;letter-spacing:-.03em">412</span><span style="font-size:16px;color:var(--s-ink-2)">this week, <b style="color:var(--s-ink);font-weight:500">+22%</b> on the week before</span></div>
+        ${weeksChart(LOADS_WEEKS, 860, 330)}
+      </div>
+      <div class="card" style="padding:22px 24px">
+        <div class="label" style="margin-bottom:14px">Which pages, this week</div>
+        ${[['The front page', 300, 251], ['The pretend house', 54, 43], ['The install command', 37, 30], ['The privacy page', 21, 14]].map(([n, v, was]) => `<div style="margin:0 0 16px"><div style="display:flex;justify-content:space-between;font-size:15px"><span>${n}</span><span class="num">${v}</span></div>
+          <div style="height:10px;margin-top:6px;border-radius:0 4px 4px 0;width:${v / 300 * 100}%;background:#e9b872"></div><div style="font-size:12px;color:var(--s-ink-3);margin-top:4px">Week before: ${was}</div></div>`).join('')}
+        <div style="border-top:1px solid var(--s-line);margin-top:6px;padding-top:12px;font-size:13px;color:var(--s-ink-3)">People only: the watcher and robots aren't counted.</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:20px 48px 0">
+      ${[tile('Joined the waitlist', '6', '<b>31</b> in all', JOINS_WEEKS), tile('Install command fetched', '37', '<b>+23%</b> on the week before', [12, 15, 14, 19, 22, 26, 30, 37]), tile('Houses carried', '4', 'of <b>5</b> with a name', CARRIED_WEEKS), tile('Downloads', '18', '<b>143</b> in all', DOWNLOADS_WEEKS)].join('')}
+    </div>`),
+  'b-phone': () => phone('watch.elyir.com', `${nav('14:32 UTC')}
+    <div class="card" style="margin:14px 16px 0;padding:10px 14px;font-size:13px;color:var(--s-ink-2)"><span class="ok" style="color:var(--s-ink);font-size:13px">All 9 up</span> · 99.98% · one outage, 7 min</div>
+    <div class="card" style="margin:12px 16px 0;padding:16px 16px 10px">
+      <div class="label">Page loads, by week</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin:4px 0"><span class="num" style="font-size:42px;font-weight:600;letter-spacing:-.03em">412</span><span style="font-size:14px;color:var(--s-ink-2)">+22%</span></div>
+      ${weeksChart(LOADS_WEEKS, 326, 150, true)}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 16px 0">
+      ${[['Joined', '6', '31 in all'], ['Install fetched', '37', '+23%'], ['Carried', '4', 'of 5'], ['Downloads', '18', '143 in all']].map(([l, v, d]) => `<div class="card" style="padding:12px 14px"><div class="label">${l}</div><div class="num" style="font-size:26px;font-weight:600;margin:4px 0 0">${v}</div><div style="font-size:12px;color:var(--s-ink-3)">${d}</div></div>`).join('')}
+    </div>`),
+
+  // ---------- C: one line of time ----------
+  c: () => computer('watch.elyir.com', `${nav()}
+    <div style="display:flex;align-items:center;gap:10px;padding:22px 48px 0">
+      <span style="font-size:22px;font-weight:500">The last 30 days</span>
+      <span style="margin-left:auto;display:flex;gap:6px">${['7 days', '30 days', '90 days'].map((r, i) => `<span style="height:32px;padding:0 14px;border-radius:999px;font-size:14px;line-height:32px;${i === 1 ? 'background:#f1eee8;color:#16130e;font-weight:500' : 'border:1px solid var(--s-line);color:var(--s-ink-2)'}">${r}</span>`).join('')}</span>
+    </div>
+    <div class="card" style="margin:16px 48px 0;padding:8px 0 4px;position:relative">${lanes(1344 - 2, true)}</div>`),
+  'c-phone': () => phone('watch.elyir.com', `${nav('14:32 UTC')}
+    <div style="display:flex;align-items:center;padding:14px 20px 0"><span style="font-size:17px;font-weight:500">The last 14 days</span><span style="margin-left:auto;font-size:13px;color:var(--s-ink-3)">7 · <b style="color:var(--s-ink);font-weight:500">14</b> · 30</span></div>
+    <div class="card" style="margin:10px 12px 0;padding:4px 0;position:relative">${lanes(364, false)}</div>`),
+}
+
+// B's chart: eight weeks of columns, this week in the accent, the rest gray; the value on this week's cap only
+function weeksChart(values, w, h, small = false) {
+  const pad = { l: small ? 30 : 40, r: 8, t: 20, b: 26 }, max = 500
+  const iw = w - pad.l - pad.r, ih = h - pad.t - pad.b, band = iw / values.length, bw = Math.min(small ? 22 : 24, band * 0.5)
+  const y = (v) => pad.t + ih - v / max * ih
+  const ticks = [0, 250, 500]
+  const weeks = ['Sep 7', 'Sep 14', 'Sep 21', 'Sep 28', 'Oct 5', 'Oct 12', 'Oct 19', 'Oct 26']
+  let s = `<svg width="${w}" height="${h}" role="img" aria-label="Page loads by week">`
+  for (const t of ticks) s += `<line x1="${pad.l}" x2="${w - pad.r}" y1="${y(t)}" y2="${y(t)}" stroke="rgba(255,255,255,.07)"/><text x="${pad.l - 8}" y="${y(t) + 4}" text-anchor="end" font-size="${small ? 10 : 12}" fill="#8f8c85">${t}</text>`
+  values.forEach((v, i) => {
+    const x = pad.l + band * i + (band - bw) / 2, top = y(v), last = i === values.length - 1
+    s += `<path d="M${x},${y(0)} V${top + 4} q0,-4 4,-4 h${bw - 8} q4,0 4,4 V${y(0)} Z" fill="${last ? '#e9b872' : '#4a4944'}"/>`
+    if (!small || i % 2 === 1) s += `<text x="${x + bw / 2}" y="${h - 6}" text-anchor="middle" font-size="${small ? 10 : 12}" fill="#8f8c85">${weeks[i]}</text>`
+    if (last) s += `<text x="${x + bw / 2}" y="${top - 8}" text-anchor="middle" font-size="${small ? 12 : 14}" font-weight="600" fill="#f1eee8">${v}</text>`
+  })
+  return s + '</svg>'
+}
+
+// C's lanes: small multiples on one time axis, each its own scale, a crosshair on the day of the post
+function lanes(w, wide) {
+  const n = wide ? 30 : 14, from = 30 - n
+  const days = DAYS.slice(from), L = (a) => a.slice(from)
+  const padL = wide ? 200 : 96, padR = wide ? 90 : 44, iw = w - padL - padR, band = iw / n
+  const x = (i) => padL + band * i + band / 2
+  const sel = OUTAGE_DAY - from - 1   // the day of the post: Mon 26 Oct
+  const laneH = wide ? 122 : 92, gap = wide ? 18 : 12
+  const rows = [
+    { name: 'Page loads', note: 'a day', kind: 'cols', data: L(LOADS_DAYS), color: '#e9b872', end: L(LOADS_DAYS).at(-1) },
+    { name: 'Joined the waitlist', note: 'a day', kind: 'cols', data: L(JOINS_DAYS), color: '#e9b872', end: L(JOINS_DAYS).reduce((a, b) => a + b, 0) + ' in ' + n + ' days' },
+    { name: 'Houses dialed in', note: 'that day', kind: 'line', data: L(DIALED_DAYS), end: L(DIALED_DAYS).at(-1) },
+    { name: 'Outages', note: wide ? 'services with any' : '', kind: 'outages' },
+    { name: "The relay's disk", note: 'how full', kind: 'line', data: L(DISK_DAYS), max: 100, end: Math.round(L(DISK_DAYS).at(-1)) + '%', limit: 85 },
+  ]
+  let h = 12, s = ''
+  for (const r of rows) {
+    const top = h, ih = r.kind === 'outages' ? (wide ? 64 : 76) : laneH - 30, base = top + 22 + ih
+    s += `<text x="${wide ? 22 : 14}" y="${top + 16}" font-size="${wide ? 14 : 12}" font-weight="500" fill="#f1eee8">${r.name}</text><text x="${wide ? 22 : 14}" y="${top + 34}" font-size="${wide ? 12 : 10}" fill="#8f8c85">${r.note}</text>`
+    if (r.kind === 'cols') {
+      const max = Math.max(...r.data) || 1, bw = Math.min(wide ? 24 : 12, band - 2)
+      s += `<line x1="${padL}" x2="${w - padR}" y1="${base}" y2="${base}" stroke="rgba(255,255,255,.1)"/>`
+      r.data.forEach((v, i) => {
+        if (!v) return
+        const bh = Math.max(3, v / max * ih), x0 = x(i) - bw / 2
+        s += `<path d="M${x0},${base} V${base - bh + 3} q0,-3 3,-3 h${bw - 6} q3,0 3,3 V${base} Z" fill="${i === sel ? '#e9b872' : '#5c5a54'}"/>`
+      })
+    } else if (r.kind === 'line') {
+      const max = r.max || Math.max(...r.data) * 1.25, y = (v) => base - v / max * ih
+      s += `<line x1="${padL}" x2="${w - padR}" y1="${base}" y2="${base}" stroke="rgba(255,255,255,.1)"/>`
+      if (r.limit) s += `<line x1="${padL}" x2="${w - padR}" y1="${y(r.limit)}" y2="${y(r.limit)}" stroke="rgba(208,59,59,.55)"/><text x="${padL + 4}" y="${y(r.limit) - 5}" font-size="10" fill="#b9b5ad">85%: the watcher writes</text>`
+      s += `<polyline points="${r.data.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ')}" fill="none" stroke="#b9b5ad" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`
+      s += `<circle cx="${x(r.data.length - 1)}" cy="${y(r.data.at(-1))}" r="4" fill="#b9b5ad" stroke="#15171c" stroke-width="2"/>`
+    } else {
+      const names = wide ? ['The relay', 'The address offer'] : ['The relay', 'The offer']
+      names.forEach((nm, k) => {
+        const yy = wide ? top + 24 + k * 22 : top + 50 + k * 26
+        s += `<line x1="${padL}" x2="${w - padR}" y1="${yy}" y2="${yy}" stroke="rgba(241,238,232,.18)" stroke-width="6" stroke-linecap="round"/>`
+        s += `<rect x="${x(OUTAGE_DAY - from) - 4}" y="${yy - 6}" width="8" height="12" rx="2" fill="#d03b3b"/>`
+        s += wide ? `<text x="${padL - 10}" y="${yy + 4}" text-anchor="end" font-size="12" fill="#b9b5ad">${nm}</text>` : `<text x="${padL}" y="${yy - 7}" font-size="10" fill="#b9b5ad">${nm}</text>`
+      })
+      s += `<text x="${padL}" y="${wide ? top + 74 : top + 50 + 2 * 26 + 2}" font-size="${wide ? 12 : 10}" fill="#8f8c85">${wide ? 'The other 7 had no outage in 30 days.' : '7 others: none.'}</text>`
+    }
+    if (r.end != null) s += `<text x="${w - padR + 10}" y="${base - 2}" font-size="${wide ? 13 : 11}" fill="#f1eee8" font-weight="500">${r.end}</text>`
+    h = base + gap
+    s += `<line x1="0" x2="${w}" y1="${h - gap / 2}" y2="${h - gap / 2}" stroke="rgba(255,255,255,.06)"/>`
+  }
+  const step = wide ? 5 : 3
+  days.forEach((d, i) => { if ((n - 1 - i) % step === 0) s += `<text x="${x(i)}" y="${h + 12}" text-anchor="middle" font-size="${wide ? 12 : 10}" fill="#8f8c85">${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}</text>` })
+  s += `<line x1="${x(sel)}" x2="${x(sel)}" y1="6" y2="${h - 4}" stroke="rgba(241,238,232,.35)"/>`
+  const svg = `<svg width="${w}" height="${h + 22}" role="img" aria-label="The last ${n} days on one time axis">${s}</svg>`
+  const tipX = x(sel) - (wide ? 262 : 152), tip = `<div class="tip" style="left:${tipX}px;top:${wide ? 14 : 8}px;width:${wide ? 246 : 140}px"><b>${day(days[sel])}</b>${wide ? '131 page loads · 3 joined the waitlist · 4 houses dialed in' : '131 loads · 3 joined'}</div>`
+  return svg + tip
+}
+
+const FILE_TO_BOARD = {
+  'Today.dc.html': 'today', 'Today-phone.dc.html': 'today-phone',
+  'AnswerA.dc.html': 'a', 'AnswerA-phone.dc.html': 'a-phone',
+  'WeekB.dc.html': 'b', 'WeekB-phone.dc.html': 'b-phone',
+  'TimeC.dc.html': 'c', 'TimeC-phone.dc.html': 'c-phone',
+}
+
+const solo = new URLSearchParams(location.search).get('board')
+if (solo && BOARDS[solo]) {
+  document.body.classList.add('solo')
+  document.getElementById('solo').innerHTML = BOARDS[solo]()
+} else {
+  readingPage()
+}
+
+async function readingPage() {
+  const read = document.getElementById('read')
+  let canvas = null
+  try { canvas = await (await fetch('canvas.json')).json() } catch {}
+  const titles = Object.fromEntries((canvas?.artboards || []).map((a) => [a.file, a.title]))
+  const notes = Object.fromEntries((canvas?.annotations || []).map((n) => [n.id, n.text]))
+  const order = canvas?.reading || Object.keys(FILE_TO_BOARD)
+  let row = null
+  for (const item of order) {
+    if (FILE_TO_BOARD[item]) {
+      const id = FILE_TO_BOARD[item], isPhone = id.endsWith('phone')
+      if (!row) { row = document.createElement('div'); row.className = 'row'; read.append(row) }
+      const b = document.createElement('div')
+      b.className = 'board' + (isPhone ? ' ph' : '')
+      b.innerHTML = `<div class="cap">${esc(titles[item] || item)}</div><div class="fit${isPhone ? ' phone' : ''}" data-w="${isPhone ? 390 : 1440}" data-h="${isPhone ? 844 : 900}">${BOARDS[id]()}</div>`
+      row.append(b)
+    } else if (notes[item]) {
+      row = null
+      const [head, ...rest] = notes[item].split('\n\n')
+      const n = document.createElement('section')
+      n.className = 'note'
+      n.innerHTML = `<h2>${esc(cap(head))}</h2>` + rest.map((p) => `<p>${lead(esc(p))}</p>`).join('')
+      read.append(n)
+    }
+  }
+  fit()
+  addEventListener('resize', fit)
+}
+function fit() {
+  for (const f of document.querySelectorAll('.fit')) {
+    const w = +f.dataset.w, h = +f.dataset.h, s = Math.min(1, f.clientWidth / w)
+    f.style.height = h * s + 'px'
+    f.firstElementChild.style.transform = `scale(${s})`
+  }
+}
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]).replace(/\n/g, '<br>')
+const cap = (s) => s.charAt(0) + s.slice(1).toLowerCase().replace(/\b(a|b|c)\b(?=:)/g, (m) => m.toUpperCase()).replace(/\b(elyir|github|cloudflare)\b/gi, (m) => m.replace(/\b\w/g, (c) => c.toUpperCase()))
+const lead = (p) => p.replace(/^([A-Z][A-Z ,.'’-]{2,}[.:])/, '<b>$1</b>')
+</script>
+</body>
+</html>
