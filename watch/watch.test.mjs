@@ -48,6 +48,7 @@ test("the relay is asked with the watcher's key, and is down when its disk is ne
   const seen = {}
   const r = await probe(relay, { RELAY_KEY: 'k' }, seen, async (url, init) => { sent = init.headers; return Response.json(fine) })
   assert.equal(sent.Authorization, 'Bearer k')
+  assert.equal(sent['User-Agent'], 'elyir-watch', "named, so the site's counts leave it out")
   assert.ok(r.ok)
   assert.deepEqual(seen.relay, fine)
   assert.match((await probe(relay, {}, {}, async () => Response.json({ ok: true }))).why, /key/)
@@ -75,6 +76,7 @@ test('the Monday note says the week in numbers', () => {
     incidents: [{ name: 'The relay', began: 0, ended: 3 * MIN }],
     relayNow: { houses: { names: 5, carried: 4, dialed_in_day: 3, dialed_in_week: 4, invites_open: 1 }, box: { disk_used: 0.31, memory_used: 0.42, load: [0.1, 0.2, 0.3] } },
     relayBefore: { houses: { names: 4, carried: 4, dialed_in_day: 2, dialed_in_week: 4, invites_open: 1 } },
+    loads: { week: { '/': 40, '/install': 3 }, before: { '/': 31 } },
     waitlist: { week: 2, total: 17 },
     downloads: { total: 120, before: 100 },
   })
@@ -82,6 +84,9 @@ test('the Monday note says the week in numbers', () => {
   assert.match(text, /The front page: 100\.00%, 60 ms/)
   assert.match(text, /The relay: .*, 3 minutes/)
   assert.match(text, /Houses with a name: 5 \(was 4\); carried: 4$/m)
+  assert.match(text, /The front page: 40 \(week before: 31\)/)
+  assert.match(text, /The install command: 3$/m)
+  assert.match(text, /The pretend house: 0$/m)
   assert.match(text, /2 joined this week, 17 in all/)
   assert.match(text, /120 in all, 20 this week/)
   assert.match(digest({ checks: [], incidents: [] }), /Nothing was down this week\./)

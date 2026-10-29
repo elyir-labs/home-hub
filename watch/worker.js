@@ -61,7 +61,8 @@ export const CHECKS = [
 
 export async function probe(check, env, seen = {}, fetcher = fetch) {
   const began = Date.now()
-  const headers = check.keyed && env.RELAY_KEY ? { Authorization: `Bearer ${env.RELAY_KEY}` } : {}
+  // Named, so the site's page counts (site/functions/_middleware.js) leave the watcher's visits out.
+  const headers = { 'User-Agent': 'elyir-watch', ...(check.keyed && env.RELAY_KEY ? { Authorization: `Bearer ${env.RELAY_KEY}` } : {}) }
   try {
     const res = await fetcher(check.url, { headers, redirect: 'manual', signal: AbortSignal.timeout(10_000) })
     const why = await check.look(res, seen)
@@ -95,7 +96,9 @@ function p95(values) {
 }
 
 // The Monday note: plain text, numbers only, a week against the one before where there is one.
-export function digest({ checks, incidents, relayNow, relayBefore, waitlist, downloads }) {
+const PAGE_NAMES = { '/': 'The front page', '/privacy': 'The privacy page', '/install': 'The install command', '/try/': 'The pretend house' }
+
+export function digest({ checks, incidents, relayNow, relayBefore, loads, waitlist, downloads }) {
   const lines = ['How the week went.', '', 'UP, AND HOW QUICKLY (95 in 100 answers were at least this fast)']
   for (const c of checks) lines.push(`  ${c.name}: ${pct(c.up, c.n)}${c.p95 != null ? `, ${c.p95} ms` : ''}`)
   lines.push('', incidents.length ? 'TIMES SOMETHING WAS DOWN' : 'Nothing was down this week.')
@@ -109,6 +112,13 @@ export function digest({ checks, incidents, relayNow, relayBefore, waitlist, dow
       `  Dialed in this week: ${h.dialed_in_week}${change('dialed_in_week')}; today: ${h.dialed_in_day}`,
       `  Invites not yet used: ${h.invites_open}`,
       `  Disk ${Math.round((b.disk_used ?? 0) * 100)}% full, memory ${Math.round((b.memory_used ?? 0) * 100)}% used, load ${(b.load || []).join(' ')}`)
+  }
+  if (loads) {
+    lines.push('', 'PAGE LOADS THIS WEEK (people, not the watcher or robots)')
+    for (const [p, name] of Object.entries(PAGE_NAMES)) {
+      const now = loads.week[p] || 0, was = loads.before[p]
+      lines.push(`  ${name}: ${now}${was != null ? ` (week before: ${was})` : ''}`)
+    }
   }
   if (waitlist) lines.push('', `THE WAITLIST: ${waitlist.week} joined this week, ${waitlist.total} in all`)
   if (downloads) lines.push('', `DOWNLOADS FROM THE RELEASES: ${downloads.total} in all${downloads.before != null ? `, ${downloads.total - downloads.before} this week` : ''}`)
@@ -175,6 +185,13 @@ async function weekly(env, at) {
   const relayAt = async (sql, ...args) => { const r = await db.prepare(sql).bind(...args).first(); return r ? JSON.parse(r.body) : null }
   const relayNow = await relayAt('SELECT body FROM relay ORDER BY at DESC LIMIT 1')
   const relayBefore = await relayAt('SELECT body FROM relay WHERE at <= ?1 ORDER BY at DESC LIMIT 1', since)
+  let loads = null
+  if (env.COUNTS) {
+    const days = (from, to) => [new Date(from).toISOString().slice(0, 10), new Date(to).toISOString().slice(0, 10)]
+    const sum = async ([a, b]) => Object.fromEntries((await env.COUNTS.prepare('SELECT path, sum(n) AS n FROM loads WHERE day >= ?1 AND day < ?2 GROUP BY path')
+      .bind(a, b).all().catch(() => ({ results: [] }))).results.map((r) => [r.path, r.n]))
+    loads = { week: await sum(days(since, at)), before: await sum(days(since - 7 * DAY, since)) }
+  }
   let waitlist = null
   if (env.WAITLIST) {
     const n = async (sql, ...args) => (await env.WAITLIST.prepare(sql).bind(...args).first())?.n ?? 0
@@ -188,7 +205,7 @@ async function weekly(env, at) {
     await db.prepare('INSERT INTO downloads (at, total) VALUES (?1, ?2)').bind(at, total).run()
     downloads = { total, before: before?.total ?? null }
   }
-  await mail(env, 'The week, in numbers', digest({ checks, incidents, relayNow, relayBefore, waitlist, downloads }))
+  await mail(env, 'The week, in numbers', digest({ checks, incidents, relayNow, relayBefore, loads, waitlist, downloads }))
 }
 
 export default {

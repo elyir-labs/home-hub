@@ -16,6 +16,17 @@ resource "cloudflare_d1_database" "waitlist" {
   }
 }
 
+# How many times each page was loaded, a number per page per day and nothing about who (functions/_middleware.js).
+# The maker's watcher reads it into its Monday note (watch/). The table is made on first use.
+resource "cloudflare_d1_database" "counts" {
+  account_id = var.account_id
+  name       = "elyir-site-counts"
+
+  read_replication = {
+    mode = "disabled"
+  }
+}
+
 # A direct-upload project: no Git connection, no build here. What it serves is put together by site/build.sh and
 # uploaded by .github/workflows/site.yml.
 resource "cloudflare_pages_project" "site" {
@@ -23,13 +34,15 @@ resource "cloudflare_pages_project" "site" {
   name              = var.project_name
   production_branch = "main"
 
-  # Previews get no list, so a test deploy can never write to the real one; the function then says it isn't set up.
+  # Previews get no list and no counts, so a test deploy can never write to the real ones; the waitlist then says it
+  # isn't set up, and nothing is counted.
   # Pages refuses a project whose two environments differ on fail_open.
   deployment_configs = {
     production = {
       fail_open = true
       d1_databases = {
         WAITLIST = { id = cloudflare_d1_database.waitlist.id }
+        COUNTS   = { id = cloudflare_d1_database.counts.id }
       }
     }
     preview = {

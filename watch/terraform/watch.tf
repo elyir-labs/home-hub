@@ -24,6 +24,14 @@ data "cloudflare_d1_database" "waitlist" {
   }
 }
 
+# The site's page counts (site/terraform), read the same way.
+data "cloudflare_d1_database" "counts" {
+  account_id = var.account_id
+  filter = {
+    name = "elyir-site-counts"
+  }
+}
+
 resource "cloudflare_workers_script" "watch" {
   account_id         = var.account_id
   script_name        = "elyir-watch"
@@ -35,6 +43,7 @@ resource "cloudflare_workers_script" "watch" {
   bindings = [
     { type = "d1", name = "DB", id = cloudflare_d1_database.watch.id },
     { type = "d1", name = "WAITLIST", id = data.cloudflare_d1_database.waitlist.database_id },
+    { type = "d1", name = "COUNTS", id = data.cloudflare_d1_database.counts.database_id },
     { type = "send_email", name = "MAIL", destination_address = var.alert_to },
     { type = "secret_text", name = "RELAY_KEY", text = sha256("watch:${var.relay_auth_token}") },
     { type = "plain_text", name = "TO", text = var.alert_to },

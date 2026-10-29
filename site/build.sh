@@ -6,7 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 rm -rf dist && mkdir -p dist/shots dist/fonts
-cp index.html privacy.html site.js _headers dist/
+cp index.html privacy.html site.js _headers _routes.json dist/
 cp shots/*.jpg dist/shots/
 cp fonts/* dist/fonts/
 cp ../app/public/favicon.svg dist/
