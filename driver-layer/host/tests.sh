@@ -1252,17 +1252,41 @@ changing() {
   boot() {   # the turn asked for, then the boot line after turn.sh has read it
     printf '%s\n' "$1" > "$root/turn.request"
     ELYIR_TURN_REQUEST="$root/turn.request" ELYIR_CMDLINE="$root/cmdline.txt" HUB_DRM="$root/drm" \
+      ELYIR_TOUCH_RULES="$root/rules/90-elyir-touch.rules" HUB_INPUT="$root/input" HUB_UDEVADM="$root/udevadm" \
       "$HERE/../../startup/turn.sh" >/dev/null 2>&1
     cat "$root/cmdline.txt"
   }
+  # two input devices, one of them a touchscreen; udevadm says which, and keeps what it was asked to trigger
+  mkdir -p "$root/input/event0" "$root/input/event1"
+  printf '#!/usr/bin/env bash\ncase "$1" in\n  info) [ "${4##*/}" = event1 ] && echo ID_INPUT_TOUCHSCREEN=1 ;;\n  trigger) echo "$2 ${3##*/}" >> "%s/triggered" ;;\nesac\nexit 0\n' "$root" > "$root/udevadm"
+  chmod +x "$root/udevadm"
+  touch_rule() { sed -n 's/.*LIBINPUT_CALIBRATION_MATRIX}="\([^"]*\)".*/\1/p' "$root/rules/90-elyir-touch.rules" 2>/dev/null; }
   echo 'console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60' > "$root/cmdline.txt"
   is "a screen turned upside down starts upside down, its mode kept and HDMI added" "$(boot 180)" \
     "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60,panel_orientation=upside_down video=HDMI-A-2:panel_orientation=upside_down"
   is "...the request is used once" "$([ -f "$root/turn.request" ] && echo kept || echo gone)" "gone"
   is "turned a quarter, the orientation is changed rather than another added" "$(boot 90)" \
     "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60,panel_orientation=left_side_up video=HDMI-A-2:panel_orientation=left_side_up"
+  is "...and the touch is turned with it, so a tap lands where the picture now is" "$(touch_rule)" "0 1 0 -1 0 1"
+  is "...the touchscreen, and only it, leaves and comes back so the running wall reads it" "$(paste -sd, "$root/triggered")" "--action=remove event1,--action=add event1,--action=remove event1,--action=add event1"
   is "turned back, only what it added goes" "$(boot 0)" "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60"
+  is "...and the touch is as the glass reports it again" "$([ -e "$root/rules/90-elyir-touch.rules" ] && echo turned || echo as-made)" "as-made"
   is "a turn that is not a quarter leaves the boot line alone" "$(boot '45; reboot')" "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60"
+  # wall.sh settle: a turn made where nothing acted on it, or before the touch was turned, is acted on as the wall starts
+  rm -f "$root/triggered" "$root/rules/90-elyir-touch.rules"
+  echo 'console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60' > "$root/cmdline.txt"
+  settle() { ELYIR_TURN_FILE="$root/turn" ELYIR_SCREEN_ASK="$root/ask" ELYIR_CMDLINE="$root/cmdline.txt" HUB_DRM="$root/drm" \
+      ELYIR_TOUCH_RULES="$root/rules/90-elyir-touch.rules" HUB_INPUT="$root/input" HUB_UDEVADM="$root/udevadm" \
+      "$HERE/../../startup/wall.sh" settle >/dev/null 2>&1; }
+  mkdir -p "$root/ask"; echo 270 > "$root/turn"; settle
+  is "a screen turned before its touch was, turns its touch as the wall starts" "$(touch_rule)" "0 -1 1 1 0 0"
+  is "...and its startup" "$(grep -o 'DSI-1:[^ ]*' "$root/cmdline.txt")" "DSI-1:800x480@60,panel_orientation=right_side_up"
+  : > "$root/triggered"; settle
+  is "...and once it has, the next start touches nothing" "$(wc -l < "$root/triggered" | tr -d ' ')" "0"
+  echo 90 > "$root/ask/turn.request"; echo 90 > "$root/turn"; settle
+  is "a turn left waiting for a watcher that isn't there is acted on" "$(touch_rule) $([ -e "$root/ask/turn.request" ] && echo left || echo used)" "0 1 0 -1 0 1 used"
+  rm -f "$root/turn"; settle
+  is "a screen never turned is left alone" "$(touch_rule)" "0 1 0 -1 0 1"
   rm -rf "$root"
 }
 
