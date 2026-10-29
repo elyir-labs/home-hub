@@ -1,9 +1,10 @@
-/* hub.elyir.com is design/site's D: A's front page with C's line for a hub ready to plug in. These fail on purpose if the
-   page drifts from the board, if /install could ever hand bash a web page, or if the waitlist says more than it should.
+/* hub.elyir.com is design/site's D: A's front page with C's line for a hub ready to plug in, with design/site-pair's D for
+   its pictures. These fail on purpose if the page drifts from the boards, if /install could ever hand bash a web page,
+   or if the waitlist says more than it should.
    `node --test site/site.test.mjs` */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { onRequest as install } from './functions/install.js'
@@ -29,8 +30,8 @@ test('on a phone, Try it live leads, because the command needs a computer', () =
   assert.match(phone.slice(0, phone.indexOf('\n  }')), /\.doors \.door-try \{ order: -1; background: var\(--lamp\)/)
 })
 
-test('below the top: the pretend house, the three ways to get it, then the price', () => {
-  const order = ['id="try"', 'id="get"', 'id="anywhere"', '<footer>'].map(at)
+test('below the top: the day, the pretend house, the three ways to get it, then the price', () => {
+  const order = ['</header>', 'id="day"', 'id="try"', 'id="get"', 'id="anywhere"', '<footer>'].map(at)
   assert.deepEqual(order, [...order].sort((a, b) => a - b))
   const ways = [...page.slice(at('id="get"'), at('id="anywhere"')).matchAll(/<h3>(.*?)<\/h3>/g)].map((m) => m[1])
   assert.deepEqual(ways, ['On a computer you have', 'On a new Raspberry Pi 5', 'Ready to plug in'])
@@ -51,6 +52,35 @@ test("the page shows nobody else's show or brand, and names Home Assistant once"
   }
   assert.equal((text(page).match(/Home Assistant/g) || []).length, 2, 'once in the footer, and once in the line that says it is a trademark')
   for (const word of ['relay', 'brain', 'driver', 'entity', 'integration']) assert.ok(!new RegExp(`\\b${word}`, 'i').test(text(page)), `the page says ${word}`)
+})
+
+const pictures = (html) => [...html.matchAll(/<picture>([\s\S]*?)<\/picture>/g)].map(([, p]) => ({
+  light: p.match(/<source media="\(prefers-color-scheme: light\)" srcset="\/shots\/([^"]+)">/)?.[1],
+  dark: p.match(/<img src="\/shots\/([^"]+)"/)?.[1],
+}))
+
+test('the top shows one room on both screens, the living room, so the two read as one app', () => {
+  const pair = pictures(page.slice(at('<figure class="pics">'), at('</header>')))
+  assert.deepEqual(pair, [
+    { light: 'wall-room-light.jpg', dark: 'wall-room-dark.jpg' },
+    { light: 'phone-room-light.jpg', dark: 'phone-room-dark.jpg' },
+  ])
+  assert.match(text(page.slice(at('<figure class="pics">'), at('</header>'))), /The living room, on the wall and on a phone\./)
+})
+
+test('one scroll down, the same wall through a day, in the look the visitor has', () => {
+  const day = page.slice(at('id="day"'), at('id="try"'))
+  assert.deepEqual(pictures(day), ['morning', 'afternoon', 'evening'].map((part) => ({ light: `wall-${part}-light.jpg`, dark: `wall-${part}-dark.jpg` })))
+  assert.deepEqual([...day.matchAll(/<figcaption>(.*?)<\/figcaption>/g)].map((m) => m[1]), ['8:30 in the morning', '1:00 in the afternoon', '7:40 in the evening'])
+})
+
+test('every picture follows the light or dark the page is in, and is one npm run site-shots takes', () => {
+  assert.equal((page.match(/<img\b/g) || []).length, pictures(page).length, 'no picture outside a <picture> that switches with the page')
+  for (const { light, dark } of pictures(page)) {
+    assert.ok(light && dark, 'a light picture and a dark one')
+    assert.equal(light.replace('-light', ''), dark.replace('-dark', ''), `${light} and ${dark} are the same screen`)
+    for (const shot of [light, dark]) assert.ok(existsSync(path.join(HERE, 'shots', shot)), `site/shots/${shot}`)
+  }
 })
 
 const assets = { fetch: async (req) => new Response('#!/usr/bin/env bash\necho hub\n', { status: 200, headers: { 'Content-Type': 'application/x-sh', from: new URL(req.url).pathname } }) }
