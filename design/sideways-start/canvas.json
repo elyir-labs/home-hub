@@ -37,12 +37,12 @@
     },
     {
       "file": "EdgesA.dc.html",
-      "x": 1560,
+      "x": 0,
       "y": 0,
       "w": 1440,
       "h": 900,
       "title": "A: a pill at every edge, and the one you can read is the one to tap",
-      "page": "sideways"
+      "page": "sideways-rejected"
     },
     {
       "file": "WideB.dc.html",
@@ -55,15 +55,23 @@
     },
     {
       "file": "KnobC.dc.html",
-      "x": 4680,
+      "x": 1560,
       "y": 0,
       "w": 1440,
       "h": 900,
       "title": "C: one round button, no words, a quarter turn each tap",
-      "page": "sideways"
+      "page": "sideways-rejected"
     }
   ],
   "annotations": [
+    {
+      "id": "decided",
+      "page": "sideways",
+      "x": -620,
+      "y": -420,
+      "w": 500,
+      "text": "DECIDED 28 OCTOBER 2026\n\nB. A glass that says it is tall comes up wide on its own: the wall turns it a quarter the first time it starts, before the panel is drawn, and leaves the same turn for the startup. A wrong guess is upside down, and the upside-down pill answers it, now on the hub's own first start as well as a screen's. A and C are on the next page, with their cases."
+    },
     {
       "id": "why",
       "page": "sideways",
@@ -82,8 +90,8 @@
     },
     {
       "id": "a",
-      "page": "sideways",
-      "x": 1560,
+      "page": "sideways-rejected",
+      "x": 0,
       "y": 940,
       "w": 1440,
       "text": "A: A PILL AT EVERY EDGE. The upside-down pill grows to three: one at each edge of the glass but its own foot, each drawn upright for somebody reading from that side. Whichever way the screen hangs, exactly one of them reads the right way, and that is the one to tap. Nobody works out left from right. After the tap the screen lays out wide and the pill at the foot says Turned, with Put it back. On every first-start step, on the hub's own screen and on a screen for a hub.\n\nFOR: one tap, always the right one, for any of the four ways. It is the pill already chosen on 22 October, asked three ways instead of one.\n\nAGAINST: on the screen hung the right way, which is nearly every screen, there are now three pills around the edge, two of them sideways and one upside down (flip 'a screen hung the right way'). C's own AGAINST said one upside-down pill looks like a bug until it is tapped away; three look like more of one."
@@ -98,8 +106,8 @@
     },
     {
       "id": "c",
-      "page": "sideways",
-      "x": 4680,
+      "page": "sideways-rejected",
+      "x": 1560,
       "y": 940,
       "w": 1440,
       "text": "C: ONE BUTTON THAT TURNS IT. A round button with the turn mark and no words, in the same corner of the glass on every first-start step. Each tap turns the screen a quarter, the same way each time, and it reads the same whichever way up it is. It goes when setup is done; This screen has the turn after that.\n\nFOR: one control for all four ways, with no words to be upside down or sideways, so it never looks like a mistake on a screen hung the right way. It is the smallest thing on the glass of any direction here.\n\nAGAINST: it is a guess with the finger. A quarter the wrong way means three taps, through upside down and the other side, before the screen is upright (flips 'one tap', 'three taps'). A round mark with no words has to be recognized as 'turn the screen' by somebody who has never seen it. And the corner it sits in is the glass's, so it moves around the wall as the screen turns."
@@ -112,5 +120,9 @@
       "w": 500,
       "text": "BEHIND EVERY DIRECTION\n\nThe turn is This screen's: screen-helper.py turns the display and keeps it, and turn.sh puts the same turn on the boot line so the startup follows from the next start. Nothing new below the panel except, in B, first boot asking the glass its shape and writing the quarter.\n\nWhich way a glass 'says it is tall' is the size of the display mode, before any turn: taller than wide. A glass made wide and hung tall is the other case, and needs a tall home before it is offered, so it is not drawn here.\n\nWhatever is picked, the upside-down pill goes onto the hub's own first start as well. Leaving it off was a gap, not a choice."
     }
-  ]
+  ],
+  "decided": {
+    "on": "2026-10-28",
+    "chose": "B"
+  }
 }
