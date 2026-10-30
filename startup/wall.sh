@@ -9,6 +9,7 @@
 #   wall.sh run    as the wall's own user: cage, with Chromium on the panel full screen at the design's size,
 #                  turned the way This screen last set it, and screen-helper.py beside it
 #   wall.sh speaker   points the wall's sound at the screen's speakers, which `run` does first
+#   wall.sh guess     turns a glass made tall a quarter, the first time only, which `wait` has the wall's user do
 #
 # When only the browser restarts, the splash is long gone and `wait` returns at once, so a screen
 # coming back is a few seconds of nothing rather than the whole startup again.
@@ -75,6 +76,23 @@ settle() {
   ELYIR_TURN_REQUEST="$ask/turn.request" "$HERE/turn.sh" || true
 }
 
+# The panel is drawn wide, and a tall home is not designed, so a glass made tall (a mode taller than wide, as most
+# DSI panels report) can only be hung on its side. The first time the wall starts, before anybody has turned it, it
+# turns a quarter and leaves the same turn for turn.sh, so the startup follows from the next start
+# (design/sideways-start/, B). A wrong guess is exactly upside down, which the first start's pill answers. Once a
+# turn is kept it is the household's, and this never guesses again.
+guess() {
+  local file="${ELYIR_TURN_FILE:-$HOME/.config/elyir/turn}" ask="${ELYIR_SCREEN_ASK:-/var/lib/elyir-screen}" s mode
+  [ -e "$file" ] && return 0
+  for s in "${HUB_DRM:-/sys/class/drm}"/card*-*/status; do
+    [ "$(cat "$s" 2>/dev/null)" = connected ] && mode=$(head -n1 "$(dirname "$s")/modes" 2>/dev/null) && [ -n "$mode" ] && break
+  done
+  [ -n "${mode:-}" ] || return 0
+  awk -v m="$mode" 'BEGIN { split(m, a, "x"); exit !(a[2] + 0 > a[1] + 0) }' || return 0
+  mkdir -p "$(dirname "$file")" && echo 90 > "$file"
+  echo 90 > "$ask/turn.request" 2>/dev/null || true
+}
+
 # The panel speaks from the screen it was asked at (docs/voice.md), and a Pi sends that down the HDMI cable to the
 # screen's own speakers. Its HDMI card takes only IEC958 frames, so a browser left on ALSA's plain default is
 # silent; the hdmi: device converts to them. The card is the one on the port that is connected, worked out each
@@ -99,6 +117,9 @@ browser() {
 
 case "${1:-}" in
   wait)
+    # the guess is the wall user's to keep, and settled with the rest before cage starts, so its touch is turned too
+    home=$(getent passwd elyir-wall 2>/dev/null | cut -d: -f6)
+    [ -n "$home" ] && runuser -u elyir-wall -- env HOME="$home" "$0" guess || true
     settle || true
     until curl -fsS -m 2 -o /dev/null "$READY_URL"; do sleep 1; done
     if plymouth --ping 2>/dev/null; then
@@ -109,6 +130,7 @@ case "${1:-}" in
     fi ;;
   speaker) speaker ;;
   settle) settle ;;
+  guess) guess ;;
   run)
     hidden_cursor
     speaker || true
@@ -130,5 +152,5 @@ case "${1:-}" in
       --ozone-platform=wayland --disable-session-crashed-bubble --check-for-update-interval=31536000 \
       --disable-pinch --overscroll-history-navigation=0 --autoplay-policy=no-user-gesture-required \
       "$PANEL_URL" ;;
-  *) echo "usage: $0 wait|run|speaker|settle|browse <scale>" >&2; exit 2 ;;
+  *) echo "usage: $0 wait|run|speaker|settle|guess|browse <scale>" >&2; exit 2 ;;
 esac

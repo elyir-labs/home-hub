@@ -547,6 +547,27 @@ speaking() {
   rm -rf "$root"
 }
 
+# A glass made tall comes up wide the first time the wall starts, and only then (design/sideways-start/, B).
+guessing() {
+  group "a tall glass is turned a quarter the first time, and a kept turn is never guessed over"
+  local root; root=$(mktemp -d); mkdir -p "$root/drm/card1-DSI-1" "$root/ask"
+  echo connected > "$root/drm/card1-DSI-1/status"
+  start() { echo "$1" > "$root/drm/card1-DSI-1/modes"
+    ELYIR_TURN_FILE="$root/turn" ELYIR_SCREEN_ASK="$root/ask" HUB_DRM="$root/drm" "$HERE/../../startup/wall.sh" guess; }
+  kept() { cat "$root/turn" 2>/dev/null || echo none; }
+
+  start 1280x800
+  is "a glass made wide is left as it is" "$(kept)" "none"
+  start 720x1280
+  is "a glass made tall is turned a quarter" "$(kept)" "90"
+  is "...and the startup is asked to follow" "$(cat "$root/ask/turn.request" 2>/dev/null)" "90"
+  rm -f "$root/ask/turn.request"; echo 270 > "$root/turn"; start 720x1280
+  is "once a turn is kept, it is never guessed over" "$(kept) $([ -e "$root/ask/turn.request" ] && echo asked || echo quiet)" "270 quiet"
+  rm -f "$root/turn"; echo disconnected > "$root/drm/card1-DSI-1/status"; start 720x1280
+  is "with nothing plugged in, nothing is guessed" "$(kept)" "none"
+  rm -rf "$root"
+}
+
 # What first boot makes of a unit: the house's screen, or the house's hub. Never a second hub beside a
 # real one when the unit was told it is a screen (design/companion/, C). The checkout is fake: its
 # installers leave a file saying they ran, and find-hub.sh answers with $FOUND or nothing.
@@ -1293,6 +1314,6 @@ changing() {
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; keeping; speaking; awake; setting_up; moving_in; moving; describing
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; keeping; speaking; guessing; awake; setting_up; moving_in; moving; describing
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

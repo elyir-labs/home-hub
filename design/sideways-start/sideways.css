@@ -1,0 +1,41 @@
+/* A wall whose glass is made tall, hung wide, at its first start. Every board is drawn as the person
+   standing at it sees it: 1440x900. What is under the pills is the shipped panel on the mock brain,
+   screenshotted (shipped-*.png), because it does not change here; only the turning is drawn. The pill
+   is TurnPill.vue's, value for value. */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Instrument Sans", -apple-system, "SF Pro Text", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  --bg: #0c0d10; --edge-hi: rgba(255,255,255,.18);
+  --ink: #f1eee8; --ink-2: #b9b5ad; --muted: #7f7d77;
+  --lamp-rgb: 233, 184, 114; --lamp: rgb(var(--lamp-rgb));
+}
+
+.wall { position: relative; width: 1440px; height: 900px; overflow: hidden; color: var(--ink); background: #07090d; }
+
+/* the panel as the glass draws it: tall, lying on its side for the person at the wall (its top to their right) */
+.tall { position: absolute; left: 270px; top: -270px; width: 900px; height: 1440px; transform: rotate(90deg); }
+.wide { position: absolute; inset: 0; }
+.wide.over { transform: rotate(180deg); }
+.tall > img, .wide > img { display: block; width: 100%; height: 100%; }
+
+/* TurnPill.vue: drawn at the glass's edge, turned to be upright for whoever would read it there */
+.pill { position: absolute; display: inline-flex; align-items: center; gap: 10px; padding: 11px 18px 11px 14px; border-radius: 999px;
+        background: rgba(12, 13, 16, .55); border: 1px solid var(--edge-hi); color: var(--ink); font-size: 15px; white-space: nowrap; }
+.pill .ic { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; }
+.pill.top { left: 50%; top: 26px; transform: translateX(-50%) rotate(180deg); }
+.pill.foot { left: 50%; bottom: 26px; transform: translateX(-50%); }
+.pill.left { left: 50px; top: 50%; transform: translate(-50%, -50%) rotate(90deg); }
+.pill.right { right: 50px; top: 50%; transform: translate(50%, -50%) rotate(-90deg); }
+
+/* C's one control: round, no words, the same any way up */
+.knob { position: absolute; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center;
+        background: rgba(12, 13, 16, .55); border: 1px solid var(--edge-hi); color: var(--ink); }
+.knob .ic { width: 40px; height: 40px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; }
+
+/* the flips under a board that has states; never part of the screen being argued about */
+.flips { position: absolute; right: 20px; bottom: 18px; display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted);
+         background: rgba(0,0,0,.6); padding: 5px; border-radius: 999px; z-index: 9; }
+.flip { padding: 5px 11px; border-radius: 999px; cursor: pointer; color: var(--ink-2); }
+.flip.on { background: var(--ink); color: var(--bg); }

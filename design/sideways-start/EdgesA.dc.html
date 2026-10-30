@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A, a pill at every edge</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="sideways.css">
+</head>
+<body data-step="before">
+<div class="wall">
+  <!-- the glass lays out tall; three pills sit at its other three edges, each upright for whoever would be reading from there -->
+  <div class="tall" data-if="step:before"><img src="shipped-setup-tall.png" alt="">
+    <span class="pill top"><span class="ic turn-icon"></span>Upside down? Tap to turn it</span>
+    <span class="pill left"><span class="ic turn-icon"></span>On its side? Tap to turn it</span>
+    <span class="pill right"><span class="ic turn-icon"></span>On its side? Tap to turn it</span>
+  </div>
+
+  <div class="wide" data-if="step:after"><img src="shipped-setup-wide.png" alt="">
+    <span class="pill foot"><span class="ic turn-icon"></span>Turned. Put it back</span>
+  </div>
+
+  <div class="wide" data-if="step:right"><img src="shipped-setup-wide.png" alt="">
+    <span class="pill top"><span class="ic turn-icon"></span>Upside down? Tap to turn it</span>
+    <span class="pill left"><span class="ic turn-icon"></span>On its side? Tap to turn it</span>
+    <span class="pill right"><span class="ic turn-icon"></span>On its side? Tap to turn it</span>
+  </div>
+
+  <div class="flips" data-k="step"><span style="padding: 0 6px;">Showing</span>
+    <span class="flip" data-v="before">first start, on its side</span><span class="flip" data-v="after">after the tap</span><span class="flip" data-v="right">a screen hung the right way</span></div>
+</div>
+<script src="sideways.js"></script>
+</body>
+</html>
