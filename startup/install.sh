@@ -5,10 +5,21 @@
 # panel full screen once the product answers. Run once, as root, from first boot when a screen is
 # connected (driver-layer/host/firstboot.sh), or by hand; running it again brings the splash up to
 # date with this checkout.
+#
+# --if-changed is the hub's update asking: it runs only when startup/ is not what was last installed. Without it,
+# a hub set up before a unit was added here (the turn watcher, the screen's own updates) never got that unit,
+# because an update moves the files and nothing more.
 set -euo pipefail
 DIR="${HOME_HUB_DIR:-/opt/home-hub}"
 HERE="$DIR/startup"
+STAMP="${ELYIR_STARTUP_STAMP:-/var/lib/elyir-screen/installed}"
 log() { printf '[startup] %s\n' "$*"; }
+# What this checkout's startup is, by the files git holds for it. No answer is never the same as the last one.
+SUM=""
+if git -C "$DIR" rev-parse --git-dir >/dev/null 2>&1; then
+  SUM="$(git -C "$DIR" ls-files -s startup driver-layer/host/wifi-awake.sh | cksum | cut -d' ' -f1)"
+fi
+if [ "${1:-}" = --if-changed ] && [ -n "$SUM" ] && [ "$(cat "$STAMP" 2>/dev/null)" = "$SUM" ]; then exit 0; fi
 [ "$(id -u)" = 0 ] || { echo "run as root" >&2; exit 1; }
 
 log "packages: a one-window compositor, its display scaling and a browser"
@@ -59,4 +70,5 @@ systemctl enable --now elyir-screen-update.timer >/dev/null 2>&1 || true
 systemctl enable --now elyir-screen-role.path >/dev/null 2>&1 || true
 systemctl enable --now elyir-screen-turn.path >/dev/null 2>&1 || true
 systemctl enable --now elyir-screen-report.timer >/dev/null 2>&1 || true
+[ -n "$SUM" ] && echo "$SUM" > "$STAMP"
 log "done; it shows from the next boot"

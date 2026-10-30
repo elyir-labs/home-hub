@@ -473,6 +473,30 @@ SH
 }
 
 
+# A hub's update brings the screen's side up to date only when startup/ changed: a hub set up before a unit was
+# added there gets it, and one already current is not set up again every night. id never says root here, so "run
+# as root" is the sign it went on to install.
+catching_up() {
+  group "a hub's update sets its screen up again when the screen's side changed, and only then"
+  local root co; root=$(mktemp -d); co="$root/co"; mkdir -p "$co/startup" "$co/driver-layer/host" "$root/bin"
+  printf '#!/usr/bin/env bash\necho 1000\n' > "$root/bin/id"; chmod +x "$root/bin/id"   # never root, whoever runs this
+  echo one > "$co/startup/wall.sh"; echo awake > "$co/driver-layer/host/wifi-awake.sh"
+  git -C "$co" init -q && git -C "$co" add -A && git -C "$co" -c user.name=t -c user.email=t@t commit -qm one
+  up() { PATH="$root/bin:$PATH" HOME_HUB_DIR="$co" ELYIR_STARTUP_STAMP="$root/installed" "$HERE/../../startup/install.sh" --if-changed 2>&1 | head -1; }
+  sum() { git -C "$co" ls-files -s startup driver-layer/host/wifi-awake.sh | cksum | cut -d' ' -f1; }
+
+  is "never set up from this checkout: it is" "$(up)" "run as root"
+  sum > "$root/installed"
+  is "set up from these same files: nothing is done" "$(up)" ""
+  echo two > "$co/startup/wall.sh"; git -C "$co" -c user.name=t -c user.email=t@t commit -qam two
+  is "the screen's side changed: it is set up again" "$(up)" "run as root"
+  sum > "$root/installed"; echo "# a comment" > "$co/README.md"; git -C "$co" add -A; git -C "$co" -c user.name=t -c user.email=t@t commit -qm three
+  is "only the rest of the hub changed: nothing is done" "$(up)" ""
+  rm -rf "$co/.git"
+  is "no git to say what it is: it is set up, rather than guessed current" "$(up)" "run as root"
+  rm -rf "$root"
+}
+
 # A screen opens the hub by its name, and the name is found by asking the whole Wi-Fi. When the Wi-Fi
 # stops hearing the answers the hub is still right there, so the address it last had is kept in the
 # hosts file, refreshed whenever the name answers and the thing answering is a hub.
@@ -1293,6 +1317,6 @@ changing() {
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; keeping; speaking; awake; setting_up; moving_in; moving; describing
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; awake; setting_up; moving_in; moving; describing
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

@@ -415,6 +415,12 @@ splash starting
 # shellcheck disable=SC2086
 docker compose up -d --remove-orphans $RECREATE
 
+# A hub with a screen of its own brings the screen's side up to date too, once the house is back. It shows from
+# the wall's next start; the wall is not restarted under somebody using it.
+if [ -f /etc/systemd/system/elyir-wall.service ] && [ -x "$DIR/startup/install.sh" ]; then
+  HOME_HUB_DIR="$DIR" "$DIR/startup/install.sh" --if-changed >/dev/null 2>&1 || echo "  (the screen's startup could not be brought up to date; the house is unaffected)"
+fi
+
 IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 say "Done. On a phone or tablet on the same Wi‑Fi open:"
 echo "    http://$HOSTNAME_WANTED.local      (or http://$IP)"
