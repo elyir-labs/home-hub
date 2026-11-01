@@ -4,14 +4,17 @@
    `node --test site/site.test.mjs` */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { onRequest as install } from './functions/install.js'
 import { onRequestPost as waitlist } from './functions/waitlist.js'
+import { COUNTED, onRequest as middleware } from './functions/_middleware.js'
+import { POLICY } from './policy.js'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const page = readFileSync(path.join(HERE, 'index.html'), 'utf8')
+const pages = readdirSync(HERE).filter((f) => f.endsWith('.html'))
 const text = (html) => html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
 const at = (s) => { const i = page.indexOf(s); assert.notEqual(i, -1, `the page should have ${s}`); return i }
 
@@ -136,10 +139,69 @@ test('the waitlist says plainly when it has nowhere to write', async () => {
 })
 
 test('a visit asks nobody else for anything: no fonts, scripts or pictures from another site', () => {
-  const fetched = [...page.matchAll(/<(?:link|script|img|iframe)\b[^>]*\b(?:href|src)="([^"]+)"/g)].map((m) => m[1])
-  assert.ok(fetched.length > 0)
-  for (const url of fetched) assert.ok(url.startsWith('/'), `the page loads ${url}`)
-  assert.ok(!/url\(['"]?https?:/.test(page), 'nor from a stylesheet')
+  for (const name of pages) {
+    const html = readFileSync(path.join(HERE, name), 'utf8')
+    const fetched = [...html.matchAll(/<(?:link|script|img|iframe)\b[^>]*\b(?:href|src)="([^"]+)"/g)].map((m) => m[1])
+    for (const url of fetched) assert.ok(url.startsWith('/'), `${name} loads ${url}`)
+    assert.ok(!/url\(['"]?https?:/.test(html), `nor from ${name}'s stylesheet`)
+    assert.ok(!/<script(?![^>]*\bsrc=)[^>]*>/.test(html), `${name} has a script inline, which its policy would refuse`)
+    assert.ok(!/cloudflareinsights|data-cf-beacon|gtag|plausible/i.test((html.match(/<[^>]+>/g) || []).join('')), `${name} counts its visitors`)
+  }
+  for (const script of ['site.js']) assert.ok(!/https?:\/\//.test(readFileSync(path.join(HERE, script), 'utf8')), `${script} talks to another site`)
+})
+
+test('every page refuses a script from another site, even one added on the way out', () => {
+  const rules = Object.fromEntries(readFileSync(path.join(HERE, '_headers'), 'utf8').split(/\n(?=\/)/).map((block) => {
+    const [where, ...lines] = block.trim().split('\n')
+    return [where.trim(), lines.join('\n')]
+  }))
+  for (const name of pages) {
+    const where = name === 'index.html' ? '/' : `/${name.replace(/\.html$/, '')}`
+    assert.ok((rules[where] || '').includes(`Content-Security-Policy: ${POLICY}`), `${where} has no policy`)
+  }
+})
+
+// A D1 stand-in that keeps what it is told, so the test can see everything a count stores.
+function countsDb() {
+  const rows = new Map(), sql = []
+  return { rows, sql, prepare: (q) => ({ q, args: [], bind(...a) { this.args = a; return this } }),
+    batch: async (stmts) => { for (const s of stmts) { sql.push(s.q); if (/INSERT/.test(s.q)) { const k = s.args.join('|'); rows.set(k, (rows.get(k) || 0) + 1) } } } }
+}
+async function visit(url, { method = 'GET', ua = 'Mozilla/5.0', status = 200, db = countsDb() } = {}) {
+  const later = []
+  const res = await middleware({ request: new Request(url, { method, headers: { 'User-Agent': ua } }), env: { COUNTS: db },
+    next: async () => new Response('<p>hi</p>', { status }), waitUntil: (p) => later.push(p) })
+  await Promise.all(later)
+  return { res, db }
+}
+
+test('a page load is counted as a number for that page and day, and nothing else about it', async () => {
+  const db = countsDb()
+  for (const url of ['https://hub.elyir.com/', 'https://hub.elyir.com/', 'https://hub.elyir.com/privacy', 'https://hub.elyir.com/try/']) await visit(url, { db })
+  await visit('https://hub.elyir.com/install', { db, ua: 'curl/8.7.1' })
+  const day = new Date().toISOString().slice(0, 10)
+  assert.deepEqual(Object.fromEntries(db.rows), { [`${day}|/`]: 2, [`${day}|/privacy`]: 1, [`${day}|/try/`]: 1, [`${day}|/install`]: 1 })
+  for (const q of db.sql) assert.doesNotMatch(q, /ip|address|agent|cookie|country|referr?er/i, `a count keeps more than the page and the day: ${q}`)
+  assert.deepEqual(COUNTED, ['/', '/privacy', '/install', '/try/'])
+})
+
+test('the watcher, robots, failures and anything that is not a page are not counted', async () => {
+  const db = countsDb()
+  await visit('https://hub.elyir.com/', { db, ua: 'elyir-watch' })
+  await visit('https://hub.elyir.com/', { db, ua: 'Googlebot/2.1' })
+  await visit('https://hub.elyir.com/', { db, method: 'HEAD' })
+  await visit('https://hub.elyir.com/install', { db, status: 302 })
+  await visit('https://hub.elyir.com/waitlist', { db })
+  await visit('https://hub.elyir.com/try/assets/index.js', { db })
+  assert.equal(db.rows.size, 0)
+  const routes = JSON.parse(readFileSync(path.join(HERE, '_routes.json'), 'utf8')).include
+  for (const p of [...COUNTED, '/install', '/waitlist']) assert.ok(routes.includes(p), `_routes.json leaves ${p} out`)
+  assert.ok(!routes.some((p) => p.includes('*')), 'only these paths run a function; the pictures and the pretend house\'s files never do')
+})
+
+test('a page that passed through the counter still refuses other sites\' scripts', async () => {
+  for (const url of ['https://hub.elyir.com/', 'https://hub.elyir.com/privacy']) assert.equal((await visit(url)).res.headers.get('content-security-policy'), POLICY)
+  assert.equal((await visit('https://hub.elyir.com/install')).res.headers.get('content-security-policy'), null)
 })
 
 test('the privacy page is reachable from the waitlist, and says what it keeps', () => {
@@ -149,5 +211,6 @@ test('the privacy page is reachable from the waitlist, and says what it keeps', 
   const privacy = text(readFileSync(path.join(HERE, 'privacy.html'), 'utf8'))
   assert.match(privacy, /your email address, that it was for the hub, and when you joined/)
   assert.match(privacy, /privacy@elyir\.app/)
+  assert.match(privacy, /We count how many times each page is loaded and the install command is fetched, and nothing that tells one visitor from another\./)
   for (const word of ['relay', 'brain', 'entity', 'integration']) assert.ok(!new RegExp(`\\b${word}`, 'i').test(privacy), `the privacy page says ${word}`)
 })
