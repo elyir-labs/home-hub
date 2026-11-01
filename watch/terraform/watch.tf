@@ -1,6 +1,7 @@
 # The maker's watcher (watch/worker.js): every minute it checks what we run from outside and writes to the operator
 # when something stops answering; on Monday mornings it sends the week in numbers. On Cloudflare because the site
-# already is, so watching adds no company to the list. It has no address of its own: nothing calls it, it only calls.
+# already is, so watching adds no company to the list. Its one page, the numbers between Mondays (design/watch), is at
+# watch.<zone_name>, and only the operator gets in: Cloudflare Access asks for a code sent to alert_to.
 
 locals {
   weekly = "0 8 * * 1" # Monday 08:00 UTC
@@ -33,11 +34,14 @@ data "cloudflare_d1_database" "counts" {
 }
 
 resource "cloudflare_workers_script" "watch" {
-  account_id         = var.account_id
-  script_name        = "elyir-watch"
-  content_file       = "${path.module}/../worker.js"
-  content_sha256     = filesha256("${path.module}/../worker.js")
-  main_module        = "worker.js"
+  account_id     = var.account_id
+  script_name    = "elyir-watch"
+  content_file   = "${path.module}/../worker.js"
+  content_sha256 = filesha256("${path.module}/../worker.js")
+  main_module    = "worker.js"
+  files = {
+    "page.js" = { content_file = "${path.module}/../page.js", content_type = "application/javascript+module" }
+  }
   compatibility_date = "2026-10-01"
 
   bindings = [
@@ -50,10 +54,12 @@ resource "cloudflare_workers_script" "watch" {
     { type = "plain_text", name = "FROM", text = var.alert_from },
     { type = "plain_text", name = "WEEKLY", text = local.weekly },
     { type = "plain_text", name = "REPOSITORY", text = var.repository },
+    { type = "plain_text", name = "ACCESS_TEAM", text = cloudflare_zero_trust_organization.team.auth_domain },
+    { type = "plain_text", name = "ACCESS_AUD", text = cloudflare_zero_trust_access_application.watch.aud },
   ]
 }
 
-# Off: the Worker answers nothing, so it has no workers.dev address to answer at.
+# Off: the page is answered only at its own address, where Access stands in front of it.
 resource "cloudflare_workers_script_subdomain" "watch" {
   account_id       = var.account_id
   script_name      = cloudflare_workers_script.watch.script_name

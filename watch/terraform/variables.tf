@@ -26,6 +26,20 @@ variable "relay_auth_token" {
   sensitive   = true
 }
 
+variable "zone_name" {
+  description = "The page is at watch.<zone_name>, beside the hub's site at hub.<zone_name> (site/terraform)."
+  type        = string
+  default     = "elyir.com"
+}
+
+variable "access_team" {
+  description = <<-EOT
+    The account's Zero Trust team name: Access's sign-in page is <access_team>.cloudflareaccess.com. Team names are
+    unique across Cloudflare, and an account that already has a team must use its existing name (README.md).
+  EOT
+  type        = string
+}
+
 variable "repository" {
   description = "Whose releases the Monday note counts downloads of."
   type        = string

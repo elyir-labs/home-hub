@@ -2,7 +2,10 @@
 // and writes to the operator when one stops answering and again when it is back. On Monday mornings it sends the
 // week in numbers: how often each was up, how the relay is doing, the waitlist and the downloads. It reads only what
 // our own services already see, and nothing about a visitor or a house (AGENTS.md, section 5). It runs on Cloudflare,
-// which already serves the site, so watching adds no new company; watch/terraform makes it.
+// which already serves the site, so watching adds no new company; watch/terraform makes it. Its one page, the numbers
+// between Mondays, is page.js, at watch.<zone> behind Cloudflare Access.
+
+import { PAGE_NAMES, p95, pct, render, shape } from './page.js'
 
 const MISSES = 2                 // in a row before anybody is written to: one is the internet, two is us
 const KEEP_DAYS = 35
@@ -88,15 +91,7 @@ export function step(prev, result, at) {
   return { state, began: true, say: { subject: `Down: ${result.name}`, text: `${result.name} ${result.why}.\n\nIt has failed ${state.misses} checks in a row, since ${new Date(state.down_since).toUTCString()}.` } }
 }
 
-const pct = (up, n) => (n ? `${(Math.floor((up / n) * 10000) / 100).toFixed(2)}%` : 'no checks')
-function p95(values) {
-  if (!values.length) return null
-  const sorted = [...values].sort((a, b) => a - b)
-  return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))]
-}
-
 // The Monday note: plain text, numbers only, a week against the one before where there is one.
-const PAGE_NAMES = { '/': 'The front page', '/privacy': 'The privacy page', '/install': 'The install command', '/try/': 'The pretend house' }
 
 export function digest({ checks, incidents, relayNow, relayBefore, loads, waitlist, downloads }) {
   const lines = ['How the week went.', '', 'UP, AND HOW QUICKLY (95 in 100 answers were at least this fast)']
@@ -142,8 +137,27 @@ const SCHEMA = [
   'CREATE TABLE IF NOT EXISTS state (name TEXT PRIMARY KEY, misses INTEGER NOT NULL, down_since INTEGER, told INTEGER NOT NULL)',
   'CREATE TABLE IF NOT EXISTS incidents (name TEXT NOT NULL, began INTEGER NOT NULL, ended INTEGER, why TEXT)',
   'CREATE TABLE IF NOT EXISTS relay (at INTEGER NOT NULL, body TEXT NOT NULL)',
+  'CREATE INDEX IF NOT EXISTS relay_at ON relay (at)',
   'CREATE TABLE IF NOT EXISTS downloads (at INTEGER NOT NULL, total INTEGER NOT NULL)',
+  'CREATE INDEX IF NOT EXISTS downloads_at ON downloads (at)',
+  // Each service's hour in four numbers, so the page reads a week as hundreds of rows rather than ninety thousand.
+  'CREATE TABLE IF NOT EXISTS hours (name TEXT NOT NULL, hour INTEGER NOT NULL, n INTEGER NOT NULL, up INTEGER NOT NULL, p95 INTEGER, PRIMARY KEY (name, hour))',
 ]
+
+export function rollUp(rows, hour) {
+  const by = new Map()
+  for (const r of rows) by.set(r.name, [...(by.get(r.name) || []), r])
+  return [...by].map(([name, mine]) => ({ name, hour, n: mine.length, up: mine.filter((r) => r.ok).length, p95: p95(mine.filter((r) => r.ok).map((r) => r.ms)) }))
+}
+
+async function everyHour(env, at) {
+  const db = env.DB, hour = Math.floor(at / 3_600_000) * 3_600_000 - 3_600_000
+  const rows = (await db.prepare('SELECT name, ok, ms FROM checks WHERE at >= ?1 AND at < ?2').bind(hour, hour + 3_600_000).all()).results
+  const writes = rollUp(rows, hour).map((h) => db.prepare('INSERT OR REPLACE INTO hours (name, hour, n, up, p95) VALUES (?1, ?2, ?3, ?4, ?5)').bind(h.name, h.hour, h.n, h.up, h.p95))
+  const total = await downloadsNow(env).catch(() => null)
+  if (total != null) writes.push(db.prepare('INSERT INTO downloads (at, total) VALUES (?1, ?2)').bind(at, total))
+  if (writes.length) await db.batch(writes)
+}
 
 async function everyMinute(env, at) {
   const db = env.DB
@@ -163,9 +177,11 @@ async function everyMinute(env, at) {
   if (seen.relay && new Date(at).getUTCMinutes() % 15 === 0) writes.push(db.prepare('INSERT INTO relay (at, body) VALUES (?1, ?2)').bind(at, JSON.stringify(seen.relay)))
   if (new Date(at).getUTCHours() === 3 && new Date(at).getUTCMinutes() === 0) {
     writes.push(db.prepare('DELETE FROM checks WHERE at < ?1').bind(at - KEEP_DAYS * DAY))
+    writes.push(db.prepare('DELETE FROM hours WHERE hour < ?1').bind(at - KEEP_DAYS * DAY))
   }
   await db.batch(writes)
   for (const s of says) await mail(env, s.subject, s.text)
+  if (new Date(at).getUTCMinutes() === 0) await everyHour(env, at)
 }
 
 async function downloadsNow(env) {
@@ -201,14 +217,92 @@ async function weekly(env, at) {
   let downloads = null
   const total = await downloadsNow(env).catch(() => null)
   if (total != null) {
-    const before = await db.prepare('SELECT total FROM downloads WHERE at <= ?1 ORDER BY at DESC LIMIT 1').bind(at - 6 * DAY).first()
+    const before = await db.prepare('SELECT total FROM downloads WHERE at <= ?1 ORDER BY at DESC LIMIT 1').bind(at - 7 * DAY).first()
     await db.prepare('INSERT INTO downloads (at, total) VALUES (?1, ?2)').bind(at, total).run()
     downloads = { total, before: before?.total ?? null }
   }
   await mail(env, 'The week, in numbers', digest({ checks, incidents, relayNow, relayBefore, loads, waitlist, downloads }))
 }
 
+// Everything the page shows, read in a few batches. Weeks are rolling, ending now, the same as the Monday note's.
+export async function gather(env, now) {
+  const db = env.DB, weeks = Array.from({ length: 9 }, (_, i) => now - (8 - i) * 7 * DAY)
+  await db.batch(SCHEMA.map((s) => db.prepare(s)))
+  const latestAt = (await db.prepare('SELECT max(at) AS at FROM checks').first())?.at ?? 0
+  const at = (sql) => weeks.map((w) => db.prepare(sql).bind(w))
+  const [latest, state, hours, incidents, relayNow, ...snaps] = await db.batch([
+    db.prepare('SELECT name, at, ok FROM checks WHERE at = ?1').bind(latestAt),
+    db.prepare('SELECT s.*, (SELECT why FROM checks c WHERE c.name = s.name AND c.at = ?1) AS why FROM state s').bind(latestAt),
+    db.prepare('SELECT name, hour, n, up, p95 FROM hours WHERE hour >= ?1').bind(now - 7 * DAY - 4 * 3_600_000),
+    db.prepare('SELECT name, began, ended, why FROM incidents WHERE began >= ?1 OR ended IS NULL OR ended >= ?1').bind(now - 7 * DAY - 4 * 3_600_000),
+    db.prepare('SELECT body FROM relay ORDER BY at DESC LIMIT 1'),
+    ...at('SELECT body FROM relay WHERE at <= ?1 ORDER BY at DESC LIMIT 1').slice(1),
+    ...at('SELECT total FROM downloads WHERE at <= ?1 ORDER BY at DESC LIMIT 1'),
+  ])
+  const one = (r) => r.results[0]
+  const relay = one(relayNow) ? JSON.parse(one(relayNow).body) : null
+  const carried = snaps.slice(0, 8).map((r) => (one(r) ? JSON.parse(one(r).body).houses?.carried ?? null : null))
+  const downloads = snaps.slice(8).map((r) => one(r)?.total ?? null)
+  const from = new Date(now - 8 * 7 * DAY).toISOString().slice(0, 10)
+  const loads = env.COUNTS
+    ? (await env.COUNTS.prepare('SELECT day, path, n FROM loads WHERE day >= ?1').bind(from).all().catch(() => ({ results: [] }))).results.map((r) => ({ ...r, day: Date.parse(r.day) }))
+    : []
+  let joins = [], joinedTotal = 0
+  if (env.WAITLIST) {
+    const [recent, all] = await env.WAITLIST.batch([
+      env.WAITLIST.prepare("SELECT at FROM signups WHERE product = 'hub' AND at >= ?1").bind(from),
+      env.WAITLIST.prepare("SELECT count(*) AS n FROM signups WHERE product = 'hub'"),
+    ])
+    joins = recent.results.map((r) => r.at)
+    joinedTotal = all.results[0]?.n ?? 0
+  }
+  return {
+    now, names: CHECKS.map((c) => c.name), latest: latest.results,
+    state: Object.fromEntries(state.results.map((r) => [r.name, r])),
+    hours: hours.results, incidents: incidents.results, relay, carried, loads, joins, joinedTotal, downloads,
+  }
+}
+
+// Access stands in front of the page, and the page checks Access's signed token as well, so a mistake in front of it
+// (a rule widened, a second address) shows a refusal rather than the numbers.
+const b64 = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '=')), (c) => c.charCodeAt(0))
+let certs = { at: 0, keys: [] }
+
+export async function signedIn(req, env, now = Date.now(), fetcher = fetch) {
+  const token = req.headers.get('Cf-Access-Jwt-Assertion')
+  if (!token || !env.ACCESS_AUD || !env.ACCESS_TEAM) return false
+  try {
+    const [h, p, sig] = token.split('.')
+    const head = JSON.parse(new TextDecoder().decode(b64(h))), claims = JSON.parse(new TextDecoder().decode(b64(p)))
+    if (head.alg !== 'RS256' || claims.iss !== `https://${env.ACCESS_TEAM}`) return false
+    if (![].concat(claims.aud).includes(env.ACCESS_AUD) || !(claims.exp * 1000 > now)) return false
+    if (now - certs.at > 3_600_000 || !certs.keys.some((k) => k.kid === head.kid)) {
+      certs = { at: now, keys: (await (await fetcher(`https://${env.ACCESS_TEAM}/cdn-cgi/access/certs`)).json()).keys || [] }
+    }
+    const jwk = certs.keys.find((k) => k.kid === head.kid)
+    if (!jwk) return false
+    const key = await crypto.subtle.importKey('jwk', jwk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify'])
+    return await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, b64(sig), new TextEncoder().encode(`${h}.${p}`))
+  } catch {
+    return false
+  }
+}
+
+const HEADERS = {
+  'Content-Type': 'text/html; charset=utf-8',
+  'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; font-src https://hub.elyir.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  'Cache-Control': 'no-store',
+  'Referrer-Policy': 'no-referrer',
+  'X-Content-Type-Options': 'nosniff',
+}
+
 export default {
+  async fetch(req, env) {
+    if (new URL(req.url).pathname !== '/') return new Response('Not here.', { status: 404 })
+    if (!(await signedIn(req, env))) return new Response('Sign in through Cloudflare Access first.', { status: 403 })
+    return new Response(render(shape(await gather(env, Date.now()))), { headers: HEADERS })
+  },
+
   async scheduled(event, env, ctx) {
     const at = event.scheduledTime
     if (event.cron === env.WEEKLY) return ctx.waitUntil(weekly(env, at))

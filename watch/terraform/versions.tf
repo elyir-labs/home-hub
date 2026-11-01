@@ -10,5 +10,6 @@ terraform {
 }
 
 # The token comes from CLOUDFLARE_API_TOKEN in the environment: never a variable, never in state, never in this
-# repository. It needs Account > Workers Scripts > Edit and Account > D1 > Edit.
+# repository. It needs Account > Workers Scripts > Edit, Account > D1 > Edit, Account > Access: Apps and Policies > Edit,
+# Account > Access: Organizations, Identity Providers, and Groups > Edit, Zone > Workers Routes > Edit and Zone > Zone > Read.
 provider "cloudflare" {}
