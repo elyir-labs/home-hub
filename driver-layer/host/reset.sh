@@ -8,7 +8,8 @@
 # a fresh install leaves it, and starts the house again, which then opens on Welcome.
 #
 # What belongs to the unit rather than the house stays: what it updates from and the key it checks updates
-# with, its name and address on the network, the Wi-Fi it is on, and its own Wi-Fi with the label's password.
+# with, its name and address on the network, and its own Wi-Fi with the label's password. The house's Wi-Fi
+# password goes: a hub on a cable stays online, and one on Wi-Fi comes back on its own, for the label's code.
 # Every secret the house had is made again, so nothing that knew the old one gets in.
 set -uo pipefail
 DIR="${HOME_HUB_DIR:-/opt/home-hub}"
@@ -53,8 +54,16 @@ erase() {
   } > .env.new && mv .env.new .env && rm -f .env.kept
   chmod 600 .env
   echo "kept $(grep -c . .env) lines of .env, every secret made again"
+  if command -v nmcli >/dev/null 2>&1; then
+    nmcli -t -f UUID,TYPE connection show 2>/dev/null | awk -F: '$2 == "802-11-wireless" {print $1}' | while read -r id; do
+      [ "$(nmcli -g connection.id connection show "$id" 2>/dev/null)" = home-hub-setup ] && continue
+      nmcli connection delete "$id" >/dev/null 2>&1 && echo "forgot a Wi-Fi network"
+    done
+  fi
   for f in "$KEYS_DIR"/*.keys; do [ -f "$f" ] && : > "$f" && echo "emptied $(basename "$f")"; done
   chmod +x mqtt-auth.sh host-tier.sh && ./mqtt-auth.sh && ./host-tier.sh
   docker compose up -d
+  # With nothing saved left, network.sh raises the hub's own Wi-Fi now rather than on the next minute.
+  if [ -x host/network.sh ]; then host/network.sh; fi
 ) > "$LOG" 2>&1 || { said failed; exit 1; }
 said done

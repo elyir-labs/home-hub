@@ -144,8 +144,8 @@ container before the Pi's first start so the two do not fight over Ring's token.
 - Start over: the last row of *This hub*, behind the code and a hold (`design/leaving/`, B). It parks `reset.request` for
   `driver-layer/host/reset.sh`, which stops the house, erases each part that holds it back to what a fresh install
   leaves (with `git clean` and `git checkout` over those directories, so the hub must be a checkout), keeps only the
-  `.env` lines that describe the unit, makes every secret again, empties the SSH keys This hub was given, and starts the
-  house on Welcome. The web address's name is given back first, by the brain.
+  `.env` lines that describe the unit, makes every secret again, forgets the house's Wi-Fi (a hub on Wi-Fi comes back on
+  its own, for the label's code), empties the SSH keys This hub was given, and starts the house on Welcome. The web address's name is given back first, by the brain.
 - The assistant (routines asked for in plain words, and "why did that happen?") needs a key for the model. Paste it into
   the panel's Routines sheet, or put `ANTHROPIC_API_KEY=` in `driver-layer/.env`. Without one the house runs exactly the same;
   only the asking is missing. The assistant writes drafts a person approves and explains from the log; it cannot touch a device.

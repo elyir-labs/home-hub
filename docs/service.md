@@ -111,6 +111,23 @@ The same sentence answers the obvious objection to paying at all, so it belongs 
 small print: *if the relay is down, or unpaid, or gone, the house works exactly as it does today.* That is already
 true and already tested. It is the strongest thing this service can say about itself and it costs nothing to say.
 
+## When a house stops
+
+Nobody pays for a house they no longer have. Two ways a house stops, and the account (account.elyir.com, bench-cloud,
+which takes the money) owes an answer to both:
+
+- **It says so.** Giving the web address back -- from This hub, or by Start over (`design/leaving/`, B) -- calls
+  `DELETE /v1/hub` with the hub's token, after the relay has let the name go (`brain/hub/address.py`, `forget`). The
+  account ends the plan at the end of the period already paid, never renews it, and emails the payer that it ended
+  and why. No refund question arises, because nothing more is taken.
+- **It goes quiet.** A hub that was erased mid-way, unplugged for good, or never reached the account when it gave the
+  name back has no way to say so. A carried house asks for a ticket every few days (`renew`), so the account ends a plan
+  whose house has not asked for 30 days, with the same email, saying the house stopped checking in and how to start
+  again. The hub keeps working at home either way; only the address stops.
+
+Both are the account's to build with its hub routes (`/v1/hubs`, `/v1/hub/code`, `/v1/hub/ticket`, `GET /v1/hub`), which
+are not built yet. Until they are, the offer stays closed (`/offer`) and no house can be paying.
+
 ## What is held about a household, and what cannot be
 
 The pass-through property is the pitch and it is also the reason the operator's burden stays small: **the relay

@@ -1332,7 +1332,17 @@ starting_over() {
   echo "not the house" > "$dl/notes.txt"
   printf 'TZ=America/Chicago\nHUB_HOST=hub.local\nHUB_CHANNEL=release\nCOMPOSE_PROFILES=zigbee\nMQTT_PASSWORD=old\nZWAVE_SESSION_SECRET=old\nHUB_SHARE_TOKEN=old\nHUB_AWAY_HOUSE=maple\nHUB_RELAY_SECRET=s3cret\nANTHROPIC_API_KEY=sk-x\n' > "$dl/.env"
   echo "ssh-ed25519 AAAA jordan@laptop" > "$keys/pi.keys"
-  printf '#!/usr/bin/env bash\necho "docker $*" >> "$ROOT/asked"\n' > "$bin/docker"; chmod +x "$bin/docker" "$dl"/*.sh
+  printf '#!/usr/bin/env bash\necho "docker $*" >> "$ROOT/asked"\n' > "$bin/docker"
+  cat > "$bin/nmcli" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "-t -f UUID,TYPE connection show") printf 'u-home:802-11-wireless\nu-setup:802-11-wireless\nu-cable:802-3-ethernet\n' ;;
+  "-g connection.id connection show u-setup") echo home-hub-setup ;;
+  "-g connection.id connection show u-home") echo "Bluebell" ;;
+  "connection delete "*) echo "$3" >> "$ROOT/forgot" ;;
+esac
+SH
+  chmod +x "$bin/docker" "$bin/nmcli" "$dl"/*.sh
   run() { rm -f "$root/asked"; PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_KEYS_DIR="$keys" "$dl/host/reset.sh" >/dev/null 2>&1; }
   env_has() { grep -c "^$1" "$dl/.env" | tr -d ' '; }
 
@@ -1352,6 +1362,7 @@ starting_over() {
     "$(env_has MQTT_PASSWORD)$(env_has HUB_AWAY_HOUSE)$(env_has HUB_RELAY_SECRET)$(env_has ANTHROPIC_API_KEY)" "0000"
   is "...and every secret install makes is made again" \
     "$(env_has ZWAVE_SESSION_SECRET=old)$(env_has HUB_SHARE_TOKEN=old) $(env_has ZWAVE_SESSION_SECRET=)$(env_has HUB_SHARE_TOKEN=)" "00 11"
+  is "the house's Wi-Fi is forgotten; the hub's own and the cable are not" "$(paste -sd, "$root/forgot")" "u-home"
   is "the SSH keys This hub was given are emptied" "$(wc -c < "$keys/pi.keys" | tr -d ' ')" "0"
   is "...and the request is gone" "$([ -f "$dl/brain-data/reset.request" ] && echo there || echo gone)" "gone"
 

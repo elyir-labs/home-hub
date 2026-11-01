@@ -57,7 +57,8 @@ onUnmounted(() => { cancelAnimationFrame(frame); clearInterval(poll) })
           <ul class="sov-means">
             <li class="hard"><b>Erased:</b> everything. Rooms, routines, phones, the passcode, the services the house signed into, what happened here and camera recordings.</li>
             <li class="hard">Lights that joined through the hub itself have to be reset, one by one, before they can join again. Ones on your Wi‑Fi are found again.</li>
-            <li>If the house has a web address, its name is given up.</li>
+            <li class="hard">The Wi‑Fi password goes too. On a cable the hub stays online; on Wi‑Fi it comes back on a Wi‑Fi of its own, which the code on its label joins.</li>
+            <li>If the house has a web address, its name is given up and its payments stop.</li>
             <li>Switches on the wall keep working. The hub restarts and opens on Welcome, in about four minutes.</li>
           </ul>
           <p class="error" v-if="error">{{ error }}</p>
@@ -71,7 +72,7 @@ onUnmounted(() => { cancelAnimationFrame(frame); clearInterval(poll) })
       </template>
       <div class="sheet-body sov-going" v-else>
         <h2 class="display">The hub is starting over.</h2>
-        <p class="sheet-lede">About four minutes. Switches on the wall keep working, and this screen opens on Welcome by itself.</p>
+        <p class="sheet-lede">About four minutes. Switches on the wall keep working, and this screen opens on Welcome by itself. A hub on Wi‑Fi is out of reach of phones until it is set up again.</p>
         <div class="sov-bar"><i></i></div>
       </div>
     </div>

@@ -331,8 +331,9 @@ Do not reopen these, and do not propose around them.
   `moving` and `describing` groups in `driver-layer/host/tests.sh`.
 - **Leaving a house: erasing is on The hub, handing over is on People** (1 November, `design/leaving/`, B). Start over
   is the last row of The hub: behind the passcode, refused outright on a hub with none, only in the house, and a hold.
-  It erases everything that is the house, keeps what is the unit's (what it updates from, its name on the network, the
-  Wi-Fi it is on, its own Wi-Fi), makes every secret again, gives the web address's name back, and opens on Welcome.
+  It erases everything that is the house, keeps what is the unit's (what it updates from, its name on the network, its
+  own Wi-Fi), forgets the house's Wi-Fi, makes every secret again, gives the web address back and stops its payments,
+  and opens on Welcome.
   Moving out, on People, hands the house to the next people: their rooms, lights and routines stay, and the phones,
   passcode, sign-ins, history and recordings go; it is not built yet. Taking the hub along is Start over with a backup,
   not a third answer. A hub with no screen and no code is switched off and on three times, then the label's code. Start
