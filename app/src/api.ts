@@ -207,6 +207,8 @@ export async function getDrive(): Promise<DriveState> {
   const r = await request('/drive'); if (!r.ok) await fail(r); return r.json()
 }
 export const moveToDrive = (name: string, serial: string) => post<DriveState>('/drive/move', { name, serial })
+/** Start over (design/leaving/, B): the hub erases the house and opens on Welcome. Behind the code. */
+export const startOver = () => post<{ ok: boolean }>('/reset')
 export const keepDrive = () => post<DriveState>('/drive/keep')
 export const driveSeen = () => post<DriveState>('/drive/seen')
 export type SeenNetwork = { ssid: string; signal?: 'strong' | 'ok' | 'faint'; band?: string | null; secure: boolean }

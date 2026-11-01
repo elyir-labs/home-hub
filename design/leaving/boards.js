@@ -13,6 +13,8 @@ window.LEAVING = {
     const css = document.createElement('style')
     css.textContent = STYLE
     document.head.append(css)
+    /* Start over is built now (B's own row on The hub), so every other board draws The hub as it was without it. */
+    if (id !== 'b-hub') document.querySelector('.start-over')?.closest('li')?.remove()
     const fn = BOARDS[id]
     if (fn) fn()
     toBottom()
@@ -80,7 +82,7 @@ const hold = (word, foot = 'Needs the passcode') => `<button class="dsh-hold"><i
 /* What every direction erases, and what the next people find, said once so the boards agree. */
 const PEOPLE_GO = '<b>Erased:</b> the 3 phones that can use the house, the passcode, Jordan, Sam and Alex, the services the house signed into, what happened here, and camera recordings.'
 const HOUSE_STAYS = '<b>Stays:</b> 8 rooms, the 30 lights, switches and cameras in them, 5 routines, and the bridges.'
-const ADDRESS_STOPS = 'If the house has a web address, it stops, and nothing more is charged.'
+const ADDRESS_STOPS = 'If the house has a web address, its name is given up.'
 const RADIO = 'Lights that joined through the hub itself have to be reset, one by one, before they can join again. Ones on your Wi-Fi are found again.'
 
 const handOver = (title) => sheet(title, `
@@ -121,8 +123,8 @@ const BOARDS = {
   'a-stays': () => { BOARDS['a-row'](); handOver('Leave the hub for the next people') },
 
   /* B -- EACH WHERE IT BELONGS: erasing is the computer's, handing over is about people */
-  'b-hub': () => hubRow('Start over', 'Erase everything and set the hub up as new.',
-    'For giving the hub away. Back up first if you might want this house back.', '<button class="button small ghost" style="color:var(--danger-text)">Start over…</button>'),
+  'b-hub': () => document.querySelector('.start-over') || hubRow('Start over', 'Erase everything and set the hub up as new.',
+    'For giving the hub away. Back up first if you might want this house back.', '<button class="button small ghost start-over" style="color:var(--danger-text)">Start over…</button>'),
   'b-people': () => pageRow('Moving out', 'Leaving the hub here for the next people?',
     'Your phones, passcode and sign-ins are erased. The rooms, lights and routines stay for them.', '<button class="button small ghost">Hand it over…</button>'),
   'b-hand': () => { BOARDS['b-people'](); handOver('Hand the house over') },

@@ -7,7 +7,8 @@ always does. These tests state that as a contract so a new route cannot quietly 
 
 Run from brain/: .venv/bin/python -m unittest -v
 """
-import unittest
+import tempfile, unittest
+from pathlib import Path
 
 from hub.lock import needs_code
 from hub.phones import COOKIE, open_to_strangers
@@ -259,7 +260,7 @@ class WhichSideOfTheDoorTests(unittest.TestCase):
                              ("POST", "/devices/light.ceiling/move"), ("POST", "/devices/light.ceiling/rename"),
                              ("POST", "/location"), ("POST", "/home/entry"), ("GET", "/setup/advanced"),
                              ("POST", "/setup/pin"), ("POST", "/flows"), ("POST", "/credentials"),
-                             ("POST", "/assistant/key"), ("GET", "/backup"), ("POST", "/restore"),
+                             ("POST", "/assistant/key"), ("GET", "/backup"), ("POST", "/restore"), ("POST", "/reset"),
                              ("POST", "/bridge/adopt"), ("POST", "/bridge/wifi"),
                              ("POST", "/pair"), ("DELETE", "/phones/abc"), ("POST", "/update"),
                              ("POST", "/update/auto")]:
@@ -594,3 +595,41 @@ class OpenHousePushTests(ApiTest):
 
     def test_nor_any_phone_from_the_store_app(self):
         self.assertEqual(self.client.post("/phones/me/push", json={"apns": apns_identity()[0]}).status_code, 409)
+
+
+class StartingOverNeedsTheCodeAndTheHouse(ApiTest):
+    """Start over (design/leaving/, B) erases the house. On a hub with no code it is refused outright, as the backup is,
+    because nothing would stand between anybody on the Wi-Fi and it; with a code, the code; and never from outside."""
+    def setUp(self):
+        super().setUp()
+        from hub import backup
+        self.backup = backup
+        self.tmp = tempfile.TemporaryDirectory()
+        self.keep = (backup.RESET, backup.REQUEST, backup.ARCHIVE)
+        backup.RESET, backup.REQUEST, backup.ARCHIVE = (Path(self.tmp.name) / n for n in ("reset.request", "restore.request", "restore.tar.gz"))
+        self.forgot = []
+        self.hub.address.forget = lambda who="the wall": self.forgot.append(who)
+
+    def tearDown(self):
+        self.backup.RESET, self.backup.REQUEST, self.backup.ARCHIVE = self.keep
+        self.tmp.cleanup()
+        super().tearDown()
+
+    def test_a_house_with_no_code_is_told_to_set_one(self):
+        r = self.client.post("/reset")
+        self.assertEqual(r.status_code, 403)
+        self.assertIn("Set a passcode first", r.json()["detail"])
+        self.assertFalse(self.backup.RESET.exists())
+
+    def test_with_the_code_it_gives_the_address_back_and_asks_the_host(self):
+        code = self.lock_the_house()
+        _, token = self.hub.phones.from_setup()
+        self.client.cookies.set(COOKIE, token)
+        self.assertEqual(self.client.post("/reset").status_code, 401)
+        self.assertFalse(self.backup.RESET.exists())
+        r = self.client.post("/reset", headers={"x-hub-code": code})
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertTrue(self.backup.RESET.exists())
+        self.assertEqual(len(self.forgot), 1)
+        self.assertEqual(self.client.post("/reset", headers={"x-hub-code": code}).status_code, 409, "asked twice is one start over")
+

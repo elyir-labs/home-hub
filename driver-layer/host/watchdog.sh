@@ -27,7 +27,7 @@ GAP="${HOME_HUB_WATCHDOG_GAP:-60}"
 
 # Somebody is already doing something to this house. Every one of these ends in the stack coming back
 # up by itself, and a watchdog racing them is a watchdog that breaks the thing it is guarding.
-for f in update.request restore.request restart.request restore.tar.gz; do
+for f in update.request restore.request reset.request restart.request restore.tar.gz; do
   [ -e "$DATA/$f" ] && exit 0
 done
 for f in update.json restore.json; do
@@ -82,7 +82,7 @@ alive && exit 0
 for _ in $(seq 2 "$MISSES"); do
   sleep "$GAP"
   # Anything that started while we were waiting takes the house back; this stands down.
-  for f in update.request restore.request restart.request; do [ -e "$DATA/$f" ] && exit 0; done
+  for f in update.request restore.request reset.request restart.request; do [ -e "$DATA/$f" ] && exit 0; done
   alive && exit 0
 done
 

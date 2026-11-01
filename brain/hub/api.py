@@ -2910,6 +2910,17 @@ async def restore(request: Request):
     except ValueError as e: raise HTTPException(400, str(e))
 
 
+
+@app.post("/reset")
+def reset(request: Request):
+    """Start over: erase the house and open on Welcome (design/leaving/, B). Behind the code, and only in the house:
+    a phone outside could not see what it was erasing, and nobody would be there to set the hub up again."""
+    if request.state.away:
+        raise HTTPException(403, "Starting the hub over has to be done in the house.")
+    try: return hub.backup.start_over(who=_who(request))
+    except PermissionError as e: raise HTTPException(403, str(e))
+    except ValueError as e: raise HTTPException(409, str(e))
+
 # ---------- updates ----------
 @app.get("/alive")
 def alive():

@@ -1311,9 +1311,59 @@ changing() {
   rm -rf "$root"
 }
 
+# Start over (design/leaving/, B): everything that is the house goes, what install left comes back, and the unit's
+# own lines of .env stay. docker, mqtt-auth.sh and host-tier.sh are scripts that say they ran.
+starting_over() {
+  group "starting over: the house is erased, the unit is kept, every secret is new"
+  local root dir dl bin keys; root=$(mktemp -d); dir="$root/hub"; dl="$dir/driver-layer"; bin="$root/bin"; keys="$root/keys"
+  mkdir -p "$dl/host" "$dl/zigbee2mqtt" "$dl/mosquitto/config" "$bin" "$keys"
+  cp "$HERE/reset.sh" "$dl/host/"
+  echo "seed" > "$dl/zigbee2mqtt/configuration.yaml"; echo "listener 1883" > "$dl/mosquitto/config/mosquitto.conf"
+  echo "services: {}" > "$dl/docker-compose.yml"
+  printf '#!/usr/bin/env bash\necho mqtt-auth >> "$ROOT/asked"\n' > "$dl/mqtt-auth.sh"
+  printf '#!/usr/bin/env bash\necho host-tier >> "$ROOT/asked"\n' > "$dl/host-tier.sh"
+  git init -q "$dir"; git -C "$dir" config user.email t@t; git -C "$dir" config user.name t
+  git -C "$dir" add -A; git -C "$dir" commit -qm seed
+  # the house, lived in
+  mkdir -p "$dl/brain-data" "$dl/homeassistant/.storage" "$dl/caddy/data" "$dl/zwave-js-ui"
+  echo '{"owner": "Jordan"}' > "$dl/brain-data/settings.json"; echo auth > "$dl/homeassistant/.storage/auth"
+  echo "network_key: [1, 2, 3]" >> "$dl/zigbee2mqtt/configuration.yaml"; echo db > "$dl/zigbee2mqtt/database.db"
+  echo "hub:hash" > "$dl/mosquitto/config/passwd"; echo ca > "$dl/caddy/data/ca.key"; echo keys > "$dl/zwave-js-ui/keys"
+  echo "not the house" > "$dl/notes.txt"
+  printf 'TZ=America/Chicago\nHUB_HOST=hub.local\nHUB_CHANNEL=release\nCOMPOSE_PROFILES=zigbee\nMQTT_PASSWORD=old\nZWAVE_SESSION_SECRET=old\nHUB_SHARE_TOKEN=old\nHUB_AWAY_HOUSE=maple\nHUB_RELAY_SECRET=s3cret\nANTHROPIC_API_KEY=sk-x\n' > "$dl/.env"
+  echo "ssh-ed25519 AAAA jordan@laptop" > "$keys/pi.keys"
+  printf '#!/usr/bin/env bash\necho "docker $*" >> "$ROOT/asked"\n' > "$bin/docker"; chmod +x "$bin/docker" "$dl"/*.sh
+  run() { rm -f "$root/asked"; PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_KEYS_DIR="$keys" "$dl/host/reset.sh" >/dev/null 2>&1; }
+  env_has() { grep -c "^$1" "$dl/.env" | tr -d ' '; }
+
+  run
+  is "with nothing asked, nothing is touched" "$(cat "$dl/brain-data/settings.json") $([ -f "$root/asked" ] && echo ran || echo still)" '{"owner": "Jordan"} still'
+  echo '{"at": 1}' > "$dl/brain-data/reset.request"; run
+  is "asked: the house is stopped, then started again" "$(paste -sd, "$root/asked")" "docker compose stop,mqtt-auth,host-tier,docker compose up -d"
+  is "...the brain's data is gone, but for what it says about starting over" "$(ls "$dl/brain-data" | paste -sd, -)" "reset.json,reset.log"
+  is "...and it says it is done" "$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["state"])' "$dl/brain-data/reset.json")" "done"
+  is "the engine's settings, the radios' keys and the front door's certificates are gone" \
+    "$(find "$dl/homeassistant" "$dl/zwave-js-ui" "$dl/caddy/data" -type f | wc -l | tr -d ' ') $([ -f "$dl/zigbee2mqtt/database.db" ] && echo db || echo no-db)" "0 no-db"
+  is "...what install left is back as it was" "$(cat "$dl/zigbee2mqtt/configuration.yaml") $(cat "$dl/mosquitto/config/mosquitto.conf")" "seed listener 1883"
+  is "...and the broker's old password file is gone, to be made again" "$([ -f "$dl/mosquitto/config/passwd" ] && echo there || echo gone)" "gone"
+  is "what is not the house is left alone" "$(cat "$dl/notes.txt") $(cat "$dl/docker-compose.yml")" "not the house services: {}"
+  is "the unit's lines of .env stay" "$(env_has TZ=America/Chicago)$(env_has HUB_HOST=hub.local)$(env_has HUB_CHANNEL=release)$(env_has COMPOSE_PROFILES=zigbee)" "1111"
+  is "...the house's are gone: the broker's password, the web address, the assistant's key" \
+    "$(env_has MQTT_PASSWORD)$(env_has HUB_AWAY_HOUSE)$(env_has HUB_RELAY_SECRET)$(env_has ANTHROPIC_API_KEY)" "0000"
+  is "...and every secret install makes is made again" \
+    "$(env_has ZWAVE_SESSION_SECRET=old)$(env_has HUB_SHARE_TOKEN=old) $(env_has ZWAVE_SESSION_SECRET=)$(env_has HUB_SHARE_TOKEN=)" "00 11"
+  is "the SSH keys This hub was given are emptied" "$(wc -c < "$keys/pi.keys" | tr -d ' ')" "0"
+  is "...and the request is gone" "$([ -f "$dl/brain-data/reset.request" ] && echo there || echo gone)" "gone"
+
+  rm -rf "$dir/.git"; echo '{"owner": "Robin"}' > "$dl/brain-data/settings.json"; echo '{"at": 2}' > "$dl/brain-data/reset.request"; run
+  is "a hub that is not a checkout cannot tell install's files from the house's, and says so rather than guess" \
+    "$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["state"])' "$dl/brain-data/reset.json") $(grep -c 'not a checkout' "$dl/brain-data/reset.log")" "failed 1"
+  rm -rf "$root"
+}
+
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; keeping; speaking; guessing; awake; setting_up; moving_in; moving; describing
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; keeping; speaking; guessing; awake; setting_up; moving_in; moving; describing; starting_over
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

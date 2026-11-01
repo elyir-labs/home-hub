@@ -900,6 +900,13 @@ export function createHouse({ env = {}, qr = null } = {}) {
     if (p === '/assistant') return json(res, { available: true, configured: false, source: null, model: 'claude-sonnet-5' })
     if (p === '/setup/drivers') return json(res, status)
     if (p === '/setup/advanced') return json(res, { url: 'http://hub.local:8123/', username: 'hub', password: 'secret' })
+    /* Start over (design/leaving/, B): refused without a code, as the brain does; otherwise the house is gone a moment
+       later and the panel, waiting on /setup/status, opens on Welcome. */
+    if (p === '/reset' && req.method === 'POST') {
+      if (!status.locked) { res.writeHead(403, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: 'Set a passcode first. Without one, anyone on your Wi\u2011Fi could erase the hub.' })) }
+      setTimeout(() => Object.assign(status, { setup_done: false, locked: false, owner: null, home: null, location: false, rooms: 0, devices: 0 }), 1500)
+      return json(res, { ok: true })
+    }
     if (/^\/rooms\/[^/]+\/why/.test(p)) return json(res, why)
     if (p === '/suggestions') return json(res, { items: [
       { id: 'u3', name: 'Garage Left Light', room: 'backyard', why: 'the same unit as Walkway Pathlight Light', source: 'house' },

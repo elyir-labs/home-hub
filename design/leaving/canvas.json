@@ -9,25 +9,35 @@
   "Today.dc.html",
   "Today-people.dc.html",
   "today",
-  "OneQuestionA.dc.html",
-  "OneQuestionA-ask.dc.html",
-  "OneQuestionA-stays.dc.html",
-  "OneQuestionA-next.dc.html",
-  "a",
+  "decided",
   "WhereItBelongsB-hub.dc.html",
   "WhereItBelongsB-people.dc.html",
   "WhereItBelongsB-hand.dc.html",
+  "OneQuestionA-next.dc.html",
   "b",
+  "screenless",
+  "account",
+  "OneQuestionA.dc.html",
+  "OneQuestionA-ask.dc.html",
+  "OneQuestionA-stays.dc.html",
+  "a",
   "EraseOnlyC.dc.html",
   "EraseOnlyC-erase.dc.html",
-  "c",
-  "screenless",
-  "account"
+  "c"
  ],
  "pages": [
   {
    "id": "leaving",
-   "name": "Leaving a house"
+   "name": "Leaving a house",
+   "decided": {
+    "on": "2026-11-01",
+    "chose": "B, each where it belongs",
+    "board": "WhereItBelongsB-hub.dc.html"
+   }
+  },
+  {
+   "id": "leaving-rejected",
+   "name": "Leaving a house: not chosen"
   }
  ],
  "artboards": [
@@ -52,29 +62,29 @@
   {
    "file": "OneQuestionA.dc.html",
    "x": 0,
-   "y": 1300,
+   "y": 0,
    "w": 1440,
    "h": 900,
    "title": "A · One row at the end of The hub: Moving out",
-   "page": "leaving"
+   "page": "leaving-rejected"
   },
   {
    "file": "OneQuestionA-ask.dc.html",
    "x": 1580,
-   "y": 1300,
+   "y": 0,
    "w": 1440,
    "h": 900,
    "title": "A · Where is the hub going? Three answers",
-   "page": "leaving"
+   "page": "leaving-rejected"
   },
   {
    "file": "OneQuestionA-stays.dc.html",
    "x": 3160,
-   "y": 1300,
+   "y": 0,
    "w": 1440,
    "h": 900,
    "title": "A · It stays with the house: what goes, what stays",
-   "page": "leaving"
+   "page": "leaving-rejected"
   },
   {
    "file": "OneQuestionA-next.dc.html",
@@ -82,22 +92,22 @@
    "y": 1300,
    "w": 1440,
    "h": 900,
-   "title": "A and B · What the next people see first",
+   "title": "B · What the next people see first (drawn for A, kept by B)",
    "page": "leaving"
   },
   {
    "file": "WhereItBelongsB-hub.dc.html",
    "x": 0,
-   "y": 2600,
+   "y": 1300,
    "w": 1440,
    "h": 900,
-   "title": "B · Start over, on The hub",
+   "title": "B · Start over, on The hub · CHOSEN",
    "page": "leaving"
   },
   {
    "file": "WhereItBelongsB-people.dc.html",
    "x": 1580,
-   "y": 2600,
+   "y": 1300,
    "w": 1440,
    "h": 900,
    "title": "B · Moving out, on People",
@@ -106,7 +116,7 @@
   {
    "file": "WhereItBelongsB-hand.dc.html",
    "x": 3160,
-   "y": 2600,
+   "y": 1300,
    "w": 1440,
    "h": 900,
    "title": "B · Hand the house over",
@@ -115,20 +125,20 @@
   {
    "file": "EraseOnlyC.dc.html",
    "x": 0,
-   "y": 3900,
+   "y": 1300,
    "w": 1440,
    "h": 900,
    "title": "C · One row: Erase",
-   "page": "leaving"
+   "page": "leaving-rejected"
   },
   {
    "file": "EraseOnlyC-erase.dc.html",
    "x": 1580,
-   "y": 3900,
+   "y": 1300,
    "w": 1440,
    "h": 900,
    "title": "C · Erase this hub",
-   "page": "leaving"
+   "page": "leaving-rejected"
   }
  ],
  "annotations": [
@@ -150,32 +160,32 @@
   },
   {
    "id": "a",
-   "page": "leaving",
+   "page": "leaving-rejected",
    "x": 0,
-   "y": 2260,
-   "w": 6180,
+   "y": 960,
+   "w": 4600,
    "text": "A -- ONE QUESTION: WHERE IS THE HUB GOING?\n\nOne row at the end of The hub, Moving out, opens one sheet that asks where the hub is going and answers all three ways out. Each answer opens its own list of what goes and what stays, then the hold. After It stays with the house, the wall opens on a first run that already has the house in it and asks only who the new people are and for their passcode.\n\nFOR: the person moving out does not have to know which of three things they want before they find it; the question teaches them. It is the only direction that has an answer for taking the hub along, which is a real move for anybody who bought one, and it puts every way out in one place a support call can name.\n\nAGAINST: a row about people on the computer's page. It is also the most to build: three outcomes, and It comes with me has to forget devices while keeping the routines that name them, which needs its own rules for a routine whose lights are gone."
   },
   {
    "id": "b",
    "page": "leaving",
    "x": 0,
-   "y": 3560,
-   "w": 4600,
-   "text": "B -- EACH WHERE IT BELONGS\n\nErasing is about the computer, so Start over is a row on The hub. Handing the house over is about people, so Moving out is a row on People, under the phones it is about to remove. Taking the hub along is not its own answer: it is Start over at the new home, with a backup kept in case.\n\nFOR: each row sits beside the things it changes. Two outcomes instead of three, and they are the two that docs/shipping.md and design/account/ already name. When the Elyir account arrives, its Hand the house over can be the same step, started from the account instead of the wall.\n\nAGAINST: somebody moving out has to know that leaving is on People and erasing is on The hub. Taking the hub along means adding every phone again, which for a family is an evening."
+   "y": 2260,
+   "w": 6200,
+   "text": "B -- EACH WHERE IT BELONGS  ·  CHOSEN, 1 November 2026\n\nErasing is about the computer, so Start over is a row on The hub. Handing the house over is about people, so Moving out is a row on People, under the phones it is about to remove. Taking the hub along is not its own answer: it is Start over at the new home, with a backup kept in case.\n\nFOR: each row sits beside the things it changes. Two outcomes instead of three, and they are the two that docs/shipping.md and design/account/ already name. When the Elyir account arrives, its Hand the house over can be the same step, started from the account instead of the wall.\n\nAGAINST: somebody moving out has to know that leaving is on People and erasing is on The hub. Taking the hub along means adding every phone again, which for a family is an evening."
   },
   {
    "id": "c",
-   "page": "leaving",
+   "page": "leaving-rejected",
    "x": 0,
-   "y": 4860,
-   "w": 3020,
-   "text": "C -- ERASE ONLY\n\nOne row, Erase, and one sheet. Handing the house over waits for the Elyir account, as design/account/ decided; a house that never paid for an address erases, and the next people set it up as new.\n\nFOR: the least to build, and it closes the hole docs/shipping.md names. It needs no new rules about what a house keeps.\n\nAGAINST: the next household re-adds every light, and lights that joined through the hub itself have to be reset one by one first, which for a house of switches in walls is the hardest part of setup done twice. The sheet has to say so, and it is the reason B and A exist.\n\nRECOMMENDED: B, built in two steps. Start over first: it is C's sheet, it needs no account, and the hand-over is that same step with a list of what to keep. Then Moving out on People. A's question is the better door if It comes with me turns out to be common; it can be added on top of B's two rows later without moving them."
+   "y": 2260,
+   "w": 3000,
+   "text": "C -- ERASE ONLY\n\nOne row, Erase, and one sheet. Handing the house over waits for the Elyir account, as design/account/ decided; a house that never paid for an address erases, and the next people set it up as new.\n\nFOR: the least to build, and it closes the hole docs/shipping.md names. It needs no new rules about what a house keeps.\n\nAGAINST: the next household re-adds every light, and lights that joined through the hub itself have to be reset one by one first, which for a house of switches in walls is the hardest part of setup done twice. The sheet has to say so, and it is the reason B and A exist."
   },
   {
    "id": "screenless",
    "page": "leaving",
-   "x": 6320,
+   "x": 6400,
    "y": 0,
    "w": 700,
    "text": "NOT DRAWN: A HUB WITH NO SCREEN\n\nA Hub Plus is an off-the-shelf mini PC, so there is no button of ours to hold; a hub with no wall screen has nowhere to show these sheets. Two ways that need no new hardware, both proven by being at the box (the press rule, September):\n\n1. A phone that can change things does it from The hub on the phone. The common case, since the phones are how a screenless house is used.\n2. Nobody has the passcode: switch the hub off and on three times within a minute. It raises its own Wi-Fi (design/setup-network/), the code on its label joins it, and the phone shows only Start over, with the same hold. Being able to read the label and reach the power is the proof.\n\nThe second is the one that replaces a reset button, and it also answers a forgotten passcode in a house with no Elyir account."
@@ -183,10 +193,18 @@
   {
    "id": "account",
    "page": "leaving",
-   "x": 6320,
+   "x": 6400,
    "y": 1300,
    "w": 700,
    "text": "WITH THE ELYIR ACCOUNT, LATER\n\ndesign/account/ B stays as decided: a house that belongs to an account can be handed over from the account. In A or B that is the same step the wall runs, started from account.elyir.com, so there is one hand-over with two doors, not two hand-overs. The account adds only the web address passing to the next household rather than stopping."
+  },
+  {
+   "id": "decided",
+   "page": "leaving",
+   "x": 3200,
+   "y": 0,
+   "w": 1300,
+   "text": "DECIDED 1 NOVEMBER 2026: B, each where it belongs.\n\nBuilt in two steps, as recommended. START OVER IS BUILT: the last row of The hub and its sheet (app/src/StartOverSheet.vue), POST /reset behind the passcode and only in the house (brain/hub/backup.py start_over, which gives the web address's name back first), and driver-layer/host/reset.sh started by home-hub-reset.path. Pinned by app/e2e/start-over.spec.ts, brain/tests/test_api_lock.py and the starting_over group in driver-layer/host/tests.sh.\n\nOne word changed from the board: the web address's line says its name is given up, not that nothing more is charged. Giving the name back does not touch payment, so the sheet does not promise it.\n\nMOVING OUT ON PEOPLE IS NEXT, and not built. A and C are on Not chosen."
   }
  ]
 }

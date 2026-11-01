@@ -237,6 +237,7 @@ jobs:
         driver-layer/host/firstboot.sh
         driver-layer/host/update.sh
         driver-layer/host/restore.sh
+        driver-layer/host/reset.sh
         driver-layer/host/restart.sh
         driver-layer/host/watchdog.sh
         driver-layer/host/network.sh
