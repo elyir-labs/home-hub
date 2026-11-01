@@ -1,0 +1,192 @@
+{
+ "name": "Leaving a house",
+ "areas": [
+  "First run",
+  "Phones and away"
+ ],
+ "reading": [
+  "why",
+  "Today.dc.html",
+  "Today-people.dc.html",
+  "today",
+  "OneQuestionA.dc.html",
+  "OneQuestionA-ask.dc.html",
+  "OneQuestionA-stays.dc.html",
+  "OneQuestionA-next.dc.html",
+  "a",
+  "WhereItBelongsB-hub.dc.html",
+  "WhereItBelongsB-people.dc.html",
+  "WhereItBelongsB-hand.dc.html",
+  "b",
+  "EraseOnlyC.dc.html",
+  "EraseOnlyC-erase.dc.html",
+  "c",
+  "screenless",
+  "account"
+ ],
+ "pages": [
+  {
+   "id": "leaving",
+   "name": "Leaving a house"
+  }
+ ],
+ "artboards": [
+  {
+   "file": "Today.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · The hub: back up, restore, restart, and no way out",
+   "page": "leaving"
+  },
+  {
+   "file": "Today-people.dc.html",
+   "x": 1580,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · People: phones can be removed one by one, and nothing about leaving",
+   "page": "leaving"
+  },
+  {
+   "file": "OneQuestionA.dc.html",
+   "x": 0,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "A · One row at the end of The hub: Moving out",
+   "page": "leaving"
+  },
+  {
+   "file": "OneQuestionA-ask.dc.html",
+   "x": 1580,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "A · Where is the hub going? Three answers",
+   "page": "leaving"
+  },
+  {
+   "file": "OneQuestionA-stays.dc.html",
+   "x": 3160,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "A · It stays with the house: what goes, what stays",
+   "page": "leaving"
+  },
+  {
+   "file": "OneQuestionA-next.dc.html",
+   "x": 4740,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "A and B · What the next people see first",
+   "page": "leaving"
+  },
+  {
+   "file": "WhereItBelongsB-hub.dc.html",
+   "x": 0,
+   "y": 2600,
+   "w": 1440,
+   "h": 900,
+   "title": "B · Start over, on The hub",
+   "page": "leaving"
+  },
+  {
+   "file": "WhereItBelongsB-people.dc.html",
+   "x": 1580,
+   "y": 2600,
+   "w": 1440,
+   "h": 900,
+   "title": "B · Moving out, on People",
+   "page": "leaving"
+  },
+  {
+   "file": "WhereItBelongsB-hand.dc.html",
+   "x": 3160,
+   "y": 2600,
+   "w": 1440,
+   "h": 900,
+   "title": "B · Hand the house over",
+   "page": "leaving"
+  },
+  {
+   "file": "EraseOnlyC.dc.html",
+   "x": 0,
+   "y": 3900,
+   "w": 1440,
+   "h": 900,
+   "title": "C · One row: Erase",
+   "page": "leaving"
+  },
+  {
+   "file": "EraseOnlyC-erase.dc.html",
+   "x": 1580,
+   "y": 3900,
+   "w": 1440,
+   "h": 900,
+   "title": "C · Erase this hub",
+   "page": "leaving"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "why",
+   "page": "leaving",
+   "x": -620,
+   "y": 0,
+   "w": 500,
+   "text": "WHY THIS EXISTS (1 NOVEMBER 2026)\n\nThere is no way to leave a house. The hub can back up, restore and restart, and a phone can be removed, but nobody can erase the hub, and nobody moving out can leave it for the next people without leaving them their phones, their passcode and their history.\n\nBoth were planned and neither was built. docs/shipping.md lists a factory reset from the panel, behind the code, the wall asking twice (item 7 of What can be done today). design/account/ (B, 21 October) puts Hand the house over on the Elyir account, which is not built and which a house that never pays for a web address never meets.\n\nA hub can leave a house three ways, and they want different things kept:\n- IT STAYS WITH THE HOUSE, like a thermostat: keep the rooms, lights and routines; erase the people, their phones, the passcode, the services they signed into, what happened and the recordings.\n- IT COMES WITH YOU: keep the people and routines; forget the lights and cameras, which stay on the walls behind you.\n- ERASE EVERYTHING: giving it away, or starting over.\n\nWhat is not in question, in every direction: it needs the passcode, it is a hold and not a tap (the drive move's rule, design/move-to-drive/), it offers a backup first, the web address stops and stops charging, and switches on the wall keep working throughout.\n\nThe boards are the shipped panel with each board's rows and sheets drawn into it (boards.js, app/mock/leaving-shots.mjs)."
+  },
+  {
+   "id": "today",
+   "page": "leaving",
+   "x": 0,
+   "y": 960,
+   "w": 3020,
+   "text": "TODAY: NO WAY OUT\n\nThe hub ends at Backup, Restore and Restart. Restore is the nearest thing to starting over, and it needs a file from a house that already exists. People lets you remove phones one by one, but the passcode, the people's names, the services the house signed into and what happened stay, and the next household inherits all of it. Selling a house with the hub on the wall today means handing over somebody's history."
+  },
+  {
+   "id": "a",
+   "page": "leaving",
+   "x": 0,
+   "y": 2260,
+   "w": 6180,
+   "text": "A -- ONE QUESTION: WHERE IS THE HUB GOING?\n\nOne row at the end of The hub, Moving out, opens one sheet that asks where the hub is going and answers all three ways out. Each answer opens its own list of what goes and what stays, then the hold. After It stays with the house, the wall opens on a first run that already has the house in it and asks only who the new people are and for their passcode.\n\nFOR: the person moving out does not have to know which of three things they want before they find it; the question teaches them. It is the only direction that has an answer for taking the hub along, which is a real move for anybody who bought one, and it puts every way out in one place a support call can name.\n\nAGAINST: a row about people on the computer's page. It is also the most to build: three outcomes, and It comes with me has to forget devices while keeping the routines that name them, which needs its own rules for a routine whose lights are gone."
+  },
+  {
+   "id": "b",
+   "page": "leaving",
+   "x": 0,
+   "y": 3560,
+   "w": 4600,
+   "text": "B -- EACH WHERE IT BELONGS\n\nErasing is about the computer, so Start over is a row on The hub. Handing the house over is about people, so Moving out is a row on People, under the phones it is about to remove. Taking the hub along is not its own answer: it is Start over at the new home, with a backup kept in case.\n\nFOR: each row sits beside the things it changes. Two outcomes instead of three, and they are the two that docs/shipping.md and design/account/ already name. When the Elyir account arrives, its Hand the house over can be the same step, started from the account instead of the wall.\n\nAGAINST: somebody moving out has to know that leaving is on People and erasing is on The hub. Taking the hub along means adding every phone again, which for a family is an evening."
+  },
+  {
+   "id": "c",
+   "page": "leaving",
+   "x": 0,
+   "y": 4860,
+   "w": 3020,
+   "text": "C -- ERASE ONLY\n\nOne row, Erase, and one sheet. Handing the house over waits for the Elyir account, as design/account/ decided; a house that never paid for an address erases, and the next people set it up as new.\n\nFOR: the least to build, and it closes the hole docs/shipping.md names. It needs no new rules about what a house keeps.\n\nAGAINST: the next household re-adds every light, and lights that joined through the hub itself have to be reset one by one first, which for a house of switches in walls is the hardest part of setup done twice. The sheet has to say so, and it is the reason B and A exist.\n\nRECOMMENDED: B, built in two steps. Start over first: it is C's sheet, it needs no account, and the hand-over is that same step with a list of what to keep. Then Moving out on People. A's question is the better door if It comes with me turns out to be common; it can be added on top of B's two rows later without moving them."
+  },
+  {
+   "id": "screenless",
+   "page": "leaving",
+   "x": 6320,
+   "y": 0,
+   "w": 700,
+   "text": "NOT DRAWN: A HUB WITH NO SCREEN\n\nA Hub Plus is an off-the-shelf mini PC, so there is no button of ours to hold; a hub with no wall screen has nowhere to show these sheets. Two ways that need no new hardware, both proven by being at the box (the press rule, September):\n\n1. A phone that can change things does it from The hub on the phone. The common case, since the phones are how a screenless house is used.\n2. Nobody has the passcode: switch the hub off and on three times within a minute. It raises its own Wi-Fi (design/setup-network/), the code on its label joins it, and the phone shows only Start over, with the same hold. Being able to read the label and reach the power is the proof.\n\nThe second is the one that replaces a reset button, and it also answers a forgotten passcode in a house with no Elyir account."
+  },
+  {
+   "id": "account",
+   "page": "leaving",
+   "x": 6320,
+   "y": 1300,
+   "w": 700,
+   "text": "WITH THE ELYIR ACCOUNT, LATER\n\ndesign/account/ B stays as decided: a house that belongs to an account can be handed over from the account. In A or B that is the same step the wall runs, started from account.elyir.com, so there is one hand-over with two doors, not two hand-overs. The account adds only the web address passing to the next household rather than stopping."
+  }
+ ]
+}

@@ -1,0 +1,103 @@
+{
+ "name": "The front page's link preview",
+ "areas": [
+  "The website"
+ ],
+ "reading": [
+  "why",
+  "Today.dc.html",
+  "today",
+  "PageTopA.dc.html",
+  "a",
+  "WallAloneB.dc.html",
+  "b",
+  "DayC.dc.html",
+  "c"
+ ],
+ "pages": [
+  {
+   "id": "card",
+   "name": "The front page's link preview"
+  }
+ ],
+ "artboards": [
+  {
+   "file": "Today.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · a shared link is a title and a line of words",
+   "page": "card"
+  },
+  {
+   "file": "PageTopA.dc.html",
+   "x": 0,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "A · The page's own top: the name, the line, the living room on both screens",
+   "page": "card"
+  },
+  {
+   "file": "WallAloneB.dc.html",
+   "x": 1580,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "B · The wall alone, edge to edge, no words",
+   "page": "card"
+  },
+  {
+   "file": "DayC.dc.html",
+   "x": 3160,
+   "y": 1300,
+   "w": 1440,
+   "h": 900,
+   "title": "C · The name over the wall through a day",
+   "page": "card"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "why",
+   "page": "card",
+   "x": -620,
+   "y": 0,
+   "w": 500,
+   "text": "WHY THIS EXISTS (1 NOVEMBER 2026)\n\nhub.elyir.com is passed around as a link more than it is typed: in a message to a friend, in a Discord, in a post. What the link turns into there is the first picture of the hub most people will see, and the page names none, so today it is a title and a sentence.\n\nA link preview cannot follow the reader's light or dark the way the page does: the app fetches one picture and shows it to everyone. Every direction here is drawn light, the page's daytime face, which is also the one that reads on a white chat and a gray bubble alike.\n\nThe picture is 1200 × 630, the size every app asks for. The board that matters most is the phone on the right: in Messages it is about 260 points wide, so anything drawn in the picture is drawn at a fifth of its size.\n\nWhat is not in question: the title stays Elyir Home Hub and the description stays the page's own sentence, which chat apps print under the picture."
+  },
+  {
+   "id": "today",
+   "page": "card",
+   "x": 0,
+   "y": 960,
+   "w": 1440,
+   "text": "TODAY: A TITLE AND A SENTENCE\n\nNo og:image, so a chat app on a computer prints the title and the description and nothing to look at; Messages folds the link into a small bubble with the page's icon. Nothing says this is a screen on a wall. The link is the same size as a link to anything."
+  },
+  {
+   "id": "a",
+   "page": "card",
+   "x": 0,
+   "y": 2260,
+   "w": 1440,
+   "text": "A -- THE PAGE'S OWN TOP\n\nThe front page's first screen, made to fit the card: the name, Your house, on one screen., and the living room on the wall with the phone in front of it, the same pair the page opens on (design/site-pair/, D).\n\nFOR: whoever taps the link lands on the picture they were shown, so the preview and the page agree. The headline is the one thing in the card large enough to read at 260 points, and it says what the thing is before the screenshots have to. Wall and phone together are the hub's whole argument, one house on every screen.\n\nAGAINST: at phone size the phone in front is a smudge and the wall's cards are texture. It is the busiest of the three."
+  },
+  {
+   "id": "b",
+   "page": "card",
+   "x": 1580,
+   "y": 2260,
+   "w": 1440,
+   "text": "B -- THE WALL ALONE\n\nThe living room on the wall, as large as the card allows, and no words in the picture: every app already prints Elyir Home Hub and the sentence right under it.\n\nFOR: the biggest the panel gets at any size; in Messages you can make out the room, the lamps and the cards. The calmest of the three, and it looks like a product photo rather than a slide.\n\nAGAINST: without words a shared link reads as a tablet app, and the phone, the other half of the story, is gone. In apps that crop the picture to a square (some show a thumbnail beside the words) it loses its edges."
+  },
+  {
+   "id": "c",
+   "page": "card",
+   "x": 3160,
+   "y": 2260,
+   "w": 1440,
+   "text": "C -- THROUGH A DAY\n\nThe name and It changes with the sky outside. over the wall at morning, afternoon and evening, the strip lower on the page.\n\nFOR: the one thing no other home screen does, said in a picture.\n\nAGAINST: in light, the three walls are close cousins; at 260 points they read as the same picture three times. It shows a feature before it shows the thing, and the headline it leads with is the second idea on the page, not the first.\n\nRECOMMENDED: A. It is the page in miniature, and it is the only one that says what the hub is when the picture is too small to read the screens. B is the fallback if A looks too busy in your own Messages."
+  }
+ ]
+}
