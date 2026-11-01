@@ -404,6 +404,7 @@ input:focus-visible {
 [data-face='glass'] .wall-loz,
 [data-face='glass'] .topbar-add,
 [data-face='glass'] .tabs,
+[data-face='glass'] .dock-body,
 [data-face='glass'] .wall-stage .tile.media .media-foot,
 [data-face='glass'] .wall-stage .tile.media .media-which,
 [data-face='glass'] .bottombar .say-box {
@@ -440,6 +441,7 @@ input:focus-visible {
 [data-face='glass'] .wall-loz,
 [data-face='glass'] .topbar-add,
 [data-face='glass'] .tabs,
+[data-face='glass'] .dock-body,
 [data-face='glass'] .wall-stage .tile.media .media-foot,
 [data-face='glass'] .wall-stage .tile.media .media-which,
 [data-face='glass'] .bottombar .say-box {
@@ -464,6 +466,7 @@ input:focus-visible {
 [data-face='glass'] .scene,
 [data-face='glass'] .banner,
 [data-face='glass'] .tabs,
+[data-face='glass'] .dock-body,
 [data-face='glass'] .bottombar .say-box {
   position: relative;
 }
@@ -487,6 +490,7 @@ input:focus-visible {
 [data-face='glass'] .wall-loz::after,
 [data-face='glass'] .topbar-add::before,
 [data-face='glass'] .tabs::after,
+[data-face='glass'] .dock-body::after,
 [data-face='glass'] .bottombar .say-box::after,
 [data-face='glass'] .bottombar .say-hint::after,
 [data-face='glass'] .bottombar .say-note::after,
@@ -530,6 +534,7 @@ input:focus-visible {
 [data-face='glass'][data-flat] .banner,
 [data-face='glass'][data-flat] .topbar-add,
 [data-face='glass'][data-flat] .tabs,
+[data-face='glass'][data-flat] .dock-body,
 [data-face='glass'][data-flat] .wall-stage .tile.media .media-foot,
 [data-face='glass'][data-flat] .wall-stage .tile.media .media-which,
 [data-face='glass'][data-flat] .bottombar .say-box {
@@ -546,6 +551,7 @@ input:focus-visible {
 [data-face='glass'][data-flat] .rail,
 [data-face='glass'][data-flat] .topbar-add,
 [data-face='glass'][data-flat] .tabs,
+[data-face='glass'][data-flat] .dock-body,
 [data-face='glass'][data-flat] .wall-stage .tile.media .media-foot,
 [data-face='glass'][data-flat] .wall-stage .tile.media .media-which,
 [data-face='glass'][data-flat] .bottombar .say-box {
@@ -9146,6 +9152,194 @@ select.input {
   [data-face='glass'] .bottombar .say-box input,
   [data-face='glass'] .bottombar .say-box .button {
     opacity: 1;
+  }
+}
+/* ---------- the dock ----------
+   One pill along the foot of every screen bigger than a phone (design/every-screen/, DockB): the command box's
+   orb, the three places, what is playing, then Add and This house as doors of their own, set apart by a hairline.
+   It stands on the bar's row rather than floating over the stage, so a card never runs under it. Household.vue. */
+.bottombar.dock {
+  justify-content: center;
+  padding: 6px 24px 18px;
+}
+.dock-body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 999px;
+  background: rgba(var(--surface-rgb), 0.72);
+  border: 1px solid var(--edge-hi);
+  backdrop-filter: var(--frost);
+  box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.7);
+  max-width: 100%;
+  min-width: 0;
+}
+.dock-places {
+  display: flex;
+  gap: 2px;
+  padding: 0 6px;
+  border-left: 1px solid var(--edge);
+  border-right: 1px solid var(--edge);
+}
+.dock-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-size: 16px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition:
+    background 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+.dock-place svg {
+  color: var(--muted);
+}
+.dock-place.active {
+  background: rgba(var(--wash-rgb), 0.12);
+  color: var(--ink);
+  font-weight: 500;
+}
+.dock-place.active svg {
+  color: var(--ink-2);
+}
+.dock-place:active,
+.dock-now:active,
+.dock-door:active {
+  background: var(--surface-press);
+}
+.dock-now {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  max-width: 220px;
+  padding: 0 16px 0 8px;
+  border-radius: 999px;
+  background: rgba(var(--wash-rgb), 0.06);
+  text-align: left;
+  min-width: 0;
+}
+.dock-now-art {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: rgba(var(--lamp-rgb), 0.18);
+  color: var(--lamp-text);
+}
+.dock-now-text {
+  min-width: 0;
+}
+.dock-now-text b,
+.dock-now-text small {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dock-now-text b {
+  font-weight: 500;
+  font-size: 14.5px;
+}
+.dock-now-text small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.dock-door {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--ink-2);
+}
+.dock-door.active {
+  background: var(--ink);
+  color: var(--bg);
+}
+.dock-door.attention::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--lamp);
+  box-shadow: 0 0 8px 1px var(--lamp-glow);
+}
+/* the command box in the dock: its orb at rest on every face, opened across the dock while somebody is in it,
+   with everything else stepping aside until it shuts */
+.bottombar.dock .say {
+  flex: 0 0 auto;
+}
+.bottombar.dock .say-box {
+  width: 56px;
+  gap: 12px;
+  padding: 0 8px 0 9px; /* paper's orb is 36: 10 a side with the 1px edge */
+  overflow: hidden;
+  background: transparent;
+  border-color: transparent;
+  transition: width 460ms var(--settle, var(--ease));
+}
+[data-face='glass'] .bottombar.dock .say-box {
+  padding-left: 6px; /* glass's is 42: 7 a side, as its resting pill has it */
+}
+.bottombar.dock .say-box input,
+.bottombar.dock .say-box .button {
+  opacity: 0;
+  transition: opacity 260ms var(--settle, var(--ease));
+}
+.bottombar.dock .say.open .say-box {
+  width: min(560px, calc(100vw - 80px));
+  background: rgba(var(--wash-rgb), 0.04);
+}
+.bottombar.dock .say.open .say-box input,
+.bottombar.dock .say.open .say-box .button {
+  opacity: 1;
+  transition-delay: 180ms;
+}
+/* only while somebody is in it: a sentence left unsent keeps the box wide, and the dock grows to hold it
+   rather than leaving no way out of it */
+.dock-body:has(.say:focus-within, .say.listening) > :not(.say) {
+  display: none;
+}
+/* the bar above it keeps what a glance wants: the time, whether the house is connected, and who is home */
+.topbar.docked .topbar-right {
+  gap: 18px;
+}
+.topbar.docked .household-label {
+  display: none;
+}
+@media (max-height: 699px) and (orientation: landscape) {
+  .bottombar.dock {
+    padding: 2px 16px 8px;
+  }
+  .dock-place,
+  .dock-now {
+    height: 46px;
+  }
+  .dock-door {
+    width: 46px;
+    height: 46px;
+  }
+  .dock-now {
+    display: none;
+  }
+}
+@media (max-width: 1100px) and (orientation: portrait) {
+  .dock-now {
+    display: none;
   }
 }
 .household {

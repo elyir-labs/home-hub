@@ -47,7 +47,7 @@ test('hung tall, the last place says what is left and opens Rooms', async ({ pag
   await expect(left).toBeVisible()
   await expect(left).toContainText(/and \d+ more/)
   await left.click()
-  await expect(page.locator('.tabs .tab.active')).toContainText('Rooms')
+  await expect(page.locator('.dock-place.active')).toContainText('Rooms')
 })
 
 test('a wide screen keeps the sideways row it always had', async ({ page }) => {

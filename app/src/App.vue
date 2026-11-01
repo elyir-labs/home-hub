@@ -176,6 +176,9 @@ const navParam = params.get('nav')
    the other houses, lives in the top bar's row (design/houses/, B), and a phone's side list has no room for it. */
 const nav = computed<NavName>(() => isNav(navParam) ? navParam : (inApp && narrow.value) ? 'top' : (isNav(store.ambient.look?.nav) ? store.ambient.look!.nav as NavName : place.value.nav))
 const tab = ref<'home' | 'rooms' | 'cameras'>('home')
+/* The dock along the foot (design/every-screen/, B) on every screen bigger than a phone; a phone keeps its bar
+   until its own turn comes. */
+const docked = computed(() => nav.value === 'top' && !narrow.value)
 function go(t: 'home' | 'rooms' | 'cameras') { tab.value = t; open(null) }
 
 /* an opened device lends the room its color: a warm lamp pushes the field
@@ -292,7 +295,7 @@ onUnmounted(() => {
     <MovePage v-else-if="store.moving" />
     <Setup v-else-if="setup" />
     <ScreenRoom v-else-if="placing" :home="store.status?.home || 'the house'" :locked="!!store.status?.locked" :rooms="rooms" :screens="store.phones" @placed="open" />
-    <TopBar v-if="!setup && !shut && nav === 'top'" :clock="clock" :day="day" :now="shown" :tab="tab" :in-room="!!room" @go="go" />
+    <TopBar v-if="!setup && !shut && nav === 'top'" :clock="clock" :day="day" :now="shown" :tab="tab" :in-room="!!room" :docked="docked" @go="go" />
     <aside class="rail" v-if="!setup && !shut && nav === 'side'">
       <div class="rail-clock">
         <div class="rail-time">{{ clock }}</div>
@@ -378,7 +381,7 @@ onUnmounted(() => {
       </Transition>
     </main>
 
-    <Household v-if="!setup && !shut && nav === 'top'" :room="room?.id ?? null" />
+    <Household v-if="!setup && !shut && nav === 'top'" :room="room?.id ?? null" :docked="docked" :tab="tab" :in-room="!!room" :now="shown" @go="go" />
 
     <Viewer />
     <Opened v-if="store.opened" />
