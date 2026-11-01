@@ -1345,8 +1345,10 @@ changing() {
   is "...and once it has, the next start touches nothing" "$(wc -l < "$root/triggered" | tr -d ' ')" "0"
   echo 90 > "$root/ask/turn.request"; echo 90 > "$root/turn"; settle
   is "a turn left waiting for a watcher that isn't there is acted on" "$(touch_rule) $([ -e "$root/ask/turn.request" ] && echo left || echo used)" "0 1 0 -1 0 1 used"
+  rm -rf "$root/ask"; echo 180 > "$root/turn"; settle
+  is "a screen set up before This screen, with nowhere for the helper to leave a turn, still turns its touch" "$(touch_rule)" "-1 0 1 0 -1 1"
   rm -f "$root/turn"; settle
-  is "a screen never turned is left alone" "$(touch_rule)" "0 1 0 -1 0 1"
+  is "a screen never turned is left alone" "$(touch_rule)" "-1 0 1 0 -1 1"
   rm -rf "$root"
 }
 

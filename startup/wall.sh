@@ -92,6 +92,8 @@ settle() {
   [ -n "$t" ] || return 0
   if [ ! -e "$ask/turn.request" ]; then
     if [ "$t" = 0 ]; then [ -e "$rules" ] || return 0; else grep -qs "touch turned $t," "$rules" && return 0; fi
+    # a hub whose screen was set up before This screen has no such folder, and its helper could not make one
+    install -d -o elyir-wall -m 0755 "$ask" 2>/dev/null || mkdir -p "$ask" || return 0
     echo "$t" > "$ask/turn.request" || return 0
   fi
   ELYIR_TURN_REQUEST="$ask/turn.request" "$HERE/turn.sh" || true
