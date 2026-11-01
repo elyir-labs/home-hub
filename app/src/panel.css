@@ -6533,6 +6533,135 @@ select.input {
     padding-bottom: 18px;
   }
 }
+/* A short screen hung wide: a 7-inch at 1029x579, drawn at the wall's size now rather than shrunk to 1440x900
+   (design/every-screen/, Wide7). The row keeps its cards whole and the words above it give way: the greeting on
+   one line, the next thing it will do left for the full-size screen, and a narrower margin. */
+@media (min-width: 861px) and (max-height: 699px) and (orientation: landscape) {
+  .shell[data-nav='top'] .stage {
+    padding: 4px 24px 0;
+  }
+  .shell[data-nav='top'] .stage-head {
+    margin-bottom: 8px;
+  }
+  .shell[data-nav='top'] .stage-head h1 {
+    font-size: 34px;
+  }
+  .rail-home .lede {
+    margin-top: 2px;
+    font-size: 15px;
+  }
+  .rail-home .home-next {
+    display: none;
+  }
+  .rail-cloud {
+    width: 84px;
+    height: 60px;
+    margin: -8px -4px -8px 0;
+  }
+  .rail-temp {
+    font-size: 32px;
+  }
+  .rail-home > .nudges {
+    margin: 0 0 8px;
+  }
+  .rail-home {
+    height: 100%;
+    min-height: 0;
+  }
+  .rail-stage {
+    flex: 1;
+    min-height: 0;
+    margin-block: 0;
+    display: flex;
+    align-items: center;
+  }
+  .rail-home .bento {
+    --row: clamp(80px, calc((100dvh - 352px) / 2), 196px);
+    flex: 1;
+    margin: 0 -24px;
+    padding-left: 24px;
+    scroll-padding-inline-start: 24px;
+  }
+  .bottombar {
+    padding: 4px 24px 10px;
+  }
+}
+/* A screen hung tall (design/every-screen/, Tall10): the row is a grid three across that fits the screen,
+   what is playing two places wide, and nothing past an edge. BentoRow measures how many rows fit and sets
+   --cell; the last place is .bento-left, which says what is left and opens Rooms. */
+@media (min-width: 861px) and (orientation: portrait) {
+  .rail-home {
+    height: 100%;
+    min-height: 0;
+  }
+  .rail-stage {
+    flex: 1;
+    min-height: 0;
+    margin-block: 8px 0;
+  }
+  .rail-home .bento {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    grid-auto-flow: row dense;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: var(--cell, 200px);
+    grid-auto-columns: auto;
+    align-content: start;
+    scroll-snap-type: none;
+  }
+  .rail-home .bento::after {
+    display: none;
+  }
+  .rail-home .bento-card {
+    animation: none;
+  }
+  .rail-home .bento .tile.light,
+  .rail-home .bento .tile.media,
+  .rail-home .bento .tile.plain,
+  .rail-home .bento .tile.camera,
+  .rail-home .bento .tile.climate,
+  .rail-home .bento .scene-card {
+    grid-row: span 1;
+    width: auto;
+    height: auto;
+    align-self: stretch;
+  }
+  .rail-home .bento .tile.media,
+  .rail-home .bento .scene-card {
+    grid-column: span 2;
+  }
+}
+.bento-left {
+  display: none;
+}
+@media (min-width: 861px) and (orientation: portrait) {
+  .rail-home .bento-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 22px;
+    text-align: left;
+    border: 1px dashed var(--edge-hi);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+  }
+  .bento-left-count {
+    font-size: 19px;
+  }
+  .bento-left-go {
+    font-size: 15px;
+    color: var(--lamp);
+  }
+  .bento-left-names {
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+}
 @media (max-width: 860px) {
   /* on a phone a sideways row of wall-sized cards is a worse column, so it stops
      being a row: the Rail becomes a stack and only the header stays distinct */

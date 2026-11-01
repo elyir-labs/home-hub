@@ -31,7 +31,7 @@ import BentoRow from './BentoRow.vue'
    the command box lives in the bar along the bottom -- neither is repeated here.
    woke: counts the times the panel has come back from rest; the row takes it. */
 const props = defineProps<{ rooms: Room[]; now: Date; topNav?: boolean; woke?: number }>()
-defineEmits<{ open: [id: string] }>()
+defineEmits<{ open: [id: string]; rooms: [] }>()
 
 const hour = computed(() => props.now.getHours())
 const greeting = computed(() => hour.value < 5 ? 'Good night' : hour.value < 12 ? 'Good morning' : hour.value < 17 ? 'Good afternoon' : hour.value < 21 ? 'Good evening' : 'Good night')
@@ -75,7 +75,7 @@ onUnmounted(() => clearInterval(t))
     <!-- the rail sits in the middle of whatever height is left, as drawn; the
          rooms, when they are here at all, wait underneath -->
     <div class="rail-stage">
-      <BentoRow :rooms="rooms" :when="when" :woke="woke">
+      <BentoRow :rooms="rooms" :when="when" :woke="woke" @rooms="$emit('rooms')">
         <template #quiet>
           <p class="empty rail-quiet">Nothing is on.{{ topNav ? '' : ' The rooms are below.' }}</p>
         </template>
