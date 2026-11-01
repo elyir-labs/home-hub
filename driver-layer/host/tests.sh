@@ -1366,6 +1366,17 @@ SH
   is "the SSH keys This hub was given are emptied" "$(wc -c < "$keys/pi.keys" | tr -d ' ')" "0"
   is "...and the request is gone" "$([ -f "$dl/brain-data/reset.request" ] && echo there || echo gone)" "gone"
 
+  # Moving out: the brain did the house's people already; only what it cannot reach goes, and the house stays.
+  mkdir -p "$dl/matter-bridge-data" "$dl/ring-mqtt"; echo fabric > "$dl/matter-bridge-data/fabrics"; echo token > "$dl/ring-mqtt/ring-state.json"
+  echo db > "$dl/zigbee2mqtt/database.db"; echo '{"location": 1}' > "$dl/brain-data/settings.json"; echo "ssh-ed25519 AAAA jordan@laptop" > "$keys/pi.keys"
+  printf 'ANTHROPIC_API_KEY=sk-y\nHUB_AWAY_HOUSE=maple\nHUB_RELAY_SECRET=s\n' >> "$dl/.env"; local secret; secret="$(grep '^ZWAVE_SESSION_SECRET=' "$dl/.env")"
+  rm -f "$root/forgot"; echo '{"at": 3, "what": "people"}' > "$dl/brain-data/reset.request"; run
+  is "moving out: Ring's sign-in and the sharing pairings go" "$(find "$dl/matter-bridge-data" "$dl/ring-mqtt" -type f | wc -l | tr -d ' ')" "0"
+  is "...the house stays: the radios' network and the brain's settings" "$(cat "$dl/zigbee2mqtt/database.db") $(cat "$dl/brain-data/settings.json")" 'db {"location": 1}'
+  is "...the assistant's key and the web address leave .env, and its secrets are not made again" \
+    "$(env_has ANTHROPIC_API_KEY)$(env_has HUB_AWAY_HOUSE)$(env_has HUB_RELAY_SECRET) $(grep -c "^$secret$" "$dl/.env")" "000 1"
+  is "...the Wi-Fi and the SSH keys go too" "$(paste -sd, "$root/forgot") $(wc -c < "$keys/pi.keys" | tr -d ' ')" "u-home 0"
+
   rm -rf "$dir/.git"; echo '{"owner": "Robin"}' > "$dl/brain-data/settings.json"; echo '{"at": 2}' > "$dl/brain-data/reset.request"; run
   is "a hub that is not a checkout cannot tell install's files from the house's, and says so rather than guess" \
     "$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["state"])' "$dl/brain-data/reset.json") $(grep -c 'not a checkout' "$dl/brain-data/reset.log")" "failed 1"

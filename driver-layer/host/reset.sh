@@ -11,12 +11,18 @@
 # with, its name and address on the network, and its own Wi-Fi with the label's password. The house's Wi-Fi
 # password goes: a hub on a cable stays online, and one on Wi-Fi comes back on its own, for the label's code.
 # Every secret the house had is made again, so nothing that knew the old one gets in.
+#
+# Moving out, on People, asks for "people" instead: the brain has already signed the house out of its people's
+# services and erased their phones, passcode and history (hub/handover.py), and this does only what the brain cannot
+# reach -- Ring's sign-in, the pairings with Apple Home or Google Home, the assistant's key and the web address's lines
+# in .env, the Wi-Fi password and the SSH keys -- and starts the house again, everything else of it as it was.
 set -uo pipefail
 DIR="${HOME_HUB_DIR:-/opt/home-hub}"
 DL="$DIR/driver-layer"; DATA="$DL/brain-data"
 REQ="$DATA/reset.request"
 KEYS_DIR="${HUB_KEYS_DIR:-/etc/home-hub/ssh}"
 [ -f "$REQ" ] || exit 0
+WHAT=everything; grep -q '"what": *"people"' "$REQ" && WHAT=people
 rm -f "$REQ"
 STARTED="$(date +%s)"
 # brain-data is one of the things erased, so the log is kept aside and put back with the outcome.
@@ -41,19 +47,29 @@ erase() {
   mkdir -p "$part"
 }
 
+# The people's parts the brain cannot reach, and the lines of .env that were theirs.
+PEOPLES="ring-mqtt matter-bridge-data"
+THEIRS='^(ANTHROPIC_API_KEY|HUB_AWAY_[A-Z_]+|HUB_RELAY_[A-Z_]+)='
+
 (
   cd "$DL" || exit 1
-  echo "--- $(date -Is) starting over"
+  echo "--- $(date -Is) starting over: $WHAT"
   docker compose stop
-  for p in $PARTS; do erase "$p" || exit 1; echo "erased $p"; done
-  grep -E "$KEEP" .env > .env.kept 2>/dev/null || true
-  {
-    cat .env.kept
-    echo "ZWAVE_SESSION_SECRET=$(head -c 32 /dev/urandom | base64 | tr -d '/+=' )"
-    echo "HUB_SHARE_TOKEN=$(head -c 32 /dev/urandom | base64 | tr -d '/+=' )"
-  } > .env.new && mv .env.new .env && rm -f .env.kept
+  if [ "$WHAT" = people ]; then
+    for p in $PEOPLES; do erase "$p" || exit 1; echo "erased $p"; done
+    grep -Ev "$THEIRS" .env > .env.new; mv .env.new .env
+    echo "took the assistant's key and the web address out of .env"
+  else
+    for p in $PARTS; do erase "$p" || exit 1; echo "erased $p"; done
+    grep -E "$KEEP" .env > .env.kept 2>/dev/null || true
+    {
+      cat .env.kept
+      echo "ZWAVE_SESSION_SECRET=$(head -c 32 /dev/urandom | base64 | tr -d '/+=' )"
+      echo "HUB_SHARE_TOKEN=$(head -c 32 /dev/urandom | base64 | tr -d '/+=' )"
+    } > .env.new && mv .env.new .env && rm -f .env.kept
+    echo "kept $(grep -c . .env) lines of .env, every secret made again"
+  fi
   chmod 600 .env
-  echo "kept $(grep -c . .env) lines of .env, every secret made again"
   if command -v nmcli >/dev/null 2>&1; then
     nmcli -t -f UUID,TYPE connection show 2>/dev/null | awk -F: '$2 == "802-11-wireless" {print $1}' | while read -r id; do
       [ "$(nmcli -g connection.id connection show "$id" 2>/dev/null)" = home-hub-setup ] && continue

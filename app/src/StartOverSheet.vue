@@ -9,26 +9,16 @@
 import { onUnmounted, ref } from 'vue'
 import { downloadBackup, getStatus, startOver } from './api'
 import { notify } from './store'
+import HoldButton from './HoldButton.vue'
 import Icon from './Icon.vue'
 const emit = defineEmits<{ close: [] }>()
-const HOLD = 1600
-const held = ref(0), going = ref(false), error = ref('')
-let started = 0, frame = 0, poll = 0
-function press() {
-  if (going.value) return
-  started = performance.now()
-  const step = () => {
-    held.value = Math.min(1, (performance.now() - started) / HOLD)
-    if (held.value >= 1) return go()
-    frame = requestAnimationFrame(step)
-  }
-  frame = requestAnimationFrame(step)
-}
-function release() { cancelAnimationFrame(frame); if (!going.value) held.value = 0 }
+const going = ref(false), error = ref('')
+let poll = 0
 async function go() {
+  if (going.value) return
   going.value = true; error.value = ''
   try { await startOver() }
-  catch (e: any) { going.value = false; held.value = 0; if (!e?.canceled) error.value = e.message; return }
+  catch (e: any) { going.value = false; if (!e?.canceled) error.value = e.message; return }
   poll = window.setInterval(async () => {
     try { if ((await getStatus()).setup_done === false) { clearInterval(poll); location.replace('/') } } catch {}
   }, 3000)
@@ -41,7 +31,7 @@ async function backUp() {
   catch (e: any) { if (!e?.canceled) notify(e.message, 'error') }
   backingUp.value = false
 }
-onUnmounted(() => { cancelAnimationFrame(frame); clearInterval(poll) })
+onUnmounted(() => clearInterval(poll))
 </script>
 
 <template>
@@ -62,10 +52,7 @@ onUnmounted(() => { cancelAnimationFrame(frame); clearInterval(poll) })
             <li>Switches on the wall keep working. The hub restarts and opens on Welcome, in about four minutes.</li>
           </ul>
           <p class="error" v-if="error">{{ error }}</p>
-          <button class="sov-hold" @pointerdown.prevent="press" @pointerup="release" @pointerleave="release" @pointercancel="release"
-                  @keydown.enter.prevent="go" aria-label="Hold to erase the hub">
-            <i :style="{ width: `${held * 100}%` }"></i><span>Hold to erase the hub</span>
-          </button>
+          <HoldButton label="Hold to erase the hub" :busy="going" @done="go" />
           <p class="sov-foot">Needs the passcode</p>
           <p class="sov-foot">Might you want this house back? <button class="sov-link" :class="{ busy: backingUp }" @click="backUp">Back up first</button></p>
         </div>
@@ -86,10 +73,6 @@ onUnmounted(() => { cancelAnimationFrame(frame); clearInterval(poll) })
 .sov-means li::before { content: ''; position: absolute; left: 2px; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
 .sov-means li.hard { color: var(--ink); }
 .sov-means li.hard::before { background: var(--danger); }
-.sov-hold { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; width: 100%; height: 54px; border-radius: 999px; border: 1px solid rgba(var(--danger-rgb), 0.55);
-            background: none; color: var(--danger); font: inherit; font-size: 16.5px; font-weight: 500; touch-action: none; user-select: none; -webkit-user-select: none; }
-.sov-hold i { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(var(--danger-rgb), 0.22); }
-.sov-hold span { position: relative; }
 .sov-foot { text-align: center; margin: 10px 0 0; font-size: 13.5px; color: var(--muted); }
 .sov-link { background: none; border: 0; padding: 0; font: inherit; font-weight: 500; color: var(--lamp-text); cursor: pointer; }
 .sov-going { padding-top: 8px; }

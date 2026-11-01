@@ -51,6 +51,7 @@ def needs_code(method: str, path: str) -> bool:
     if path in ("/update", "/update/auto") and m == "POST": return True   # changing how the house updates itself is a setting
     if path == "/backup" or (path == "/restore" and m == "POST"): return True   # the archive carries the house's keys
     if path == "/reset" and m == "POST": return True   # starting over erases the house (design/leaving/)
+    if path == "/handover" and m == "POST": return True   # handing it over erases its people (design/leaving/)
     # Taking the house down for a minute is a change to it, not a tap on it -- and it is the one change
     # whose whole effect is that nothing works. Asking what a restart would cost is not: a sheet that
     # demanded the code before it would tell you what the button does is a sheet nobody reads.

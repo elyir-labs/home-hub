@@ -39,7 +39,7 @@ export type UpdateProgress = {
   moving: string[] | null   // which containers this update really recreates, once the host has looked
   notices: string[]         // ...and what a household would notice about that, where there is anything
 }
-export type Status = { driver: Driver; reason: string; setup_done: boolean; locked?: boolean; owner: string | null; home: string | null; location: boolean; rooms: number; devices: number; drivers: Part[]; problems?: Problem[]; version?: string; update?: Update; language?: string }
+export type Status = { driver: Driver; reason: string; setup_done: boolean; locked?: boolean; handed_over?: boolean; owner: string | null; home: string | null; location: boolean; rooms: number; devices: number; drivers: Part[]; problems?: Problem[]; version?: string; update?: Update; language?: string }
 /* One job on Needs a look. The brain writes every word of it, including the words on the buttons: the
    panel does not know what it is looking at, so it draws `acts` and invents nothing. `with` is what went
    quiet behind this one fault -- fix the fault and they all come back, which is why they are not lines of
@@ -209,6 +209,10 @@ export async function getDrive(): Promise<DriveState> {
 export const moveToDrive = (name: string, serial: string) => post<DriveState>('/drive/move', { name, serial })
 /** Start over (design/leaving/, B): the hub erases the house and opens on Welcome. Behind the code. */
 export const startOver = () => post<{ ok: boolean }>('/reset')
+/** Moving out (design/leaving/, B): what handing the house over would take and leave, and doing it. Behind the code. */
+export type HandoverAsk = { phones: number; people: string[]; accounts: string[]; rooms: number; devices: number; routines: number }
+export async function getHandover(): Promise<HandoverAsk> { const r = await request('/handover'); if (!r.ok) await fail(r); return r.json() }
+export const handOver = () => post<{ ok: boolean }>('/handover')
 export const keepDrive = () => post<DriveState>('/drive/keep')
 export const driveSeen = () => post<DriveState>('/drive/seen')
 export type SeenNetwork = { ssid: string; signal?: 'strong' | 'ok' | 'faint'; band?: string | null; secure: boolean }

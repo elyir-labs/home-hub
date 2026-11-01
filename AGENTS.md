@@ -334,11 +334,13 @@ Do not reopen these, and do not propose around them.
   It erases everything that is the house, keeps what is the unit's (what it updates from, its name on the network, its
   own Wi-Fi), forgets the house's Wi-Fi, makes every secret again, gives the web address back and stops its payments,
   and opens on Welcome.
-  Moving out, on People, hands the house to the next people: their rooms, lights and routines stay, and the phones,
-  passcode, sign-ins, history and recordings go; it is not built yet. Taking the hub along is Start over with a backup,
+  Moving out, on People, hands the house to the next people: its rooms, lights, routines and screens stay, and the
+  phones, passcode, people, history, Wi-Fi, sharing and the services signed in through the cloud go. A device such a
+  service brought goes back to its old room and name when the next people sign in to the same service (`returning`). Taking the hub along is Start over with a backup,
   not a third answer. A hub with no screen and no code is switched off and on three times, then the label's code. Start
-  over is `driver-layer/host/reset.sh` and `StartOverSheet.vue`, pinned by `app/e2e/start-over.spec.ts`,
-  `brain/tests/test_api_lock.py` and the `starting_over` group in `driver-layer/host/tests.sh`.
+  over is `driver-layer/host/reset.sh` and `StartOverSheet.vue`; Moving out is `brain/hub/handover.py`, the same script's
+  `people` mode and `HandOverSheet.vue`. Pinned by `app/e2e/start-over.spec.ts`, `app/e2e/handover.spec.ts`,
+  `brain/tests/test_handover.py`, `brain/tests/test_api_lock.py` and the `starting_over` group in `driver-layer/host/tests.sh`.
 - **The hub's front page is Elyir Bench's shape, with one line for a hub ready to plug in** (16 October,
   `design/site/`, D). It lives at `hub.elyir.com`, as Bench lives at `bench.elyir.com`; never under `elyir.app`, where
   names are houses' own. On a computer, Put it on a computer you have leads; on a phone, Try it live. Under the two

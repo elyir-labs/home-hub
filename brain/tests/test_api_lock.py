@@ -260,7 +260,7 @@ class WhichSideOfTheDoorTests(unittest.TestCase):
                              ("POST", "/devices/light.ceiling/move"), ("POST", "/devices/light.ceiling/rename"),
                              ("POST", "/location"), ("POST", "/home/entry"), ("GET", "/setup/advanced"),
                              ("POST", "/setup/pin"), ("POST", "/flows"), ("POST", "/credentials"),
-                             ("POST", "/assistant/key"), ("GET", "/backup"), ("POST", "/restore"), ("POST", "/reset"),
+                             ("POST", "/assistant/key"), ("GET", "/backup"), ("POST", "/restore"), ("POST", "/reset"), ("POST", "/handover"),
                              ("POST", "/bridge/adopt"), ("POST", "/bridge/wifi"),
                              ("POST", "/pair"), ("DELETE", "/phones/abc"), ("POST", "/update"),
                              ("POST", "/update/auto")]:
@@ -632,4 +632,13 @@ class StartingOverNeedsTheCodeAndTheHouse(ApiTest):
         self.assertTrue(self.backup.RESET.exists())
         self.assertEqual(len(self.forgot), 1)
         self.assertEqual(self.client.post("/reset", headers={"x-hub-code": code}).status_code, 409, "asked twice is one start over")
+
+    def test_handing_the_house_over_is_behind_the_code_too(self):
+        r = self.client.post("/handover")
+        self.assertEqual(r.status_code, 403)
+        self.assertIn("Set a passcode first", r.json()["detail"])
+        self.lock_the_house()
+        _, token = self.hub.phones.from_setup()
+        self.client.cookies.set(COOKIE, token)
+        self.assertEqual(self.client.post("/handover").status_code, 401)
 
