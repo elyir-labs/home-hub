@@ -21,6 +21,7 @@
 import { computed } from 'vue'
 import { cap, store, updateReady } from './store'
 import { waitingToAdd } from './adding'
+import { isPage } from './pages'
 import { homeTab } from './layout'
 import Icon from './Icon.vue'
 import Say from './Say.vue'
@@ -47,6 +48,11 @@ const playing = computed(() => {
   return null
 })
 const waiting = computed(waitingToAdd)
+/* This house stands above the dock rather than over it (design/every-screen/, This house B): its door stays lit
+   while it is open and shuts it again, and a place goes there and shuts it. Add opens as one of its pages, so it
+   is Add's door that is lit then. */
+const housing = computed(() => isPage(store.sheet) && store.sheet !== 'add')
+function place(t: Tab) { if (isPage(store.sheet)) store.sheet = null; emit('go', t) }
 </script>
 
 <template>
@@ -55,7 +61,7 @@ const waiting = computed(waitingToAdd)
       <nav class="dock-body" aria-label="Around the house">
         <Say :room="room" />
         <div class="dock-places">
-          <button v-for="t in places" :key="t.id" class="dock-place" :class="{ active: here(t.id) }" :aria-current="here(t.id) ? 'page' : undefined" @click="emit('go', t.id)">
+          <button v-for="t in places" :key="t.id" class="dock-place" :class="{ active: here(t.id) }" :aria-current="here(t.id) ? 'page' : undefined" @click="place(t.id)">
             <Icon :name="t.icon" :size="18" /><span>{{ t.label }}</span>
           </button>
         </div>
@@ -63,10 +69,10 @@ const waiting = computed(waitingToAdd)
           <span class="dock-now-art"><Icon name="media" :size="16" /></span>
           <span class="dock-now-text"><b>{{ playing.title }}</b><small>{{ playing.where }}</small></span>
         </button>
-        <button class="dock-door dock-add" :class="{ attention: waiting }" @click="store.sheet = 'add'" :aria-label="waiting ? `Add to the house, ${waiting} waiting` : 'Add to the house'">
+        <button class="dock-door dock-add" :class="{ attention: waiting, active: store.sheet === 'add' }" @click="store.sheet = store.sheet === 'add' ? null : 'add'" :aria-label="waiting ? `Add to the house, ${waiting} waiting` : 'Add to the house'">
           <Icon name="plus" :size="20" />
         </button>
-        <button class="dock-door dock-house" :class="{ attention: updateReady(), active: store.sheet === 'house' }" @click="store.sheet = store.sheet === 'house' ? null : 'house'" :aria-label="updateReady() ? 'This house, an update is ready' : 'This house'">
+        <button class="dock-door dock-house" :class="{ attention: updateReady(), active: housing }" @click="store.sheet = housing ? null : 'house'" :aria-label="updateReady() ? 'This house, an update is ready' : 'This house'">
           <Icon name="menu" :size="20" />
         </button>
       </nav>

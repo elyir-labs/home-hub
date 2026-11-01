@@ -17,9 +17,14 @@
  * The pages were once separate sheets, each a card floating in the middle of
  * a 1440px wall with its own close button that scrolled away with the content.
  * They kept their code; only the frame changed.
+ *
+ * The doors are in four groups (pages.ts), and what needs somebody is said
+ * first, above them on a phone and at the top of the front page beside them
+ * (design/every-screen/, This house B). Where there is a dock the panel stands
+ * above it rather than over it, so every place is still one tap away.
  */
 import { computed, onMounted, onUnmounted, ref, watch, type Component } from 'vue'
-import { foundCount, linkNow, store, updateReady, loadSignals } from './store'
+import { linkNow, store, updateReady, loadSignals } from './store'
 import { adjusted, feelFrom } from './look'
 import Icon from './Icon.vue'
 import LocationPage from './LocationPage.vue'
@@ -44,7 +49,7 @@ import ChangesPage from './ChangesPage.vue'
 import DeveloperPage from './DeveloperPage.vue'
 import { sshHint, versionLabel } from './developer'
 import AdvancedLink from './AdvancedLink.vue'
-import { isPage, LIT, type PageId } from './pages'
+import { grouped, isPage, LIT, type PageId } from './pages'
 import { printerChip } from './printers'
 import { kw } from './chargers'
 import PhoneSteps from './PhoneSteps.vue'
@@ -55,6 +60,7 @@ import { inApp } from './inapp'
 /* The way into the Houses app from This house, for whoever closed the band line or was told to look here
    (design/houses/, AppFirst: "open This house, then Add this phone to Houses"). It opens the same move. */
 const toApp = computed(() => offerMove(store.me, inApp))
+defineProps<{ docked?: boolean }>()
 
 /* FINISH SETTING UP, on a phone (design/band/, KindsB-house): the three things the house would like
    finished, which on a wall are lines in the band and on a phone would be half of Home. Every step that
@@ -124,7 +130,6 @@ const things = computed(() => {
   if (!hw.size) return 'Nothing in the house yet'
   return `${hw.size === 1 ? '1 thing' : `${hw.size} things`}, and what brought each of them`
 })
-const found = computed(() => foundCount() ? `${foundCount() === 1 ? '1 thing' : `${foundCount()} things`} found nearby` : 'Lights, plugs, cameras, locks')
 /* "Atlas printing, 42%" -- the printer doing the most, the way the board's door says it; then how many. */
 const printers = computed(() => store.printers?.printers ?? [])
 const printersHint = computed(() => {
@@ -182,13 +187,13 @@ const doors = computed(() => [
      Only while there is one: it is where a printer with no print and no room lives, and where one is
      forgotten. A printer that needs somebody lights it, the way an account that does lights Accounts. */
   ...(printers.value.length ? [{ id: 'printers' as const, icon: 'printer', name: 'Printers', hint: printersHint.value, attention: printers.value.some(p => p.state === 'needs_you' || p.state === 'problem') }] : []),
-  { id: 'add' as const, icon: 'plus', name: 'Add to the house', hint: found.value, attention: foundCount() > 0 },
   { id: 'share' as const, icon: 'share', name: 'Share this house', hint: share.value },
   { id: 'hub' as const, icon: 'home', name: 'The hub', hint: hub.value, attention: ready.value },
   /* Always here, unlike Needs a look: this is a place somebody goes to look something up, not a
      fault that should appear only when there is one. */
   { id: 'happened' as const, icon: 'clock', name: 'What happened', hint: happened.value },
-  ...(store.status?.setup_done ? [{ id: 'code' as const, icon: 'lock', name: 'Passcode', hint: code.value }] : []),
+  ...(store.status?.setup_done ? [{ id: 'code' as const, icon: 'lock', name: 'Passcode', hint: code.value, attention: !locked.value }] : []),
+  ...(power.value ? [{ id: 'power' as const, icon: 'sun', name: 'Solar and battery', hint: power.value, attention: store.power?.grid_up === false }] : []),
   /* only while there is something behind it. A door that is always there saying "nothing is wrong"
      teaches a person to stop reading it, which is the opposite of what a fault list is for. */
   ...(store.notes.length ? [{ id: 'notes' as const, icon: 'sparkle', name: 'Needs a look', hint: notes.value, attention: true }] : []),
@@ -196,6 +201,14 @@ const doors = computed(() => [
      version on seven times (design/developer/, B). Nothing on it is needed to run a house. */
   ...(store.developer?.shown ? [{ id: 'developer' as const, icon: 'code', name: 'For working on the hub', hint: sshHint(store.developer) }] : []),
 ])
+
+const groups = computed(() => grouped(doors.value, onScreen))
+/* What needs somebody, said once and first: the doors that are asking, in the words of the thing to do. Once:
+   a passcode Finish setting up is already asking for is not asked for again under it. */
+const needs = computed(() => doors.value.filter(d => d.attention && !(d.id === 'code' && steps.value.some(s => s.id === 'passcode' && !s.done))).map(d =>
+  d.id === 'code' ? { ...d, name: 'Set a passcode', hint: 'Anyone on your Wi‑Fi can change the house' } : d))
+type Door = (typeof doors.value)[number]
+function open(d: Door) { if (d.id === 'power') openPower(); else go(d.id) }
 
 /* the front page: the house at a glance, and the one line for the curious */
 const homeLine = computed(() => {
@@ -214,7 +227,7 @@ onUnmounted(() => window.removeEventListener('keydown', key))
 </script>
 
 <template>
-  <div class="house" :class="{ 'at-doors': page === 'house' }" role="dialog" aria-label="This house">
+  <div class="house" :class="{ 'at-doors': page === 'house', docked }" role="dialog" aria-label="This house">
     <div class="house-veil" @click="close"></div>
     <div class="house-panel">
       <aside class="house-doors">
@@ -241,17 +254,22 @@ onUnmounted(() => window.removeEventListener('keydown', key))
           <span class="door-text"><span class="door-name">Add this phone to Houses</span><span class="door-hint">One app for every house you join</span></span>
           <Icon name="chevron" :size="16" />
         </button>
-        <nav class="doors" aria-label="Pages">
-          <button v-for="d in doors" :key="d.id" class="door" :class="{ on: lit === d.id, attention: d.attention }" @click="go(d.id)">
+        <div class="house-needs" v-if="narrow && needs.length" aria-label="Needs you">
+          <button v-for="d in needs" :key="d.id" class="house-need" @click="open(d)">
             <span class="door-icon"><Icon :name="d.icon" :size="18" /></span>
             <span class="door-text"><span class="door-name">{{ d.name }}</span><span class="door-hint">{{ d.hint }}</span></span>
-            <Icon name="back" :size="16" class="flip" />
+            <Icon name="chevron" :size="16" />
           </button>
-          <button v-if="power" class="door" :class="{ attention: store.power?.grid_up === false }" @click="openPower">
-            <span class="door-icon"><Icon name="sun" :size="18" /></span>
-            <span class="door-text"><span class="door-name">Solar and battery</span><span class="door-hint">{{ power }}</span></span>
-            <Icon name="back" :size="16" class="flip" />
-          </button>
+        </div>
+        <nav class="doors" aria-label="Pages">
+          <section v-for="g in groups" :key="g.name" class="door-group">
+            <h3 class="door-group-name">{{ g.name }}</h3>
+            <button v-for="d in g.doors" :key="d.id" class="door" :class="{ on: lit === d.id, attention: d.attention }" @click="open(d)">
+              <span class="door-icon"><Icon :name="d.icon" :size="18" /></span>
+              <span class="door-text"><span class="door-name">{{ d.name }}</span><span class="door-hint">{{ d.hint }}</span></span>
+              <Icon name="back" :size="16" class="flip" />
+            </button>
+          </section>
         </nav>
         <p class="house-foot"><span class="link" :class="linkNow().cls">{{ linkNow().word }}</span></p>
       </aside>
@@ -265,6 +283,13 @@ onUnmounted(() => window.removeEventListener('keydown', key))
         <Transition name="view" mode="out-in">
           <div class="house-page" :key="page">
             <div class="page" v-if="page === 'house'">
+              <div class="house-needs" v-if="!narrow && needs.length" aria-label="Needs you">
+                <button v-for="d in needs" :key="d.id" class="house-need" @click="open(d)">
+                  <span class="door-icon"><Icon :name="d.icon" :size="18" /></span>
+                  <span class="door-text"><span class="door-name">{{ d.name }}</span><span class="door-hint">{{ d.hint }}</span></span>
+                  <Icon name="chevron" :size="16" />
+                </button>
+              </div>
               <p class="page-lede">Everything about the house that is not a light, a scene or a lock. Those never need the passcode; some of this does.</p>
               <ul class="hub-rows">
                 <li><span class="hub-k">Home</span><span class="hub-v">{{ store.ambient.location?.name ?? 'No location yet' }}<span class="hub-sub" v-if="homeLine"> · {{ homeLine }}</span></span><button class="button small ghost" @click="go(store.ambient.location ? 'people' : 'location')">{{ store.ambient.location ? 'People' : 'Set it' }}</button></li>

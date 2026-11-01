@@ -284,7 +284,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="shell" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking }">
+  <div class="shell" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking, 'house-open': panel && docked }">
     <Sky :quiet="!idle && !setup" :held="wall && !idle" />
     <!-- glass lays its blooms on the sky the canvas just painted, under the veil -->
     <div class="sky-bloom" v-if="face === 'glass'"></div>
@@ -394,7 +394,7 @@ onUnmounted(() => {
          element it is put on, and this one's root never moves, so on the way out
          it was pulling the panel off the screen before it had slid anywhere.
          These two numbers are the panel's own slide and the veil's fade. -->
-    <Transition name="house" :duration="{ enter: 420, leave: 320 }"><HousePanel v-if="panel" /></Transition>
+    <Transition name="house" :duration="{ enter: 420, leave: 320 }"><HousePanel v-if="panel" :docked="docked" /></Transition>
     <Transition name="sheet"><WhySheet v-if="store.sheet === 'why'" /></Transition>
     <!-- A bridge being set up opens itself: somebody has just plugged a thing in, in this room, and
          is standing here. It is not a place in the house to navigate to. -->

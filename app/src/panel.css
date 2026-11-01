@@ -5055,6 +5055,113 @@ select.input {
   color: var(--muted);
   transform: rotate(180deg);
 }
+/* the doors in their groups (pages.ts), each headed in small capitals the way the board draws them */
+.door-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.door-group + .door-group {
+  margin-top: 14px;
+}
+.door-group-name {
+  margin: 0 0 4px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* what needs somebody, said first: amber cards, on the front page beside the list, or above it on a phone */
+.house-needs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 22px;
+}
+.house-doors .house-needs {
+  flex-direction: column;
+  margin: 0 0 16px;
+}
+.house-need {
+  flex: 1 1 260px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 14px 10px 10px;
+  border-radius: 18px;
+  text-align: left;
+  color: var(--ink);
+  background: rgba(var(--lamp-rgb), 0.1);
+  border: 1px solid rgba(var(--lamp-rgb), 0.32);
+}
+.house-need .door-icon {
+  background: var(--lamp);
+  color: var(--lamp-ink);
+}
+.house-need .door-hint {
+  color: var(--ink-2);
+}
+.house-need > svg {
+  color: var(--muted);
+}
+.house-need:active {
+  background: rgba(var(--lamp-rgb), 0.18);
+}
+/* Where there is a dock, the panel stands above it rather than over it, inset from the edges and rounded all
+   round (design/every-screen/, SheetListB), and the dock stays sharp in front with This house lit. */
+.house.docked {
+  --dock-h: 98px;
+}
+.house.docked .house-panel {
+  left: 24px;
+  right: 24px;
+  bottom: calc(var(--dock-h) + 2px);
+  border-radius: 32px;
+  border-bottom: 1px solid var(--edge-hi);
+}
+/* the top bar already says whether the house is connected, a hand's width above */
+.house.docked .house-foot {
+  display: none;
+}
+/* a short screen hung wide: the list loses its hints so it can show the groups, as decided for the 7-inch */
+@media (max-height: 699px) and (orientation: landscape) {
+  .house.docked .house-panel {
+    top: 64px;
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+  .house.docked .house-doors {
+    padding: 16px 10px 10px 16px;
+  }
+  .house.docked .house-doors-head {
+    display: none;
+  }
+  .house.docked .door {
+    padding: 5px 10px 5px 8px;
+  }
+  .house.docked .door-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .house.docked .doors .door-hint {
+    display: none;
+  }
+  .house.docked .door-group + .door-group {
+    margin-top: 8px;
+  }
+  .house.docked .house-head h2 {
+    font-size: 30px;
+  }
+}
+[data-face].shell.house-open > .bottombar.dock {
+  position: relative;
+  z-index: 41;
+  transform: none;
+  filter: none;
+  opacity: 1;
+}
 .house-foot {
   margin: auto 0 0 12px;
   padding-top: 14px;
@@ -9322,6 +9429,9 @@ select.input {
   display: none;
 }
 @media (max-height: 699px) and (orientation: landscape) {
+  .house.docked {
+    --dock-h: 82px;
+  }
   .bottombar.dock {
     padding: 2px 16px 8px;
   }
