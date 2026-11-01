@@ -1,0 +1,128 @@
+{
+  "name": "A screen that starts on its side",
+  "areas": [
+    "Wall screens"
+  ],
+  "reading": [
+    "why",
+    "Today.dc.html",
+    "today",
+    "EdgesA.dc.html",
+    "a",
+    "WideB.dc.html",
+    "b",
+    "KnobC.dc.html",
+    "c",
+    "behind"
+  ],
+  "pages": [
+    {
+      "id": "sideways",
+      "name": "A screen that starts on its side"
+    },
+    {
+      "id": "sideways-rejected",
+      "name": "A screen that starts on its side: not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: a glass made tall, hung wide, starts on its side with nothing to tap",
+      "page": "sideways"
+    },
+    {
+      "file": "EdgesA.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "A: a pill at every edge, and the one you can read is the one to tap",
+      "page": "sideways-rejected"
+    },
+    {
+      "file": "WideB.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "B: a tall glass comes up wide on its own, and only upside down is left to ask",
+      "page": "sideways"
+    },
+    {
+      "file": "KnobC.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "C: one round button, no words, a quarter turn each tap",
+      "page": "sideways-rejected"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "decided",
+      "page": "sideways",
+      "x": -620,
+      "y": -420,
+      "w": 500,
+      "text": "DECIDED 28 OCTOBER 2026\n\nB. A glass that says it is tall comes up wide on its own: the wall turns it a quarter the first time it starts, before the panel is drawn, and leaves the same turn for the startup. A wrong guess is upside down, and the upside-down pill answers it, now on the hub's own first start as well as a screen's. A and C are on the next page, with their cases."
+    },
+    {
+      "id": "why",
+      "page": "sideways",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n27 October 2026: a Pi went onto the back of a screen whose glass is made tall, and the screen was hung wide. Everything came up on its side: the startup, then the hub's first question.\n\nThis screen (design/this-screen/, A) turns a screen any of four ways, and the startup follows from the next start (startup/turn.sh). But This screen is behind setup. On the first start the only way to turn is C's pill, and it does one thing: upside down. So a screen on its side has nothing to tap until setup is done, and setup is the part that has to be read.\n\nAnd on the hub's own screen there is no pill at all. TurnPill.vue is on a screen joining a hub (Join.vue) and on its room question, never on the hub's own first start (Setup.vue), so a hub hung upside down cannot be put right either. That is the Pi from the same night."
+    },
+    {
+      "id": "today",
+      "page": "sideways",
+      "x": 0,
+      "y": 940,
+      "w": 1440,
+      "text": "TODAY. Not drawn: the shipped panel on the mock brain at 900x1440, which is what a glass made tall lays out for, shown the way it lies on a wall hung wide. Flip 'the hub's own screen': Which Wi-Fi is yours, on its side, nothing to turn it. Flip 'a screen for a hub': the passcode question, with the upside-down pill at the glass's top edge, which here is the right-hand edge and reads sideways. The startup before either is on its side too, and it is the first thing anybody sees."
+    },
+    {
+      "id": "a",
+      "page": "sideways-rejected",
+      "x": 0,
+      "y": 940,
+      "w": 1440,
+      "text": "A: A PILL AT EVERY EDGE. The upside-down pill grows to three: one at each edge of the glass but its own foot, each drawn upright for somebody reading from that side. Whichever way the screen hangs, exactly one of them reads the right way, and that is the one to tap. Nobody works out left from right. After the tap the screen lays out wide and the pill at the foot says Turned, with Put it back. On every first-start step, on the hub's own screen and on a screen for a hub.\n\nFOR: one tap, always the right one, for any of the four ways. It is the pill already chosen on 22 October, asked three ways instead of one.\n\nAGAINST: on the screen hung the right way, which is nearly every screen, there are now three pills around the edge, two of them sideways and one upside down (flip 'a screen hung the right way'). C's own AGAINST said one upside-down pill looks like a bug until it is tapped away; three look like more of one."
+    },
+    {
+      "id": "b",
+      "page": "sideways",
+      "x": 3120,
+      "y": 940,
+      "w": 1440,
+      "text": "B: WIDE FROM THE FIRST FRAME. The panel is drawn for a wall 1440 by 900, and a tall home is not designed. So a glass that says it is tall is turned a quarter before anything is drawn, the startup included: first boot writes the turn, as This screen does, and the hub comes up wide. A quarter one way or the other is a guess, and a wrong guess is exactly upside down, which the pill already answers. So the one change on screen is that the upside-down pill is on the hub's own first start too, as it is on a screen's. Flip 'the guess upside down', then 'after the tap'.\n\nFOR: nothing new on screen. A glass made tall and hung wide is, by the panel's own shape, the only way it can be hung today, so most of the time there is nothing to tap at all. The startup is right before anybody touches anything.\n\nAGAINST: it is a guess, and half the screens it guesses about will need the tap. When a tall home exists, a screen really hung tall comes up wide and has to be turned on This screen. And the very first startup, before first boot has run, is still on its side, once."
+    },
+    {
+      "id": "c",
+      "page": "sideways-rejected",
+      "x": 1560,
+      "y": 940,
+      "w": 1440,
+      "text": "C: ONE BUTTON THAT TURNS IT. A round button with the turn mark and no words, in the same corner of the glass on every first-start step. Each tap turns the screen a quarter, the same way each time, and it reads the same whichever way up it is. It goes when setup is done; This screen has the turn after that.\n\nFOR: one control for all four ways, with no words to be upside down or sideways, so it never looks like a mistake on a screen hung the right way. It is the smallest thing on the glass of any direction here.\n\nAGAINST: it is a guess with the finger. A quarter the wrong way means three taps, through upside down and the other side, before the screen is upright (flips 'one tap', 'three taps'). A round mark with no words has to be recognized as 'turn the screen' by somebody who has never seen it. And the corner it sits in is the glass's, so it moves around the wall as the screen turns."
+    },
+    {
+      "id": "behind",
+      "page": "sideways",
+      "x": -620,
+      "y": 700,
+      "w": 500,
+      "text": "BEHIND EVERY DIRECTION\n\nThe turn is This screen's: screen-helper.py turns the display and keeps it, and turn.sh puts the same turn on the boot line so the startup follows from the next start. Nothing new below the panel except, in B, first boot asking the glass its shape and writing the quarter.\n\nWhich way a glass 'says it is tall' is the size of the display mode, before any turn: taller than wide. A glass made wide and hung tall is the other case, and needs a tall home before it is offered, so it is not drawn here.\n\nWhatever is picked, the upside-down pill goes onto the hub's own first start as well. Leaving it off was a gap, not a choice."
+    }
+  ],
+  "decided": {
+    "on": "2026-10-28",
+    "chose": "B"
+  }
+}

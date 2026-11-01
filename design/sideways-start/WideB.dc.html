@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B, wide from the first frame</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="sideways.css">
+</head>
+<body data-step="right">
+<div class="wall">
+  <!-- a glass that says it is tall is turned a quarter before anything is drawn, the startup included; the only
+       pill is the upside-down one, now on the hub's own first start too -->
+  <div class="wide" data-if="step:right"><img src="shipped-setup-wide.png" alt="">
+    <span class="pill top"><span class="ic turn-icon"></span>Upside down? Tap to turn it</span>
+  </div>
+
+  <div class="wide over" data-if="step:wrong"><img src="shipped-setup-wide.png" alt="">
+    <span class="pill top"><span class="ic turn-icon"></span>Upside down? Tap to turn it</span>
+  </div>
+
+  <div class="wide" data-if="step:after"><img src="shipped-setup-wide.png" alt="">
+    <span class="pill foot"><span class="ic turn-icon"></span>Turned over. Put it back</span>
+  </div>
+
+  <div class="flips" data-k="step"><span style="padding: 0 6px;">Showing</span>
+    <span class="flip" data-v="right">first start, the guess right</span><span class="flip" data-v="wrong">the guess upside down</span><span class="flip" data-v="after">after the tap</span></div>
+</div>
+<script src="sideways.js"></script>
+</body>
+</html>

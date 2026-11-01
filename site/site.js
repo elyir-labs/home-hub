@@ -17,7 +17,7 @@ veil.addEventListener('click', (e) => {
   const live = document.createElement('div'), frame = document.createElement('iframe')
   live.className = 'live'; frame.src = veil.getAttribute('href'); frame.title = 'A pretend house'
   live.append(frame)
-  veil.previousElementSibling.querySelector('img').replaceWith(live)
+  veil.previousElementSibling.querySelector('picture').replaceWith(live)
   veil.remove()
   const fit = () => { frame.style.transform = `scale(${live.clientWidth / 1440})` }
   fit(); addEventListener('resize', fit)

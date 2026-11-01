@@ -11,7 +11,8 @@
  */
 import { createHouse } from '../mock/house.mjs'
 
-const house = createHouse({ env: { PRETEND: '1' } })
+/* With a code already set, as a house in use has, so a visitor isn't greeted by a warning to go and set one. */
+const house = createHouse({ env: { PRETEND: '1', LOCKED: '1' } })
 const own = import.meta.env.BASE_URL
 const forHouse = (url: URL) => url.origin === location.origin && !url.pathname.startsWith(own)
 const NO_BODY = [101, 103, 204, 205, 304]

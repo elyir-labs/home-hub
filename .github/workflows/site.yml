@@ -1,11 +1,12 @@
 # The site at https://hub.elyir.com (the front page, /install, the waitlist and the pretend house at /try), deployed when something it's made of
 # changes on main. It is design/site's D; site/site.test.mjs pins it to the board and is run before anything goes up.
 #
-# Secrets (Settings > Secrets and variables > Actions):
-#   CLOUDFLARE_API_TOKEN   a token with only Account > Cloudflare Pages > Edit (not the site's Terraform token)
+# Secrets, both written by site/terraform/ (deploy.tf), never by hand:
+#   CLOUDFLARE_API_TOKEN   the account's token that can only upload Pages (not the site's Terraform token)
 #   CLOUDFLARE_ACCOUNT_ID  the Cloudflare account
-# Without them it still builds and tests, and skips the deploy. The project, the address and the waitlist's database
-# are made by site/terraform/, never here.
+# A fork without them builds, tests and skips the deploy. Here, without them, the run fails: a green run that uploaded
+# nothing kept the old page up for ten days after the move to elyir-labs. The project, the address and the waitlist's
+# database are made by site/terraform/ too.
 name: Site (hub.elyir.com)
 
 on:
@@ -48,6 +49,12 @@ jobs:
 
       - name: Put it together
         run: site/build.sh
+
+      - name: The deploy has what it needs
+        if: github.repository == 'elyir-labs/home-hub' && (env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == '')
+        run: |
+          echo "::error::No CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID: nothing would go up. Apply site/terraform/ (deploy.tf)."
+          exit 1
 
       - name: Deploy to Cloudflare Pages
         if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''

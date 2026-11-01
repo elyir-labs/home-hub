@@ -14,6 +14,11 @@ resource "cloudflare_d1_database" "waitlist" {
   read_replication = {
     mode = "disabled"
   }
+
+  # It holds every signup. Nothing in a plan should ever replace it; removing this line is the only way to.
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # How many times each page was loaded, a number per page per day and nothing about who (functions/_middleware.js).

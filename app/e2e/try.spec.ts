@@ -60,6 +60,7 @@ test('the pretend house: rooms from the page itself, a tap that stays, a still, 
   const seen = watch(page)
   await page.goto(`${SITE}/try/?at=20:10&wx=cloudy`, { waitUntil: 'networkidle' })
   await expect(page.getByText('Connected'), 'the stream is the house in the page').toBeVisible()
+  await expect(page.getByText('Set a passcode'), 'a house in use has its code; a visitor is not told to go and set one').toHaveCount(0)
   await expect(page.getByRole('button', { name: /^Ceiling light, On/ })).toBeVisible()
   await page.getByRole('button', { name: 'Rooms', exact: true }).click()
   for (const room of ['Living room', 'Kitchen', 'Office', 'Backyard']) await expect(page.locator('main').getByText(room, { exact: true }).first()).toBeVisible()

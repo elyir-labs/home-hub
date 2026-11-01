@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C, one button that turns it</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="sideways.css">
+<style>
+  /* the knob keeps the glass's bottom-right corner, wherever that has been turned to */
+  .knob.corner { right: 28px; bottom: 28px; }
+  .knob .turn-icon svg { width: 22px; height: 22px; }
+</style>
+</head>
+<body data-step="before">
+<div class="wall">
+  <!-- one round button with no words, in the same corner of the glass on every first-start step; each tap turns a quarter -->
+  <div class="tall" data-if="step:before"><img src="shipped-setup-tall.png" alt="">
+    <span class="knob corner"><span class="ic turn-icon"></span></span>
+  </div>
+
+  <div class="wide over" data-if="step:one"><img src="shipped-setup-wide.png" alt="">
+    <span class="knob corner"><span class="ic turn-icon"></span></span>
+  </div>
+
+  <div class="wide" data-if="step:three"><img src="shipped-setup-wide.png" alt="">
+    <span class="knob corner"><span class="ic turn-icon"></span></span>
+  </div>
+
+  <div class="flips" data-k="step"><span style="padding: 0 6px;">Showing</span>
+    <span class="flip" data-v="before">first start, on its side</span><span class="flip" data-v="one">one tap: upside down</span><span class="flip" data-v="three">three taps: upright</span></div>
+</div>
+<script src="sideways.js"></script>
+</body>
+</html>
