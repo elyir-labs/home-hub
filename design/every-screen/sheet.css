@@ -1,0 +1,111 @@
+/* This house over the dock. The rows are the shipped sheet's (panel.css .sheet, .nav .it), value for value;
+   what changes is the grouping and where the sheet sits. The dock stays at the foot, This house lit in it. */
+.dock .door.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.scrim { position: absolute; inset: 0; z-index: 2; background: rgba(5,6,9,.62); backdrop-filter: blur(8px); }
+.scrim.light { background: rgba(5,6,9,.32); backdrop-filter: blur(2px); }
+
+body[data-shape="wall"]  { --st: 64px; --sx: 40px; }
+body[data-shape="wide7"] { --st: 14px; --sx: 16px; }
+body[data-shape="tall7"] { --st: 56px; --sx: 12px; }
+body[data-shape="phone"] { --st: 48px; --sx: 8px; }
+
+.sheet { position: absolute; z-index: 4; left: var(--sx); right: var(--sx); top: var(--st); bottom: calc(var(--nb) + 12px); color: var(--ink);
+         border-radius: 32px; border: 1px solid var(--edge-hi); overflow: hidden;
+         background: linear-gradient(#151922, #0f1219 40%, #0d0f15); box-shadow: 0 40px 100px -30px #000, inset 0 1px 0 rgba(255,255,255,.07); }
+.shd { position: relative; display: flex; align-items: flex-start; gap: 14px; padding: 24px 28px 18px; }
+.shd h2 { margin: 0; font-size: 40px; font-weight: 400; letter-spacing: -.02em; line-height: 1; }
+.shd p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+.sx { margin-left: auto; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.1); display: grid; place-items: center; color: var(--ink-2); flex: none; }
+.sbk { position: absolute; left: 22px; top: 18px; display: flex; gap: 4px; align-items: center; color: var(--ink-2); font-size: 14px; }
+.sbk + div { padding-top: 26px; }
+
+/* the rows, as shipped */
+.sr { display: flex; gap: 12px; align-items: center; padding: 9px 10px; border-radius: 16px; }
+.sr.on { background: rgba(255,255,255,.08); }
+.si { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.07); color: var(--ink-2); flex: none; }
+.sr.warn .si, .need .si { background: var(--lamp); color: var(--lamp-ink); }
+.st2 { min-width: 0; flex: 1; }
+.sn { display: block; font-size: 16px; line-height: 1.25; }
+.sh { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sr.warn .sh { color: var(--lamp); }
+.sc { color: var(--muted); flex: none; display: grid; }
+.sg h3 { margin: 0 0 4px 10px; font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+/* what wants the household, before the groups */
+.needs { display: flex; gap: 10px; padding: 0 28px 18px; }
+.need { flex: 1; display: flex; gap: 12px; align-items: center; padding: 10px 14px 10px 10px; border-radius: 18px; min-width: 0;
+        background: rgba(var(--lamp-rgb), .1); border: 1px solid rgba(var(--lamp-rgb), .32); }
+.need > span:nth-child(2) { flex: 1; min-width: 0; }
+.need b { display: block; font-weight: 500; font-size: 15px; } .need small { display: block; color: var(--ink-2); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* A: everything at once, the groups side by side */
+.sgs { display: grid; gap: 22px 18px; padding: 4px 18px 24px; grid-template-columns: repeat(4, 1fr); align-items: start; }
+body[data-shape="tall7"] .sgs { grid-template-columns: 1fr 1fr; gap: 20px 6px; padding: 4px 8px; }
+body[data-shape="tall7"] .sa .sh { white-space: normal; }
+body[data-shape="phone"] .sgs { grid-template-columns: 1fr; gap: 16px; padding: 0 10px; }
+body[data-shape="wide7"] .sa .shd { padding: 16px 20px 10px; } body[data-shape="wide7"] .sa .shd h2 { font-size: 30px; }
+body[data-shape="wide7"] .needs { padding: 0 20px 12px; } body[data-shape="wide7"] .sgs { gap: 12px 8px; padding: 0 8px; }
+body[data-shape="wide7"] .sa .sr { padding: 6px 8px; } body[data-shape="wide7"] .sa .si { width: 30px; height: 30px; }
+body[data-shape="wide7"] .sa .sn { font-size: 14px; } body[data-shape="wide7"] .sa .sh { font-size: 12px; }
+body[data-shape="wide7"] .sa .sc, body[data-shape="wall"] .sa .sc, body[data-shape="tall7"] .sa .sc { display: none; }
+body[data-shape="phone"] .needs, body[data-shape="tall7"] .needs { flex-direction: column; padding: 0 16px 16px; gap: 8px; }
+body[data-shape="phone"] .shd, body[data-shape="tall7"] .shd { padding: 20px 20px 14px; }
+body[data-shape="phone"] .shd h2, body[data-shape="tall7"] .shd h2 { font-size: 32px; }
+
+/* B: today's sheet, grouped: the list beside the page on a wide screen, the list then the page on a tall one */
+.sheet.sb.two { display: grid; grid-template-columns: 340px 1fr; }
+body[data-shape="wide7"] .sheet.sb.two { grid-template-columns: 270px 1fr; }
+.slist { border-right: 1px solid var(--edge); padding: 22px 14px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+.slist .cap { margin: 0 0 0 10px; font-size: 16px; color: var(--ink-2); }
+.sb.two .slist .sc { display: none; }
+body[data-shape="wide7"] .slist { padding: 12px 8px; gap: 8px; } body[data-shape="wide7"] .slist .cap { display: none; }
+body[data-shape="wide7"] .slist .sr { padding: 5px 8px; } body[data-shape="wide7"] .slist .si { width: 28px; height: 28px; border-radius: 9px; }
+body[data-shape="wide7"] .slist .sn { font-size: 14px; } body[data-shape="wide7"] .slist .sh { display: none; }
+body[data-shape="wide7"] .slist .sg h3 { font-size: 10px; margin-bottom: 0; }
+body[data-shape="wide7"] .smain .shd { padding: 16px 20px 12px; } body[data-shape="wide7"] .smain .shd h2 { font-size: 30px; }
+body[data-shape="wide7"] .smain .needs { padding: 0 20px 12px; flex-direction: column; gap: 8px; }
+.smain { min-width: 0; border-bottom: 0; }
+.smain .shd { border-bottom: 1px solid var(--edge); margin-bottom: 18px; }
+.ov { padding: 0 28px; }
+.ovr { display: grid; grid-template-columns: 130px 1fr; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--edge); font-size: 15px; }
+.ovr .k { font-size: 12px; letter-spacing: .12em; color: var(--muted); }
+body[data-shape="wide7"] .ov { padding: 0 20px; } body[data-shape="wide7"] .ovr { padding: 10px 0; }
+.sb.one .slist { border: 0; padding: 0 10px 20px; gap: 16px; }
+
+/* C: the dock opens a short menu over its own button, and a page opens as the whole sheet */
+.pop { position: absolute; z-index: 4; right: calc(50% - 392px); bottom: calc(var(--nb) + 12px); width: 340px; padding: 14px 10px; border-radius: 26px;
+       background: rgba(22,25,32,.94); border: 1px solid var(--edge-hi); backdrop-filter: blur(28px); color: var(--ink);
+       box-shadow: 0 30px 80px -20px #000; display: flex; flex-direction: column; gap: 10px; }
+.pop::after { content: ""; position: absolute; right: 26px; bottom: -8px; width: 14px; height: 14px; transform: rotate(45deg);
+              background: rgba(22,25,32,.94); border-right: 1px solid var(--edge-hi); border-bottom: 1px solid var(--edge-hi); }
+.pg2 h3 { margin: 0 0 2px 12px; font-size: 10.5px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.pi { display: flex; align-items: center; gap: 12px; padding: 7px 12px; border-radius: 12px; font-size: 15px; }
+.pi .si { width: 28px; height: 28px; border-radius: 9px; }
+.pi.warn .si { background: var(--lamp); color: var(--lamp-ink); }
+.pi i { margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--lamp); }
+body[data-shape="wide7"] .pop { width: 560px; right: calc(50% - 300px); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 6px; padding: 12px 8px; }
+body[data-shape="wide7"] .pop::after { right: 47px; }
+body[data-shape="wide7"] .pi { padding: 5px 10px; font-size: 14px; }
+body[data-shape="tall7"] .pop { right: 80px; width: 330px; }
+body[data-shape="tall7"] .pop::after { right: 38px; }
+body[data-shape="phone"] .pop { left: 8px; right: 8px; width: auto; }
+body[data-shape="phone"] .pop::after { right: 34px; }
+
+/* the page itself, the same in every direction */
+.pg { padding: 0 28px; display: flex; flex-direction: column; gap: 0; }
+.pg .lede { margin: 0 0 12px; color: var(--ink-2); font-size: 16px; }
+.pr { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--edge); }
+.pr > span:nth-child(2) { flex: 1; min-width: 0; }
+.av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #8a7357; font-size: 15px; flex: none; }
+.pr:nth-of-type(3) .av { background: #5a4636; } .pr:nth-of-type(4) .av { background: #4d7a6e; }
+.pill { display: inline-flex; padding: 9px 16px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid var(--edge); font-size: 15px; white-space: nowrap; }
+.pill.solid { background: var(--ink); color: var(--bg); align-self: flex-start; margin-top: 18px; }
+body[data-shape="phone"] .pg, body[data-shape="tall7"] .pg { padding: 0 20px; }
+body[data-shape="wide7"] .pg { padding: 0 20px; } body[data-shape="wide7"] .pr { padding: 8px 0; }
+
+.flips { position: fixed; } .flip { text-decoration: none; }
+
+/* A on a wide screen rises from the dock only as far as the groups need */
+body[data-shape="wall"] .sheet.sa.rise, body[data-shape="wide7"] .sheet.sa.rise { top: auto; padding-bottom: 8px; }
+.flips { right: auto; left: 12px; top: auto; bottom: 12px; }
+body[data-shape="tall7"] .flips, body[data-shape="phone"] .flips { bottom: auto; top: 8px; }
