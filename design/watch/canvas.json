@@ -8,7 +8,11 @@
     "Today.dc.html",
     "Today-phone.dc.html",
     "today",
+    "AnswerWeekAB.dc.html",
+    "AnswerWeekAB-phone.dc.html",
+    "ab",
     "behind",
+    "pick",
     "AnswerA.dc.html",
     "AnswerA-phone.dc.html",
     "a",
@@ -17,13 +21,21 @@
     "b",
     "TimeC.dc.html",
     "TimeC-phone.dc.html",
-    "c",
-    "pick"
+    "c"
   ],
   "pages": [
     {
       "id": "watch",
-      "name": "A page for the watcher's numbers"
+      "name": "A page for the watcher's numbers",
+      "decided": {
+        "on": "2026-11-01",
+        "chose": "A's rows, with B's chart under them",
+        "board": "AnswerWeekAB.dc.html"
+      }
+    },
+    {
+      "id": "watch-held",
+      "name": "A page for the watcher's numbers: not chosen"
     }
   ],
   "artboards": [
@@ -52,7 +64,7 @@
       "w": 1440,
       "h": 900,
       "title": "A · The answer first: is everything up, then each service's week, then the week in four numbers",
-      "page": "watch"
+      "page": "watch-held"
     },
     {
       "file": "AnswerA-phone.dc.html",
@@ -61,7 +73,7 @@
       "w": 390,
       "h": 844,
       "title": "A · on a phone: the answer, and every service, before anything else",
-      "page": "watch"
+      "page": "watch-held"
     },
     {
       "file": "WeekB.dc.html",
@@ -70,7 +82,7 @@
       "w": 1440,
       "h": 900,
       "title": "B · The week first: page loads by week, which pages, four numbers; the services are one line",
-      "page": "watch"
+      "page": "watch-held"
     },
     {
       "file": "WeekB-phone.dc.html",
@@ -79,7 +91,7 @@
       "w": 390,
       "h": 844,
       "title": "B · on a phone: one line for the services, then the week",
-      "page": "watch"
+      "page": "watch-held"
     },
     {
       "file": "TimeC.dc.html",
@@ -88,7 +100,7 @@
       "w": 1440,
       "h": 900,
       "title": "C · One line of time: every measure in its own lane on one axis, so a cause sits above its effect",
-      "page": "watch"
+      "page": "watch-held"
     },
     {
       "file": "TimeC-phone.dc.html",
@@ -97,6 +109,24 @@
       "w": 390,
       "h": 844,
       "title": "C · on a phone: fourteen days, the same lanes",
+      "page": "watch-held"
+    },
+    {
+      "file": "AnswerWeekAB.dc.html",
+      "x": 0,
+      "y": 1700,
+      "w": 1440,
+      "h": 900,
+      "title": "Chosen · A's rows, B's chart under them: is everything up, each service's week, then page loads by week",
+      "page": "watch"
+    },
+    {
+      "file": "AnswerWeekAB-phone.dc.html",
+      "x": 1580,
+      "y": 1700,
+      "w": 390,
+      "h": 844,
+      "title": "Chosen · on a phone: the answer, every service, then the weeks of page loads",
       "page": "watch"
     }
   ],
@@ -119,7 +149,7 @@
     },
     {
       "id": "a",
-      "page": "watch",
+      "page": "watch-held",
       "x": 0,
       "y": 2660,
       "w": 1440,
@@ -127,7 +157,7 @@
     },
     {
       "id": "b",
-      "page": "watch",
+      "page": "watch-held",
       "x": 0,
       "y": 4360,
       "w": 1440,
@@ -135,7 +165,7 @@
     },
     {
       "id": "c",
-      "page": "watch",
+      "page": "watch-held",
       "x": 0,
       "y": 6060,
       "w": 1440,
@@ -151,11 +181,23 @@
     },
     {
       "id": "pick",
-      "page": "watch",
+      "page": "watch-held",
       "x": -620,
       "y": 3400,
       "w": 500,
       "text": "TO PICK\n\nA, B or C, or a mix (B's chart under A's rows, say), or something else entirely: describe it. Whichever wins is built in watch/worker.js and pinned by a test, and the other two stay here with their cases."
+    },
+    {
+      "id": "ab",
+      "page": "watch",
+      "x": 0,
+      "y": 2660,
+      "w": 1440,
+      "text": "DECIDED 1 NOVEMBER 2026 -- A'S ROWS, WITH B'S CHART UNDER THEM\n\nThe page still opens on the one question: is everything up. Every service keeps A's row, with its week as a strip of four-hour marks, its uptime and how fast 95 answers in 100 came back. Beside them sit four of the week's numbers and the relay's box. Under the rows, B's eight weeks of page loads, with this week lit, and which pages they were.\n\nC's lanes were left out: they repeat what the chart and the strips already show, and they cost the glance. Page loads moved out of the tiles because the chart now carries them; the install command took that place. The whole thing is one screen on a laptop. On a phone it is the answer, the services, then the chart, and the four numbers after a scroll."
     }
-  ]
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "watch"
+  }
 }

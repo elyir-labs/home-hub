@@ -108,7 +108,7 @@ body.solo .wrap { display: none; }
 <body>
 <div class="wrap" id="page">
   <header class="top">
-    <div class="eyebrow">design/watch · 29 October 2026 · waiting for a pick</div>
+    <div class="eyebrow">design/watch · picked 1 November 2026 · A's rows with B's chart</div>
     <h1>A page for the watcher's numbers</h1>
     <p>The watcher (watch/) already mails the operator when something stops answering, and sends the week in numbers on Mondays. This is the page to look at in between: what the services, the relay, the site and the waitlist are doing now. Today's mail is drawn first, then three directions. Every number is made up, shaped like a quiet week with one short outage.</p>
   </header>
@@ -263,6 +263,61 @@ const BOARDS = {
       ${[['Joined', '6', '31 in all'], ['Install fetched', '37', '+23%'], ['Carried', '4', 'of 5'], ['Downloads', '18', '143 in all']].map(([l, v, d]) => `<div class="card" style="padding:12px 14px"><div class="label">${l}</div><div class="num" style="font-size:26px;font-weight:600;margin:4px 0 0">${v}</div><div style="font-size:12px;color:var(--s-ink-3)">${d}</div></div>`).join('')}
     </div>`),
 
+  // ---------- Chosen: A's rows, B's chart under them ----------
+  ab: () => computer('watch.elyir.com', `${nav()}
+    <div style="padding:26px 48px 0">
+      <div style="display:flex;align-items:baseline;gap:20px"><div style="font-size:40px;font-weight:500;letter-spacing:-.025em;line-height:1.1">Everything is up.</div><span class="ok" style="font-size:15px">All 9 answered in the last minute</span></div>
+      <div style="font-size:17px;color:var(--s-ink-2);margin-top:6px">One outage this week: the relay and the address offer behind it, 7 minutes, Tue 03:12 UTC.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 420px;gap:20px 28px;padding:22px 48px 0">
+      <div class="card" style="padding:4px 0">
+        <div style="display:grid;grid-template-columns:64px 1fr 334px 76px 70px;align-items:center;gap:0 12px;height:34px;padding:0 22px;border-bottom:1px solid var(--s-line)" class="label">
+          <span></span><span>Service</span><span>The last 7 days, four hours a mark</span><span style="text-align:right">Up</span><span style="text-align:right">95th ms</span></div>
+        ${SERVICES.map(([n, p, ms, downAt]) => `<div style="display:grid;grid-template-columns:64px 1fr 334px 76px 70px;align-items:center;gap:0 12px;height:36px;padding:0 22px;border-bottom:1px solid var(--s-line)">
+          <span class="ok">Up</span><span style="font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>${strip(42, downAt === undefined ? -1 : 27).replace(/<i /g, '<i style="width:6px;height:16px" ')}
+          <span class="num" style="text-align:right;font-size:15px">${p}</span><span class="num" style="text-align:right;font-size:15px;color:var(--s-ink-2)">${ms}</span></div>`).join('')}
+        <div style="display:flex;gap:18px;padding:10px 22px 6px;font-size:12px;color:var(--s-ink-3)"><span style="display:inline-flex;align-items:center;gap:6px"><i style="width:4px;height:12px;border-radius:2px;background:var(--s-up)"></i>Answered</span><span style="display:inline-flex;align-items:center;gap:6px"><i style="width:4px;height:12px;border-radius:2px;background:var(--s-down)"></i>Missed two in a row</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="label" style="margin:2px 0 -2px">This week</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${[
+          ['Joined the waitlist', '6', '<b>31</b> in all', JOINS_WEEKS], ['Install command', '37', 'fetched, <b>+23%</b>', [12, 15, 14, 19, 22, 26, 30, 37]],
+          ['Houses carried', '4', 'of <b>5</b> with a name', CARRIED_WEEKS], ['Downloads', '18', '<b>143</b> in all', DOWNLOADS_WEEKS],
+        ].map(([l, v, d, s]) => `<div class="card" style="padding:14px 16px 12px"><div class="label">${l}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 2px"><span class="num" style="font-size:28px;font-weight:600;letter-spacing:-.02em">${v}</span>${spark(s, 84, 28)}</div>
+          <div style="font-size:13px;color:var(--s-ink-3)">${d.replace(/<b>/g, '<b style="color:var(--s-ink-2);font-weight:500">')}</div></div>`).join('')}</div>
+        <div class="card" style="padding:12px 20px;flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="label" style="margin-bottom:2px">The relay's box</div>
+          ${[['Disk', 31], ['Memory', 42], ['Load', 12]].map(([k, v]) => `<div style="display:grid;grid-template-columns:70px 1fr 44px;align-items:center;gap:12px;margin:4px 0;font-size:14px;color:var(--s-ink-2)">${k}<div class="meter"><i style="width:${v}%"></i></div><span class="num" style="text-align:right">${k === 'Load' ? '0.12' : v + '%'}</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="card" style="padding:14px 24px 6px">
+        <div style="display:flex;align-items:baseline;gap:14px"><span class="label">Page loads, by week</span><span class="num" style="font-size:28px;font-weight:600;letter-spacing:-.02em;margin-left:auto">412</span><span style="font-size:15px;color:var(--s-ink-2)">this week, <b style="color:var(--s-ink);font-weight:500">+22%</b> on the week before</span></div>
+        ${weeksChart(LOADS_WEEKS, 848, 150)}
+      </div>
+      <div class="card" style="padding:16px 22px">
+        <div style="display:flex;justify-content:space-between" class="label"><span>Which pages, this week</span><span style="text-transform:none;letter-spacing:0;font-weight:400">people only</span></div>
+        ${[['The front page', 300, 251], ['The pretend house', 54, 43], ['The install command', 37, 30], ['The privacy page', 21, 14]].map(([n, v, was]) => `<div style="margin:12px 0 0"><div style="display:flex;justify-content:space-between;font-size:14px"><span>${n}</span><span><span class="num">${v}</span> <span style="color:var(--s-ink-3);font-size:12px">was ${was}</span></span></div>
+          <div style="height:8px;margin-top:5px;border-radius:0 4px 4px 0;width:${v / 300 * 100}%;background:#e9b872"></div></div>`).join('')}
+      </div>
+    </div>`),
+  'ab-phone': () => phone('watch.elyir.com', `${nav('14:32 UTC')}
+    <div style="padding:18px 20px 0"><span class="ok">All 9 up</span>
+      <div style="font-size:30px;font-weight:500;letter-spacing:-.02em;line-height:1.1;margin:6px 0">Everything is up.</div>
+      <div style="font-size:14px;color:var(--s-ink-2)">One outage this week: the relay, 7 minutes on Tuesday.</div></div>
+    <div class="card" style="margin:14px 16px 0;padding:4px 0">
+      ${SERVICES.map(([n, p, , downAt]) => `<div style="display:grid;grid-template-columns:1fr 125px 58px;align-items:center;gap:10px;height:34px;padding:0 14px;border-bottom:1px solid var(--s-line)">
+        <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>${strip(42, downAt === undefined ? -1 : 27).replace('class="strip"', 'class="strip" style="gap:1px"').replace(/<i /g, '<i style="width:2px;height:12px;border-radius:1px" ')}
+        <span class="num" style="text-align:right;font-size:13px">${p}</span></div>`).join('')}
+    </div>
+    <div class="card" style="margin:12px 16px 0;padding:14px 16px 6px">
+      <div style="display:flex;align-items:baseline;gap:10px"><span class="label">Page loads, by week</span><span class="num" style="margin-left:auto;font-size:24px;font-weight:600">412</span><span style="font-size:13px;color:var(--s-ink-2)">+22%</span></div>
+      ${weeksChart(LOADS_WEEKS, 326, 112, true)}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 16px 0">
+      ${[['Joined', '6', '31 in all'], ['Install fetched', '37', '+23%'], ['Carried', '4', 'of 5'], ['Downloads', '18', '143 in all']].map(([l, v, d]) => `<div class="card" style="padding:12px 14px"><div class="label">${l}</div><div class="num" style="font-size:26px;font-weight:600;margin:4px 0 0">${v}</div><div style="font-size:12px;color:var(--s-ink-3)">${d}</div></div>`).join('')}
+    </div>`),
+
   // ---------- C: one line of time ----------
   c: () => computer('watch.elyir.com', `${nav()}
     <div style="display:flex;align-items:center;gap:10px;padding:22px 48px 0">
@@ -353,6 +408,7 @@ const FILE_TO_BOARD = {
   'AnswerA.dc.html': 'a', 'AnswerA-phone.dc.html': 'a-phone',
   'WeekB.dc.html': 'b', 'WeekB-phone.dc.html': 'b-phone',
   'TimeC.dc.html': 'c', 'TimeC-phone.dc.html': 'c-phone',
+  'AnswerWeekAB.dc.html': 'ab', 'AnswerWeekAB-phone.dc.html': 'ab-phone',
 }
 
 const solo = new URLSearchParams(location.search).get('board')
