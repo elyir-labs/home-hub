@@ -170,6 +170,10 @@ export function asThing(text?: string): string | undefined {
  */
 const STILL_ASKING = ['knocking', 'press', 'rhythm']
 export const stripWaiting = (state?: string) => STILL_ASKING.includes(state ?? '')
+/* Things waiting to be set up: found on the network, 3D printers on the Wi-Fi, and a strip still knocking. One number,
+   because to a household they are the same sentence -- something new, not set up yet. It is the dot on the Add door,
+   wherever that door is. */
+export const waitingToAdd = () => store.found.length + (store.printers?.found.length ?? 0) + (stripWaiting(store.strip?.state) ? 1 : 0)
 
 /*
  * WHEN AN ARRIVAL MAY TAKE A SCREEN, AND WHAT IT SAYS WHEN IT MAY NOT.

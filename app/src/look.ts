@@ -129,9 +129,8 @@ export function feelFrom(look: { feel?: string; face?: string; tone?: string } |
  * there -- and 1280 is where a screen stops being something you stand in front
  * of and starts being something you read from the sofa.
  *
- * A phone keeps the side rail on purpose: under 861 it already folds into a
- * strip across the top, so "side" on a phone is not a list down the left, and
- * swapping it for tabs here would be a redesign wearing a preset's clothes.
+ * A phone takes the dock along its foot like every other screen
+ * (design/every-screen/, B), in place of the strip across its top.
  */
 export const TOUCHED_AT = 861      // a tablet on a wall, within arm's reach
 export const READ_AT = 1280        // a big screen, read from across the room
@@ -141,7 +140,7 @@ export type Place = { layout: LayoutName; nav: NavName }
 export function placeOf(width: number): Place {
   if (width >= READ_AT) return { layout: 'wall', nav: 'top' }
   if (width >= TOUCHED_AT) return { layout: 'rail', nav: 'top' }
-  return { layout: 'stack', nav: 'side' }
+  return { layout: 'stack', nav: 'top' }
 }
 
 /* what the hub holds once a feel is picked: the taste spelled out, so an older

@@ -547,6 +547,21 @@ speaking() {
   rm -rf "$root"
 }
 
+# Every glass draws the panel the 10-inch wall's size, by its size in millimeters (design/every-screen/).
+sizing() {
+  group "a screen draws the panel the same size whatever its glass, and an unknown glass the way it always has"
+  local w="$HERE/../../startup/wall.sh"
+  across() { awk -v m="$1" -v s="$("$w" fit "$1" "${2:-}")" 'BEGIN { split(m, a, "x"); printf "%dx%d", a[1] / s + .5, a[2] / s + .5 }'; }
+  is "the 10-inch wall stays 1440 by 900" "$(across 1920x1200 217x136)" "1440x900"
+  is "a 7-inch hung wide is drawn at the wall's size, not shrunk to fit 1440 by 900" "$(across 1280x720 155x87)" "1029x579"
+  is "...and hung tall, the same the other way" "$(across 720x1280 87x155)" "579x1029"
+  is "a big monitor gets more room, not bigger cards, up to 2560 across" "$(across 1920x1080 531x299)" "2560x1440"
+  is "a glass that reports no size keeps the pixel rule" "$(across 1920x1200)" "1440x900"
+  is "...as does a TV, read from across the room" "$(across 1920x1080 1210x680)" "1600x900"
+  is "...and a size that is really an aspect ratio" "$(across 1920x1080 16x9)" "1600x900"
+  is "wlr-randr's outputs are read as name, mode and size" "$(printf '%s\n' 'DSI-1 "(null) (DSI-1)"' '  Physical size: 87x155 mm' '  Modes:' '    720x1280 px, 60.000000 Hz (preferred, current)' 'HDMI-A-1 "x"' '  Enabled: no' | "$w" outputs | paste -sd, -)" "DSI-1 720x1280 87x155,HDMI-A-1 - 0x0"
+}
+
 # A glass made tall comes up wide the first time the wall starts, and only then (design/sideways-start/, B).
 guessing() {
   group "a tall glass is turned a quarter the first time, and a kept turn is never guessed over"
@@ -1386,6 +1401,6 @@ SH
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; keeping; speaking; guessing; awake; setting_up; moving_in; moving; describing; starting_over
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; keeping; speaking; sizing; guessing; awake; setting_up; moving_in; moving; describing; starting_over
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

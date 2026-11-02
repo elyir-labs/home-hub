@@ -98,3 +98,30 @@ export function homeRow<P extends { id: string }>(o: {
   out.push(...o.glance.slice(2).map(d => card(d)))
   return out
 }
+
+/**
+ * The row on a tall screen (design/every-screen/, Tall10): it does not run on past the edge, it fills a
+ * grid of `cells` places and stops, and the last place says what is left and opens Rooms. The row's order
+ * is kept, so a card is only ever cut from the end, which is where a thing that has just come on joins
+ * and never where a card somebody touched is standing. What is playing is two places wide, and so are
+ * the scenes; everything else is one.
+ */
+export function fitRow<P>(row: RowCard<P>[], cells: number): { shown: RowCard<P>[]; left: Device[] } {
+  const media = (d: Device) => (d.kind || d.guess || d.capability).split('.')[0] === 'media'   // store.ts's cap(), which this module stays clear of
+  const size = (c: RowCard<P>) => c.kind === 'scenes' || (c.kind === 'device' && media(c.device)) ? 2 : 1
+  if (row.reduce((n, c) => n + size(c), 0) <= cells) return { shown: row, left: [] }
+  const shown: RowCard<P>[] = []
+  let used = 0
+  for (const c of row) {
+    if (used + size(c) > cells - 1) break
+    shown.push(c); used += size(c)
+  }
+  const left = row.slice(shown.length).flatMap(c => c.kind === 'device' ? [c.device] : [])
+  return { shown, left }
+}
+
+/** What the last place says: how many more, and the first two by name. */
+export function leftLine(left: Device[]): { count: string; names: string } {
+  const names = left.slice(0, 2).map(d => d.name)
+  return { count: `and ${left.length} more`, names: left.length > 2 ? `${names.join(', ')}, and others` : listOf(names) }
+}

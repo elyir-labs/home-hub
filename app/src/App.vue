@@ -132,7 +132,9 @@ const atTouch = window.matchMedia(`(min-width: ${TOUCHED_AT}px)`)
 const atRead = window.matchMedia(`(min-width: ${READ_AT}px)`)
 const width = ref(window.innerWidth)
 const measure = () => (width.value = window.innerWidth)
-const place = computed(() => placeOf(width.value))
+/* ...except that a wall screen narrower than 861 is a 7-inch hung tall, not a phone, and gets the home's
+   grid two across rather than the phone's page (design/every-screen/, DockB-Tall7) */
+const place = computed(() => { const p = placeOf(width.value); return wall && p.layout === 'stack' ? { layout: 'rail' as LayoutName, nav: 'top' as NavName } : p })
 
 /* Light or dark, the one part of the look that is this screen's own (shade.ts). It lands on <html>
    rather than the shell so a sheet or a toast drawn outside the shell takes it too, and it tells the
@@ -176,6 +178,8 @@ const navParam = params.get('nav')
    the other houses, lives in the top bar's row (design/houses/, B), and a phone's side list has no room for it. */
 const nav = computed<NavName>(() => isNav(navParam) ? navParam : (inApp && narrow.value) ? 'top' : (isNav(store.ambient.look?.nav) ? store.ambient.look!.nav as NavName : place.value.nav))
 const tab = ref<'home' | 'rooms' | 'cameras'>('home')
+/* The dock along the foot of every screen (design/every-screen/, B) */
+const docked = computed(() => nav.value === 'top')
 function go(t: 'home' | 'rooms' | 'cameras') { tab.value = t; open(null) }
 
 /* an opened device lends the room its color: a warm lamp pushes the field
@@ -281,7 +285,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="shell" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking }">
+  <div class="shell" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking, 'house-open': panel && docked, 'pane-open': !!store.opened && docked }">
     <Sky :quiet="!idle && !setup" :held="wall && !idle" />
     <!-- glass lays its blooms on the sky the canvas just painted, under the veil -->
     <div class="sky-bloom" v-if="face === 'glass'"></div>
@@ -292,7 +296,7 @@ onUnmounted(() => {
     <MovePage v-else-if="store.moving" />
     <Setup v-else-if="setup" />
     <ScreenRoom v-else-if="placing" :home="store.status?.home || 'the house'" :locked="!!store.status?.locked" :rooms="rooms" :screens="store.phones" @placed="open" />
-    <TopBar v-if="!setup && !shut && nav === 'top'" :clock="clock" :day="day" :now="shown" :tab="tab" :in-room="!!room" @go="go" />
+    <TopBar v-if="!setup && !shut && nav === 'top'" :clock="clock" :day="day" :now="shown" :tab="tab" :in-room="!!room" :docked="docked" @go="go" />
     <aside class="rail" v-if="!setup && !shut && nav === 'side'">
       <div class="rail-clock">
         <div class="rail-time">{{ clock }}</div>
@@ -372,16 +376,16 @@ onUnmounted(() => {
         <RoomView v-if="room" :key="room.id" :room="room" @back="open(null)" @open="open" />
         <RoomsView v-else-if="nav === 'top' && tab === 'rooms'" key="rooms" :rooms="rooms" :woke="woke" @open="open" />
         <CamerasView v-else-if="nav === 'top' && tab === 'cameras'" key="cameras" :rooms="rooms" :woke="woke" />
-        <RailView v-else-if="layout === 'rail'" key="home-rail" :rooms="rooms" :now="shown" :top-nav="nav === 'top'" :woke="woke" @open="open" />
+        <RailView v-else-if="layout === 'rail'" key="home-rail" :rooms="rooms" :now="shown" :top-nav="nav === 'top'" :woke="woke" @open="open" @rooms="go('rooms')" />
         <WallView v-else-if="layout === 'wall'" key="home-wall" :rooms="rooms" :now="shown" :top-nav="nav === 'top'" :woke="woke" @open="open" />
         <HomeView v-else key="home-stack" :rooms="rooms" :now="shown" :top-nav="nav === 'top'" @open="open" />
       </Transition>
     </main>
 
-    <Household v-if="!setup && !shut && nav === 'top'" :room="room?.id ?? null" />
+    <Household v-if="!setup && !shut && nav === 'top'" :room="room?.id ?? null" :docked="docked" :tab="tab" :in-room="!!room" :now="shown" @go="go" />
 
     <Viewer />
-    <Opened v-if="store.opened" />
+    <Opened v-if="store.opened" :class="{ docked }" />
     <MusicPane v-if="store.musicPane" />
     <PrinterPane v-if="store.printer" />
     <PowerPane v-if="store.powerOpen" />
@@ -391,7 +395,7 @@ onUnmounted(() => {
          element it is put on, and this one's root never moves, so on the way out
          it was pulling the panel off the screen before it had slid anywhere.
          These two numbers are the panel's own slide and the veil's fade. -->
-    <Transition name="house" :duration="{ enter: 420, leave: 320 }"><HousePanel v-if="panel" /></Transition>
+    <Transition name="house" :duration="{ enter: 420, leave: 320 }"><HousePanel v-if="panel" :docked="docked" /></Transition>
     <Transition name="sheet"><WhySheet v-if="store.sheet === 'why'" /></Transition>
     <!-- A bridge being set up opens itself: somebody has just plugged a thing in, in this room, and
          is standing here. It is not a place in the house to navigate to. -->
