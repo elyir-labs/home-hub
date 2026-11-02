@@ -348,7 +348,7 @@ async function whichWay() {
 
 /* A PHONE: the same line across the phone, and the places in a row under it rather than each under its
    box, where three names would print over each other in 300px. */
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .roof-plate {
     min-height: 0;
     padding: 16px 16px 20px;

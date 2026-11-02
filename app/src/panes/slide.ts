@@ -10,6 +10,7 @@
  * Zigbee lamp is how a bulb falls off a mesh. What moves while the finger is down is the drawing.
  */
 import { ref } from 'vue'
+import { PHONE } from '../look'
 
 /** Where along an element a pointer is, 0-100. Vertical columns fill from the bottom. */
 export function levelFrom(e: PointerEvent, el: HTMLElement, vertical = true): number {
@@ -52,7 +53,7 @@ export function useSlide(opts: { vertical?: boolean | (() => boolean); live: (pc
 
 /* A wall panel drags a column; a phone drags a bar. The axis has to be a fact the component knows,
    not only something CSS turns on its side, or the finger and the fill disagree. */
-export function useNarrow(query = '(max-width: 860px)') {
+export function useNarrow(query = PHONE) {
   const narrow = ref(typeof matchMedia === 'function' ? matchMedia(query).matches : false)
   if (typeof matchMedia === 'function') {
     const mq = matchMedia(query)

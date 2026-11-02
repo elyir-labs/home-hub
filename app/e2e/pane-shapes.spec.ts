@@ -22,7 +22,7 @@ async function lamp(page: Page, width: number, height: number) {
 
 const box = async (page: Page, s: string) => (await page.locator(s).first().boundingBox())!
 
-for (const [name, w, h] of [['the 10-inch hung tall', 900, 1440], ['a 7-inch hung tall', 579, 1029], ['a phone', 390, 844]] as const) {
+for (const [name, w, h] of [['the 10-inch hung tall', 900, 1440], ['a tablet held tall', 820, 1180], ['a 7-inch hung tall', 579, 1029], ['a phone', 390, 844]] as const) {
   test(`on ${name} the pane stands above the dock, and the dock stays in front`, async ({ page }) => {
     await lamp(page, w, h)
     const pane = await box(page, '.opened-panel'), dock = await box(page, '.dock-body')

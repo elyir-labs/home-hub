@@ -49,7 +49,7 @@ const more = ref(off.value)      // a house that has already been in here opens 
 /* what the four dials are actually set to, once the feel and the screen have
    had their say: the same resolution App.vue does, so the rows below can never
    disagree with the panel behind them */
-const place = computed(() => placeOf(window.innerWidth))
+const place = computed(() => placeOf(window.innerWidth, window.innerHeight))
 const layout = computed(() => isLayout(stored.value.layout) ? stored.value.layout : 'auto')
 const nav = computed(() => isNav(stored.value.nav) ? stored.value.nav : 'auto')
 const tone = computed(() => stored.value.tone ?? feel.value.tone)

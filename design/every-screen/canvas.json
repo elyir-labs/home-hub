@@ -822,7 +822,7 @@
       "x": 4926,
       "y": 3060,
       "w": 500,
-      "text": "A TABLET HELD TALL, 2 NOVEMBER 2026.\n\nNot a new direction: size rule 2, decided with B, says a screen 640 to 1100 wide and taller than wide is arranged as the 10-inch hung tall, three across, and that a tablet at 820 stops getting the phone's page. This board draws that at an iPad's size so there is a picture to build against.\n\nWhat it changes for a household: an iPad held tall shows Your evening as a fitted grid with the clock and the greeting, where today it shows the phone's scrolling page. Turned on its side it is wide and gets the wall's row, as now. A phone, 7-inch hung tall and anything under 640 keep two across."
+      "text": "A TABLET HELD TALL, 2 NOVEMBER 2026.\n\nNot a new direction: size rule 2, decided with B, says a screen 640 to 1100 wide and taller than wide is arranged as the 10-inch hung tall, three across, and that a tablet at 820 stops getting the phone's page. This board draws that at an iPad's size so there is a picture to build against.\n\nWhat it changes for a household: an iPad held tall shows Your evening as a fitted grid with the clock and the greeting, where today it shows the phone's scrolling page. Turned on its side it is wide and gets the wall's row, as now. A phone, 7-inch hung tall and anything under 640 keep two across.\n\nBUILT 2 NOVEMBER 2026: from 640 wide, a screen held tall is arranged this way (placeOf, PHONE and TALL_AT in app/src/look.ts). The lamp's pane scrolls as a whole on a tall screen, as on a phone, since 1180 is not the 10-inch's 1440. Pinned by app/e2e/shapes.spec.ts, room-shapes and pane-shapes."
     }
   ]
 }

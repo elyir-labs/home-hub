@@ -19,6 +19,7 @@
  */
 import { ref } from 'vue'
 import { store } from './store'
+import { PHONE } from './look'
 
 export type BandItem =
   | 'ask' | 'notes' | 'knock' | 'controller' | 'updating' | 'signal'
@@ -36,9 +37,9 @@ export const KIND: Record<BandItem, BandKind> = {
   passcode: 'setup', location: 'setup', 'home-screen': 'setup',
 }
 
-/* A phone, at the seam the rest of the panel uses for one (TOUCHED_AT in look.ts is the other side
-   of it). Reactive, because a tablet turned on its side changes which side of it it is on. */
-const query = typeof matchMedia === 'function' ? matchMedia('(max-width: 860px)') : null
+/* A phone, at the seam the rest of the panel uses for one (PHONE in look.ts). Reactive, because a
+   tablet turned on its side changes which side of it it is on. */
+const query = typeof matchMedia === 'function' ? matchMedia(PHONE) : null
 export const narrow = ref(query?.matches ?? false)
 query?.addEventListener?.('change', e => { narrow.value = e.matches })
 
