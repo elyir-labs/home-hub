@@ -745,7 +745,7 @@
       "x": -620,
       "y": 1400,
       "w": 500,
-      "text": "EVERY DIRECTION, ON A WIDE SCREEN: what ships, under the dock.\n\nThe wall's room and its lamp are composed today and stay as they are. The page ends above the dock rather than at the people line, and the lamp's sheet sits above the dock with This house and the tabs still reachable. A 7-inch hung wide is drawn at the wall's size now, so the lamp loses only what it did today and who made it, which are a tap further in.\n\nWhat differs between the directions is a tall screen and the phone, below."
+      "text": "EVERY DIRECTION, ON A WIDE SCREEN: what ships, under the dock.\n\nThe wall's room and its lamp are composed today and stay as they are. The page ends above the dock rather than at the people line. The lamp's sheet still runs to the foot over the dock, as it ships: the roofline's pane and a held strip's are drawn to the wall's full height, and lose their floor if it stops 100 points short. Closing it is one tap, and on a wall there is room to spare. A 7-inch hung wide is drawn at the wall's size now, so the lamp loses only what it did today and who made it, which are a tap further in.\n\nWhat differs between the directions is a tall screen and the phone, below."
     },
     {
       "id": "r-a",
@@ -778,6 +778,22 @@
       "y": 1400,
       "w": 500,
       "text": "DECIDED 1 NOVEMBER 2026\n\nA: on a tall screen and a phone the room is laid out the way Your evening is on the same shape, the TV across the top and two across (three on the 10-inch), with the scenes as pills under the room's name. A lamp opens as a whole sheet above the dock with every part the wall has, stacked, so nothing is lost on any shape. The wall and the 7-inch hung wide keep the shipped room and lamp, under the dock.\n\nLeft for when it is built: a room with more things than fit scrolls, as the phone does now. B and C are on the next page with their cases."
+    },
+    {
+      "id": "r-built",
+      "page": "room",
+      "x": 4400,
+      "y": 2000,
+      "w": 500,
+      "text": "BUILT 2 NOVEMBER 2026\n\nAs drawn on a tall screen and a phone: the room in the home's grid with its scenes as pills, and the lamp as one stacked sheet above the dock, its brightness standing beside the colors and the usual three. A phone on its side keeps brightness lying across, having no height for it.\n\nOne change from the boards: on the wall and a 7-inch hung wide the lamp's sheet runs over the dock rather than stopping above it, as it ships. The roofline's pane and a held strip's are drawn to the wall's full height, and changing that is a drawing of its own. Every direction, on a wide screen now draws it this way."
+    },
+    {
+      "id": "built",
+      "page": "every",
+      "x": 6000,
+      "y": 700,
+      "w": 500,
+      "text": "BUILT 2 NOVEMBER 2026\n\nThe dock is on the wall, a 7-inch either way up, the 10-inch hung tall and the phone, in the same order, with This house's door lit while setup is unfinished.\n\nOne change from the boards: the phone keeps its own Home page above the dock, with what it prints, what is kept on Home, On right now and its cameras, rather than the two-across grid B draws for it. The grid would have dropped all four. A 7-inch wall screen hung tall gets the grid, as drawn."
     }
   ]
 }

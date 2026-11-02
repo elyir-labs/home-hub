@@ -322,9 +322,12 @@ watch(() => props.device.id, () => { if (moving.value) closeTune(true); door.val
 watch(() => store.strip, s => { if (s) door.value = false })
 
 const narrow = useNarrow()          // a phone drags the same two things on their sides
-const dim = useSlide({ vertical: () => !narrow.value, live: v => (guess.value = v), settle: v => bright(v) })
-const along = (p: number) => narrow.value ? { width: p + '%' } : { height: p + '%' }
-const mark = (p: number) => narrow.value ? { left: p + '%' } : { bottom: p + '%' }
+/* ...except brightness, which stands beside the colors on a phone held upright, as on the wall
+   (design/every-screen/, RoomGridA). Only a phone on its side has too little height for it. */
+const lying = useNarrow('(max-width: 860px) and (orientation: landscape)')
+const dim = useSlide({ vertical: () => !lying.value, live: v => (guess.value = v), settle: v => bright(v) })
+const along = (p: number, side = narrow.value) => side ? { width: p + '%' } : { height: p + '%' }
+const mark = (p: number, side = narrow.value) => side ? { left: p + '%' } : { bottom: p + '%' }
 
 /* The three a lamp is actually used at. Fixed for now and deliberately few; what they should
    eventually be is what THIS lamp keeps being set to, which the event log already knows. */
@@ -357,10 +360,10 @@ async function level(l: typeof LEVELS[number]) {
   <div class="rig rig-light" :class="{ 'rig-has-strip': !!strip }">
     <div class="rig-slot" v-if="dimmable">
       <div class="rig-col" role="slider" tabindex="0" :aria-label="`${device.name} brightness`" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="pct"
-           :class="{ held: dim.held.value, dead, bar: narrow }" @pointerdown="dim.down" @pointermove="dim.move" @pointerup="dim.up" @pointercancel="dim.cancel"
+           :class="{ held: dim.held.value, dead, bar: lying }" @pointerdown="dim.down" @pointermove="dim.move" @pointerup="dim.up" @pointercancel="dim.cancel"
            @keydown="e => dim.key(e, pct)">
-        <span class="rig-fill" :style="along(on ? Math.max(pct, 2) : 0)"></span>
-        <span class="rig-mark" :style="mark(pct)" v-if="on"></span>
+        <span class="rig-fill" :style="along(on ? Math.max(pct, 2) : 0, lying)"></span>
+        <span class="rig-mark" :style="mark(pct, lying)" v-if="on"></span>
         <span class="rig-end top"><Icon name="sun" :size="21" /></span>
         <span class="rig-end bottom" :class="{ lit: on && pct > 12 }"><Icon name="moon" :size="19" /></span>
       </div>

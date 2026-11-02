@@ -125,6 +125,8 @@ body[data-shape="phone"] .lr { padding: 10px 12px; } body[data-shape="phone"] .l
         background: linear-gradient(#17191f, #121419 50%, #101216); border: 1px solid var(--edge-hi); box-shadow: 0 40px 100px -30px #000; color: var(--ink);
         display: grid; padding: 26px 28px; gap: 18px; }
 body[data-shape="wall"] { --pt: 200px; } body[data-shape="wide7"] { --pt: 14px; }
+/* built 2 November: on a wide screen the pane runs to the foot over the dock, as it ships, because the roofline's and a held strip's panes are drawn to the wall's full height */
+.pane.wide { z-index: 5; bottom: 0; border-radius: 32px 32px 0 0; border-bottom: 0; }
 .pane .pname small { display: block; color: var(--ink-2); font-size: 14px; margin-bottom: 4px; }
 .pane .pname h2 { margin: 0; font-size: 44px; font-weight: 400; letter-spacing: -.02em; line-height: 1.05; }
 .pbtns { display: flex; gap: 10px; }

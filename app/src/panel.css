@@ -12487,7 +12487,7 @@ select.input {
    Side by side, as on the wall, the instrument had 300 points and lost its colors. It stands above the dock,
    which stays in front. A wide screen's pane still runs to the foot, over the dock: the roofline's and a held
    strip's panes are drawn to the full height of the wall, and lose their floor if it is 100 points shorter. */
-@media (min-width: 861px) and (orientation: portrait) {
+@media (orientation: portrait) {
   [data-face].shell.pane-open > .bottombar.dock {
     position: relative;
     z-index: 41;
@@ -12502,6 +12502,14 @@ select.input {
     border-radius: 34px;
     border-bottom: 1px solid var(--edge-hi);
   }
+}
+@media (max-width: 860px) and (orientation: portrait) {
+  .opened.docked .opened-panel {
+    left: 12px;
+    right: 12px;
+  }
+}
+@media (min-width: 861px) and (orientation: portrait) {
   .pane-body {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
@@ -12545,6 +12553,36 @@ select.input {
   .pane-said > .s2 {
     grid-column: 1 / -1;
     grid-row: 2;
+  }
+}
+/* Held upright, a lamp's brightness stands beside its colors and the usual three, as on the wall, rather than
+   lying across above them (design/every-screen/, RoomGridA-Phone and -Tall7). */
+@media (max-width: 860px) and (orientation: portrait) {
+  .rig-light {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .rig-light > .rig-slot {
+    width: 96px;
+  }
+  .rig-light > .rig-slot > .rig-col {
+    width: 100%;
+    height: auto;
+    min-height: 280px;
+    border-radius: 48px;
+  }
+  .rig-light .rig-color {
+    width: auto;
+    flex: 1 1 auto;
+  }
+}
+@media (min-width: 481px) and (max-width: 860px) and (orientation: portrait) {
+  .rig-light > .rig-slot {
+    width: 150px;
+  }
+  .rig-light > .rig-slot > .rig-col {
+    border-radius: 75px;
   }
 }
 /* A 7-inch hung wide keeps the wall's pane, its instrument given the width, and what it did today and who made
