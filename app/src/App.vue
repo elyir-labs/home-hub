@@ -178,7 +178,7 @@ const nav = computed<NavName>(() => isNav(navParam) ? navParam : (inApp && narro
 const tab = ref<'home' | 'rooms' | 'cameras'>('home')
 /* The dock along the foot (design/every-screen/, B) on every screen bigger than a phone; a phone keeps its bar
    until its own turn comes. */
-const docked = computed(() => nav.value === 'top' && !narrow.value)
+const docked = computed(() => nav.value === 'top')
 function go(t: 'home' | 'rooms' | 'cameras') { tab.value = t; open(null) }
 
 /* an opened device lends the room its color: a warm lamp pushes the field

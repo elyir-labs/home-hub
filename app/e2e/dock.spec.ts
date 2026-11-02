@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 // SPDX-License-Identifier: AGPL-3.0-or-later
-/* The dock (design/every-screen/, B, chosen 1 November 2026): one pill along the foot of every screen bigger
-   than a phone, in the same order everywhere -- the command box's orb, the three places, what is playing, then
+/* The dock (design/every-screen/, B, chosen 1 November 2026): one pill along the foot of every screen, the
+   phone included, in the same order everywhere -- the command box's orb, the three places, what is playing, then
    Add and This house as doors of their own. The tabs are still three and Add is still not one of them. */
 import { expect, test, type Page } from '@playwright/test'
 
@@ -27,12 +27,24 @@ for (const [w, h] of [[1440, 900], [1029, 579], [900, 1440]]) {
   })
 }
 
-test('a phone keeps its own bar until its turn comes', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/?face=paper&nav=top&at=19:40', { waitUntil: 'networkidle' })
-  await expect(page.locator('.say-box')).toBeVisible()
-  await expect(page.locator('.dock-body')).toHaveCount(0)
-})
+for (const [w, h] of [[390, 844], [579, 1029]]) {
+  test(`at ${w} by ${h} the dock is the same, each word under its picture, and all of it on the screen`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h })
+    await page.goto('/?face=paper&nav=top&at=19:40', { waitUntil: 'networkidle' })
+    await expect(page.locator('.dock-body')).toBeVisible()
+    const got = await order(page)
+    expect(got[0]).toBe('orb')
+    expect(got[1]).toMatch(/^places:Your evening\|Rooms\|Cameras$/)
+    expect(got.slice(-2)).toEqual(['add', 'house'])
+    await expect(page.locator('.topbar .tabs')).toHaveCount(0)
+    const dock = (await page.locator('.dock-body').boundingBox())!
+    expect(dock.x).toBeGreaterThanOrEqual(0)
+    expect(dock.x + dock.width).toBeLessThanOrEqual(w)
+    const place = page.locator('.dock-place').first()
+    const [icon, word] = [(await place.locator('svg').boundingBox())!, (await place.locator('span').boundingBox())!]
+    expect(word.y, 'the word under its picture').toBeGreaterThan(icon.y + icon.height - 1)
+  })
+}
 
 test('the places go where they say, and the one you are on is marked', async ({ page }) => {
   await page.goto('/?face=paper&layout=wall&nav=top&at=19:40', { waitUntil: 'networkidle' })

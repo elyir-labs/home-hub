@@ -21,6 +21,7 @@
 import { computed } from 'vue'
 import { cap, store, updateReady } from './store'
 import { waitingToAdd } from './adding'
+import { narrow, setupLeft, setupNow } from './band'
 import { isPage } from './pages'
 import { homeTab } from './layout'
 import Icon from './Icon.vue'
@@ -52,6 +53,8 @@ const waiting = computed(waitingToAdd)
    while it is open and shuts it again, and a place goes there and shuts it. Add opens as one of its pages, so it
    is Add's door that is lit then. */
 const housing = computed(() => isPage(store.sheet) && store.sheet !== 'add')
+/* a phone's band leaves setup to This house, so its door says when some is left (design/band/, KindsB-house) */
+const unfinished = computed(() => narrow.value && setupLeft(setupNow()) > 0)
 function place(t: Tab) { if (isPage(store.sheet)) store.sheet = null; store.opened = null; emit('go', t) }
 </script>
 
@@ -72,7 +75,7 @@ function place(t: Tab) { if (isPage(store.sheet)) store.sheet = null; store.open
         <button class="dock-door dock-add" :class="{ attention: waiting, active: store.sheet === 'add' }" @click="store.sheet = store.sheet === 'add' ? null : 'add'" :aria-label="waiting ? `Add to the house, ${waiting} waiting` : 'Add to the house'">
           <Icon name="plus" :size="20" />
         </button>
-        <button class="dock-door dock-house" :class="{ attention: updateReady(), active: housing }" @click="store.sheet = housing ? null : 'house'" :aria-label="updateReady() ? 'This house, an update is ready' : 'This house'">
+        <button class="dock-door dock-house" :class="{ attention: updateReady() || unfinished, active: housing }" @click="store.sheet = housing ? null : 'house'" :aria-label="updateReady() ? 'This house, an update is ready' : unfinished ? 'This house, setup is not finished' : 'This house'">
           <Icon name="menu" :size="20" />
         </button>
       </nav>
