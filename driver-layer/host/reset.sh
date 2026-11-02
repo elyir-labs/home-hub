@@ -82,4 +82,4 @@ THEIRS='^(ANTHROPIC_API_KEY|HUB_AWAY_[A-Z_]+|HUB_RELAY_[A-Z_]+)='
   # With nothing saved left, network.sh raises the hub's own Wi-Fi now rather than on the next minute.
   if [ -x host/network.sh ]; then host/network.sh; fi
 ) > "$LOG" 2>&1 || { said failed; exit 1; }
-said done
+said "done"

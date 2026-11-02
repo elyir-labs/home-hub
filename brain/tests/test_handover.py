@@ -4,7 +4,6 @@
 import asyncio, json, tempfile, time, unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest import mock
 
 from hub import backup, handover
 from hub.settings import Settings
