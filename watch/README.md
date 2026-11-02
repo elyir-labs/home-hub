@@ -52,11 +52,8 @@ account that has never had one turns Zero Trust on once (Zero Trust in the dashb
 name; Cloudflare offers no way to do that from Terraform. On 2 November 2026 an account-owned token with the
 Access permissions was refused them; a user's own token (My Profile > API Tokens) with the same ones worked.
 
-An account has one code-by-email login too. If it already has one, bring it in before the first apply:
-
-```sh
-terraform import cloudflare_zero_trust_access_identity_provider.code "<account_id>/<identity provider id>"
-```
+An account has one code-by-email login too, and the page signs in with the one already there. An account without one
+sets `make_code_login = true` in `terraform.tfvars` for its first apply, and keeps it.
 
 A change to `worker.js` goes up with the next `terraform apply`. The judgment is tested by `watch.test.mjs`. The
 minute loop and the mail are seen working only on the real thing, so after an apply, check that the first rows

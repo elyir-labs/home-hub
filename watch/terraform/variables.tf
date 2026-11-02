@@ -40,6 +40,12 @@ variable "access_team" {
   type        = string
 }
 
+variable "make_code_login" {
+  description = "Whether to make the account's code-by-email login: only for an account that has none yet (README.md)."
+  type        = bool
+  default     = false
+}
+
 variable "repository" {
   description = "Whose releases the Monday note counts downloads of."
   type        = string

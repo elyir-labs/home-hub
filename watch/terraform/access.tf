@@ -29,12 +29,24 @@ removed {
   }
 }
 
-# A code by email: no password to keep and no other company to sign in with.
+# A code by email: no password to keep and no other company to sign in with. An account has one, shared like the team,
+# so the one already there is used as it is, and one is made only for an account that has none (make_code_login).
+data "cloudflare_zero_trust_access_identity_providers" "all" {
+  account_id = var.account_id
+}
+
 resource "cloudflare_zero_trust_access_identity_provider" "code" {
+  count      = var.make_code_login ? 1 : 0
   account_id = var.account_id
   name       = "A code by email"
   type       = "onetimepin"
   config     = {}
+}
+
+locals {
+  code_login = var.make_code_login ? cloudflare_zero_trust_access_identity_provider.code[0].id : one([
+    for p in data.cloudflare_zero_trust_access_identity_providers.all.result : p.id if p.type == "onetimepin"
+  ])
 }
 
 resource "cloudflare_zero_trust_access_policy" "operator" {
@@ -52,7 +64,7 @@ resource "cloudflare_zero_trust_access_application" "watch" {
   name                      = "Elyir watch"
   type                      = "self_hosted"
   destinations              = [{ type = "public", uri = "watch.${var.zone_name}" }]
-  allowed_idps              = [cloudflare_zero_trust_access_identity_provider.code.id]
+  allowed_idps              = [local.code_login]
   auto_redirect_to_identity = true
   app_launcher_visible      = false
   session_duration          = "24h"
