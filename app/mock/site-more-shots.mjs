@@ -23,6 +23,7 @@ const BOARDS = [
   ['a', 'wall', '/'], ['a-phone', 'phone', '/'], ['a-try', 'phone', '/try/'],
   ['b', 'wall', '/'], ['b-phone', 'phone', '/'], ['b-try', 'phone', '/try/'],
   ['c', 'wall', '/'], ['c-phone', 'phone', '/'],
+  ['d', 'wall', '/'], ['d-phone', 'phone', '/'], ['d-try', 'phone', '/try/'],
 ]
 /* The panel cut to the four cards B shows: what each thing it does looks like where people use it. */
 const CROPS = [

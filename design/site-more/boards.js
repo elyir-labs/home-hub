@@ -38,7 +38,7 @@ const STYLE = `
 .brands b { color: var(--quiet); font-weight: 500 }
 .faq h2 { margin-bottom: 26px }
 .faq .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 56px }
-.faq .q { display: grid; gap: 6px }
+.faq .q { display: grid; gap: 6px; align-content: start }
 .faq .q b { font-weight: 500; font-size: 17px }
 .faq .q p { color: var(--quiet); font-size: 15.5px }
 .faq a, .asks a { color: var(--lamp-text); text-decoration: none }
@@ -112,6 +112,10 @@ const FAQ = [
   ['What screen goes on the wall?', 'Any tablet or touchscreen with a web browser. Every phone in the house gets the same house.'],
 ]
 
+/* D's, after the pick: only the makers the hub's own code knows by name, and the question Moving out answers. */
+const BRANDS_D = 'Including <b>Philips Hue, Sonos, Google Nest, Ring, ecobee, WiZ, TP-Link Kasa, Chromecast</b> and <b>Roku</b>, <b>Samsung, LG and Android TVs</b>, anything that works with <b>Matter</b>, <b>Zigbee</b> or <b>Z-Wave</b> things with a USB radio, and most of what Home Assistant works with.'
+const FAQ_D = [...FAQ, ['What if I move?', 'Leave the hub for the next people: your phones, passcode and sign-ins go, and the rooms, lights and routines stay for them. Or erase it and take it with you.']]
+
 function section(id, cls, html) {
   const s = document.createElement('section')
   s.id = id
@@ -146,8 +150,12 @@ const worksChips = () => section('works', '', `
   <div style="display:grid;gap:12px;margin-bottom:22px"><p class="label">Works with</p><h2>What’s already in your house</h2></div>
   <ul class="chips">${KINDS.map(([i, k]) => `<li>${ICON[i]}${k}</li>`).join('')}</ul><p class="brands">${BRANDS}</p>`)
 
-const faqOpen = () => section('faq', 'faq', `<h2>Questions</h2>
-  <div class="two">${FAQ.map(([q, a]) => `<div class="q"><b>${q}</b><p>${a}</p></div>`).join('')}</div>`)
+const worksChipsBeside = () => section('works', 'works', `
+  <div class="lines"><p class="label">Works with</p><h2>What’s already in your house</h2><p>Bring the lights, locks and speakers you have. The hub finds them and asks which room each is in.</p></div>
+  <div><ul class="chips">${KINDS.map(([i, k]) => `<li>${ICON[i]}${k}</li>`).join('')}</ul><p class="brands">${BRANDS_D}</p></div>`)
+
+const faqOpen = (list = FAQ) => section('faq', 'faq', `<h2>Questions</h2>
+  <div class="two">${list.map(([q, a]) => `<div class="q"><b>${q}</b><p>${a}</p></div>`).join('')}</div>`)
 
 const faqFolded = () => section('faq', 'faq', `<h2>Questions</h2>
   ${FAQ.map(([q, a], n) => `<details${n === 0 ? ' open' : ''}><summary>${q}</summary><p>${a}</p></details>`).join('')}`)
@@ -183,6 +191,14 @@ const BOARDS = {
     after('#day', doesPictures())
     after('#try', worksChips())
     after('#anywhere', faqFolded())
+  },
+  /* D -- CHOSEN: A, with B's chips for what it works with */
+  d: () => {
+    wording()
+    if (onTry()) return tryBar()
+    after('header.hero', doesText())
+    after('#try', worksChipsBeside())
+    after('#anywhere', faqOpen(FAQ_D))
   },
   /* C -- THE QUESTIONS FIRST: one section under the top that answers what a buyer asks, in their order */
   c: () => {
