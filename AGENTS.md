@@ -278,6 +278,15 @@ Do not reopen these, and do not propose around them.
   storefront its button opens the payment page in the browser, on every other storefront setup has no such step.
   Pinned by `app/tests/storefront.test.ts` and `app/e2e/houses.spec.ts`.
 
+- **We watch our own services from the outside, and never the visitor or the house** (25 October 2026). Uptime, the
+  relay's health and the site's traffic are read from what Cloudflare, Hetzner and GitHub already see, with no new
+  vendor: `watch/`, a Worker that checks each service every minute and mails the operator, and reads the relay's numbers
+  from `/alive` with a key derived from the relay token. The site counts page loads on the server, a number per page per day and nothing about who
+  (`site/functions/_middleware.js`, said on its privacy page). No script on the site counts visitors, Cloudflare's own beacon included: `site/_headers` refuses any script
+  or request to another site, so one added at the edge is blocked too. Nothing in a hub sends crash reports or
+  analytics, and Home Assistant's own analytics are left off. When a hub misbehaves, the household sends a
+  diagnostics bundle themselves (`docs/shipping.md`). The one line allowed out is the update check-in in
+  `docs/updates.md`. Pinned by `site/site.test.mjs`, `tools/nothing-reports.test.mjs` and `brain/tests/test_ha_setup.py`.
 - **The Brilliant work lives in a repository of its own, and public code never reaches into it**
   (5 October 2026). This repository is public and every hub clones it whole. The bridge puck here (`puck/`) is
   the hub's own device -- cable, finding the hub, updates, the ear, errands, its light -- and it is whole

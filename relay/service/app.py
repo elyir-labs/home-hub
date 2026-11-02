@@ -13,7 +13,8 @@ X-Forwarded-For on it and the plugin route turns away anything that has one.
 The house never depends on this. With it down, frps refuses new tunnels and every house carries on at
 home exactly as it does now.
 """
-import base64, os, time
+import base64, hashlib, hmac, os, shutil, time
+from collections import Counter
 from pathlib import Path
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request
@@ -28,8 +29,28 @@ CLAIMS_PER_DAY = 5               # per address: enough for a household changing 
 WRONG_INVITES_PER_DAY = 10       # per house: typos, not guessing
 
 
+def watch_key(token: str) -> str:
+    """The maker's watcher's key, derived from the relay token as the box's own names' secrets are, so a new route
+    needs no new secret on the box. relay/terraform derives the same: sha256("watch:<token>")."""
+    return hashlib.sha256(f"watch:{token}".encode()).hexdigest() if token else ""
+
+
+def box(data: Path | None) -> dict:
+    """The box under the service: the container shares the host's load and memory, and the volume is mounted at data."""
+    out: dict = {"load": [round(x, 2) for x in os.getloadavg()]}
+    try:
+        mem = dict(line.split(":", 1) for line in Path("/proc/meminfo").read_text().splitlines() if ":" in line)
+        out["memory_used"] = round(1 - int(mem["MemAvailable"].split()[0]) / int(mem["MemTotal"].split()[0]), 3)
+    except (OSError, KeyError, ValueError): pass
+    if data:
+        disk = shutil.disk_usage(data)
+        out["disk_used"] = round(disk.used / disk.total, 3)
+    return out
+
+
 def make(registry: Registry, now=time.time, relay: dict | None = None, offer: dict | None = None, home: Home | None = None,
-         nearby_origins: tuple = (), payers: Payers | None = None, apns: Apns | None = None, limit: Limit | None = None) -> FastAPI:
+         nearby_origins: tuple = (), payers: Payers | None = None, apns: Apns | None = None, limit: Limit | None = None,
+         data: Path | None = None) -> FastAPI:
     """`relay` is how a carried house reaches frps -- its address and the shared token, which is not the gate
     (the house's own secret is) but which frps wants, so the hub is handed it rather than anybody typing it.
     `offer` is what a household is shown: whether the service is open to them, at what price, and where to pay."""
@@ -41,13 +62,20 @@ def make(registry: Registry, now=time.time, relay: dict | None = None, offer: di
     home = home or Home(registry, now=now)
     payers = payers or Payers()
     limit = limit or Limit(now=now)
+    watcher = watch_key(relay["token"])
+    started, tally = now(), Counter()
 
     def owner(name: str, authorization: str | None):
         secret = (authorization or "").removeprefix("Bearer ").strip()
         if not registry.holder(name, secret): raise HTTPException(404, "No house by that name holds that key.")
 
     @app.get("/alive")
-    def alive(): return {"ok": True}
+    def alive(authorization: str | None = Header(default=None)):
+        """Up, to anybody. To the maker's watcher (watch/), how it is doing too: /alive because Caddy on the box passes
+        only the routes it lists, and a new one would mean a new box."""
+        key = (authorization or "").removeprefix("Bearer ").strip()
+        if not (watcher and key and hmac.compare_digest(key, watcher)): return {"ok": True}
+        return {"ok": True, "up_since": started, "houses": registry.counts(), "since_start": dict(tally), "box": box(data)}
 
     @app.get("/offer")
     def what_is_offered():
@@ -148,6 +176,7 @@ def make(registry: Registry, now=time.time, relay: dict | None = None, offer: di
         if not apns: raise HTTPException(503, "The sender isn't set up yet.")
         if not limit.allow(body.house): raise HTTPException(429, "Too many from this house just now.")
         status = apns.send(body.house, body.model_dump())
+        tally["pushes_sent" if status == 200 else "pushes_failed"] += 1
         if status == 200: return {"sent": True}
         if status == 410: return JSONResponse({"gone": True}, status_code=410)
         if status == 429: raise HTTPException(429, "Apple asked for a pause.")
@@ -186,6 +215,7 @@ def make(registry: Registry, now=time.time, relay: dict | None = None, offer: di
         if host not in ("127.0.0.1", "::1") or request.headers.get("x-forwarded-for"): raise HTTPException(404)
         body = await request.json()
         why = registry.judge(str(body.get("op") or ""), body.get("content") or {})
+        if why: tally["tunnels_refused"] += 1
         return {"reject": True, "reject_reason": why} if why else {"reject": False, "unchange": True}
 
     return app
@@ -230,7 +260,7 @@ def main():
     payers = Payers(data / "payers", os.environ.get("RELAY_PAYERS", ""))
     # The sender's key (push.py): from an env file on the box only the service reads. Without it /push answers 503.
     apns = Apns.from_env()
-    uvicorn.run(make(registry, relay=relay, offer=offer, home=home, nearby_origins=nearby_origins(registry.zone), payers=payers, apns=apns),
+    uvicorn.run(make(registry, relay=relay, offer=offer, home=home, nearby_origins=nearby_origins(registry.zone), payers=payers, apns=apns, data=data),
                 host="127.0.0.1", port=int(os.environ.get("RELAY_PORT", "7100")),
                 proxy_headers=True, forwarded_allow_ips="127.0.0.1")
 

@@ -20,6 +20,7 @@ import Drivers from './Drivers.vue'
 import Restore from './Restore.vue'
 import PhoneSteps from './PhoneSteps.vue'
 import AddressStep from './AddressStep.vue'
+import TurnPill from './TurnPill.vue'
 
 /* First run. One question per screen, in this order: who you are, where home is, which rooms,
    what to add. Every step after the first can be skipped and finished later from Home -- except the
@@ -300,4 +301,6 @@ async function saveCode() {
       </section>
     </Transition>
   </main>
+  <!-- the hub's own first start can be hung upside down too, and a tall glass's guess can be wrong (design/sideways-start/, B) -->
+  <TurnPill />
 </template>

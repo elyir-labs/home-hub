@@ -59,7 +59,7 @@ test('the house arrives from the side it runs off, one card after another', asyn
   // nothing is left on a card once it is home: a held card and a press must behave
   // as if this had never happened
   const cell = page.locator('.room-cell').first()
-  expect(await cell.evaluate((el) => getComputedStyle(el).translate)).toBe('none')
+  await expect.poll(() => cell.evaluate((el) => getComputedStyle(el).translate), { timeout: 1000 }).toBe('none')
   await expect(page.locator('.rooms-bento')).not.toHaveClass(/\b(set|go)\b/)
 })
 
