@@ -5165,6 +5165,12 @@ select.input {
   filter: none;
   opacity: 1;
 }
+/* ...but a sheet opened from inside This house or a device covers the dock with the rest of the screen. The house
+   and the pane are a layer under the dock, so on a phone the foot of the sheet -- Hold to erase, Continue -- was
+   behind it. */
+[data-face].shell:is(.house-open, .pane-open):has(.sheet-back) > .bottombar.dock {
+  z-index: auto;
+}
 .house-foot {
   margin: auto 0 0 12px;
   padding-top: 14px;

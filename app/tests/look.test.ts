@@ -88,9 +88,9 @@ describe('what counts as adjusted', () => {
 })
 
 describe('where the screen is', () => {
-  it('gives a phone the column, and the rail that folds across its top', () => {
-    expect(placeOf(390)).toEqual({ layout: 'stack', nav: 'side' })
-    expect(placeOf(TOUCHED_AT - 1)).toEqual({ layout: 'stack', nav: 'side' })
+  it('gives a phone the column, and the dock along its foot', () => {
+    expect(placeOf(390)).toEqual({ layout: 'stack', nav: 'top' })
+    expect(placeOf(TOUCHED_AT - 1)).toEqual({ layout: 'stack', nav: 'top' })
   })
 
   it('gives a screen within reach the row it sweeps through', () => {

@@ -178,8 +178,7 @@ const navParam = params.get('nav')
    the other houses, lives in the top bar's row (design/houses/, B), and a phone's side list has no room for it. */
 const nav = computed<NavName>(() => isNav(navParam) ? navParam : (inApp && narrow.value) ? 'top' : (isNav(store.ambient.look?.nav) ? store.ambient.look!.nav as NavName : place.value.nav))
 const tab = ref<'home' | 'rooms' | 'cameras'>('home')
-/* The dock along the foot (design/every-screen/, B) on every screen bigger than a phone; a phone keeps its bar
-   until its own turn comes. */
+/* The dock along the foot of every screen (design/every-screen/, B) */
 const docked = computed(() => nav.value === 'top')
 function go(t: 'home' | 'rooms' | 'cameras') { tab.value = t; open(null) }
 

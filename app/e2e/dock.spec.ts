@@ -12,7 +12,7 @@ const order = (page: Page) => page.evaluate(() => [...document.querySelector('.d
 for (const [w, h] of [[1440, 900], [1029, 579], [900, 1440]]) {
   test(`at ${w} by ${h} the dock is along the foot, in its order, and the top bar has no tabs`, async ({ page }) => {
     await page.setViewportSize({ width: w, height: h })
-    await page.goto('/?face=paper&nav=top&at=19:40', { waitUntil: 'networkidle' })
+    await page.goto('/?face=paper&at=19:40', { waitUntil: 'networkidle' })  // the dock is every screen's own, asked for by nothing
     await expect(page.locator('.dock-body')).toBeVisible()
     const got = await order(page)
     expect(got[0]).toBe('orb')
@@ -30,7 +30,7 @@ for (const [w, h] of [[1440, 900], [1029, 579], [900, 1440]]) {
 for (const [w, h] of [[390, 844], [579, 1029]]) {
   test(`at ${w} by ${h} the dock is the same, each word under its picture, and all of it on the screen`, async ({ page }) => {
     await page.setViewportSize({ width: w, height: h })
-    await page.goto('/?face=paper&nav=top&at=19:40', { waitUntil: 'networkidle' })
+    await page.goto('/?face=paper&at=19:40', { waitUntil: 'networkidle' })  // the dock is every screen's own, asked for by nothing
     await expect(page.locator('.dock-body')).toBeVisible()
     const got = await order(page)
     expect(got[0]).toBe('orb')
