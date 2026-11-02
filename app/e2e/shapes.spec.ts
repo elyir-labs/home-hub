@@ -3,7 +3,8 @@
 /* Your evening on the screens it was not first drawn for (design/every-screen/): a 7-inch hung wide, now drawn at
    the wall's size rather than shrunk to 1440x900, and the 10-inch hung tall. On both, every card is whole and
    inside the screen; on the tall one the row is a grid that stops where the screen does, and its last place opens
-   Rooms. The sizes are what startup/wall.sh hands the browser for those glasses. */
+   Rooms; a 7-inch hung tall is the same grid two across. The sizes are what startup/wall.sh hands the browser
+   for those glasses. */
 import { expect, test, type Page } from '@playwright/test'
 
 async function home(page: Page, width: number, height: number) {
@@ -48,6 +49,28 @@ test('hung tall, the last place says what is left and opens Rooms', async ({ pag
   await expect(left).toContainText(/and \d+ more/)
   await left.click()
   await expect(page.locator('.dock-place.active')).toContainText('Rooms')
+})
+
+test('a 7-inch wall screen hung tall gets the home two across, not the phone page, ending inside the screen', async ({ page }) => {
+  await page.setViewportSize({ width: 579, height: 1029 })
+  await page.goto('/?wall=1&face=paper&at=19:40', { waitUntil: 'networkidle' })
+  await expect(page.locator('.bento-card').first()).toBeVisible()
+  await page.waitForTimeout(1400)
+  const cards = await boxes(page)
+  expect(new Set(cards.map(b => Math.round(b.left))).size).toBe(2)
+  const dock = (await page.locator('.dock-body').boundingBox())!
+  for (const b of cards) {
+    expect(b.right).toBeLessThanOrEqual(579)
+    expect(b.bottom).toBeLessThanOrEqual(dock.y)
+  }
+  await page.locator('.bento-left').click()
+  await expect(page.locator('.dock-place.active')).toContainText('Rooms')
+})
+
+test('a phone keeps its own page', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/?face=paper&at=19:40', { waitUntil: 'networkidle' })
+  await expect(page.locator('.rail-home')).toHaveCount(0)
 })
 
 test('a wide screen keeps the sideways row it always had', async ({ page }) => {

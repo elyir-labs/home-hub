@@ -132,7 +132,9 @@ const atTouch = window.matchMedia(`(min-width: ${TOUCHED_AT}px)`)
 const atRead = window.matchMedia(`(min-width: ${READ_AT}px)`)
 const width = ref(window.innerWidth)
 const measure = () => (width.value = window.innerWidth)
-const place = computed(() => placeOf(width.value))
+/* ...except that a wall screen narrower than 861 is a 7-inch hung tall, not a phone, and gets the home's
+   grid two across rather than the phone's page (design/every-screen/, DockB-Tall7) */
+const place = computed(() => { const p = placeOf(width.value); return wall && p.layout === 'stack' ? { layout: 'rail' as LayoutName, nav: 'top' as NavName } : p })
 
 /* Light or dark, the one part of the look that is this screen's own (shade.ts). It lands on <html>
    rather than the shell so a sheet or a toast drawn outside the shell takes it too, and it tells the

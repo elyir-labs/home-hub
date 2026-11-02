@@ -6702,59 +6702,64 @@ select.input {
     padding: 4px 24px 10px;
   }
 }
-/* A screen hung tall (design/every-screen/, Tall10): the row is a grid three across that fits the screen,
-   what is playing two places wide, and nothing past an edge. BentoRow measures how many rows fit and sets
-   --cell; the last place is .bento-left, which says what is left and opens Rooms. */
-@media (min-width: 861px) and (orientation: portrait) {
-  .rail-home {
+/* A screen hung tall (design/every-screen/, Tall10, DockB-Tall7): the row is a grid three across that fits the
+   screen, two on a 7-inch, what is playing two places wide, and nothing past an edge. BentoRow measures how many
+   rows fit and sets --cell and --across; the last place is .bento-left, which says what is left and opens Rooms. */
+@media (min-width: 480px) and (orientation: portrait) {
+  .rail-home.top-nav {
     height: 100%;
     min-height: 0;
   }
-  .rail-stage {
+  .rail-home.top-nav .rail-stage {
     flex: 1;
     min-height: 0;
     margin-block: 8px 0;
   }
-  .rail-home .bento {
+  .rail-home.top-nav .bento {
     height: 100%;
     margin: 0;
     padding: 0;
     overflow: hidden;
     grid-auto-flow: row dense;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--across, 3), minmax(0, 1fr));
     grid-template-rows: none;
     grid-auto-rows: var(--cell, 200px);
     grid-auto-columns: auto;
     align-content: start;
     scroll-snap-type: none;
   }
-  .rail-home .bento::after {
+  .rail-home.top-nav .bento::after {
     display: none;
   }
-  .rail-home .bento-card {
+  .rail-home.top-nav .bento-card {
     animation: none;
   }
-  .rail-home .bento .tile.light,
-  .rail-home .bento .tile.media,
-  .rail-home .bento .tile.plain,
-  .rail-home .bento .tile.camera,
-  .rail-home .bento .tile.climate,
-  .rail-home .bento .scene-card {
+  .rail-home.top-nav .bento .tile.light,
+  .rail-home.top-nav .bento .tile.media,
+  .rail-home.top-nav .bento .tile.plain,
+  .rail-home.top-nav .bento .tile.camera,
+  .rail-home.top-nav .bento .tile.climate,
+  .rail-home.top-nav .bento .scene-card {
     grid-row: span 1;
     width: auto;
     height: auto;
+    min-height: 0;
+    aspect-ratio: auto;
     align-self: stretch;
   }
-  .rail-home .bento .tile.media,
-  .rail-home .bento .scene-card {
+  .rail-home.top-nav .bento .tile.media,
+  .rail-home.top-nav .bento .scene-card {
     grid-column: span 2;
   }
 }
 .bento-left {
   display: none;
 }
-@media (min-width: 861px) and (orientation: portrait) {
-  .rail-home .bento-left {
+@media (min-width: 480px) and (orientation: portrait) {
+  .rail-home.top-nav .rail-head {
+    flex-direction: row;
+  }
+  .rail-home.top-nav .bento-left {
     display: flex;
     flex-direction: column;
     justify-content: center;

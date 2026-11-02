@@ -75,7 +75,7 @@ onUnmounted(() => clearInterval(t))
     <!-- the rail sits in the middle of whatever height is left, as drawn; the
          rooms, when they are here at all, wait underneath -->
     <div class="rail-stage">
-      <BentoRow :rooms="rooms" :when="when" :woke="woke" @rooms="$emit('rooms')">
+      <BentoRow :rooms="rooms" :when="when" :woke="woke" :fit="topNav" @rooms="$emit('rooms')">
         <template #quiet>
           <p class="empty rail-quiet">Nothing is on.{{ topNav ? '' : ' The rooms are below.' }}</p>
         </template>

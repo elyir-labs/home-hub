@@ -37,7 +37,7 @@ import PlainTile from '../tiles/PlainTile.vue'
    arrive again rather than only on the first load. `when` names the part of the
    day the scenes card serves, and comes from the arrangement above because that
    is where the clock already is. */
-const props = defineProps<{ rooms: Room[]; when: string; woke?: number }>()
+const props = defineProps<{ rooms: Room[]; when: string; woke?: number; fit?: boolean }>()   // fit: the row fills the screen above the dock, so a tall one can be fitted to it
 const emit = defineEmits<{ rooms: [] }>()
 
 /* The row's cards, in the order drawn. A device is a card; the scenes are one
@@ -123,19 +123,21 @@ const empty = computed(() => !cards.value.length)
 /* A tall screen (design/every-screen/, Tall10): the row becomes a grid three across that fits the screen,
    and the last place says what is left and opens Rooms. How many rows fit is measured, because what is
    above the row (a nudge, a longer sentence) changes it; each row is about as tall as a card is wide. */
-const TALL = '(min-width: 861px) and (orientation: portrait)'
+const TALL = '(min-width: 480px) and (orientation: portrait)'
 const tallMq = window.matchMedia(TALL)
 const tall = ref(tallMq.matches)
 const onTall = () => (tall.value = tallMq.matches)
-const GAP = 18, CELL = 200, ACROSS = 3
-const rows = ref(0)
+const GAP = 18, CELL = 200
+const rows = ref(0), across = ref(3)
 let sized: ResizeObserver | undefined
 function measure() {
   const h = bento.value?.parentElement?.clientHeight ?? 0
+  across.value = (bento.value?.parentElement?.clientWidth ?? 0) < 640 ? 2 : 3   // a 7-inch hung tall is two across
+  bento.value?.style.setProperty('--across', String(across.value))
   rows.value = Math.max(1, Math.floor((h + GAP) / (CELL + GAP)))
   bento.value?.style.setProperty('--cell', `${Math.floor((h - GAP * (rows.value - 1)) / rows.value)}px`)
 }
-const fitted = computed(() => tall.value && rows.value ? fitRow(cards.value, rows.value * ACROSS) : { shown: cards.value, left: [] })
+const fitted = computed(() => props.fit && tall.value && rows.value ? fitRow(cards.value, rows.value * across.value) : { shown: cards.value, left: [] })
 const left = computed(() => leftLine(fitted.value.left))
 onMounted(() => {
   tallMq.addEventListener('change', onTall)
