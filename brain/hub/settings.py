@@ -43,6 +43,11 @@ class Settings:
             v = secrets.token_hex(8); self.set(hub_id=v)
         return v
 
+    def replace(self, data: dict):
+        """The whole file at once: what is left of the house after handing it over (hub/handover.py)."""
+        self.data = {}
+        self.set(**data)
+
     def set(self, **updates):
         self.data.update(updates)
         self.path.parent.mkdir(parents=True, exist_ok=True)

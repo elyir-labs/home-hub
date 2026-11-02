@@ -291,12 +291,12 @@ ACTION=="add", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", RUN+="/usr/bin/systemd-run -
 ACTION=="remove", SUBSYSTEM=="tty", KERNEL=="ttyUSB*|ttyACM*", RUN+="/usr/bin/systemd-run --no-block --collect $DIR/driver-layer/radios.sh"
 RULES
 udevadm control --reload 2>/dev/null || true
-# updates, restores and restarts: the panel writes brain-data/<thing>.request; these units see it and act.
+# updates, restores, starting over and restarts: the panel writes brain-data/<thing>.request; these units see it and act.
 # The watchdog is the one with no request behind it: it runs on its own clock and catches a house that
 # stopped answering when nobody is there to notice (docs/restart.md, piece 5).
-chmod +x host/update.sh host/restore.sh host/channel.sh host/restart.sh host/watchdog.sh host/network.sh host/away.sh \
+chmod +x host/update.sh host/restore.sh host/reset.sh host/channel.sh host/restart.sh host/watchdog.sh host/network.sh host/away.sh \
          host/drive.sh host/move-early.sh host/move-to-drive.sh host/developer.sh
-for u in home-hub-update.service home-hub-update.path home-hub-restore.service home-hub-restore.path \
+for u in home-hub-update.service home-hub-update.path home-hub-restore.service home-hub-restore.path home-hub-reset.service home-hub-reset.path \
          home-hub-restart.service home-hub-restart.path home-hub-watchdog.service home-hub-watchdog.timer \
          home-hub-channel.service home-hub-channel.timer \
          home-hub-network.service home-hub-network.path home-hub-network.timer \
@@ -305,7 +305,7 @@ for u in home-hub-update.service home-hub-update.path home-hub-restore.service h
   sed "s#/opt/home-hub#$DIR#g" "host/$u" > "/etc/systemd/system/$u"
 done
 systemctl daemon-reload 2>/dev/null || true
-systemctl enable --now home-hub-update.path home-hub-restore.path home-hub-restart.path \
+systemctl enable --now home-hub-update.path home-hub-restore.path home-hub-reset.path home-hub-restart.path \
                        home-hub-watchdog.timer home-hub-channel.timer \
                        home-hub-network.path home-hub-network.timer home-hub-away.path \
                        home-hub-drive.path home-hub-drive.service home-hub-move.service \

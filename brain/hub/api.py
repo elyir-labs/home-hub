@@ -30,6 +30,7 @@ from .glance import glance as glance_of
 from .happened import Happened, Changes
 from .healed import Healed
 from .backup import Backup
+from .handover import Handover
 from .network import Network
 from .drive import Drive
 from .restart import Restart
@@ -160,6 +161,7 @@ class Hub:
         self.healed = Healed(self)                     # a part the host had to start again, said once and then when it repeats
         self.changes = Changes(self)                   # who changed what, behind the code
         self.backup = Backup(self)                     # the house as one file, and back
+        self.handover = Handover(self)                 # moving out: the house to the next people, kept as it is (design/leaving/)
         self.restart = Restart(self)                   # turning it off and on again, at the smallest rung that could help
         self.address = Address(self)                   # the house's own name outside, and the switch for it: hub/address.py
         self.developer = Developer(self)               # for working on the hub: what it follows, SSH, the screens (design/developer/)
@@ -216,7 +218,7 @@ class Hub:
                 "location": bool(self.location), "rooms": sum(1 for r in self.home.rooms.values() if r.id != "unassigned"),
                 "devices": len(self.home.devices), "drivers": self.provision.summary(), "problems": self.provision.problems,
                 "locked": self.lock.locked, "version": self.updates.version, "update": self.updates.summary(),
-                "language": self.language}
+                "language": self.language, "handed_over": bool(self.settings.get("handed_over")) and not self.settings.get("setup_done")}
 
     def _set(self, driver, reason=""):
         if (driver, reason) == (self.driver, self.reason): return
@@ -498,6 +500,7 @@ class Hub:
     async def _rebuild(self):
         await asyncio.sleep(1.0)
         snap = await self.ha.snapshot()
+        if await self.handover.welcome_back(snap[1]): snap = await self.ha.snapshot()   # devices came home to their rooms
         self.home.build(*snap)
         self.power.load(snap[2], snap[3])
         self.power_changed(force=True)
@@ -2909,6 +2912,33 @@ async def restore(request: Request):
     try: return hub.backup.receive(await request.body())
     except ValueError as e: raise HTTPException(400, str(e))
 
+
+
+@app.get("/handover")
+async def handover_ask():
+    """What Moving out would take and leave, in this house (design/leaving/, B). Open, like /restart's ask."""
+    return await hub.handover.ask()
+
+
+@app.post("/handover")
+async def handover(request: Request):
+    """Moving out: the people go, the house stays, for the next people. Behind the code, and only in the house."""
+    if request.state.away:
+        raise HTTPException(403, "Handing the house over has to be done in the house.")
+    try: return await hub.handover.run(who=_who(request))
+    except PermissionError as e: raise HTTPException(403, str(e))
+    except ValueError as e: raise HTTPException(409, str(e))
+
+
+@app.post("/reset")
+def reset(request: Request):
+    """Start over: erase the house and open on Welcome (design/leaving/, B). Behind the code, and only in the house:
+    a phone outside could not see what it was erasing, and nobody would be there to set the hub up again."""
+    if request.state.away:
+        raise HTTPException(403, "Starting the hub over has to be done in the house.")
+    try: return hub.backup.start_over(who=_who(request))
+    except PermissionError as e: raise HTTPException(403, str(e))
+    except ValueError as e: raise HTTPException(409, str(e))
 
 # ---------- updates ----------
 @app.get("/alive")

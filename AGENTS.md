@@ -338,6 +338,18 @@ Do not reopen these, and do not propose around them.
   the one the screen showed, and the stick is never written, so one stick sets up hub after hub. Pinned by
   `app/tests/drive.test.ts`, `app/e2e/move-to-drive.spec.ts`, `brain/tests/test_drive.py` and the `moving_in`,
   `moving` and `describing` groups in `driver-layer/host/tests.sh`.
+- **Leaving a house: erasing is on The hub, handing over is on People** (1 November, `design/leaving/`, B). Start over
+  is the last row of The hub: behind the passcode, refused outright on a hub with none, only in the house, and a hold.
+  It erases everything that is the house, keeps what is the unit's (what it updates from, its name on the network, its
+  own Wi-Fi), forgets the house's Wi-Fi, makes every secret again, gives the web address back and stops its payments,
+  and opens on Welcome.
+  Moving out, on People, hands the house to the next people: its rooms, lights, routines and screens stay, and the
+  phones, passcode, people, history, Wi-Fi, sharing and the services signed in through the cloud go. A device such a
+  service brought goes back to its old room and name when the next people sign in to the same service (`returning`). Taking the hub along is Start over with a backup,
+  not a third answer. A hub with no screen and no code is switched off and on three times, then the label's code. Start
+  over is `driver-layer/host/reset.sh` and `StartOverSheet.vue`; Moving out is `brain/hub/handover.py`, the same script's
+  `people` mode and `HandOverSheet.vue`. Pinned by `app/e2e/start-over.spec.ts`, `app/e2e/handover.spec.ts`,
+  `brain/tests/test_handover.py`, `brain/tests/test_api_lock.py` and the `starting_over` group in `driver-layer/host/tests.sh`.
 - **The hub's front page is Elyir Bench's shape, with one line for a hub ready to plug in** (16 October,
   `design/site/`, D). It lives at `hub.elyir.com`, as Bench lives at `bench.elyir.com`; never under `elyir.app`, where
   names are houses' own. On a computer, Put it on a computer you have leads; on a phone, Try it live. Under the two

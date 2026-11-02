@@ -11,6 +11,7 @@ import AdvancedLink from './AdvancedLink.vue'
 import Drivers from './Drivers.vue'
 import NetworkSheet from './NetworkSheet.vue'
 import DriveSheet from './DriveSheet.vue'
+import StartOverSheet from './StartOverSheet.vue'
 import { getDrive, type DriveState } from './api'
 import { rowLine } from './drive'
 import { getAddress, turnAddress, type AddressState } from './api'
@@ -27,6 +28,7 @@ const update = computed(() => store.status?.update ?? null)
 /* Running from the USB stick, by choice (design/move-to-drive/): the first row until the hub is on its drive. */
 const drive = ref<DriveState | null>(null)
 const driveOpen = ref(false)
+const startOverOpen = ref(false)
 getDrive().then(s => (drive.value = s)).catch(() => {})
 const busy = ref(false)
 async function backup() {
@@ -394,6 +396,11 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
           </span>
         </template>
       </li>
+      <li>
+        <span class="hub-k">Start over</span>
+        <span class="hub-v">Erase everything and set the hub up as new.<span class="hub-sub line">For giving the hub away. Back up first if you might want this house back.</span></span>
+        <button class="button small ghost start-over" @click="startOverOpen = true">Start over…</button>
+      </li>
     </ul>
 
     <!-- The hub's own wiring, which is where wiring belongs. It used to sit on the Add page under
@@ -407,6 +414,7 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
     <AdvancedLink />
     <NetworkSheet v-if="netOpen" @close="closeNet" />
     <DriveSheet v-if="driveOpen && drive" :state="drive" @close="driveOpen = false" />
+    <StartOverSheet v-if="startOverOpen" @close="startOverOpen = false" />
     <BridgeCard v-if="opened" :bridge="opened" @close="open = null; loadBridges()" @changed="changed" />
   </div>
 </template>
@@ -423,4 +431,5 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
 /* The language list while it is open. Scoped here rather than in panel.css, which is one flat
    global sheet: a `.langs` in there would be one name away from restyling somebody else. */
 .hub-langs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.start-over { color: var(--danger-text); }
 </style>
