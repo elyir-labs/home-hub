@@ -15,12 +15,18 @@ resource "cloudflare_workers_custom_domain" "watch" {
   service    = cloudflare_workers_script.watch.script_name
 }
 
-# The account's Zero Trust team: its sign-in page is <access_team>.cloudflareaccess.com. An account has one; if it
-# already has a team, import it rather than making a second (README.md).
-resource "cloudflare_zero_trust_organization" "team" {
-  account_id  = var.account_id
-  name        = "Elyir"
-  auth_domain = "${var.access_team}.cloudflareaccess.com"
+# The account's Zero Trust team is not made or changed here: an account has one, other projects on it sign in through
+# it too, and managing it would rename theirs and reset its settings. The watcher only needs its sign-in address.
+locals {
+  access_team = "${var.access_team}.cloudflareaccess.com"
+}
+
+# A state that once held the team lets go of it without deleting it.
+removed {
+  from = cloudflare_zero_trust_organization.team
+  lifecycle {
+    destroy = false
+  }
 }
 
 # A code by email: no password to keep and no other company to sign in with.

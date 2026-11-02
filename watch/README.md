@@ -42,17 +42,20 @@ cat > terraform.tfvars <<'VARS'      # ignored by git
 account_id       = "..."
 alert_to         = "you@example.com"
 relay_auth_token = "..."             # the same as relay/terraform's
-access_team      = "..."             # the Zero Trust team name: <name>.cloudflareaccess.com
+access_team      = "..."             # the account's Zero Trust team: <name>.cloudflareaccess.com
 VARS
 terraform init && terraform plan && terraform apply
 ```
 
-An account has one Zero Trust team and one code-by-email login. If the account already has either,
-bring it in before the first apply instead of making a second:
+An account has one Zero Trust team, shared by every project on it, so this uses the team and never changes it. An
+account that has never had one turns Zero Trust on once (Zero Trust in the dashboard, the Free plan), which chooses the
+name; Cloudflare offers no way to do that from Terraform. On 2 November 2026 an account-owned token with the
+Access permissions was refused them; a user's own token (My Profile > API Tokens) with the same ones worked.
+
+An account has one code-by-email login too. If it already has one, bring it in before the first apply:
 
 ```sh
-terraform import cloudflare_zero_trust_organization.team "accounts/<account_id>"
-terraform import cloudflare_zero_trust_access_identity_provider.code "accounts/<account_id>/<identity provider id>"
+terraform import cloudflare_zero_trust_access_identity_provider.code "<account_id>/<identity provider id>"
 ```
 
 A change to `worker.js` goes up with the next `terraform apply`. The judgment is tested by `watch.test.mjs`. The

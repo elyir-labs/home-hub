@@ -54,7 +54,7 @@ resource "cloudflare_workers_script" "watch" {
     { type = "plain_text", name = "FROM", text = var.alert_from },
     { type = "plain_text", name = "WEEKLY", text = local.weekly },
     { type = "plain_text", name = "REPOSITORY", text = var.repository },
-    { type = "plain_text", name = "ACCESS_TEAM", text = cloudflare_zero_trust_organization.team.auth_domain },
+    { type = "plain_text", name = "ACCESS_TEAM", text = local.access_team },
     { type = "plain_text", name = "ACCESS_AUD", text = cloudflare_zero_trust_access_application.watch.aud },
   ]
 }
