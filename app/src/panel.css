@@ -9622,13 +9622,13 @@ select.input {
     gap: 3px;
     height: 54px;
     padding: 0 9px;
-    border-radius: 22px;
+    border-radius: var(--r-lg);
     font-size: 11.5px;
   }
   .dock-door {
     width: 42px;
     height: 54px;
-    border-radius: 22px;
+    border-radius: var(--r-lg);
   }
   .dock-door.attention::after {
     top: 12px;
