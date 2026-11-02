@@ -89,4 +89,21 @@ window.WebSocket = new Proxy(window.WebSocket, {
   },
 })
 
+/* On a page of its own, as a phone opens it, the pretend house says what it is and leads back to the site
+   (design/site-more/, D). Inside the site's frame on a computer the site is already around it. */
+if (window.top === window) {
+  const style = document.createElement('style')
+  style.textContent = `
+    .try-bar { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+      background: #f1eee8; color: #1c1a16; font: 500 14.5px var(--sans, system-ui, sans-serif) }
+    .try-bar a { color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; min-height: 44px }
+    html[data-try-bar] .shell, html[data-try-bar] .setup { height: calc(100dvh - 44px) }`
+  const bar = document.createElement('div')
+  bar.className = 'try-bar'
+  bar.innerHTML = '<b>A pretend house</b><a href="/"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>Back to the site</a>'
+  document.head.append(style)
+  document.body.prepend(bar)
+  document.documentElement.dataset.tryBar = ''
+}
+
 void import('./main')

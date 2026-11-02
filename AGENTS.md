@@ -353,7 +353,9 @@ Do not reopen these, and do not propose around them.
 - **The hub's front page is Elyir Bench's shape, with one line for a hub ready to plug in** (16 October,
   `design/site/`, D). It lives at `hub.elyir.com`, as Bench lives at `bench.elyir.com`; never under `elyir.app`, where
   names are houses' own. On a computer, Put it on a computer you have leads; on a phone, Try it live. Under the two
-  buttons, one quiet email box for anyone who wants one ready to plug in, writing to the one Elyir waitlist. Its
+  buttons, one quiet email box for anyone who wants one ready to plug in, writing to the one Elyir waitlist. Further down
+  it says what the hub does, what it works with (naming only makers the hub's own code knows) and answers the questions
+  a buyer asks, all open, and the pretend house on a page of its own leads back (2 November, `design/site-more/`, D). Its
   pictures are the panel on the pretend house with `NAMES=plain` (`npm run site-shots`), never somebody else's show or
   brand: the living room on the wall and the phone, then the wall through a day, each in the visitor's own light or dark
   (28 October, `design/site-pair/`, D). A shared link shows the light wall alone, no words (1 November,
