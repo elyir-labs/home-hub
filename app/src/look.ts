@@ -134,12 +134,16 @@ export function feelFrom(look: { feel?: string; face?: string; tone?: string } |
  */
 export const TOUCHED_AT = 861      // a tablet on a wall, within arm's reach
 export const READ_AT = 1280        // a big screen, read from across the room
+/* ...and a screen held tall stops being a phone at 640, so a tablet is arranged as the 10-inch hung tall
+   (design/every-screen/, size rule 2, DockB-Tablet). Held on its side under 861 it is still a phone's. */
+export const TALL_AT = 640
+export const PHONE = `(max-width: ${TALL_AT - 1}px), (max-width: ${TOUCHED_AT - 1}px) and (orientation: landscape)`
 
 export type Place = { layout: LayoutName; nav: NavName }
 
-export function placeOf(width: number): Place {
+export function placeOf(width: number, height = 0): Place {
   if (width >= READ_AT) return { layout: 'wall', nav: 'top' }
-  if (width >= TOUCHED_AT) return { layout: 'rail', nav: 'top' }
+  if (width >= TOUCHED_AT || (width >= TALL_AT && height > width)) return { layout: 'rail', nav: 'top' }
   return { layout: 'stack', nav: 'top' }
 }
 

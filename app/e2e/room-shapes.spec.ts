@@ -18,7 +18,7 @@ const cells = (page: Page) => page.evaluate(() => [...document.querySelectorAll(
            left: b.left, right: b.right, top: b.top, width: b.width, height: b.height }
 }))
 
-for (const [name, w, h, across] of [['a 7-inch hung tall', 579, 1029, 2], ['a phone', 390, 844, 2], ['the 10-inch hung tall', 900, 1440, 3]] as const) {
+for (const [name, w, h, across] of [['a 7-inch hung tall', 579, 1029, 2], ['a phone', 390, 844, 2], ['the 10-inch hung tall', 900, 1440, 3], ['a tablet held tall', 820, 1180, 3]] as const) {
   test(`on ${name} the scenes are pills under the name and the room is ${across} across`, async ({ page }) => {
     await room(page, w, h)
     await expect(page.locator('.room-head .scenes-pills .scene').first()).toBeVisible()

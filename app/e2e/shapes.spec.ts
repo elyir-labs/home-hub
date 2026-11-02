@@ -78,3 +78,40 @@ test('a wide screen keeps the sideways row it always had', async ({ page }) => {
   await expect(page.locator('.bento-left')).toBeHidden()
   expect(await page.evaluate(() => { const r = document.querySelector('.bento')!; return r.scrollWidth > r.clientWidth })).toBe(true)
 })
+
+/* A tablet held tall (size rule 2, DockB-Tablet): from 640 wide a screen taller than wide is arranged as the 10-inch
+   hung tall, asked for by nothing, with the clock rather than the phone's top row. On its side, or under 640, it
+   keeps what it had. */
+for (const [w, h] of [[820, 1180], [640, 900]]) {
+  test(`a tablet held tall at ${w} by ${h} gets the home three across above the dock, not the phone page`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h })
+    await page.goto('/?face=paper&at=19:40', { waitUntil: 'networkidle' })
+    await expect(page.locator('.bento-card').first()).toBeVisible()
+    await page.waitForTimeout(1400)
+    await expect(page.locator('.topbar-clock')).toBeVisible()
+    const cards = await boxes(page)
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('.bento')!).gridTemplateColumns.split(' ').length)).toBe(3)
+    const dock = (await page.locator('.dock-body').boundingBox())!
+    for (const b of cards) {
+      expect(b.right).toBeLessThanOrEqual(w)
+      expect(b.bottom).toBeLessThanOrEqual(dock.y)
+    }
+  })
+}
+
+test('just under 640 held tall is still a phone, and so is a phone on its side', async ({ page }) => {
+  for (const [w, h] of [[639, 1000], [844, 390]]) {
+    await page.setViewportSize({ width: w, height: h })
+    await page.goto('/?face=paper&at=19:40', { waitUntil: 'networkidle' })
+    await expect(page.locator('.dock-body')).toBeVisible()
+    await expect(page.locator('.rail-home')).toHaveCount(0)
+  }
+})
+
+test('a tablet turned on its side keeps the sideways row', async ({ page }) => {
+  await page.setViewportSize({ width: 1180, height: 820 })
+  await page.goto('/?face=paper&at=19:40', { waitUntil: 'networkidle' })
+  await expect(page.locator('.bento-card').first()).toBeVisible()
+  await page.waitForTimeout(1400)
+  expect(await page.evaluate(() => { const r = document.querySelector('.bento')!; return r.scrollWidth > r.clientWidth })).toBe(true)
+})

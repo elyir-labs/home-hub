@@ -43,7 +43,7 @@ import { clockParts, restingFacts, restWeather } from './resting'
 import WeatherArt from './WeatherArt.vue'
 import { glassVars, isTone, toneVars, type ToneName } from './tone'
 import { isFace, isLayout, isNav, type FaceName, type LayoutName, type NavName } from './layout'
-import { feelFrom, placeOf, TOUCHED_AT, READ_AT } from './look'
+import { feelFrom, placeOf, TOUCHED_AT, READ_AT, TALL_AT } from './look'
 import { picked, shade, shadeOf } from './shade'
 import RailView from './views/RailView.vue'
 import WallView from './views/WallView.vue'
@@ -130,11 +130,12 @@ const feel = computed(() => feelFrom(store.ambient.look))
    different room to arrange for. */
 const atTouch = window.matchMedia(`(min-width: ${TOUCHED_AT}px)`)
 const atRead = window.matchMedia(`(min-width: ${READ_AT}px)`)
-const width = ref(window.innerWidth)
-const measure = () => (width.value = window.innerWidth)
+const atTall = window.matchMedia(`(min-width: ${TALL_AT}px) and (orientation: portrait)`)
+const width = ref(window.innerWidth), height = ref(window.innerHeight)
+const measure = () => { width.value = window.innerWidth; height.value = window.innerHeight }
 /* ...except that a wall screen narrower than 861 is a 7-inch hung tall, not a phone, and gets the home's
    grid two across rather than the phone's page (design/every-screen/, DockB-Tall7) */
-const place = computed(() => { const p = placeOf(width.value); return wall && p.layout === 'stack' ? { layout: 'rail' as LayoutName, nav: 'top' as NavName } : p })
+const place = computed(() => { const p = placeOf(width.value, height.value); return wall && p.layout === 'stack' ? { layout: 'rail' as LayoutName, nav: 'top' as NavName } : p })
 
 /* Light or dark, the one part of the look that is this screen's own (shade.ts). It lands on <html>
    rather than the shell so a sheet or a toast drawn outside the shell takes it too, and it tells the
@@ -272,6 +273,7 @@ onMounted(() => {
   atTouch.addEventListener('change', measure)
   darkOS.addEventListener('change', onScheme)
   atRead.addEventListener('change', measure)
+  atTall.addEventListener('change', measure)
 })
 onUnmounted(() => {
   halt(); clearInterval(tick); clearInterval(idler)
@@ -281,6 +283,7 @@ onUnmounted(() => {
   atTouch.removeEventListener('change', measure)
   darkOS.removeEventListener('change', onScheme)
   atRead.removeEventListener('change', measure)
+  atTall.removeEventListener('change', measure)
 })
 </script>
 

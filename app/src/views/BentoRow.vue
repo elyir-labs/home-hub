@@ -19,6 +19,7 @@
  * their own; then whatever is left. A row of equal boxes is a spreadsheet, and
  * the difference between that and a room is the one small column.
  */
+import { TALL_AT } from '../look'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { ago, cap, deviceById, done, justDone, keptPrints, scenesFor, store, whatsOn } from '../store'
 import { printCards } from '../printers'
@@ -132,7 +133,7 @@ const rows = ref(0), across = ref(3)
 let sized: ResizeObserver | undefined
 function measure() {
   const h = bento.value?.parentElement?.clientHeight ?? 0
-  across.value = (bento.value?.parentElement?.clientWidth ?? 0) < 640 ? 2 : 3   // a 7-inch hung tall is two across
+  across.value = window.innerWidth < TALL_AT ? 2 : 3   // a 7-inch hung tall is two across; the size rule counts the screen, not the row
   bento.value?.style.setProperty('--across', String(across.value))
   rows.value = Math.max(1, Math.floor((h + GAP) / (CELL + GAP)))
   bento.value?.style.setProperty('--cell', `${Math.floor((h - GAP * (rows.value - 1)) / rows.value)}px`)

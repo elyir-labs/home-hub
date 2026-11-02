@@ -921,7 +921,7 @@ async function level(l: typeof LEVELS[number]) {
    phone block, and once `.rig-levels` moved here the scoped rule outranked it by one attribute
    selector -- so at 860 and under the levels kept a 170px floor they were meant to drop. A class's
    whole cascade has to live in one place, media queries included. */
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .rig-levels {
     min-width: 0;
   }

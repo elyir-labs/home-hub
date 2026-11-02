@@ -15,7 +15,7 @@
    never taste, and the tests below hold it to the seams look.ts names rather
    than to whatever the function happens to do today. */
 import { describe, expect, it } from 'vitest'
-import { FEELS, adjusted, feelFrom, isFeel, lookOf, placeOf, READ_AT, TOUCHED_AT } from '../src/look'
+import { FEELS, adjusted, feelFrom, isFeel, lookOf, placeOf, READ_AT, TALL_AT, TOUCHED_AT } from '../src/look'
 
 describe('the three looks', () => {
   it('offers three, each one a face and a tone', () => {
@@ -96,6 +96,14 @@ describe('where the screen is', () => {
   it('gives a screen within reach the row it sweeps through', () => {
     expect(placeOf(TOUCHED_AT)).toEqual({ layout: 'rail', nav: 'top' })
     expect(placeOf(READ_AT - 1)).toEqual({ layout: 'rail', nav: 'top' })
+  })
+
+  it('gives a tablet held tall the tall arrangement, and a phone on its side still the phone\'s', () => {
+    expect(placeOf(820, 1180)).toEqual({ layout: 'rail', nav: 'top' })
+    expect(placeOf(TALL_AT, TALL_AT + 1)).toEqual({ layout: 'rail', nav: 'top' })
+    expect(placeOf(TALL_AT - 1, 1180)).toEqual({ layout: 'stack', nav: 'top' })
+    expect(placeOf(844, 390)).toEqual({ layout: 'stack', nav: 'top' })
+    expect(placeOf(1180, 820)).toEqual({ layout: 'rail', nav: 'top' })
   })
 
   it('gives a screen read from across the room the wall', () => {
