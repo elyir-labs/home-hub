@@ -49,6 +49,12 @@ test("the command is the site's own, and the pretend house starts when asked, at
   assert.ok(!pretend.includes('<iframe'), 'nothing of the house loads until somebody asks')
 })
 
+test('beside the pretend house, a second door sets one up from the box, on a page of its own (design/try-setup/, A)', () => {
+  const pretend = page.slice(at('id="try"'), at('id="works"'))
+  assert.match(pretend, /<a class="pill" href="\/try\/\?box">Set one up from the box<\/a>/)
+  assert.equal((pretend.match(/class="pill lamp/g) || []).length, 0, 'the lit button stays the one on the picture')
+})
+
 test("the page shows nobody else's show, and names makers and Home Assistant only where a buyer asks about them", () => {
   for (const name of ['The Bear', 'Disney', 'Miles Davis', 'Blue in Green']) assert.ok(!page.includes(name), `the page says ${name}`)
   const works = page.slice(at('id="works"'), at('id="get"')), faq = page.slice(at('id="faq"'), at('<footer>')), foot = page.slice(at('<footer>'))

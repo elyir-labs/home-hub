@@ -327,7 +327,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
       pairing.needs = 'pin'
       return { state: 'pin', needs: 'pin', text: 'It is a secured device and wants the 5-digit code on its sticker.' }
     }
-    if (pairing.joined === undefined && on > 5) pairing.joined = Date.now()
+    if (pairing.joined === undefined && on > 5 && env.PAIR !== 'wait') pairing.joined = Date.now()
     if (pairing.joined === undefined) return { state: 'listening', text: 'Listening. Put the device in pairing mode.', seconds_left: Math.round(240 - on) }
     if (Date.now() - pairing.joined < 2500) return { state: 'found', text: 'Something is joining… (Smart plug)', device: { id: 'new-plug', name: 'Smart plug' } }
     /* it is in: the house gains it, once, with no room of its own */
@@ -912,10 +912,15 @@ export function createHouse({ env = {}, qr = null } = {}) {
     /* PAIRING a radio thing, simulated so the screens that drive it can be seen. The panel opens a door,
        something joins a few seconds later, and the house gains a device with no room -- which is what
        beat four then asks about. PAIR=pin makes it ask for a lock's code first; PAIR=none lets the
-       window run out with nothing joining; PAIR=fail refuses at the door. */
+       window run out with nothing joining; PAIR=fail refuses at the door; PAIR=wait listens until somebody switches
+       one on (POST /pretend/switch-on), which is the pretend hub's bar standing in for a hand on a bulb. */
     if (p === '/pair' && req.method === 'POST') {
       if (env.PAIR === 'fail') { pairing = { state: 'failed', text: 'That radio is not answering.' }; return json(res, pairing) }
       pairing = { state: 'listening', at: Date.now(), text: 'Listening. Put the device in pairing mode.' }
+      return json(res, pairStatus())
+    }
+    if (p === '/pretend/switch-on' && req.method === 'POST') {
+      if (pairing?.state === 'listening' && pairing.joined === undefined) pairing.joined = Date.now()
       return json(res, pairStatus())
     }
     if (p === '/pair' && req.method === 'DELETE') { pairing = { state: 'closed', text: 'Stopped.' }; return json(res, pairing) }

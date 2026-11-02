@@ -260,7 +260,9 @@ export async function collectionDirs(design) {
     if (!e.isDirectory() && !e.isSymbolicLink()) continue
     if (await exists(path.join(design, e.name, 'canvas.json'))) out.push(e.name)
     if (!e.isSymbolicLink()) continue
-    for (const f of await readdir(path.join(design, e.name), { withFileTypes: true })) {
+    // A link whose checkout has since been removed leads nowhere; the rest of the contents still open.
+    const inside = await readdir(path.join(design, e.name), { withFileTypes: true }).catch(() => [])
+    for (const f of inside) {
       if (f.isDirectory() && await exists(path.join(design, e.name, f.name, 'canvas.json'))) out.push(`${e.name}/${f.name}`)
     }
   }
