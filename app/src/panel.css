@@ -277,7 +277,9 @@ input:focus-visible {
   display: grid;
   grid-template-columns: 256px 1fr;
   height: 100dvh;
-  overflow: hidden;
+  /* clip, not hidden: the sky's drifting bloom reaches past the edges, and a hidden box with something past its edge
+     can still be scrolled -- a field focused during first run once left Home drawn 256px up and to the left. */
+  overflow: clip;
   isolation: isolate;
   background: var(--bg);
 }
