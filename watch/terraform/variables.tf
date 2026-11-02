@@ -34,10 +34,16 @@ variable "zone_name" {
 
 variable "access_team" {
   description = <<-EOT
-    The account's Zero Trust team name: Access's sign-in page is <access_team>.cloudflareaccess.com. Team names are
-    unique across Cloudflare, and an account that already has a team must use its existing name (README.md).
+    The account's existing Zero Trust team name: Access's sign-in page is <access_team>.cloudflareaccess.com. It is
+    under Zero Trust > Settings; an account without one turns Zero Trust on once and chooses it there (README.md).
   EOT
   type        = string
+}
+
+variable "make_code_login" {
+  description = "Whether to make the account's code-by-email login: only for an account that has none yet (README.md)."
+  type        = bool
+  default     = false
 }
 
 variable "repository" {
