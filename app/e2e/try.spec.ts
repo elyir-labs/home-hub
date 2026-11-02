@@ -114,3 +114,23 @@ test('the pretend house answers the widget as a house does, and a routine run th
   expect(before.temp).toBe('78°')
   expect(after.said[0], 'Everything off reached the rooms it can').not.toBe(before.said[0])
 })
+
+test('on a page of its own the pretend house says what it is and leads back to the site, and fits the screen under that', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(`${SITE}/try/`)
+  const back = page.getByRole('link', { name: 'Back to the site' })
+  await expect(back).toBeVisible()
+  await expect(back).toHaveAttribute('href', '/')
+  await expect(page.locator('.try-bar')).toContainText('A pretend house')
+  const shell = (await page.locator('.shell').boundingBox())!
+  expect(shell.y, 'the panel starts under the bar').toBe(44)
+  expect(shell.y + shell.height, 'and ends at the foot of the screen').toBeCloseTo(844, 0)
+  expect(await page.evaluate(() => document.scrollingElement!.scrollHeight), 'nothing to scroll past the panel').toBeLessThanOrEqual(844)
+})
+
+test("inside the site's frame on a computer the pretend house has no bar of its own", async ({ page }) => {
+  await page.setContent(`<iframe src="${SITE}/try/" width="1440" height="900"></iframe>`)
+  const frame = page.frameLocator('iframe')
+  await expect(frame.locator('.shell')).toBeVisible()
+  await expect(frame.locator('.try-bar')).toHaveCount(0)
+})

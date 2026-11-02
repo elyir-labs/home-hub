@@ -32,6 +32,9 @@ const PAGES: Page[] = ['drive', 'erase', 'moving', 'moved', 'welcome', 'login', 
 const preview = new URLSearchParams(location.search).get('page') as Page | null   // ?setup=1&page=rooms previews one screen
 const page = ref<Page>(preview && PAGES.includes(preview) ? preview : 'welcome')
 const status = computed(() => store.status)
+/* The last people handed the house over (design/leaving/, B): its rooms, lights and routines are here, so first run
+   asks only who the new people are and for a passcode of their own. */
+const handedOver = computed(() => !!status.value?.handed_over)
 const driver = computed(() => status.value?.driver ?? 'down')
 const engineReady = computed(() => ['fresh', 'needs-login', 'connecting', 'ready'].includes(driver.value))
 const busy = ref(false), error = ref(''), fromBackup = ref(false)
@@ -74,7 +77,7 @@ function next(after: Page) {
   if (after === 'login') return (page.value = 'owner')
   if (after === 'owner') return (page.value = driver.value === 'ready' ? 'code' : 'starting')
   if (after === 'starting') return (page.value = s?.owner ? 'code' : 'owner')
-  if (after === 'code') return (page.value = 'location')
+  if (after === 'code') return (page.value = handedOver.value ? (offersOutside(address.value, shell) ? 'address' : 'done') : 'location')
   if (after === 'location') return (page.value = 'rooms')
   if (after === 'rooms') return (page.value = 'devices')
   if (after === 'devices') return (page.value = offersOutside(address.value, shell) ? 'address' : 'done')
@@ -132,9 +135,9 @@ const readyLine = computed(() => {   // "Robin's house is ready." or "Home is re
 /* The numbered part of first run: every screen that asks something, in order. It used to
    count only the last four, so a person typed their name, chose a passcode, and was then told
    they were on "Step 1 of 4" -- two answers in and apparently at the beginning. */
-const ASKED: Page[] = ['owner', 'code', 'location', 'rooms', 'devices']
-const idx = computed(() => ASKED.indexOf(page.value))
-const step = computed(() => (idx.value < 0 ? '' : `Step ${idx.value + 1} of ${ASKED.length}`))
+const ASKED = computed<Page[]>(() => handedOver.value ? ['owner', 'code'] : ['owner', 'code', 'location', 'rooms', 'devices'])
+const idx = computed(() => ASKED.value.indexOf(page.value))
+const step = computed(() => (idx.value < 0 ? '' : `Step ${idx.value + 1} of ${ASKED.value.length}`))
 
 /* Whether this step is taller than the panel it is on. The action row docks to the
    bottom when it is, so Continue is never a thing you have to find by scrolling a
@@ -183,12 +186,20 @@ async function saveCode() {
       <!-- welcome -->
       <section class="setup-page" v-else-if="page === 'welcome'" key="welcome">
         <span class="setup-mark"><Icon name="home" :size="30" /></span>
-        <h1 class="display">Welcome home.</h1>
+        <h1 class="display" v-if="handedOver">This house is ready for you.</h1>
+        <h1 class="display" v-else>Welcome home.</h1>
         <!-- No count in here, on purpose. It used to promise "one or two questions" and then ask
              five, and a sentence that has to be rewritten every time ASKED grows or shrinks is a
              sentence that will quietly go out of date. First run says as little as it can
              (design/words-setup/, B): one sentence a screen, and nothing the screen already shows. -->
-        <p class="setup-lede">Run the whole house from this screen. Setting it up takes a few minutes.</p>
+        <template v-if="handedOver">
+          <p class="setup-lede">The rooms, lights and routines from before are already here. Tell it who you are and choose a passcode, and it’s yours.</p>
+          <ul class="setup-kept">
+            <li class="keep">{{ status?.rooms === 1 ? '1 room' : `${status?.rooms ?? 0} rooms` }} · {{ status?.devices === 1 ? '1 light, switch or sensor' : `${status?.devices ?? 0} lights, switches and sensors` }}</li>
+            <li>Cameras and thermostats that came through a service come back to their rooms when you sign in to yours, from Add to the house.</li>
+          </ul>
+        </template>
+        <p class="setup-lede" v-else>Run the whole house from this screen. Setting it up takes a few minutes.</p>
         <div class="setup-actions">
           <button class="button big" :disabled="!engineReady" @click="next('welcome')">Get started</button>
         </div>
@@ -196,8 +207,10 @@ async function saveCode() {
         <p class="setup-status" v-else-if="!engineReady && joinedHere"><span class="pulse-dot" style="background: var(--live)"></span> {{ fetchingLine(joinedHere) }}</p>
         <p class="setup-status" v-else-if="!engineReady"><span class="pulse-dot"></span> Getting things ready. The first start takes a minute or two.</p>
         <p class="setup-status" v-else-if="driver === 'needs-login'">This hub was set up before. You’ll sign in with the name and password chosen then.</p>
-        <p class="setup-foot">Moving from another hub? <button class="linkish" @click="fromBackup = !fromBackup">Bring its backup over</button></p>
-        <Restore v-if="fromBackup" />
+        <template v-if="!handedOver">
+          <p class="setup-foot">Moving from another hub? <button class="linkish" @click="fromBackup = !fromBackup">Bring its backup over</button></p>
+          <Restore v-if="fromBackup" />
+        </template>
       </section>
 
       <!-- sign in to an engine someone already set up -->
@@ -304,3 +317,11 @@ async function saveCode() {
   <!-- the hub's own first start can be hung upside down too, and a tall glass's guess can be wrong (design/sideways-start/, B) -->
   <TurnPill />
 </template>
+
+<style scoped>
+.setup-kept { list-style: none; margin: 18px 0 22px; padding: 0; max-width: 520px; }
+.setup-kept li { font-size: 15px; line-height: 1.45; color: var(--ink-2); padding: 9px 0 9px 22px; position: relative; }
+.setup-kept li + li { border-top: 1px solid var(--edge); }
+.setup-kept li::before { content: ''; position: absolute; left: 2px; top: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.setup-kept li.keep::before { background: var(--live); }
+</style>

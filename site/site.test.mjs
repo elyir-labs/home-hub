@@ -1,17 +1,20 @@
 /* hub.elyir.com is design/site's D: A's front page with C's line for a hub ready to plug in, with design/site-pair's D for
-   its pictures. These fail on purpose if the page drifts from the boards, if /install could ever hand bash a web page,
+   its pictures and design/site-more's D for what it does, what it works with and the questions. These fail on purpose if the page drifts from the boards, if /install could ever hand bash a web page,
    or if the waitlist says more than it should.
    `node --test site/site.test.mjs` */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { onRequest as install } from './functions/install.js'
 import { onRequestPost as waitlist } from './functions/waitlist.js'
+import { COUNTED, onRequest as middleware } from './functions/_middleware.js'
+import { POLICY } from './policy.js'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const page = readFileSync(path.join(HERE, 'index.html'), 'utf8')
+const pages = readdirSync(HERE).filter((f) => f.endsWith('.html'))
 const text = (html) => html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
 const at = (s) => { const i = page.indexOf(s); assert.notEqual(i, -1, `the page should have ${s}`); return i }
 
@@ -30,8 +33,8 @@ test('on a phone, Try it live leads, because the command needs a computer', () =
   assert.match(phone.slice(0, phone.indexOf('\n  }')), /\.doors \.door-try \{ order: -1; background: var\(--lamp\)/)
 })
 
-test('below the top: the day, the pretend house, the three ways to get it, then the price', () => {
-  const order = ['</header>', 'id="day"', 'id="try"', 'id="get"', 'id="anywhere"', '<footer>'].map(at)
+test('below the top: what it does, the day, the pretend house, what it works with, the ways to get it, the price, the questions', () => {
+  const order = ['</header>', 'id="does"', 'id="day"', 'id="try"', 'id="works"', 'id="get"', 'id="anywhere"', 'id="faq"', '<footer>'].map(at)
   assert.deepEqual(order, [...order].sort((a, b) => a - b))
   const ways = [...page.slice(at('id="get"'), at('id="anywhere"')).matchAll(/<h3>(.*?)<\/h3>/g)].map((m) => m[1])
   assert.deepEqual(ways, ['On a computer you have', 'On a new Raspberry Pi 5', 'Ready to plug in'])
@@ -46,12 +49,34 @@ test("the command is the site's own, and the pretend house starts when asked, at
   assert.ok(!pretend.includes('<iframe'), 'nothing of the house loads until somebody asks')
 })
 
-test("the page shows nobody else's show or brand, and names Home Assistant once", () => {
-  for (const name of ['The Bear', 'Disney', 'Philips', 'Hue', 'Sonos', 'Chromecast', 'Miles Davis', 'Blue in Green']) {
-    assert.ok(!page.includes(name), `the page says ${name}`)
-  }
-  assert.equal((text(page).match(/Home Assistant/g) || []).length, 2, 'once in the footer, and once in the line that says it is a trademark')
+test("the page shows nobody else's show, and names makers and Home Assistant only where a buyer asks about them", () => {
+  for (const name of ['The Bear', 'Disney', 'Miles Davis', 'Blue in Green']) assert.ok(!page.includes(name), `the page says ${name}`)
+  const works = page.slice(at('id="works"'), at('id="get"')), faq = page.slice(at('id="faq"'), at('<footer>')), foot = page.slice(at('<footer>'))
+  const notWorks = text(page.replace(works, '').replace(foot, '')), notAsked = text(page.replace(works, '').replace(faq, '').replace(foot, ''))
+  for (const name of ['Philips', 'Hue', 'Sonos', 'Nest', 'Ring', 'Chromecast']) assert.ok(!notWorks.includes(name), `${name} outside what it works with`)
+  assert.ok(!notAsked.includes('Home Assistant'), 'Home Assistant outside what it works with, the questions and the footer')
+  assert.match(text(foot), /Home Assistant, Raspberry Pi, NUC and the makers named above are trademarks of their owners/)
   for (const word of ['relay', 'brain', 'driver', 'entity', 'integration']) assert.ok(!new RegExp(`\\b${word}`, 'i').test(text(page)), `the page says ${word}`)
+})
+
+test('what it does, what it works with and the questions are design/site-more\'s D: A in words, with B\'s chips', () => {
+  const does = [...page.slice(at('id="does"'), at('id="day"')).matchAll(/<h3>(.*?)<\/h3>/g)].map((m) => m[1])
+  assert.deepEqual(does, ["Works when the internet doesn't", 'Tell it in words', 'Music in every room', 'Cameras on the wall'])
+  const works = page.slice(at('id="works"'), at('id="get"'))
+  const kinds = [...works.matchAll(/<li>[\s\S]*?<\/svg>(.*?)<\/li>/g)].map((m) => m[1])
+  assert.deepEqual(kinds, ['Lights and plugs', 'Switches and dimmers', 'Locks', 'Thermostats', 'Cameras and doorbells', 'Blinds and shades', 'Speakers and TVs', 'Motion and door sensors'])
+  /* Only makers the hub's own code knows by name; a guess has no place on a list somebody buys from. */
+  const makers = [...works.matchAll(/<b>(.*?)<\/b>/g)].flatMap((m) => m[1].split(/, | and /))
+  assert.deepEqual(makers, ['Philips Hue', 'Sonos', 'Google Nest', 'Ring', 'ecobee', 'WiZ', 'TP-Link Kasa', 'Chromecast', 'Roku', 'Samsung', 'LG', 'Android TVs', 'Matter', 'Zigbee', 'Z-Wave'])
+  const asked = [...page.slice(at('id="faq"'), at('<footer>')).matchAll(/<h3>(.*?)<\/h3>/g)].map((m) => m[1])
+  assert.deepEqual(asked, ['Do I need to know Home Assistant?', 'What happens when the internet is down?', 'What does it cost?', 'What leaves my house?',
+    'Does it work with Apple Home or Google Home?', 'What screen goes on the wall?', 'What if I move?'])
+  assert.ok(!/class="[^"]*\bfaq\b[\s\S]*?<details/.test(page), 'the answers are open, never behind a tap')
+})
+
+test('nobody signs in to a house, and the page says "your household", not our "let in"', () => {
+  assert.match(page, /<a class="signin" href="https:\/\/houses\.elyir\.app">Open your house<\/a>/)
+  for (const phrase of ['Sign in', 'let in', 'from outside']) assert.ok(!text(page).includes(phrase), `the page says ${phrase}`)
 })
 
 const pictures = (html) => [...html.matchAll(/<picture>([\s\S]*?)<\/picture>/g)].map(([, p]) => ({
@@ -136,10 +161,69 @@ test('the waitlist says plainly when it has nowhere to write', async () => {
 })
 
 test('a visit asks nobody else for anything: no fonts, scripts or pictures from another site', () => {
-  const fetched = [...page.matchAll(/<(?:link|script|img|iframe)\b[^>]*\b(?:href|src)="([^"]+)"/g)].map((m) => m[1])
-  assert.ok(fetched.length > 0)
-  for (const url of fetched) assert.ok(url.startsWith('/'), `the page loads ${url}`)
-  assert.ok(!/url\(['"]?https?:/.test(page), 'nor from a stylesheet')
+  for (const name of pages) {
+    const html = readFileSync(path.join(HERE, name), 'utf8')
+    const fetched = [...html.matchAll(/<(?:link|script|img|iframe)\b[^>]*\b(?:href|src)="([^"]+)"/g)].map((m) => m[1])
+    for (const url of fetched) assert.ok(url.startsWith('/'), `${name} loads ${url}`)
+    assert.ok(!/url\(['"]?https?:/.test(html), `nor from ${name}'s stylesheet`)
+    assert.ok(!/<script(?![^>]*\bsrc=)[^>]*>/.test(html), `${name} has a script inline, which its policy would refuse`)
+    assert.ok(!/cloudflareinsights|data-cf-beacon|gtag|plausible/i.test((html.match(/<[^>]+>/g) || []).join('')), `${name} counts its visitors`)
+  }
+  for (const script of ['site.js']) assert.ok(!/https?:\/\//.test(readFileSync(path.join(HERE, script), 'utf8')), `${script} talks to another site`)
+})
+
+test('every page refuses a script from another site, even one added on the way out', () => {
+  const rules = Object.fromEntries(readFileSync(path.join(HERE, '_headers'), 'utf8').split(/\n(?=\/)/).map((block) => {
+    const [where, ...lines] = block.trim().split('\n')
+    return [where.trim(), lines.join('\n')]
+  }))
+  for (const name of pages) {
+    const where = name === 'index.html' ? '/' : `/${name.replace(/\.html$/, '')}`
+    assert.ok((rules[where] || '').includes(`Content-Security-Policy: ${POLICY}`), `${where} has no policy`)
+  }
+})
+
+// A D1 stand-in that keeps what it is told, so the test can see everything a count stores.
+function countsDb() {
+  const rows = new Map(), sql = []
+  return { rows, sql, prepare: (q) => ({ q, args: [], bind(...a) { this.args = a; return this } }),
+    batch: async (stmts) => { for (const s of stmts) { sql.push(s.q); if (/INSERT/.test(s.q)) { const k = s.args.join('|'); rows.set(k, (rows.get(k) || 0) + 1) } } } }
+}
+async function visit(url, { method = 'GET', ua = 'Mozilla/5.0', status = 200, db = countsDb() } = {}) {
+  const later = []
+  const res = await middleware({ request: new Request(url, { method, headers: { 'User-Agent': ua } }), env: { COUNTS: db },
+    next: async () => new Response('<p>hi</p>', { status }), waitUntil: (p) => later.push(p) })
+  await Promise.all(later)
+  return { res, db }
+}
+
+test('a page load is counted as a number for that page and day, and nothing else about it', async () => {
+  const db = countsDb()
+  for (const url of ['https://hub.elyir.com/', 'https://hub.elyir.com/', 'https://hub.elyir.com/privacy', 'https://hub.elyir.com/try/']) await visit(url, { db })
+  await visit('https://hub.elyir.com/install', { db, ua: 'curl/8.7.1' })
+  const day = new Date().toISOString().slice(0, 10)
+  assert.deepEqual(Object.fromEntries(db.rows), { [`${day}|/`]: 2, [`${day}|/privacy`]: 1, [`${day}|/try/`]: 1, [`${day}|/install`]: 1 })
+  for (const q of db.sql) assert.doesNotMatch(q, /ip|address|agent|cookie|country|referr?er/i, `a count keeps more than the page and the day: ${q}`)
+  assert.deepEqual(COUNTED, ['/', '/privacy', '/install', '/try/'])
+})
+
+test('the watcher, robots, failures and anything that is not a page are not counted', async () => {
+  const db = countsDb()
+  await visit('https://hub.elyir.com/', { db, ua: 'elyir-watch' })
+  await visit('https://hub.elyir.com/', { db, ua: 'Googlebot/2.1' })
+  await visit('https://hub.elyir.com/', { db, method: 'HEAD' })
+  await visit('https://hub.elyir.com/install', { db, status: 302 })
+  await visit('https://hub.elyir.com/waitlist', { db })
+  await visit('https://hub.elyir.com/try/assets/index.js', { db })
+  assert.equal(db.rows.size, 0)
+  const routes = JSON.parse(readFileSync(path.join(HERE, '_routes.json'), 'utf8')).include
+  for (const p of [...COUNTED, '/install', '/waitlist']) assert.ok(routes.includes(p), `_routes.json leaves ${p} out`)
+  assert.ok(!routes.some((p) => p.includes('*')), 'only these paths run a function; the pictures and the pretend house\'s files never do')
+})
+
+test('a page that passed through the counter still refuses other sites\' scripts', async () => {
+  for (const url of ['https://hub.elyir.com/', 'https://hub.elyir.com/privacy']) assert.equal((await visit(url)).res.headers.get('content-security-policy'), POLICY)
+  assert.equal((await visit('https://hub.elyir.com/install')).res.headers.get('content-security-policy'), null)
 })
 
 test('the privacy page is reachable from the waitlist, and says what it keeps', () => {
@@ -149,5 +233,28 @@ test('the privacy page is reachable from the waitlist, and says what it keeps', 
   const privacy = text(readFileSync(path.join(HERE, 'privacy.html'), 'utf8'))
   assert.match(privacy, /your email address, that it was for the hub, and when you joined/)
   assert.match(privacy, /privacy@elyir\.app/)
+  assert.match(privacy, /We count how many times each page is loaded and the install command is fetched, and nothing that tells one visitor from another\./)
   for (const word of ['relay', 'brain', 'entity', 'integration']) assert.ok(!new RegExp(`\\b${word}`, 'i').test(privacy), `the privacy page says ${word}`)
+})
+
+/* The width and height a JPEG says it is, from its first frame header. */
+const jpegSize = (buf) => {
+  for (let i = 2; i < buf.length;) {
+    const marker = buf[i + 1], len = buf.readUInt16BE(i + 2)
+    if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) return [buf.readUInt16BE(i + 7), buf.readUInt16BE(i + 5)]
+    i += 2 + len
+  }
+}
+const meta = (key) => page.match(new RegExp(`<meta (?:property|name)="${key}" content="([^"]*)"`))?.[1]
+
+test('a shared link shows the wall alone (design/link-preview/, B), at the size every app asks for', () => {
+  assert.equal(meta('og:title'), 'Elyir Home Hub')
+  assert.equal(meta('og:description'), page.match(/<meta name="description" content="([^"]*)"/)[1], 'the same sentence the page describes itself with')
+  assert.equal(meta('og:image'), 'https://hub.elyir.com/shots/card.jpg', 'an app fetches the picture from outside, so the address is whole')
+  assert.equal(meta('twitter:card'), 'summary_large_image')
+  assert.ok(meta('og:image:alt'))
+  const file = path.join(HERE, 'shots', 'card.jpg')
+  assert.ok(existsSync(file), 'npm run site-shots card makes it')
+  assert.deepEqual(jpegSize(readFileSync(file)), [1200, 630])
+  assert.deepEqual([meta('og:image:width'), meta('og:image:height')], ['1200', '630'])
 })

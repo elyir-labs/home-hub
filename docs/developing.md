@@ -141,6 +141,17 @@ container before the Pi's first start so the two do not fight over Ring's token.
   database or any logs). It carries the house's keys, so it sits behind the settings code. Restoring, here or on a
   new hub's welcome screen, parks the file for `driver-layer/host/restore.sh`, which stops the house, unpacks, and
   starts it again with this hub's own address kept.
+- Start over: the last row of *This hub*, behind the code and a hold (`design/leaving/`, B). It parks `reset.request` for
+  `driver-layer/host/reset.sh`, which stops the house, erases each part that holds it back to what a fresh install
+  leaves (with `git clean` and `git checkout` over those directories, so the hub must be a checkout), keeps only the
+  `.env` lines that describe the unit, makes every secret again, forgets the house's Wi-Fi (a hub on Wi-Fi comes back on
+  its own, for the label's code), empties the SSH keys This hub was given, and starts the house on Welcome. The web
+  address's name is given back first, by the brain, which also ends its plan at the Elyir account.
+- Moving out: the last row of *People* (`design/leaving/`, B). `brain/hub/handover.py` signs the house out of every
+  service whose integration reaches it through the cloud (`iot_class` `cloud_*`), after writing down each of its
+  devices' rooms and names, removes the people and the engine's history, keeps only the wall screens, and clears the
+  people's settings; then `reset.sh` in its `people` mode does what the brain cannot reach. When the next people sign in
+  to the same service, `welcome_back` puts the same devices in their old rooms on the next rebuild.
 - The assistant (routines asked for in plain words, and "why did that happen?") needs a key for the model. Paste it into
   the panel's Routines sheet, or put `ANTHROPIC_API_KEY=` in `driver-layer/.env`. Without one the house runs exactly the same;
   only the asking is missing. The assistant writes drafts a person approves and explains from the log; it cannot touch a device.

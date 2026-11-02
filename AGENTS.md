@@ -278,6 +278,15 @@ Do not reopen these, and do not propose around them.
   storefront its button opens the payment page in the browser, on every other storefront setup has no such step.
   Pinned by `app/tests/storefront.test.ts` and `app/e2e/houses.spec.ts`.
 
+- **We watch our own services from the outside, and never the visitor or the house** (25 October 2026). Uptime, the
+  relay's health and the site's traffic are read from what Cloudflare, Hetzner and GitHub already see, with no new
+  vendor: `watch/`, a Worker that checks each service every minute and mails the operator, and reads the relay's numbers
+  from `/alive` with a key derived from the relay token. The site counts page loads on the server, a number per page per day and nothing about who
+  (`site/functions/_middleware.js`, said on its privacy page). No script on the site counts visitors, Cloudflare's own beacon included: `site/_headers` refuses any script
+  or request to another site, so one added at the edge is blocked too. Nothing in a hub sends crash reports or
+  analytics, and Home Assistant's own analytics are left off. When a hub misbehaves, the household sends a
+  diagnostics bundle themselves (`docs/shipping.md`). The one line allowed out is the update check-in in
+  `docs/updates.md`. Pinned by `site/site.test.mjs`, `tools/nothing-reports.test.mjs` and `brain/tests/test_ha_setup.py`.
 - **The Brilliant work lives in a repository of its own, and public code never reaches into it**
   (5 October 2026). This repository is public and every hub clones it whole. The bridge puck here (`puck/`) is
   the hub's own device -- cable, finding the hub, updates, the ear, errands, its light -- and it is whole
@@ -329,13 +338,28 @@ Do not reopen these, and do not propose around them.
   the one the screen showed, and the stick is never written, so one stick sets up hub after hub. Pinned by
   `app/tests/drive.test.ts`, `app/e2e/move-to-drive.spec.ts`, `brain/tests/test_drive.py` and the `moving_in`,
   `moving` and `describing` groups in `driver-layer/host/tests.sh`.
+- **Leaving a house: erasing is on The hub, handing over is on People** (1 November, `design/leaving/`, B). Start over
+  is the last row of The hub: behind the passcode, refused outright on a hub with none, only in the house, and a hold.
+  It erases everything that is the house, keeps what is the unit's (what it updates from, its name on the network, its
+  own Wi-Fi), forgets the house's Wi-Fi, makes every secret again, gives the web address back and stops its payments,
+  and opens on Welcome.
+  Moving out, on People, hands the house to the next people: its rooms, lights, routines and screens stay, and the
+  phones, passcode, people, history, Wi-Fi, sharing and the services signed in through the cloud go. A device such a
+  service brought goes back to its old room and name when the next people sign in to the same service (`returning`). Taking the hub along is Start over with a backup,
+  not a third answer. A hub with no screen and no code is switched off and on three times, then the label's code. Start
+  over is `driver-layer/host/reset.sh` and `StartOverSheet.vue`; Moving out is `brain/hub/handover.py`, the same script's
+  `people` mode and `HandOverSheet.vue`. Pinned by `app/e2e/start-over.spec.ts`, `app/e2e/handover.spec.ts`,
+  `brain/tests/test_handover.py`, `brain/tests/test_api_lock.py` and the `starting_over` group in `driver-layer/host/tests.sh`.
 - **The hub's front page is Elyir Bench's shape, with one line for a hub ready to plug in** (16 October,
   `design/site/`, D). It lives at `hub.elyir.com`, as Bench lives at `bench.elyir.com`; never under `elyir.app`, where
   names are houses' own. On a computer, Put it on a computer you have leads; on a phone, Try it live. Under the two
-  buttons, one quiet email box for anyone who wants one ready to plug in, writing to the one Elyir waitlist. Its
+  buttons, one quiet email box for anyone who wants one ready to plug in, writing to the one Elyir waitlist. Further down
+  it says what the hub does, what it works with (naming only makers the hub's own code knows) and answers the questions
+  a buyer asks, all open, and the pretend house on a page of its own leads back (2 November, `design/site-more/`, D). Its
   pictures are the panel on the pretend house with `NAMES=plain` (`npm run site-shots`), never somebody else's show or
   brand: the living room on the wall and the phone, then the wall through a day, each in the visitor's own light or dark
-  (28 October, `design/site-pair/`, D). `site/`, pinned by `site/site.test.mjs`; made by `site/terraform/`, deployed by `.github/workflows/site.yml`.
+  (28 October, `design/site-pair/`, D). A shared link shows the light wall alone, no words (1 November,
+  `design/link-preview/`, B). `site/`, pinned by `site/site.test.mjs`; made by `site/terraform/`, deployed by `.github/workflows/site.yml`.
 - **Music lives on the speaker's card, and every hub plays it** (20 October, `design/music/`, A with C's sentences).
   A quiet speaker offers Play something and its last two things again; one pane chooses what (left) and which rooms
   (right, this room ticked); music in several rooms plays in step and is a row of rooms on the card; the command box

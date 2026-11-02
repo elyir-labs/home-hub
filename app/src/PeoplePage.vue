@@ -20,6 +20,7 @@ import { seen } from './seen'
 import { initials, personTone } from './people'
 import Icon from './Icon.vue'
 import PhoneSteps from './PhoneSteps.vue'
+import HandOverSheet from './HandOverSheet.vue'
 import { locale } from './lang'
 
 const people = computed(() => store.presence?.people ?? [])
@@ -53,6 +54,7 @@ const adding = ref(new URLSearchParams(location.search).get('add') === '1')
 const outside = (p: Phone) => switchFor(p, !!store.me?.address, keys.value)
 const address = computed(() => (store.me?.address ?? '').replace(/^https:\/\//, ''))
 const letting = ref('')
+const handing = ref(false)
 async function pick(p: Phone, anywhere: boolean) {
   if (anywhere === p.remote || letting.value) return
   letting.value = p.id
@@ -121,6 +123,12 @@ const keys = computed(() => holdsKeys())
         <span class="hub-v">Without a passcode, any phone on your Wi‑Fi can use the house.<span class="hub-sub line">Set one, and only the phones you add can.</span></span>
         <button class="button small" @click="store.sheet = 'code'">Set a passcode</button>
       </li>
+      <li v-if="store.status?.setup_done">
+        <span class="hub-k">Moving out</span>
+        <span class="hub-v">Leaving the hub here for the next people?<span class="hub-sub line">Your phones, passcode and sign-ins are erased. The rooms, lights and routines stay for them.</span></span>
+        <button class="button small ghost" @click="handing = true">Hand it over…</button>
+      </li>
     </ul>
+    <HandOverSheet v-if="handing" @close="handing = false" />
   </div>
 </template>

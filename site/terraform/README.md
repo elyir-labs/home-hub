@@ -8,6 +8,8 @@ What it makes:
 - the Pages project `elyir-home-hub`, served at `hub.elyir.com` (a proxied CNAME in the `elyir.com` zone);
 - the D1 database `elyir-waitlist`, bound to the project as `WAITLIST`. It is the one Elyir waitlist, with the product
   a column, so Elyir Bench's site can bind it too. `functions/waitlist.js` makes its one table on first use.
+- the D1 database `elyir-site-counts`, bound as `COUNTS`: how many times each page was loaded, a number per page per
+  day (`functions/_middleware.js`). The maker's watcher (`watch/`) reads it into its Monday note.
 
 - the deploy workflow's own token (`deploy.tf`): the account's, able only to upload Pages, written with the account's
   id into the repository's Actions secrets. Nobody makes either by hand.
