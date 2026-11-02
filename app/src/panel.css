@@ -9558,6 +9558,9 @@ select.input {
   .house.docked {
     --dock-h: 82px;
   }
+  .opened.docked .opened-panel {
+    top: 16px;
+  }
   .bottombar.dock {
     padding: 2px 16px 8px;
   }
@@ -12426,6 +12429,99 @@ select.input {
   }
   .pane-moment-x {
     white-space: normal;
+  }
+}
+/* On a tall screen a device's pane is one column, everything the wall shows stacked (design/every-screen/,
+   RoomGridA): what it is and its buttons, the number, the instrument with its columns standing, then its day.
+   Side by side, as on the wall, the instrument had 300 points and lost its colors. It stands above the dock,
+   which stays in front. A wide screen's pane still runs to the foot, over the dock: the roofline's and a held
+   strip's panes are drawn to the full height of the wall, and lose their floor if it is 100 points shorter. */
+@media (min-width: 861px) and (orientation: portrait) {
+  [data-face].shell.pane-open > .bottombar.dock {
+    position: relative;
+    z-index: 41;
+    transform: none;
+    filter: none;
+    opacity: 1;
+  }
+  .opened.docked .opened-panel {
+    left: 16px;
+    right: 16px;
+    bottom: 100px;
+    border-radius: 34px;
+    border-bottom: 1px solid var(--edge-hi);
+  }
+  .pane-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    gap: 24px;
+    padding: 30px 28px 0;
+  }
+  .pane-said,
+  .pane-rig,
+  .pane-facts {
+    grid-column: 1;
+  }
+  .pane-said {
+    grid-row: 1;
+  }
+  .pane-rig {
+    grid-row: 2;
+    margin-top: 0;
+    min-height: 0;
+  }
+  .pane-facts {
+    grid-row: 3;
+  }
+}
+/* ...and where it is wide enough, its buttons stand beside its name rather than under it */
+@media (min-width: 481px) and (max-width: 860px), (min-width: 861px) and (orientation: portrait) {
+  .pane-said {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 16px;
+    align-items: start;
+  }
+  .pane-said > .s0 {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .pane-said > .s1 {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0 64px 0 0;
+  }
+  .pane-said > .s2 {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+/* A 7-inch hung wide keeps the wall's pane, its instrument given the width, and what it did today and who made
+   it a tap further in (design/every-screen/, RoomWide-Wide7). */
+@media (min-width: 861px) and (max-height: 699px) and (orientation: landscape) {
+  .pane-body {
+    grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+    gap: 24px;
+    padding: 26px 30px 0;
+  }
+  .pane-rig {
+    padding: 18px;
+  }
+  .rig-light {
+    gap: 18px;
+  }
+  .rig-col {
+    width: 112px;
+  }
+  .rig-color {
+    width: 236px;
+  }
+  .pane-facts,
+  .pane-day {
+    display: none;
+  }
+  .pane-said .opened-name {
+    font-size: 34px;
   }
 }
 

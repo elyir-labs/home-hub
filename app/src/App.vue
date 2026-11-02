@@ -284,7 +284,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="shell" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking, 'house-open': panel && docked }">
+  <div class="shell" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking, 'house-open': panel && docked, 'pane-open': !!store.opened && docked }">
     <Sky :quiet="!idle && !setup" :held="wall && !idle" />
     <!-- glass lays its blooms on the sky the canvas just painted, under the veil -->
     <div class="sky-bloom" v-if="face === 'glass'"></div>
@@ -384,7 +384,7 @@ onUnmounted(() => {
     <Household v-if="!setup && !shut && nav === 'top'" :room="room?.id ?? null" :docked="docked" :tab="tab" :in-room="!!room" :now="shown" @go="go" />
 
     <Viewer />
-    <Opened v-if="store.opened" />
+    <Opened v-if="store.opened" :class="{ docked }" />
     <MusicPane v-if="store.musicPane" />
     <PrinterPane v-if="store.printer" />
     <PowerPane v-if="store.powerOpen" />

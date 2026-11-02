@@ -52,7 +52,7 @@ const waiting = computed(waitingToAdd)
    while it is open and shuts it again, and a place goes there and shuts it. Add opens as one of its pages, so it
    is Add's door that is lit then. */
 const housing = computed(() => isPage(store.sheet) && store.sheet !== 'add')
-function place(t: Tab) { if (isPage(store.sheet)) store.sheet = null; emit('go', t) }
+function place(t: Tab) { if (isPage(store.sheet)) store.sheet = null; store.opened = null; emit('go', t) }
 </script>
 
 <template>
