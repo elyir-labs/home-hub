@@ -216,6 +216,12 @@ started by whoever else is in this checkout, otherwise ends `up` with a node sta
 neither. Only a mock of ours is replaced, and it says whose it was; anything else on the port
 is reported, and `PORT=8405 tools/dev.sh up` goes around it.
 
+To walk first run from one end to the other, start the mock as a hub out of its box: `FRESH=1 tools/dev.sh up`
+opens on Welcome with nobody named, no code and no rooms, and keeps every answer, so each screen sees what the last
+one did and the last one opens Home. Add `NET=screen` to begin on the Wi-Fi question (any password but `wrong` joins,
+and the engine comes up a few seconds later), and `DRIVE=stick` to begin on the drive beside a hub on its USB stick.
+`app/e2e/first-run-walk.spec.ts` walks the whole of it.
+
 `hub` goes through `brain/dev.py`, which stops whatever hub is holding :8300 and starts yours: a
 hub left running from before the break serves an older shape of `/home`, and the panel renders it
 without complaint, so it reads as a panel bug.
