@@ -20,6 +20,8 @@
     "DockB-Tall10.dc.html",
     "DockB-Tall7.dc.html",
     "DockB-Phone.dc.html",
+    "DockB-Tablet.dc.html",
+    "tablet",
     "decided",
     "a",
     "RailA.dc.html",
@@ -71,6 +73,7 @@
     "RoomGridA-Tall7.dc.html",
     "RoomGridA-Tall10.dc.html",
     "RoomGridA-Phone.dc.html",
+    "RoomGridA-Tablet.dc.html",
     "r-decided",
     "r-b",
     "RoomReachB-Tall7.dc.html",
@@ -608,6 +611,24 @@
       "h": 844,
       "title": "C: the room as a list, the lamp opening in its row, on a phone",
       "page": "room-rejected"
+    },
+    {
+      "file": "DockB-Tablet.dc.html",
+      "x": 4926,
+      "y": 1800,
+      "w": 820,
+      "h": 1180,
+      "title": "B, by size rule 2: a tablet held tall, 820x1180, arranged as the 10-inch hung tall",
+      "page": "every"
+    },
+    {
+      "file": "RoomGridA-Tablet.dc.html",
+      "x": 2226,
+      "y": 2800,
+      "w": 820,
+      "h": 1180,
+      "title": "A, by size rule 2: the room and the lamp on a tablet held tall, as on the 10-inch",
+      "page": "room"
     }
   ],
   "annotations": [
@@ -794,6 +815,14 @@
       "y": 700,
       "w": 500,
       "text": "BUILT 2 NOVEMBER 2026\n\nThe dock is on the wall, a 7-inch either way up, the 10-inch hung tall and the phone, in the same order, with This house's door lit while setup is unfinished.\n\nOne change from the boards: the phone keeps its own Home page above the dock, with what it prints, what is kept on Home, On right now and its cameras, rather than the two-across grid B draws for it. The grid would have dropped all four. A 7-inch wall screen hung tall gets the grid, as drawn."
+    },
+    {
+      "id": "tablet",
+      "page": "every",
+      "x": 4926,
+      "y": 3060,
+      "w": 500,
+      "text": "A TABLET HELD TALL, 2 NOVEMBER 2026.\n\nNot a new direction: size rule 2, decided with B, says a screen 640 to 1100 wide and taller than wide is arranged as the 10-inch hung tall, three across, and that a tablet at 820 stops getting the phone's page. This board draws that at an iPad's size so there is a picture to build against.\n\nWhat it changes for a household: an iPad held tall shows Your evening as a fitted grid with the clock and the greeting, where today it shows the phone's scrolling page. Turned on its side it is wide and gets the wall's row, as now. A phone, 7-inch hung tall and anything under 640 keep two across."
     }
   ]
 }

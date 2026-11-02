@@ -20,7 +20,7 @@
   const cloud = (w = 96) => `<svg width="${w}" viewBox="0 0 96 64"><path d="M72 4a16 16 0 1 0 16 24A13 13 0 0 1 72 4z" fill="#cfd3dd" opacity=".85"/><g fill="#9aa1b2"><ellipse cx="40" cy="46" rx="30" ry="14"/><circle cx="32" cy="36" r="14"/><circle cx="52" cy="31" r="17"/></g></svg>`
 
   const shape = document.body.dataset.shape, nav = document.body.dataset.nav
-  const tall = ['tall10', 'tall7', 'phone'].includes(shape), wide = !tall
+  const tall = ['tall10', 'tablet', 'tall7', 'phone'].includes(shape), wide = !tall
   const small = shape === 'tall7' || shape === 'phone'
 
   const PLACES = [['house', 'Your evening'], ['rooms', 'Rooms'], ['camera', 'Cameras']]
@@ -58,7 +58,7 @@
   }
 
   const who = `<div class="who"><span class="dot">CONNECTED</span>${shape === 'wall' ? '<span>Jordan and Alex are home</span>' : ''}<span class="faces"><b>J</b><b>S</b><b>A</b><b>+</b></span></div>`
-  const shown = { wall: 99, wide7: 99, tall10: 9, tall7: 5, phone: 99 }[shape]
+  const shown = { wall: 99, wide7: 99, tall10: 9, tablet: 9, tall7: 5, phone: 99 }[shape]
   const card = {
     tv: '<div class="c tv"><span class="tag">TV</span><div class="nm">The Bear</div><div class="st">Season 3, Episode 4 · Disney+</div><div class="play"><b>' + svg('pause', 18, 2.6) + '</b><span><i></i></span></div></div>',
     door: '<div class="c cam"><span class="tag r">50S AGO</span><div class="nm"><i>' + svg('camera', 16) + '</i>Doorbell</div></div>',

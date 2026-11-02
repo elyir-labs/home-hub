@@ -18,7 +18,7 @@
   }
   const svg = (n, s = 20, w = 1.7) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${P[n]}</svg>`
   const body = document.body, shape = body.dataset.shape, dir = body.dataset.dir
-  const tall = ['tall10', 'tall7', 'phone'].includes(shape)
+  const tall = ['tall10', 'tablet', 'tall7', 'phone'].includes(shape)
   const pane = (new URLSearchParams(location.search).get('view') || body.dataset.view) === 'pane'
   const screen = document.querySelector('.screen')
 

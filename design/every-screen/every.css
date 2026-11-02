@@ -20,6 +20,7 @@ body {
 body[data-shape="wall"]   { --w: 1440px; --h: 900px;  --pad: 40px; --gap: 16px; --t: 1; }
 body[data-shape="wide7"]  { --w: 1024px; --h: 576px;  --pad: 24px; --gap: 12px; --t: .82; }
 body[data-shape="tall10"] { --w: 900px;  --h: 1440px; --pad: 40px; --gap: 16px; --t: 1; }
+body[data-shape="tablet"] { --w: 820px;  --h: 1180px; --pad: 36px; --gap: 16px; --t: 1; }
 body[data-shape="tall7"]  { --w: 576px;  --h: 1024px; --pad: 24px; --gap: 12px; --t: .86; }
 body[data-shape="phone"]  { --w: 390px;  --h: 844px;  --pad: 16px; --gap: 10px; --t: .8; }
 
@@ -132,7 +133,7 @@ body[data-shape="wide7"] .lane .c { height: 159px; width: 196px; }
 body[data-shape="wide7"] .bigwx { display: none; }
 
 /* tall, 10-inch: three across, nothing past an edge */
-body[data-shape="tall10"] .bento { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: repeat(4, 1fr);
+body[data-shape="tall10"] .bento, body[data-shape="tablet"] .bento { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: repeat(4, 1fr);
   grid-template-areas: "tv tv ceil" "door clim ceil" "floor blinds kit" "fan desk more"; }
 /* tall, 7-inch and phone: two across, the 7-inch fits its screen, the phone carries on below */
 body[data-shape="tall7"] .bento { grid-template-columns: 1fr 1fr; grid-template-rows: 1.15fr 1fr 1fr .62fr;
@@ -240,7 +241,7 @@ body[data-nav="rail"][data-shape="wide7"] .rail .door, body[data-nav="rail"][dat
 body[data-nav="rail"][data-shape="wide7"] .rail.side .end { gap: 8px; }
 body[data-nav="rail"][data-shape="tall10"], body[data-nav="rail"][data-shape="tall7"] { --nb: 96px; }
 body[data-nav="rail"][data-shape="phone"] { --nb: 84px; }
-body[data-nav="dock"][data-shape="wall"], body[data-nav="dock"][data-shape="tall10"] { --nb: 90px; }
+body[data-nav="dock"][data-shape="wall"], body[data-nav="dock"][data-shape="tall10"], body[data-nav="dock"][data-shape="tablet"] { --nb: 90px; }
 body[data-nav="dock"][data-shape="wide7"] { --nb: 64px; }
 body[data-nav="dock"][data-shape="tall7"], body[data-nav="dock"][data-shape="phone"] { --nb: 84px; }
 body[data-nav="side"][data-shape="wall"] { --nl: 264px; }
