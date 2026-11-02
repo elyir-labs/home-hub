@@ -6,7 +6,7 @@
 
    createHouse({ env, qr }) builds one house. `env` holds the knobs (brain.mjs passes process.env):
    WX=rainy (a condition), FOUND=0 (nothing new nearby), ENGINE=down (the engine-starting screen),
-   LOCKED=1 (a code is set), FRESH=1 (first run), ASK=1 (a phone is asking to join; needs LOCKED=1), ?join=1 (the join screen),
+   LOCKED=1 (a code is set), FRESH=1 (a hub out of its box: see outOfTheBox below), ASK=1 (a phone is asking to join; needs LOCKED=1), ?join=1 (the join screen),
    UPDATE=ready (one waiting, with its sheet), UPDATE=running (one happening, walking the phases), UPDATE=away (the sheet a
    phone outside the house gets), ?printers= on the panel's address (a house with 3D printers: mock/printers.mjs), ?power=
    (a house with a Tesla gateway: mock/power.mjs), NAMES=plain (made-up names for show and brand, for public pictures),
@@ -157,6 +157,20 @@ export function createHouse({ env = {}, qr = null } = {}) {
       { id: 'matter', name: 'Matter', state: 'ready', text: 'Working', port: 5580 },
       { id: 'ring', name: 'Ring', state: 'sign-in', text: 'Sign in once to bring in the alarm, cameras and sensors.', port: 55123 },
     ], problems: [] }
+  /* A hub out of its box (FRESH=1), and what Start over leaves: nobody named, no code, no rooms, and the engine waiting
+     for its first account. Only the few things it found on the network by itself are here, waiting in New devices.
+     Every first-run answer is kept (firstRun below), so one run walks Welcome to Home the way a hub does. With
+     NET=screen it starts on the Wi-Fi question and the engine waits for a network; with DRIVE=stick, on the drive. */
+  /* The engine coming up, said on the stream as the brain says it (api.py, _set), since a screen waiting on Welcome
+     only hears about it there. */
+  function engine(driver, reason = '') { Object.assign(status, { driver, reason }); push({ type: 'status', status }) }
+  function outOfTheBox() {
+    rooms.splice(0, rooms.length, ...rooms.filter(r => r.id === 'unassigned'))
+    home.name = 'Home'
+    ambient.location = null
+    Object.assign(status, { setup_done: false, owner: null, home: null, location: false, locked: false, handed_over: false,
+                            rooms: 0, devices: unassigned?.devices.length ?? 0 })
+  }
   /* What changed, in a house's words (docs/updates.md piece 4). Off unless asked for, so the panel's
      ordinary previews and the e2e run see the hub page exactly as they did before: WHATSNEW=1 puts the
      morning-after card on Home and the What's new row under This hub. */
@@ -202,7 +216,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
                       checked: Date.now() / 1000, requested: false, state: null, error: null }
   }
   // who the house knows and who is in, for the household strip; PEOPLE=0 is a house with nobody set up
-  const presence = env.PEOPLE === '0'
+  const presence = env.PEOPLE === '0' || env.FRESH === '1'
     ? { somebody: null, since: null, source: null, people: [], alarm: null }
     : { somebody: true, since: Date.now() - 3600e3, source: 'people', people: [{ name: 'Jordan', home: true }, { name: 'Sam', home: false }, { name: 'Alex', home: true }], alarm: null }
   /* What is coming, the way a real hub shapes it (brain/hub/forecast.py). Built from the hour the
@@ -237,9 +251,17 @@ export function createHouse({ env = {}, qr = null } = {}) {
     const shape = [[0, 84, 61, 'rainy'], [1, 88, 64, 'sunny'], [2, 77, 59, 'partlycloudy'], [3, 79, 60, 'cloudy'], [4, 81, 62, 'sunny']]
     return shape.map(([d, hi, lo, c]) => ({ at: new Date(midnight.getTime() + d * 86400e3).toISOString(), condition: c, high: hi, low: lo, rain: c === 'rainy' ? 70 : 10 }))
   }
+  const PLACES = [{ name: 'Cedar Falls, IA', lat: 42.53, lon: -92.45, tz: 'America/Chicago' },
+                  { name: 'Cedar Rapids, IA', lat: 41.98, lon: -91.67, tz: 'America/Chicago' },
+                  { name: 'Maple Grove, MN', lat: 45.07, lon: -93.46, tz: 'America/Chicago' }]
   const ambient = { location: { name: 'Cedar Falls, IA', lat: 42.53, lon: -92.45 }, weather: { id: 'w', condition: env.WX || 'partlycloudy', temperature: 78, unit: '°F', humidity: 48, wind_speed: 6, wind_unit: 'mph' },
     forecast: env.FORECAST === '0' ? null : { hourly: forecastHours(), daily: forecastDays() },
     look: { feel: env.FEEL || 'nightfall', tone: env.TONE || 'follow', face: env.FACE || 'glass', layout: env.LAYOUT || 'auto', nav: env.NAV || 'auto' } }   // the default a fresh house gets; FEEL=calm LAYOUT=rail TONE=pastel NAV=top FACE=paper start it somewhere else
+  if (env.FRESH === '1') {
+    outOfTheBox()
+    const offline = /^(setup|screen)/.test(env.NET ?? '')
+    Object.assign(status, offline ? { driver: 'down', reason: "The hub's engine is not answering yet." } : { driver: 'fresh', reason: '' })
+  }
   const scenes = { movie: [['light', 'off', {}], ['media', 'on', {}]], guests: [['light', 'on', {}]], asleep: [['light', 'off', {}], ['media', 'off', {}], ['lock', 'lock', {}]], empty: [['light', 'off', {}], ['media', 'pause', {}]], away: [['light', 'off', {}], ['media', 'off', {}], ['switch', 'off', {}], ['lock', 'lock', {}]] }
   const events = [
     { ts: now - 40, kind: 'state', subject: 'mo1', old: 'off', new: 'on', source: 'ha', detail: null },
@@ -623,6 +645,12 @@ export function createHouse({ env = {}, qr = null } = {}) {
     if (p === '/restart' && req.method === 'POST') return json(res, { rung: 'hub', seconds: 30, how_long: 'about 30 seconds' })
     if (p === '/home') return json(res, home)
     if (p === '/ambient') return json(res, ambient)
+    if (p === '/geo/search') {
+      const q = (new URL(req.url, 'http://x').searchParams.get('q') || '').toLowerCase()
+      return json(res, PLACES.filter(x => q && x.name.toLowerCase().includes(q)))
+    }
+    if (p === '/geo/auto') return json(res, PLACES[0])
+    if (p === '/geo/reverse') return json(res, { ...PLACES[0], lat: Number(new URL(req.url, 'http://x').searchParams.get('lat')), lon: Number(new URL(req.url, 'http://x').searchParams.get('lon')) })
     if (p === '/presence') return json(res, presence)
     if (p === '/scenes') return json(res, scenes)
     /* the hub narrows its log by subject; a pane's foot is that query and nothing else */
@@ -900,8 +928,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
     if (p === '/assistant') return json(res, { available: true, configured: false, source: null, model: 'claude-sonnet-5' })
     if (p === '/setup/drivers') return json(res, status)
     if (p === '/setup/advanced') return json(res, { url: 'http://hub.local:8123/', username: 'hub', password: 'secret' })
-    /* Start over (design/leaving/, B): refused without a code, as the brain does; otherwise the house is gone a moment
-       later and the panel, waiting on /setup/status, opens on Welcome. */
+    if (firstRun(p, req, res)) return
     /* Moving out (design/leaving/, B): what it would take, and then the house as the next people find it. */
     if (p === '/handover' && req.method === 'GET') return json(res, { phones: 2, people: ['Jordan', 'Sam', 'Alex'], accounts: ['Thermostat account'], rooms: status.rooms, devices: status.devices, routines: 5 })
     if (p === '/handover' && req.method === 'POST') {
@@ -909,9 +936,11 @@ export function createHouse({ env = {}, qr = null } = {}) {
       setTimeout(() => Object.assign(status, { setup_done: false, locked: false, owner: null, home: null, handed_over: true }), 1500)
       return json(res, { ok: true })
     }
+    /* Start over (design/leaving/, B): refused without a code, as the brain does; otherwise the house is gone a moment
+       later and the panel, waiting on /setup/status, opens on Welcome. */
     if (p === '/reset' && req.method === 'POST') {
       if (!status.locked) { res.writeHead(403, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: 'Set a passcode first. Without one, anyone on your Wi\u2011Fi could erase the hub.' })) }
-      setTimeout(() => Object.assign(status, { setup_done: false, locked: false, owner: null, home: null, location: false, rooms: 0, devices: 0 }), 1500)
+      setTimeout(() => { outOfTheBox(); engine('fresh') }, 1500)
       return json(res, { ok: true })
     }
     if (/^\/rooms\/[^/]+\/why/.test(p)) return json(res, why)
@@ -1223,6 +1252,45 @@ export function createHouse({ env = {}, qr = null } = {}) {
     return true
   }
 
+  /* ---- first run, kept --------------------------------------------------------------------------------------
+     Each answer changes the house as the brain's does, so the next screen sees it: the names, the engine's first
+     account (a moment of Setting up the house), the code, where home is, the rooms, and the end of first run. */
+  function firstRun(p, req, res) {
+    const answers = ['/setup/owner', '/setup/login', '/setup/pin', '/setup/done', '/location', '/rooms']
+    /* Only while first run is on: the lived-in house the rest of the suite shares answers these with ok, as before. */
+    if (req.method !== 'POST' || !answers.includes(p) || status.setup_done) return false
+    let raw = ''
+    req.on('data', c => (raw += c))
+    req.on('end', () => {
+      let b = {}
+      try { b = JSON.parse(raw) } catch {}
+      if (p === '/setup/owner') {
+        Object.assign(status, { owner: b.name, home: b.home })
+        home.name = b.home || home.name
+        if (status.driver === 'fresh') {
+          engine('connecting')
+          setTimeout(() => engine('ready'), 1500)
+        }
+        return json(res, status)
+      }
+      if (p === '/setup/login') { engine('ready'); return json(res, status) }
+      if (p === '/setup/pin') { status.locked = true; return json(res, status) }
+      if (p === '/setup/done') { status.setup_done = true; return json(res, status) }
+      if (p === '/location') {
+        status.location = true
+        ambient.location = { name: b.name, lat: b.lat, lon: b.lon }
+        return json(res, { ok: true, weather: ambient.weather.condition })
+      }
+      const name = String(b.name || '').trim()
+      const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || `room_${rooms.length}`
+      if (!rooms.some(r => r.id === id)) rooms.splice(Math.max(0, rooms.findIndex(r => r.id === 'unassigned')), 0,
+        { id, name, intent: null, set_by: null, hold_until: null, devices: [] })
+      status.rooms = rooms.filter(r => r.id !== 'unassigned').length
+      json(res, { id, name })
+    })
+    return true
+  }
+
   /* ---- the drive beside a hub on its USB stick (design/move-to-drive/) ----------------------------
      DRIVE=stick   running from the stick beside a drive with Ubuntu on it: first run asks, or This hub's row
      DRIVE=kept    the same, already answered Keep, so only the row shows
@@ -1315,6 +1383,8 @@ export function createHouse({ env = {}, qr = null } = {}) {
       try { b = JSON.parse(raw) } catch {}
       if ((NET.startsWith('setup') || SCREEN) && p === '/network/hub') {
         setupTry = { ssid: b.ssid, ok: b.password !== 'wrong', at: Date.now() + 3000 }
+        /* Online, the rest of the hub downloads and its engine starts: on a hub, minutes; here, a few seconds. */
+        if (setupTry.ok && status.driver === 'down') setTimeout(() => engine('fresh'), 7000)
         return json(res, { ...setupState(), moving: { ssid: b.ssid, since: Date.now() / 1000 } })
       }
       netSsid = b.ssid || 'Downstairs'
