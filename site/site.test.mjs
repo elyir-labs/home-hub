@@ -214,3 +214,25 @@ test('the privacy page is reachable from the waitlist, and says what it keeps', 
   assert.match(privacy, /We count how many times each page is loaded and the install command is fetched, and nothing that tells one visitor from another\./)
   for (const word of ['relay', 'brain', 'entity', 'integration']) assert.ok(!new RegExp(`\\b${word}`, 'i').test(privacy), `the privacy page says ${word}`)
 })
+
+/* The width and height a JPEG says it is, from its first frame header. */
+const jpegSize = (buf) => {
+  for (let i = 2; i < buf.length;) {
+    const marker = buf[i + 1], len = buf.readUInt16BE(i + 2)
+    if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) return [buf.readUInt16BE(i + 7), buf.readUInt16BE(i + 5)]
+    i += 2 + len
+  }
+}
+const meta = (key) => page.match(new RegExp(`<meta (?:property|name)="${key}" content="([^"]*)"`))?.[1]
+
+test('a shared link shows the wall alone (design/link-preview/, B), at the size every app asks for', () => {
+  assert.equal(meta('og:title'), 'Elyir Home Hub')
+  assert.equal(meta('og:description'), page.match(/<meta name="description" content="([^"]*)"/)[1], 'the same sentence the page describes itself with')
+  assert.equal(meta('og:image'), 'https://hub.elyir.com/shots/card.jpg', 'an app fetches the picture from outside, so the address is whole')
+  assert.equal(meta('twitter:card'), 'summary_large_image')
+  assert.ok(meta('og:image:alt'))
+  const file = path.join(HERE, 'shots', 'card.jpg')
+  assert.ok(existsSync(file), 'npm run site-shots card makes it')
+  assert.deepEqual(jpegSize(readFileSync(file)), [1200, 630])
+  assert.deepEqual([meta('og:image:width'), meta('og:image:height')], ['1200', '630'])
+})
