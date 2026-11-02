@@ -15,6 +15,7 @@
     "NarratedA-add.dc.html",
     "NarratedA-phone.dc.html",
     "a",
+    "decided",
     "DeskB-plug.dc.html",
     "DeskB-wifi.dc.html",
     "DeskB-phone.dc.html",
@@ -27,7 +28,16 @@
   "pages": [
     {
       "id": "try-setup",
-      "name": "Setting up a pretend hub"
+      "name": "Setting up a pretend hub",
+      "decided": {
+        "on": "2026-11-02",
+        "chose": "A, narrated",
+        "board": "NarratedA-wifi.dc.html"
+      }
+    },
+    {
+      "id": "try-setup-rejected",
+      "name": "Setting up a pretend hub: not chosen"
     }
   ],
   "artboards": [
@@ -97,56 +107,56 @@
     {
       "file": "DeskB-plug.dc.html",
       "x": 0,
-      "y": 2200,
+      "y": 0,
       "w": 1440,
       "h": 900,
       "title": "B · The hub on a desk beside the screen, unplugged, the screen off",
-      "page": "try-setup"
+      "page": "try-setup-rejected"
     },
     {
       "file": "DeskB-wifi.dc.html",
       "x": 1580,
-      "y": 2200,
+      "y": 0,
       "w": 1440,
       "h": 900,
       "title": "B · Plugged in: the label underneath lights when the screen asks for it",
-      "page": "try-setup"
+      "page": "try-setup-rejected"
     },
     {
       "file": "DeskB-phone.dc.html",
       "x": 3160,
-      "y": 2200,
+      "y": 0,
       "w": 390,
       "h": 844,
       "title": "B · On a phone the hub is a strip above a smaller screen",
-      "page": "try-setup"
+      "page": "try-setup-rejected"
     },
     {
       "file": "QuestionsC.dc.html",
       "x": 0,
-      "y": 3300,
+      "y": 1100,
       "w": 1440,
       "h": 900,
       "title": "C · One card says the plugging in is done; then only the questions",
-      "page": "try-setup"
+      "page": "try-setup-rejected"
     },
     {
       "file": "QuestionsC-done.dc.html",
       "x": 1580,
-      "y": 3300,
+      "y": 1100,
       "w": 1440,
       "h": 900,
       "title": "C · And one card at the end",
-      "page": "try-setup"
+      "page": "try-setup-rejected"
     },
     {
       "file": "QuestionsC-phone.dc.html",
       "x": 3160,
-      "y": 3300,
+      "y": 1100,
       "w": 390,
       "h": 844,
       "title": "C · On a phone",
-      "page": "try-setup"
+      "page": "try-setup-rejected"
     }
   ],
   "annotations": [
@@ -176,19 +186,27 @@
     },
     {
       "id": "b",
-      "page": "try-setup",
+      "page": "try-setup-rejected",
       "x": 3690,
-      "y": 2200,
+      "y": 0,
       "w": 620,
       "text": "B -- THE HUB ON THE DESK\n\nA drawn hub beside the screen. The visitor plugs it in (the screen comes on), and when the screen asks which Wi-Fi, the label on the bottom of the hub lights: its own Wi-Fi and password, which is what a phone joins. The off-screen parts become things to do with the box.\n\nThe case for it: the most like owning one; the label and the plug, which no screen can show, are shown. The case against: a drawing of hardware we do not sell yet, which every later change to the box makes wrong; on a computer the screen is two-thirds size, and on a phone the box squeezes the panel to a strip."
     },
     {
       "id": "c",
-      "page": "try-setup",
+      "page": "try-setup-rejected",
       "x": 3690,
-      "y": 3300,
+      "y": 1100,
       "w": 620,
       "text": "C -- THE QUESTIONS ONLY\n\nOne card says the plugging in is done and lists what is left: names, a passcode, where home is and which rooms, what is in the house. Then the real screens from Welcome home, without the Wi-Fi or the drive. One more card at the end says that is all a real one asks, before the house.\n\nThe case for it: the shortest walk, the least to build, and the card is the front page's promise said as a list. The case against: it skips the parts that make the hub different from an app -- its own Wi-Fi, the code on its label, a screen that needs nothing else to start -- and tells them instead of showing them."
+    },
+    {
+      "id": "decided",
+      "page": "try-setup",
+      "x": 6030,
+      "y": 1100,
+      "w": 620,
+      "text": "DECIDED 2 NOVEMBER 2026: A, NARRATED\n\nEvery screen of first run as a household sees it, the Wi-Fi question first, and the /try bar narrating only where something happens off the screen: the Wi-Fi (\"any password joins\"), the download after it (\"this one takes a moment\"), and a plug or bulb waiting for a hand, with Switch one on. The bar reads the pretend house, not the page, so it follows the house wherever the visitor goes, Add included.\n\nBuilt as drawn, with three things the boards did not say. The way in is a second button under Try it's words, Set one up from the box; the lit Start the pretend house stays on the picture where the page already has it. The bulb is a plug or bulb, because the pretend house's pairing brings a plug. And the hub's own Wi-Fi code beside the question is drawn by the pretend house into the page, since a picture the panel loads directly never reaches it.\n\nsite/index.html and app/src/try.ts (?box); pinned by site/site.test.mjs and app/e2e/try.spec.ts. The out-of-the-box house is the mock's FRESH=1 (app/e2e/first-run-walk.spec.ts)."
     }
   ]
 }

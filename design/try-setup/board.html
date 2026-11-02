@@ -119,9 +119,9 @@ const BOARDS = {
     + panel(`${OFF}/`, 0, 60, 1440, 840)),
   'a-wifi': () => wall(bar('wall', 'On a real hub this is your own Wi‑Fi. <em>Here, any password joins.</em>')
     + panel(`${HUB}/`, 0, 60, 1440, 840)),
-  'a-add': () => wall(bar('wall', 'A new bulb joins when you switch it on, or press its button.', 'Switch one on')
+  'a-add': () => wall(bar('wall', 'A plug or bulb joins when you switch it on, or press its button.', 'Switch one on')
     + panel(`${HUB}/?setup=1&page=devices`, 0, 60, 1440, 840)),
-  'a-phone': () => phone(bar('phone', 'A new bulb joins when you switch it on, or press its button.', 'Switch one on')
+  'a-phone': () => phone(bar('phone', 'A plug or bulb joins when you switch it on, or press its button.', 'Switch one on')
     + panel(`${HUB}/?setup=1&page=devices`, 0, 124, 390, 720)),
 
   'b-plug': () => wall(`<div class="desk" style="left:0;top:0;width:460px;height:900px">${desk(false, '<b>Plug it in</b><span>The hub starts when it has power. Its screen comes on by itself.</span>', '<button class="press">Plug it in</button>')}</div>
