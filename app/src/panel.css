@@ -192,7 +192,7 @@
   --wash-rgb: 255, 255, 255;
   color: var(--ink);
 }
-@media (min-width: 861px) {
+@media (min-width: 861px), (orientation: portrait) {
   /* a room's playing card at full size is its artwork under a dark veil */
   :root[data-shade='light'] :where(.tiles > .tile.media[data-size='full']) {
     --ink: var(--ink-lit);
@@ -1271,7 +1271,7 @@ input:focus-visible {
    laid out as a full-bleed poster puts its name on top of its own title, and a
    third laid out as icon-over-name has nothing under it. The sizes still rank
    the list -- they just stop setting anatomy. */
-@media (min-width: 861px) {
+@media (min-width: 861px), (orientation: portrait) {
   /* The room runs to the edge of the SCREEN, not to the stage's gutter.
 
      This is the half-cut card, and it is load-bearing: a column that happens to
@@ -6773,6 +6773,132 @@ select.input {
   .bento-left-names {
     font-size: 14px;
     color: var(--ink-2);
+  }
+}
+/* A room on a tall screen or a phone (design/every-screen/, room A): the scenes are a row of pills under the
+   room's name, what is playing goes across the top, the lamp doing the lighting is two rows tall, and on a
+   phone or a 7-inch a thing that is off is a short bar at the end. */
+.scenes-pills {
+  grid-column: 1 / -1;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin: 6px 0 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.scenes.scenes-pills .scene {
+  flex: none;
+  min-height: 0;
+  column-gap: 8px;
+  padding: 9px 16px 9px 13px;
+  border-radius: 999px;
+}
+.scenes-pills .scene-icon,
+.scenes-pills .scene.active .scene-icon,
+.scenes-pills .scene.done .scene-icon {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+}
+.scenes-pills .scene.active .scene-icon {
+  color: var(--lamp-text);
+}
+.scenes-pills .scene.done .scene-icon {
+  color: var(--live-text);
+}
+.scenes-pills .scene-hint {
+  display: none;
+}
+@media (min-width: 861px) and (orientation: portrait) {
+  .tiles {
+    margin-right: 0;
+    padding-right: 0;
+    grid-auto-flow: row dense;
+    grid-template-rows: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-columns: auto;
+    grid-auto-rows: minmax(220px, 1fr);
+    overflow: hidden auto;
+    scroll-snap-type: none;
+  }
+  .tiles > .tile[data-size='full'] {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+}
+@media (max-width: 860px) {
+  .tiles {
+    margin-right: 0;
+    padding-right: 0;
+    grid-auto-flow: row dense;
+    grid-auto-rows: minmax(64px, auto);
+  }
+  .tiles > .tile[data-size='full'] {
+    grid-column: 1 / -1;
+    min-height: 200px;
+  }
+  .tiles > .tile.wide[data-size='half'],
+  .tiles > .tile.wide[data-size='third'] {
+    grid-column: auto;
+  }
+  .tiles > .tile[data-size='half'] {
+    grid-row: span 2;
+  }
+  .tiles > .tile.light[data-size='third'][data-quiet],
+  .tiles > .tile.plain[data-size='third'][data-quiet] {
+    grid-column: 1 / -1;
+    min-height: 64px;
+  }
+  .tiles > .tile[data-size='third'][data-quiet] > .tile-body {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    padding-block: 0;
+  }
+  .tiles > .tile[data-size='third'][data-quiet] > .tile-body > .tile-state {
+    grid-area: 1 / 3;
+    align-self: center;
+    color: var(--card-ink-2, var(--ink-2));
+  }
+  .tiles > .tile[data-size='third'][data-quiet] > .tile-body > .tile-bar {
+    display: none;
+  }
+  /* the thermostat keeps its dial on a phone (design/thermostat/, A), small, with its two buttons beside it */
+  .tiles > .tile.climate[data-size='third'] .clim-dial {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 6px;
+    margin: auto 0 0;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-btn,
+  .tiles > .tile.climate[data-size='third'] .face-render {
+    display: grid;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-center {
+    justify-content: center;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-face {
+    display: grid;
+    aspect-ratio: 1;
+    width: 84px;
+    padding: 0;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-big {
+    font-size: 30px;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-short {
+    display: none;
+  }
+}
+@media (max-width: 480px) {
+  .tiles > .tile.plain.cover[data-size='third'] .tile-render {
+    display: none;
   }
 }
 @media (max-width: 860px) {
