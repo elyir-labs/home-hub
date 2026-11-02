@@ -1,0 +1,194 @@
+{
+  "name": "Setting up a pretend hub",
+  "areas": [
+    "The website",
+    "First run"
+  ],
+  "reading": [
+    "why",
+    "Today.dc.html",
+    "Today-try.dc.html",
+    "WayIn.dc.html",
+    "today",
+    "NarratedA-ready.dc.html",
+    "NarratedA-wifi.dc.html",
+    "NarratedA-add.dc.html",
+    "NarratedA-phone.dc.html",
+    "a",
+    "DeskB-plug.dc.html",
+    "DeskB-wifi.dc.html",
+    "DeskB-phone.dc.html",
+    "b",
+    "QuestionsC.dc.html",
+    "QuestionsC-done.dc.html",
+    "QuestionsC-phone.dc.html",
+    "c"
+  ],
+  "pages": [
+    {
+      "id": "try-setup",
+      "name": "Setting up a pretend hub"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today · the Try it section: one door, into a house somebody already set up",
+      "page": "try-setup"
+    },
+    {
+      "file": "Today-try.dc.html",
+      "x": 1580,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Today · the pretend house on a phone opens lived in; first run, the thing the hub promises most, is never seen",
+      "page": "try-setup"
+    },
+    {
+      "file": "WayIn.dc.html",
+      "x": 2110,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Every direction · a second door beside the first, Set one up from the box",
+      "page": "try-setup"
+    },
+    {
+      "file": "NarratedA-ready.dc.html",
+      "x": 0,
+      "y": 1100,
+      "w": 1440,
+      "h": 900,
+      "title": "A · The /try bar says what a real hub is doing while the screen waits",
+      "page": "try-setup"
+    },
+    {
+      "file": "NarratedA-wifi.dc.html",
+      "x": 1580,
+      "y": 1100,
+      "w": 1440,
+      "h": 900,
+      "title": "A · The real Wi-Fi question, and the one thing that is pretend about it",
+      "page": "try-setup"
+    },
+    {
+      "file": "NarratedA-add.dc.html",
+      "x": 3160,
+      "y": 1100,
+      "w": 1440,
+      "h": 900,
+      "title": "A · Where a real house needs a hand on a bulb, the bar does it",
+      "page": "try-setup"
+    },
+    {
+      "file": "NarratedA-phone.dc.html",
+      "x": 4740,
+      "y": 1100,
+      "w": 390,
+      "h": 844,
+      "title": "A · On a phone",
+      "page": "try-setup"
+    },
+    {
+      "file": "DeskB-plug.dc.html",
+      "x": 0,
+      "y": 2200,
+      "w": 1440,
+      "h": 900,
+      "title": "B · The hub on a desk beside the screen, unplugged, the screen off",
+      "page": "try-setup"
+    },
+    {
+      "file": "DeskB-wifi.dc.html",
+      "x": 1580,
+      "y": 2200,
+      "w": 1440,
+      "h": 900,
+      "title": "B · Plugged in: the label underneath lights when the screen asks for it",
+      "page": "try-setup"
+    },
+    {
+      "file": "DeskB-phone.dc.html",
+      "x": 3160,
+      "y": 2200,
+      "w": 390,
+      "h": 844,
+      "title": "B · On a phone the hub is a strip above a smaller screen",
+      "page": "try-setup"
+    },
+    {
+      "file": "QuestionsC.dc.html",
+      "x": 0,
+      "y": 3300,
+      "w": 1440,
+      "h": 900,
+      "title": "C · One card says the plugging in is done; then only the questions",
+      "page": "try-setup"
+    },
+    {
+      "file": "QuestionsC-done.dc.html",
+      "x": 1580,
+      "y": 3300,
+      "w": 1440,
+      "h": 900,
+      "title": "C · And one card at the end",
+      "page": "try-setup"
+    },
+    {
+      "file": "QuestionsC-phone.dc.html",
+      "x": 3160,
+      "y": 3300,
+      "w": 390,
+      "h": 844,
+      "title": "C · On a phone",
+      "page": "try-setup"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "try-setup",
+      "x": -760,
+      "y": 0,
+      "w": 620,
+      "text": "WHY THIS EXISTS (2 NOVEMBER 2026)\n\nhub.elyir.com promises that setting the hub up is \"answering a few questions\", and the pretend house never shows it: /try opens on a house somebody already set up. The first-run walk in the mock (FRESH=1, PR #41) now runs the whole of first run end to end, so the pretend house could too.\n\nSome of first run happens off the screen: the hub is plugged in, it downloads the rest of itself, its own Wi-Fi and password are on a label underneath, a bulb joins when somebody switches it on. A browser has none of these. The directions differ in how they stand in for them.\n\nEach board is the real panel on a mock house out of its box (FRESH=1 NAMES=plain), with only what the direction adds drawn around it (board.html, app/mock/try-setup-shots.mjs).\n\nPick one, or something else -- describe it."
+    },
+    {
+      "id": "today",
+      "page": "try-setup",
+      "x": 3690,
+      "y": 0,
+      "w": 620,
+      "text": "TODAY: ONE DOOR, INTO A FINISHED HOUSE\n\nTry it has one button, Start the pretend house, and it opens on a lived-in house: eight rooms, thirty things, routines. That shows what living with the hub is like. It never shows the claim the front page leads with, that setting it up is a few questions.\n\nEVERY DIRECTION shares the way in: a second door beside the first, Set one up from the box. On a computer it opens /try on a page of its own rather than in the site's small frame, because first run is a whole screen. At the end the visitor is in the house they just described, empty but for what the hub found; nothing is kept when they leave. What a direction decides is how the off-screen parts are stood in for."
+    },
+    {
+      "id": "a",
+      "page": "try-setup",
+      "x": 5270,
+      "y": 1100,
+      "w": 620,
+      "text": "A -- NARRATED: THE REAL SCREENS, AND THE /TRY BAR SAYS THE REST\n\nEvery screen of first run, as a household sees it, the Wi-Fi question included. The bar the pretend house already has (\"A pretend house · Back to the site\") becomes a narrator only where something happens off the screen: while the hub downloads (\"this one takes a moment\"), on the Wi-Fi (\"any password joins\"), and where a real house needs a hand on a bulb, with a button that does it (\"Switch one on\"). Everywhere else it is the plain bar.\n\nThe case for it: nothing is drawn that the product does not have; the Wi-Fi screen with its own code beside it is the hub's best moment, and it is shown; one bar, already built. The case against: the longest walk, about two minutes, and the hub's label is only a sentence."
+    },
+    {
+      "id": "b",
+      "page": "try-setup",
+      "x": 3690,
+      "y": 2200,
+      "w": 620,
+      "text": "B -- THE HUB ON THE DESK\n\nA drawn hub beside the screen. The visitor plugs it in (the screen comes on), and when the screen asks which Wi-Fi, the label on the bottom of the hub lights: its own Wi-Fi and password, which is what a phone joins. The off-screen parts become things to do with the box.\n\nThe case for it: the most like owning one; the label and the plug, which no screen can show, are shown. The case against: a drawing of hardware we do not sell yet, which every later change to the box makes wrong; on a computer the screen is two-thirds size, and on a phone the box squeezes the panel to a strip."
+    },
+    {
+      "id": "c",
+      "page": "try-setup",
+      "x": 3690,
+      "y": 3300,
+      "w": 620,
+      "text": "C -- THE QUESTIONS ONLY\n\nOne card says the plugging in is done and lists what is left: names, a passcode, where home is and which rooms, what is in the house. Then the real screens from Welcome home, without the Wi-Fi or the drive. One more card at the end says that is all a real one asks, before the house.\n\nThe case for it: the shortest walk, the least to build, and the card is the front page's promise said as a list. The case against: it skips the parts that make the hub different from an app -- its own Wi-Fi, the code on its label, a screen that needs nothing else to start -- and tells them instead of showing them."
+    }
+  ]
+}
