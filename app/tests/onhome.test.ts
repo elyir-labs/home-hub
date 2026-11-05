@@ -5,7 +5,7 @@
    where KeepB.dc.html drew it. */
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Device } from '../src/api'
-import { ALWAYS_MAX, alwaysIds, homeRow, isAlways, keepAlways, offersOnHome, onHomeOf } from '../src/onhome'
+import { ALWAYS_MAX, alwaysIds, fitRow, homeRow, isAlways, keepAlways, leftLine, offersOnHome, onHomeOf } from '../src/onhome'
 
 const dev = (id: string, name: string, capability: string, state: string, attrs: Record<string, any> = {}): Device =>
   ({ id, name, room_id: '', capability, state, attrs })
@@ -83,4 +83,31 @@ describe('Always, kept on this screen', () => {
 it('is not offered on what is always on Home, or never can be', () => {
   for (const k of ['camera', 'climate', 'sensor', 'motion', 'appliance']) expect(offersOnHome(k)).toBe(false)
   for (const k of ['light', 'switch', 'fan', 'media', 'cover', 'lock']) expect(offersOnHome(k)).toBe(true)
+})
+
+describe('the row on a tall screen, as every-screen/Tall10 drew it', () => {
+  const lamps = ['a', 'b', 'c', 'd', 'e', 'f'].map((id, i) => dev(id, `Lamp ${i + 1}`, 'light', 'on'))
+  const row = () => homeRow({ prints: [], on: [tv, ...lamps], lead: 'm1', glance: [doorbell, thermostat], always: [], scenes: false })
+
+  it('shows the whole row when it fits, with nothing left to say', () => {
+    const { shown, left } = fitRow(row(), 12)
+    expect(keys(shown)).toEqual(keys(row()))
+    expect(left).toEqual([])
+  })
+
+  it('stops a place short when it does not, cutting only from the end, and names what is left', () => {
+    const { shown, left } = fitRow(row(), 9)
+    expect(keys(shown)).toEqual(['m1', 'f2', 'l7', 'a', 'b', 'c', 'd'])
+    expect(left.map(d => d.id)).toEqual(['e', 'f'])
+    expect(leftLine(left)).toEqual({ count: 'and 2 more', names: 'Lamp 5 and Lamp 6' })
+  })
+
+  it('counts what is playing as two places, and never splits it', () => {
+    const { shown } = fitRow(row(), 2)
+    expect(keys(shown)).toEqual([])
+  })
+
+  it('says "and others" past two names', () => {
+    expect(leftLine(lamps.slice(0, 4)).names).toBe('Lamp 1, Lamp 2, and others')
+  })
 })

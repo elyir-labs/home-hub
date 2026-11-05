@@ -383,8 +383,8 @@ test('a scene chip on a card inks like paper, because that is what it is sitting
   expect(frosted, 'the chip started blurring, so it is being treated as a pane after all').toBe('none')
 })
 
-/* The tab bar, which is where the face's reach was widened and so is where the widening has to be
-   held honest. layout.ts now says a face gets every surface and still may not move, rename, hide or
+/* The dock, which carries the tabs now (design/every-screen/, B) and is where the face's reach was widened, so
+   it is where the widening has to be held honest. layout.ts now says a face gets every surface and still may not move, rename, hide or
    add a control, so this checks both halves at once.
 
    The pill is the interesting part. The board has no pill and move 5 says so outright -- but three
@@ -393,10 +393,10 @@ test('a scene chip on a card inks like paper, because that is what it is sitting
    what it is made of, which is the whole point of the widening: the seam this face had was a glass
    card sitting under a paper pill, and deleting the pill was never the answer to it. This test is
    what stops someone reading move 5 on the board and taking it off again. */
-test('glass re-materializes the tab pill instead of taking it away', async ({ page }) => {
+test('glass re-materializes the dock instead of taking it away', async ({ page }) => {
   const bar = () => page.evaluate(() => {
-    const nav = getComputedStyle(document.querySelector('.tabs')!)
-    const tabs = [...document.querySelectorAll('.tab')].map((t) => {
+    const nav = getComputedStyle(document.querySelector('.dock-body')!)
+    const tabs = [...document.querySelectorAll('.dock-place')].map((t) => {
       const cs = getComputedStyle(t)
       const r = t.getBoundingClientRect()
       return {
@@ -409,18 +409,18 @@ test('glass re-materializes the tab pill instead of taking it away', async ({ pa
     return {
       frost: nav.backdropFilter,
       ground: nav.backgroundImage,
-      rim: getComputedStyle(document.querySelector('.tabs')!, '::after').background,
+      rim: getComputedStyle(document.querySelector('.dock-body')!, '::after').background,
       tabs,
     }
   })
 
   await page.goto('/?face=paper&layout=wall&nav=top&at=19:40', { waitUntil: 'networkidle' })
-  await expect(page.locator('.tab').first()).toBeVisible()
+  await expect(page.locator('.dock-place').first()).toBeVisible()
   await page.waitForTimeout(400)
   const paper = await bar()
 
   await page.goto('/?face=glass&layout=wall&nav=top&at=19:40', { waitUntil: 'networkidle' })
-  await expect(page.locator('.tab').first()).toBeVisible()
+  await expect(page.locator('.dock-place').first()).toBeVisible()
   await page.waitForTimeout(400)
   const glass = await bar()
 
@@ -448,7 +448,7 @@ test('glass re-materializes the tab pill instead of taking it away', async ({ pa
   for (const t of glass.tabs)
     expect(t.onScreen, `"${t.label}" is off the screen or too small to hit under glass`).toBe(true)
 
-  await page.locator('.tab', { hasText: 'Rooms' }).click()
+  await page.locator('.dock-place', { hasText: 'Rooms' }).click()
   // `.room-cell`, not `.room-card`: the Rooms tab is its own ranked arrangement now
   // and the three home layouts keep the grid. Both take the face -- see panel.css.
   await expect(page.locator('.room-cell').first()).toBeVisible()

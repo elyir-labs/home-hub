@@ -6,7 +6,7 @@
 #
 #   wall.sh wait   as root, before the browser: settles a turn nothing has acted on, waits for the product, tells
 #                  the splash, lets it end
-#   wall.sh run    as the wall's own user: cage, with Chromium on the panel full screen at the design's size,
+#   wall.sh run    as the wall's own user: cage, with Chromium on the panel full screen, drawn the wall's size on any glass,
 #                  turned the way This screen last set it, and screen-helper.py beside it
 #   wall.sh speaker   points the wall's sound at the screen's speakers, which `run` does first
 #   wall.sh guess     turns a glass made tall a quarter, the first time only, which `wait` has the wall's user do
@@ -28,17 +28,38 @@ splash_seconds() {
   awk -v s="${since:-0}" -v n="$now" 'BEGIN { if (s == 0) print 0; else print n - s / 1000000 }'
 }
 
-# The panel is drawn for 1440x900, one screen with nothing to scroll. A wall's screen is whatever size it is, so
-# Chromium is told how big a CSS pixel is: big enough that the screen is at least 1440 by 900 of them. The 10-inch
-# wall at 1920x1200 comes out at exactly 4/3; a 1024x600 test screen at 2/3. Landscape either way round, since a
-# DSI panel can report its mode on its side. ELYIR_SCALE overrides it.
-scale() {
-  local mode s
-  for s in /sys/class/drm/card*-*/status; do
-    [ "$(cat "$s" 2>/dev/null)" = connected ] && mode=$(head -n1 "$(dirname "$s")/modes" 2>/dev/null) && [ -n "$mode" ] && break
+# How big a CSS pixel is on this glass, so the panel is drawn the same size on every screen (design/every-screen/):
+# the 10-inch wall's size, 6.636 to the millimeter, which a phone is within a tenth of. A 7-inch at 1280x720 comes out
+# at 1.24 and is 1029x579 to the panel, where a pixel rule made it 1600x900 and drew everything at 64%; the 10-inch
+# at 1920x1200 stays 1440x900. A bigger glass gets more room rather than bigger cards, up to 2560 across, and never
+# less than 360 the short way. A glass that reports no size, one whose size disagrees with its shape (EDID often
+# carries the aspect ratio instead), or one over 700 mm, a TV read from across a room, keeps the pixel rule: at least
+# 1440x900, as the panel was drawn. Landscape either way round, since a DSI panel can report its mode on its side.
+fit() {
+  awk -v m="${1:-1440x900}" -v mm="${2:-0x0}" 'BEGIN { split(m, a, "x"); split(mm, b, "x")
+    l = a[1] > a[2] ? a[1] : a[2]; t = a[1] > a[2] ? a[2] : a[1]; L = b[1] > b[2] ? b[1] : b[2]; T = b[1] > b[2] ? b[2] : b[1]
+    s = l / 1440; if (t / 900 < s) s = t / 900
+    if (L >= 50 && L <= 700 && T > 0 && t > 0) {
+      d = (l / t) / (L / T) - 1; if (d < 0) d = -d
+      if (d < 0.1) { s = l / L / 6.636; if (s < l / 2560) s = l / 2560; if (s > t / 360) s = t / 360 }
+    }
+    if (s <= 0) s = 1; printf "%.4f", s }'
+}
+
+# The connected glass's mode as the kernel reports it, for when the compositor has nothing to say.
+mode() {
+  local s
+  for s in "${HUB_DRM:-/sys/class/drm}"/card*-*/status; do
+    [ "$(cat "$s" 2>/dev/null)" = connected ] && head -n1 "$(dirname "$s")/modes" 2>/dev/null && return
   done
-  awk -v m="${mode:-1440x900}" 'BEGIN { split(m, a, "x"); l = a[1] > a[2] ? a[1] : a[2]; t = a[1] > a[2] ? a[2] : a[1]
-    s = l / 1440; if (t / 900 < s) s = t / 900; if (s <= 0) s = 1; printf "%.4f", s }'
+}
+
+# Each output wlr-randr describes, as "name mode size": its current mode and the physical size it reports in mm.
+outputs() {
+  awk '/^[^ ]/ { if (n != "") print n, (m == "" ? "-" : m), s; n = $1; m = ""; s = "0x0" }
+       /Physical size:/ { s = $3 }
+       /current/ && / px/ { m = $1 }
+       END { if (n != "") print n, (m == "" ? "-" : m), s }'
 }
 
 # A wall is touched, not pointed at, but cage draws an arrow whenever a mouse is plugged in -- one used once to set
@@ -71,6 +92,8 @@ settle() {
   [ -n "$t" ] || return 0
   if [ ! -e "$ask/turn.request" ]; then
     if [ "$t" = 0 ]; then [ -e "$rules" ] || return 0; else grep -qs "touch turned $t," "$rules" && return 0; fi
+    # a hub whose screen was set up before This screen has no such folder, and its helper could not make one
+    install -d -o elyir-wall -m 0755 "$ask" 2>/dev/null || mkdir -p "$ask" || return 0
     echo "$t" > "$ask/turn.request" || return 0
   fi
   ELYIR_TURN_REQUEST="$ask/turn.request" "$HERE/turn.sh" || true
@@ -129,17 +152,23 @@ case "${1:-}" in
       plymouth quit --retain-splash || true
     fi ;;
   speaker) speaker ;;
+  fit) fit "${2:-}" "${3:-}" ;;
+  outputs) outputs ;;
   settle) settle ;;
   guess) guess ;;
   run)
     hidden_cursor
     speaker || true
     # cage runs this script again inside itself, so the display can be scaled before the browser starts.
-    exec cage -- "$0" browse "${ELYIR_SCALE:-$(scale)}" ;;
+    exec cage -- "$0" browse "${ELYIR_SCALE:-}" ;;
   browse)
     # The scale is set on the display, not in the browser: Chromium on Wayland draws a forced scale under 1 into a
     # corner of the screen, while a scaled output is simply a bigger screen to it.
-    for out in $(wlr-randr 2>/dev/null | awk '/^[^ ]/ { print $1 }'); do wlr-randr --output "$out" --scale "$2" --transform "$(transform)" || true; done
+    # It is worked out here, inside cage, because only the compositor knows how big the glass is.
+    wlr-randr 2>/dev/null | outputs | while read -r out m mm; do
+      [ "$m" = - ] && m=$(mode)
+      wlr-randr --output "$out" --scale "${2:-$(fit "$m" "$mm")}" --transform "$(transform)" || true
+    done
     ELYIR_PANEL_URL="$PANEL_URL" python3 "$HERE/screen-helper.py" &
     # Chromium locks its profile under this machine's name and refuses to start, exit 21, when the name has changed
     # since -- which first boot does, to hub or to screen. Only this service runs a browser as this user, one at a
@@ -152,5 +181,5 @@ case "${1:-}" in
       --ozone-platform=wayland --disable-session-crashed-bubble --check-for-update-interval=31536000 \
       --disable-pinch --overscroll-history-navigation=0 --autoplay-policy=no-user-gesture-required \
       "$PANEL_URL" ;;
-  *) echo "usage: $0 wait|run|speaker|settle|guess|browse <scale>" >&2; exit 2 ;;
+  *) echo "usage: $0 wait|run|speaker|settle|guess|fit <mode> [<mm>]|outputs|browse [<scale>]" >&2; exit 2 ;;
 esac

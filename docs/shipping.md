@@ -158,9 +158,9 @@ was found:
 - **Per-unit identity.** A serial, a claim code printed on the box, a hub identifier that rides the backup. Two hubs
   on one Wi-Fi collide on `hub.local` today: avahi renames the second one and nothing tells the panel, so the code
   on the wall points at the wrong house. *This hub* should show the name the hub actually answers to.
-- **Factory reset.** From the panel, behind the code, today: the mirror of `restore.sh`, a path unit that stops the
-  house, empties `brain-data/` and the driver layer's state, and starts setup again. A physical hold waits for the
-  enclosure, because it is a button.
+- **Factory reset.** *(Built 1 November 2026: Start over on This hub, `host/reset.sh`, `design/leaving/` B.)* A hub
+  with no screen and nobody who has the code is the open half: switching it off and on three times in a minute,
+  then the label's code over its own Wi-Fi, is the board's answer, and is not built.
 - **A diagnostics bundle** from *This hub*, distinct from the backup: versions, health lines, the last hour of logs,
   the update log, no keys. What a support conversation asks for first.
 - **Remote support.** Owner-started, time-boxed, over the relay connection once it exists. Not before the relay.
@@ -203,8 +203,8 @@ enough to land with a test. The order is by what it closes.
    `docs/away.md` both need it and neither wants to be the one to invent it.
 6. **The name the hub answers to.** The brain asks avahi what it is actually called and *This hub* and the QR code
    say that, so two hubs on one Wi-Fi each point at themselves.
-7. **Factory reset from the panel.** `reset.sh` and a path unit shaped like `restore.sh`, behind the code, with the
-   wall asking twice.
+7. **Factory reset from the panel.** *(Done, 1 November 2026: Start over, `design/leaving/` B.)* A hold behind the
+   code rather than asking twice, as the drive move does.
 8. **A diagnostics bundle.** A second archive next to the backup, without the keys.
 9. **Notices and the tested list.** A page under *This hub*, and `docs/integrations.md` with the tiers.
 10. **A consent sentence where the key is pasted.** One line on the Routines sheet, and the privacy policy it points

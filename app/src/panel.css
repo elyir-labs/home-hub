@@ -192,7 +192,7 @@
   --wash-rgb: 255, 255, 255;
   color: var(--ink);
 }
-@media (min-width: 861px) {
+@media (min-width: 861px), (orientation: portrait) {
   /* a room's playing card at full size is its artwork under a dark veil */
   :root[data-shade='light'] :where(.tiles > .tile.media[data-size='full']) {
     --ink: var(--ink-lit);
@@ -277,7 +277,9 @@ input:focus-visible {
   display: grid;
   grid-template-columns: 256px 1fr;
   height: 100dvh;
-  overflow: hidden;
+  /* clip, not hidden: the sky's drifting bloom reaches past the edges, and a hidden box with something past its edge
+     can still be scrolled -- a field focused during first run once left Home drawn 256px up and to the left. */
+  overflow: clip;
   isolation: isolate;
   background: var(--bg);
 }
@@ -404,6 +406,7 @@ input:focus-visible {
 [data-face='glass'] .wall-loz,
 [data-face='glass'] .topbar-add,
 [data-face='glass'] .tabs,
+[data-face='glass'] .dock-body,
 [data-face='glass'] .wall-stage .tile.media .media-foot,
 [data-face='glass'] .wall-stage .tile.media .media-which,
 [data-face='glass'] .bottombar .say-box {
@@ -440,6 +443,7 @@ input:focus-visible {
 [data-face='glass'] .wall-loz,
 [data-face='glass'] .topbar-add,
 [data-face='glass'] .tabs,
+[data-face='glass'] .dock-body,
 [data-face='glass'] .wall-stage .tile.media .media-foot,
 [data-face='glass'] .wall-stage .tile.media .media-which,
 [data-face='glass'] .bottombar .say-box {
@@ -464,6 +468,7 @@ input:focus-visible {
 [data-face='glass'] .scene,
 [data-face='glass'] .banner,
 [data-face='glass'] .tabs,
+[data-face='glass'] .dock-body,
 [data-face='glass'] .bottombar .say-box {
   position: relative;
 }
@@ -487,6 +492,7 @@ input:focus-visible {
 [data-face='glass'] .wall-loz::after,
 [data-face='glass'] .topbar-add::before,
 [data-face='glass'] .tabs::after,
+[data-face='glass'] .dock-body::after,
 [data-face='glass'] .bottombar .say-box::after,
 [data-face='glass'] .bottombar .say-hint::after,
 [data-face='glass'] .bottombar .say-note::after,
@@ -530,6 +536,7 @@ input:focus-visible {
 [data-face='glass'][data-flat] .banner,
 [data-face='glass'][data-flat] .topbar-add,
 [data-face='glass'][data-flat] .tabs,
+[data-face='glass'][data-flat] .dock-body,
 [data-face='glass'][data-flat] .wall-stage .tile.media .media-foot,
 [data-face='glass'][data-flat] .wall-stage .tile.media .media-which,
 [data-face='glass'][data-flat] .bottombar .say-box {
@@ -546,6 +553,7 @@ input:focus-visible {
 [data-face='glass'][data-flat] .rail,
 [data-face='glass'][data-flat] .topbar-add,
 [data-face='glass'][data-flat] .tabs,
+[data-face='glass'][data-flat] .dock-body,
 [data-face='glass'][data-flat] .wall-stage .tile.media .media-foot,
 [data-face='glass'][data-flat] .wall-stage .tile.media .media-which,
 [data-face='glass'][data-flat] .bottombar .say-box {
@@ -896,7 +904,7 @@ input:focus-visible {
 .room-card.attention:not(.empty) .room-card-activity {
   color: var(--lamp-text);
 }
-@media (min-width: 861px) {
+@media (min-width: 861px), (min-width: 640px) and (orientation: portrait) {
   /* the rail already lists every room here, so the grid is a glance, not the way around */
   .room-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -1265,7 +1273,7 @@ input:focus-visible {
    laid out as a full-bleed poster puts its name on top of its own title, and a
    third laid out as icon-over-name has nothing under it. The sizes still rank
    the list -- they just stop setting anatomy. */
-@media (min-width: 861px) {
+@media (min-width: 861px), (orientation: portrait) {
   /* The room runs to the edge of the SCREEN, not to the stage's gutter.
 
      This is the half-cut card, and it is load-bearing: a column that happens to
@@ -2243,7 +2251,7 @@ input:focus-visible {
     animation: none !important;
   }
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .shell {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
@@ -2555,7 +2563,7 @@ input:focus-visible {
   color: var(--muted);
   padding-left: 4px;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .onnow-chip {
     padding-right: 13px;
   }
@@ -2800,7 +2808,7 @@ input:focus-visible {
 .reach-band-act svg {
   color: var(--ink-2);
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .reach-band {
     left: 16px;
     right: 16px;
@@ -3136,7 +3144,7 @@ input:focus-visible {
   opacity: 0;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .home-head {
     flex-direction: column;
     gap: 14px;
@@ -3246,7 +3254,7 @@ input:focus-visible {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .nudge {
     border-radius: 18px;
     padding: 12px 16px 12px 12px;
@@ -3457,7 +3465,7 @@ input:focus-visible {
 .sheet-enter-from .sheet {
   transform: translateY(14px) scale(0.985);
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .sheet-back {
     padding: 0;
     align-items: end;
@@ -4535,7 +4543,7 @@ select.input {
     transform: rotate(360deg);
   }
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .clim-big {
     font-size: 46px;
   }
@@ -4840,7 +4848,7 @@ select.input {
 .sort-room option {
   color: #111;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .setup {
     padding: 28px 18px 48px;
   }
@@ -5049,6 +5057,122 @@ select.input {
   color: var(--muted);
   transform: rotate(180deg);
 }
+/* the doors in their groups (pages.ts), each headed in small capitals the way the board draws them */
+.door-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.door-group + .door-group {
+  margin-top: 14px;
+}
+.door-group-name {
+  margin: 0 0 4px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* what needs somebody, said first: amber cards, on the front page beside the list, or above it on a phone */
+.house-needs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 22px;
+}
+.house-doors .house-needs {
+  flex-direction: column;
+  margin: 0 0 16px;
+}
+.house-doors .house-need {
+  flex: 0 0 auto;
+}
+.house-need {
+  flex: 1 1 260px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 14px 10px 10px;
+  border-radius: 18px;
+  text-align: left;
+  color: var(--ink);
+  background: rgba(var(--lamp-rgb), 0.1);
+  border: 1px solid rgba(var(--lamp-rgb), 0.32);
+}
+.house-need .door-icon {
+  background: var(--lamp);
+  color: var(--lamp-ink);
+}
+.house-need .door-hint {
+  color: var(--ink-2);
+}
+.house-need > svg {
+  color: var(--muted);
+}
+.house-need:active {
+  background: rgba(var(--lamp-rgb), 0.18);
+}
+/* Where there is a dock, the panel stands above it rather than over it, inset from the edges and rounded all
+   round (design/every-screen/, SheetListB), and the dock stays sharp in front with This house lit. */
+.house.docked {
+  --dock-h: 98px;
+}
+.house.docked .house-panel {
+  left: 24px;
+  right: 24px;
+  bottom: calc(var(--dock-h) + 2px);
+  border-radius: 32px;
+  border-bottom: 1px solid var(--edge-hi);
+}
+/* the top bar already says whether the house is connected, a hand's width above */
+.house.docked .house-foot {
+  display: none;
+}
+/* a short screen hung wide: the list loses its hints so it can show the groups, as decided for the 7-inch */
+@media (max-height: 699px) and (orientation: landscape) {
+  .house.docked .house-panel {
+    top: 64px;
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+  .house.docked .house-doors {
+    padding: 16px 10px 10px 16px;
+  }
+  .house.docked .house-doors-head {
+    display: none;
+  }
+  .house.docked .door {
+    padding: 5px 10px 5px 8px;
+  }
+  .house.docked .door-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .house.docked .doors .door-hint {
+    display: none;
+  }
+  .house.docked .door-group + .door-group {
+    margin-top: 8px;
+  }
+  .house.docked .house-head h2 {
+    font-size: 30px;
+  }
+}
+[data-face].shell.house-open > .bottombar.dock {
+  position: relative;
+  z-index: 41;
+  transform: none;
+  filter: none;
+  opacity: 1;
+}
+/* ...but a sheet opened from inside This house or a device covers the dock with the rest of the screen. The house
+   and the pane are a layer under the dock, so on a phone the foot of the sheet -- Hold to erase, Continue -- was
+   behind it. */
+[data-face].shell:is(.house-open, .pane-open):has(.sheet-back) > .bottombar.dock {
+  z-index: auto;
+}
 .house-foot {
   margin: auto 0 0 12px;
   padding-top: 14px;
@@ -5087,7 +5211,7 @@ select.input {
 .page-lede {
   font-size: 16px;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   /* the whole screen: the list first, a page in front of it with the way back */
   .house-panel {
     top: 0;
@@ -5682,7 +5806,7 @@ select.input {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .sig-row {
     grid-template-columns: minmax(0, 1fr) auto auto;
   }
@@ -5929,7 +6053,7 @@ select.input {
 .say .drafts {
   margin: 12px 0 0;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .say {
     margin: 0 0 22px;
   }
@@ -6010,7 +6134,7 @@ select.input {
 .hub-rows > li.hub-wide {
   grid-template-columns: 1fr;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .phone {
     grid-template-columns: 1fr;
   }
@@ -6070,7 +6194,7 @@ select.input {
 .suggest-line .button {
   margin: 0 0 0 auto;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .sort-row .suggest-line {
     margin-left: 0;
   }
@@ -6153,7 +6277,7 @@ select.input {
 }
 /* On a phone the two answers are wider than the room beside a name, so they take their own line under it
    and Remove keeps its place at the end of the first (design/words-people/, AnywhereC-phone). */
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .phones li:has(.where-pick) {
     grid-template-columns: auto 1fr auto;
   }
@@ -6533,7 +6657,267 @@ select.input {
     padding-bottom: 18px;
   }
 }
-@media (max-width: 860px) {
+/* A short screen hung wide: a 7-inch at 1029x579, drawn at the wall's size now rather than shrunk to 1440x900
+   (design/every-screen/, Wide7). The row keeps its cards whole and the words above it give way: the greeting on
+   one line, the next thing it will do left for the full-size screen, and a narrower margin. */
+@media (min-width: 861px) and (max-height: 699px) and (orientation: landscape) {
+  .shell[data-nav='top'] .stage {
+    padding: 4px 24px 0;
+  }
+  .shell[data-nav='top'] .stage-head {
+    margin-bottom: 8px;
+  }
+  .shell[data-nav='top'] .stage-head h1 {
+    font-size: 34px;
+  }
+  .rail-home .lede {
+    margin-top: 2px;
+    font-size: 15px;
+  }
+  .rail-home .home-next {
+    display: none;
+  }
+  .rail-cloud {
+    width: 84px;
+    height: 60px;
+    margin: -8px -4px -8px 0;
+  }
+  .rail-temp {
+    font-size: 32px;
+  }
+  .rail-home > .nudges {
+    margin: 0 0 8px;
+  }
+  .rail-home {
+    height: 100%;
+    min-height: 0;
+  }
+  .rail-stage {
+    flex: 1;
+    min-height: 0;
+    margin-block: 0;
+    display: flex;
+    align-items: center;
+  }
+  .rail-home .bento {
+    --row: clamp(80px, calc((100dvh - 352px) / 2), 196px);
+    flex: 1;
+    margin: 0 -24px;
+    padding-left: 24px;
+    scroll-padding-inline-start: 24px;
+  }
+  .bottombar {
+    padding: 4px 24px 10px;
+  }
+}
+/* A screen hung tall (design/every-screen/, Tall10, DockB-Tall7): the row is a grid three across that fits the
+   screen, two on a 7-inch, what is playing two places wide, and nothing past an edge. BentoRow measures how many
+   rows fit and sets --cell and --across; the last place is .bento-left, which says what is left and opens Rooms. */
+@media (min-width: 480px) and (orientation: portrait) {
+  .rail-home.top-nav {
+    height: 100%;
+    min-height: 0;
+  }
+  .rail-home.top-nav .rail-stage {
+    flex: 1;
+    min-height: 0;
+    margin-block: 8px 0;
+  }
+  .rail-home.top-nav .bento {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    grid-auto-flow: row dense;
+    grid-template-columns: repeat(var(--across, 3), minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: var(--cell, 200px);
+    grid-auto-columns: auto;
+    align-content: start;
+    scroll-snap-type: none;
+  }
+  .rail-home.top-nav .bento::after {
+    display: none;
+  }
+  .rail-home.top-nav .bento-card {
+    animation: none;
+  }
+  .rail-home.top-nav .bento .tile.light,
+  .rail-home.top-nav .bento .tile.media,
+  .rail-home.top-nav .bento .tile.plain,
+  .rail-home.top-nav .bento .tile.camera,
+  .rail-home.top-nav .bento .tile.climate,
+  .rail-home.top-nav .bento .scene-card {
+    grid-row: span 1;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: auto;
+    align-self: stretch;
+  }
+  .rail-home.top-nav .bento .tile.media,
+  .rail-home.top-nav .bento .scene-card {
+    grid-column: span 2;
+  }
+}
+.bento-left {
+  display: none;
+}
+@media (min-width: 480px) and (orientation: portrait) {
+  .rail-home.top-nav .rail-head {
+    flex-direction: row;
+  }
+  .rail-home.top-nav .bento-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 22px;
+    text-align: left;
+    border: 1px dashed var(--edge-hi);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+  }
+  .bento-left-count {
+    font-size: 19px;
+  }
+  .bento-left-go {
+    font-size: 15px;
+    color: var(--lamp);
+  }
+  .bento-left-names {
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+}
+/* A room on a tall screen or a phone (design/every-screen/, room A): the scenes are a row of pills under the
+   room's name, what is playing goes across the top, the lamp doing the lighting is two rows tall, and on a
+   phone or a 7-inch a thing that is off is a short bar at the end. */
+.scenes-pills {
+  grid-column: 1 / -1;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin: 6px 0 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.scenes.scenes-pills .scene {
+  flex: none;
+  min-height: 0;
+  column-gap: 8px;
+  padding: 9px 16px 9px 13px;
+  border-radius: 999px;
+}
+.scenes-pills .scene-icon,
+.scenes-pills .scene.active .scene-icon,
+.scenes-pills .scene.done .scene-icon {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+}
+.scenes-pills .scene.active .scene-icon {
+  color: var(--lamp-text);
+}
+.scenes-pills .scene.done .scene-icon {
+  color: var(--live-text);
+}
+.scenes-pills .scene-hint {
+  display: none;
+}
+@media (min-width: 640px) and (orientation: portrait) {
+  .tiles {
+    margin-right: 0;
+    padding-right: 0;
+    grid-auto-flow: row dense;
+    grid-template-rows: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-columns: auto;
+    grid-auto-rows: minmax(220px, 1fr);
+    overflow: hidden auto;
+    scroll-snap-type: none;
+  }
+  .tiles > .tile[data-size='full'] {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+}
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
+  .tiles {
+    margin-right: 0;
+    padding-right: 0;
+    grid-auto-flow: row dense;
+    grid-auto-rows: minmax(64px, auto);
+  }
+  .tiles > .tile[data-size='full'] {
+    grid-column: 1 / -1;
+    min-height: 200px;
+  }
+  .tiles > .tile.wide[data-size='half'],
+  .tiles > .tile.wide[data-size='third'] {
+    grid-column: auto;
+  }
+  .tiles > .tile[data-size='half'] {
+    grid-row: span 2;
+  }
+  .tiles > .tile.light[data-size='third'][data-quiet],
+  .tiles > .tile.plain[data-size='third'][data-quiet] {
+    grid-column: 1 / -1;
+    min-height: 64px;
+  }
+  .tiles > .tile[data-size='third'][data-quiet] > .tile-body {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    padding-block: 0;
+  }
+  .tiles > .tile[data-size='third'][data-quiet] > .tile-body > .tile-state {
+    grid-area: 1 / 3;
+    align-self: center;
+    color: var(--card-ink-2, var(--ink-2));
+  }
+  .tiles > .tile[data-size='third'][data-quiet] > .tile-body > .tile-bar {
+    display: none;
+  }
+  /* the thermostat keeps its dial on a phone (design/thermostat/, A), small, with its two buttons beside it */
+  .tiles > .tile.climate[data-size='third'] .clim-dial {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 6px;
+    margin: auto 0 0;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-btn,
+  .tiles > .tile.climate[data-size='third'] .face-render {
+    display: grid;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-center {
+    justify-content: center;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-face {
+    display: grid;
+    aspect-ratio: 1;
+    width: 84px;
+    padding: 0;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-big {
+    font-size: 30px;
+  }
+  .tiles > .tile.climate[data-size='third'] .clim-short {
+    display: none;
+  }
+}
+@media (max-width: 480px) {
+  .tiles > .tile.plain.cover[data-size='third'] .tile-render {
+    display: none;
+  }
+}
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   /* on a phone a sideways row of wall-sized cards is a worse column, so it stops
      being a row: the Rail becomes a stack and only the header stays distinct */
   .rail-head {
@@ -7389,7 +7773,7 @@ select.input {
   transform: scale(0.96);
   transition: transform 0.18s var(--ease);
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .opened-panel {
     top: clamp(90px, 16vh, 160px);
   }
@@ -7497,7 +7881,7 @@ select.input {
   font-size: 14px;
   color: var(--muted);
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .ask-says {
     font-size: 15.5px;
   }
@@ -8349,7 +8733,7 @@ select.input {
 
    Everything the wide layout sets has to be undone by name. The generic phone
    rule for .bento is a single class and this one is two, so it does not win. */
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .wall-stage {
     display: flex;
     flex-direction: column;
@@ -8468,7 +8852,7 @@ select.input {
   transition: translate 560ms var(--ease);
   transition-delay: calc(min(var(--flow-i, 0), 9) * 56ms);
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   /* a phone's rail is a column that scrolls down, so a sideways sweep would
      point at a gesture that does nothing. The row still fades up as one. */
   .bento.set > .bento-card,
@@ -9010,13 +9394,250 @@ select.input {
 /* A phone is not a wall: there is one box, it is the way in, and there is no
    room to spend a tap on opening it. The face keeps its material here and gives
    up its move. */
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   [data-face='glass'] .bottombar .say-box {
     width: 100%;
   }
   [data-face='glass'] .bottombar .say-box input,
   [data-face='glass'] .bottombar .say-box .button {
     opacity: 1;
+  }
+}
+/* ---------- the dock ----------
+   One pill along the foot of every screen bigger than a phone (design/every-screen/, DockB): the command box's
+   orb, the three places, what is playing, then Add and This house as doors of their own, set apart by a hairline.
+   It stands on the bar's row rather than floating over the stage, so a card never runs under it. Household.vue. */
+.bottombar.dock {
+  justify-content: center;
+  padding: 6px 24px 18px;
+}
+.dock-body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 999px;
+  background: rgba(var(--surface-rgb), 0.72);
+  border: 1px solid var(--edge-hi);
+  backdrop-filter: var(--frost);
+  box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.7);
+  max-width: 100%;
+  min-width: 0;
+}
+.dock-places {
+  display: flex;
+  gap: 2px;
+  padding: 0 6px;
+  border-left: 1px solid var(--edge);
+  border-right: 1px solid var(--edge);
+}
+.dock-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-size: 16px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  transition:
+    background 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+.dock-place svg {
+  color: var(--muted);
+}
+.dock-place.active {
+  background: rgba(var(--wash-rgb), 0.12);
+  color: var(--ink);
+  font-weight: 500;
+}
+.dock-place.active svg {
+  color: var(--ink-2);
+}
+.dock-place:active,
+.dock-now:active,
+.dock-door:active {
+  background: var(--surface-press);
+}
+.dock-now {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  max-width: 220px;
+  padding: 0 16px 0 8px;
+  border-radius: 999px;
+  background: rgba(var(--wash-rgb), 0.06);
+  text-align: left;
+  min-width: 0;
+}
+.dock-now-art {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: rgba(var(--lamp-rgb), 0.18);
+  color: var(--lamp-text);
+}
+.dock-now-text {
+  min-width: 0;
+}
+.dock-now-text b,
+.dock-now-text small {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dock-now-text b {
+  font-weight: 500;
+  font-size: 14.5px;
+}
+.dock-now-text small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.dock-door {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--ink-2);
+}
+.dock-door.active {
+  background: var(--ink);
+  color: var(--bg);
+}
+.dock-door.attention::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--lamp);
+  box-shadow: 0 0 8px 1px var(--lamp-glow);
+}
+/* the command box in the dock: its orb at rest on every face, opened across the dock while somebody is in it,
+   with everything else stepping aside until it shuts */
+.bottombar.dock .say {
+  flex: 0 0 auto;
+}
+.bottombar.dock .say-box {
+  width: 56px;
+  gap: 12px;
+  padding: 0 8px 0 9px; /* paper's orb is 36: 10 a side with the 1px edge */
+  overflow: hidden;
+  background: transparent;
+  border-color: transparent;
+  transition: width 460ms var(--settle, var(--ease));
+}
+[data-face='glass'] .bottombar.dock .say-box {
+  padding-left: 6px; /* glass's is 42: 7 a side, as its resting pill has it */
+}
+.bottombar.dock .say-box input,
+.bottombar.dock .say-box .button {
+  opacity: 0;
+  transition: opacity 260ms var(--settle, var(--ease));
+}
+.bottombar.dock .say.open .say-box {
+  width: min(560px, calc(100vw - 80px));
+  background: rgba(var(--wash-rgb), 0.04);
+}
+.bottombar.dock .say.open .say-box input,
+.bottombar.dock .say.open .say-box .button {
+  opacity: 1;
+  transition-delay: 180ms;
+}
+/* only while somebody is in it: a sentence left unsent keeps the box wide, and the dock grows to hold it
+   rather than leaving no way out of it */
+.dock-body:has(.say:focus-within, .say.listening) > :not(.say) {
+  display: none;
+}
+/* the bar above it keeps what a glance wants: the time, whether the house is connected, and who is home */
+.topbar.docked .topbar-right {
+  gap: 18px;
+}
+.topbar.docked .household-label {
+  display: none;
+}
+@media (max-height: 699px) and (orientation: landscape) {
+  .house.docked {
+    --dock-h: 82px;
+  }
+  .opened.docked .opened-panel {
+    top: 16px;
+  }
+  .bottombar.dock {
+    padding: 2px 16px 8px;
+  }
+  .dock-place,
+  .dock-now {
+    height: 46px;
+  }
+  .dock-door {
+    width: 46px;
+    height: 46px;
+  }
+  .dock-now {
+    display: none;
+  }
+}
+@media (max-width: 1100px) and (orientation: portrait) {
+  .dock-now {
+    display: none;
+  }
+}
+/* On a phone and a 7-inch hung tall (DockB-Phone, DockB-Tall7) the dock keeps its order and its words, each under
+   its picture, and fits the width it has. */
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
+  .house.docked .house-panel {
+    left: 12px;
+    right: 12px;
+  }
+  .bottombar.dock {
+    flex-wrap: nowrap;
+    padding: 4px 10px calc(10px + env(safe-area-inset-bottom));
+  }
+  .dock-body {
+    gap: 2px;
+    padding: 5px;
+  }
+  .dock-places {
+    flex: 1 1 auto;
+    gap: 0;
+    padding: 0 3px;
+  }
+  .dock-place {
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    height: 54px;
+    padding: 0 9px;
+    border-radius: var(--r-lg);
+    font-size: 11.5px;
+  }
+  .dock-door {
+    width: 42px;
+    height: 54px;
+    border-radius: var(--r-lg);
+  }
+  .dock-door.attention::after {
+    top: 12px;
+    right: 6px;
+  }
+  .bottombar.dock .say.open .say-box {
+    width: calc(100vw - 32px);
   }
 }
 .household {
@@ -9145,7 +9766,7 @@ select.input {
 .look-row.on .look-shape.look-face-paper i:first-child {
   background: var(--card-plain, rgba(255, 255, 255, 0.3));
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .topbar {
     flex-wrap: wrap;
     gap: 10px;
@@ -9568,7 +10189,7 @@ select.input {
   font-size: 13px;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   /* on a phone the bento stops being a row: one column, natural heights */
   .bento {
     grid-auto-flow: row;
@@ -10168,7 +10789,7 @@ select.input {
 }
 
 /* ---------- a phone: the same ranking, read downwards ---------- */
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .stage:has(> .rooms) {
     display: block;
     overflow-y: auto;
@@ -10270,7 +10891,7 @@ select.input {
   transition: translate 480ms var(--ease);
   transition-delay: calc(min(var(--flow-i, 0), 9) * 48ms);
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   /* a phone's Rooms tab is a two-column grid that scrolls down, so the sideways
      travel would point at a sweep that is not there. It arrives as one fade,
      which is what the rail already does at this width. */
@@ -10509,7 +11130,7 @@ select.input {
    here (above). What still does is the pane being EDITED -- Take it out of the house, and what it says
    after -- and that case is NOT decided (design/roofline/canvas.json, pane-shared-decided): until it is
    drawn, this is the build's present answer for it, kept as it was. */
-@media (min-width: 861px) {
+@media (min-width: 861px), (min-width: 640px) and (orientation: portrait) {
   .pane-body.pane-roof:has(.pane-said .opened-kind) .pane-said {
     grid-row: 1 / span 2;
   }
@@ -10517,7 +11138,7 @@ select.input {
     grid-column: 2;
   }
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .pane-roof .pane-rig {
     grid-row: 2;
   }
@@ -10659,7 +11280,7 @@ select.input {
 }
 /* a phone has no room for the two columns the pane is drawn in, and the row of
    hours is the first thing that stops fitting */
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .wx-hours {
     gap: 4px;
   }
@@ -11744,7 +12365,7 @@ select.input {
    The instrument goes under what was said rather than beside it, and the
    columns turn on their sides. Nothing is dropped: a kind whose instrument
    cannot fold into a phone's width is too clever for this house. */
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   /* On a phone the whole pane scrolls, foot and all: the day is four lines here rather than four
      columns, and pinning it to the bottom would spend a third of the screen on it. */
   .opened-panel:has(.pane-body) {
@@ -11867,6 +12488,145 @@ select.input {
   }
   .pane-moment-x {
     white-space: normal;
+  }
+}
+/* On a tall screen a device's pane is one column, everything the wall shows stacked (design/every-screen/,
+   RoomGridA): what it is and its buttons, the number, the instrument with its columns standing, then its day.
+   Side by side, as on the wall, the instrument had 300 points and lost its colors. It stands above the dock,
+   which stays in front. A wide screen's pane still runs to the foot, over the dock: the roofline's and a held
+   strip's panes are drawn to the full height of the wall, and lose their floor if it is 100 points shorter. */
+@media (orientation: portrait) {
+  [data-face].shell.pane-open > .bottombar.dock {
+    position: relative;
+    z-index: 41;
+    transform: none;
+    filter: none;
+    opacity: 1;
+  }
+  .opened.docked .opened-panel {
+    left: 16px;
+    right: 16px;
+    bottom: 100px;
+    border-radius: 34px;
+    border-bottom: 1px solid var(--edge-hi);
+  }
+}
+@media (max-width: 639px) and (orientation: portrait) {
+  .opened.docked .opened-panel {
+    left: 12px;
+    right: 12px;
+  }
+}
+@media (min-width: 640px) and (orientation: portrait) {
+  /* the whole pane scrolls, as on a phone: a tablet's 1180 is not the 10-inch's 1440, and a pane held to the
+     screen's height squeezed the instrument until its colors scrolled inside their own box */
+  .opened-panel:has(.pane-body) {
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .pane-body {
+    flex: 0 0 auto;
+    overflow: visible;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    gap: 24px;
+    padding: 30px 28px 0;
+  }
+  .pane-said,
+  .pane-rig,
+  .pane-facts {
+    grid-column: 1;
+  }
+  .pane-said {
+    grid-row: 1;
+  }
+  .pane-rig {
+    grid-row: 2;
+    margin-top: 0;
+    min-height: 0;
+  }
+  .pane-facts {
+    grid-row: 3;
+  }
+}
+/* ...and where it is wide enough, its buttons stand beside its name rather than under it */
+@media (min-width: 481px) and (max-width: 860px), (min-width: 640px) and (orientation: portrait) {
+  .pane-said {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 16px;
+    align-items: start;
+  }
+  .pane-said > .s0 {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .pane-said > .s1 {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0 64px 0 0;
+  }
+  .pane-said > .s2 {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+/* Held upright, a lamp's brightness stands beside its colors and the usual three, as on the wall, rather than
+   lying across above them (design/every-screen/, RoomGridA-Phone and -Tall7). */
+@media (max-width: 639px) and (orientation: portrait) {
+  .rig-light {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .rig-light > .rig-slot {
+    width: 96px;
+  }
+  .rig-light > .rig-slot > .rig-col {
+    width: 100%;
+    height: auto;
+    min-height: 280px;
+    border-radius: 48px;
+  }
+  .rig-light .rig-color {
+    width: auto;
+    flex: 1 1 auto;
+  }
+}
+@media (min-width: 481px) and (max-width: 639px) and (orientation: portrait) {
+  .rig-light > .rig-slot {
+    width: 150px;
+  }
+  .rig-light > .rig-slot > .rig-col {
+    border-radius: 75px;
+  }
+}
+/* A 7-inch hung wide keeps the wall's pane, its instrument given the width, and what it did today and who made
+   it a tap further in (design/every-screen/, RoomWide-Wide7). */
+@media (min-width: 861px) and (max-height: 699px) and (orientation: landscape) {
+  .pane-body {
+    grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+    gap: 24px;
+    padding: 26px 30px 0;
+  }
+  .pane-rig {
+    padding: 18px;
+  }
+  .rig-light {
+    gap: 18px;
+  }
+  .rig-col {
+    width: 112px;
+  }
+  .rig-color {
+    width: 236px;
+  }
+  .pane-facts,
+  .pane-day {
+    display: none;
+  }
+  .pane-said .opened-name {
+    font-size: 34px;
   }
 }
 
@@ -12217,7 +12977,7 @@ button.reading[data-held] {
   margin-top: 12px;
   align-self: flex-start;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   /* On a phone the third column has nowhere to go, so the row becomes two rows:
      the sentence, then what to do about it under it. */
   .notes li {
@@ -12509,7 +13269,7 @@ button.reading[data-held] {
 .bridge-lights .bridge-sub {
   line-height: 1.35;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .bridge-lights {
     grid-template-columns: 1fr;
   }
@@ -12734,7 +13494,7 @@ button.reading[data-held] {
   width: 100%;
   height: 100%;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .handoff {
     grid-template-columns: 1fr;
     justify-items: center;
@@ -13095,7 +13855,7 @@ button.reading[data-held] {
 }
 /* On a phone the row is a column and so is this card: the camera, then the glass, at a height a thumb
    can scroll past. A phone that keeps the Stack home gets the compact card instead (HomeView). */
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .bento .print-card {
     grid-row: auto;
     width: 100%;
@@ -13621,7 +14381,7 @@ button.reading[data-held] {
 .print-limit-narrow {
   display: none;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   /* the pane as a sheet: nearly the whole phone, the camera across its top, the close over the camera */
   .print-pane-shell .opened-panel {
     top: 44px;
@@ -13990,7 +14750,7 @@ button.reading[data-held] {
 .nudge-news {
   display: contents;
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   /* No clock: the status bar is the clock, directly above. The row under it is the house, then
      its sky, then the two doors at the far end (NameThenSky). The wall keeps its clock. */
   .topbar {

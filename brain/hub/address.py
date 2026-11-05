@@ -239,6 +239,13 @@ class Address:
         if not s.get("house"): return self.summary()
         try: self.fetch("DELETE", f"/houses/{s['house']}", secret=s["secret"])
         except Unreachable: pass      # the service lets an unpaid name go on its own; forgetting here is what matters
+        # Nobody keeps paying for a name the house gave back. The account ends the plan at the end of what is paid; and
+        # if it never hears this (the hub was offline, or erased mid-way), it ends a plan whose house has stopped asking
+        # for tickets on its own (docs/service.md, When a house stops).
+        acct = s.get("account") or {}
+        if acct.get("api") and acct.get("token"):
+            try: self.fetch("DELETE", f"{acct['api']}/v1/hub", secret=acct["token"])
+            except Unreachable: pass
         self._ask_host("forget", {})      # off, and the secret taken out of .env as well
         STATE.unlink(missing_ok=True)
         self._status = None

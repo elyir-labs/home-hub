@@ -74,6 +74,9 @@ class Account:
             return 200, {"code": f"hc_{self.codes}", "code_expires": 0}
         if path == "/v1/hub/ticket":
             return (200, {"ticket": f"ticket-for-{hub['name']}", "until": 1.9e9, "expires": 0}) if hub["paid"] else (403, {"error": "not paid"})
+        if path == "/v1/hub" and method == "DELETE":
+            hub["paid"], hub["ended"] = False, True
+            return 204, None
         if path == "/v1/hub":
             return 200, {"name": hub["name"], "payer": "t•••i@example.com" if hub["paid"] else None,
                          "plan": {"on": hub["paid"], "until": 1.9e9 if hub["paid"] else None, "cancels": False, "price": "$3 a month"}}
@@ -168,6 +171,20 @@ class Addressing(ApiTest):
         self.assertFalse((self.data / "address.json").exists())
         self.assertEqual((self.data / "away.env").read_text(), "")
         self.assertEqual(json.loads((self.data / "away.request").read_text())["want"], "forget")
+
+    def test_giving_it_back_ends_the_plan_so_nobody_pays_for_a_house_they_left(self):
+        self.client.post("/address", json={"name": "jordan"})
+        self.service.account.hubs[HUB_TOKEN]["paid"] = True
+        self.client.delete("/address")
+        self.assertIn(("DELETE", "https://account.example/v1/hub"), self.service.calls)
+        self.assertTrue(self.service.account.hubs[HUB_TOKEN].get("ended"))
+
+    def test_an_account_that_does_not_answer_does_not_keep_the_name(self):
+        self.client.post("/address", json={"name": "jordan"})
+        self.service.account = lambda *a, **k: (_ for _ in ()).throw(Unreachable("down"))
+        self.client.delete("/address")
+        self.assertNotIn("jordan", self.service.houses)
+        self.assertFalse((self.data / "address.json").exists())
 
     def test_an_answer_that_does_not_look_right_never_reaches_the_host(self):
         def odd(method, path, body=None, secret=None, timeout=8.0):

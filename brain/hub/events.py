@@ -159,6 +159,12 @@ class EventLog:
     KEEPERS_SQL = ("SELECT MAX(rowid) FROM events WHERE kind IN "  # noqa: S608
                    f"({','.join('?' * len(KEEPERS))}) GROUP BY kind, subject, new")
 
+    def clear(self):
+        """Everything, for the next people: what happened here was the last people's (hub/handover.py)."""
+        with self.lock:
+            self.db.execute("DELETE FROM events")
+            self.db.commit()
+
     def prune(self, now=None) -> int:
         """Drop what is past its keeping. Returns how many rows went. NEVER raises, for add()'s reasons."""
         now = now or time.time()

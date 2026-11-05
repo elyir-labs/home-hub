@@ -277,7 +277,7 @@ function sayAnother() {
   }
 }
 /* a phone: the two cards one above the other, under the bar */
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .roof-cards {
     grid-template-columns: minmax(0, 1fr);
   }

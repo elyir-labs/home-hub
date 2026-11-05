@@ -44,10 +44,11 @@ export function shape({ now, names, latest, state, hours, incidents, relay, carr
   const lastAt = Math.max(0, ...latest.map((r) => r.at))
   const stale = now - lastAt > 5 * 60_000
 
-  let headline = 'Everything is up.', said
+  let headline = lastAt ? 'Everything is up.' : 'Not checked yet.', said
   if (down.length === 1) headline = `${down[0]} is down.`
   else if (down.length) headline = `${down.length} services are down.`
-  if (down.length) {
+  if (!lastAt) said = 'The services show here once the watcher has asked them.'
+  else if (down.length) {
     said = down.map((n) => `${n} ${state[n].why || 'stopped answering'}, since ${clock(state[n].down_since)} UTC`).join('. ') + '.'
   } else {
     const week = outages(incidents.filter((i) => i.began >= weekAgo), now)
@@ -75,7 +76,7 @@ export function shape({ now, names, latest, state, hours, incidents, relay, carr
     })
     // The week's 95th from each hour's 95th: near enough for a glance, and it keeps a page view to a few hundred rows.
     const ms = p95(week.map((h) => h.p95).filter((v) => v != null))
-    return { name, up: !state[name]?.told, marks, uptime: pct(week.reduce((a, h) => a + h.up, 0), week.reduce((a, h) => a + h.n, 0)), ms }
+    return { name, checked: !!last, up: !state[name]?.told, marks, uptime: pct(week.reduce((a, h) => a + h.up, 0), week.reduce((a, h) => a + h.n, 0)), ms }
   })
 
   const today = midnight(now)
@@ -158,6 +159,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 var(
 .ok { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; color: var(--ink-2) }
 .ok::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--good) }
 .ok.no::before { background: var(--down) }
+.ok.none::before { background: var(--up) }
 nav { height: 64px; display: flex; align-items: center; gap: 10px; padding: 0 48px; border-bottom: 1px solid var(--line) }
 nav .mark { width: 10px; height: 10px; border-radius: 50%; background: var(--lamp); box-shadow: 0 0 12px rgba(233,184,114,.6) }
 nav .name { font-weight: 500 } nav .name span { color: var(--ink-3) }
@@ -225,7 +227,7 @@ main { max-width: 1440px; margin: 0 auto; padding: 0 48px 12px }
 export function render(v) {
   const { answer, chart } = v
   const marks = (ms) => `<div class="marks">${ms.map((m) => `<i class="${m === 'up' ? '' : m}"></i>`).join('')}</div>`
-  const rows = v.services.map((s) => `<div class="svc"><span class="ok st${s.up ? '' : ' no'}">${s.up ? 'Up' : 'Down'}</span><span class="n">${esc(s.name)}</span>${marks(s.marks)}<span class="r num">${s.uptime}</span><span class="r num ms">${s.ms ?? '–'}</span></div>`).join('')
+  const rows = v.services.map((s) => `<div class="svc"><span class="ok st${!s.checked ? ' none' : s.up ? '' : ' no'}">${!s.checked ? '–' : s.up ? 'Up' : 'Down'}</span><span class="n">${esc(s.name)}</span>${marks(s.marks)}<span class="r num">${s.uptime}</span><span class="r num ms">${s.ms ?? '–'}</span></div>`).join('')
   const tiles = v.tiles.map((t) => `<div class="card tile"><div class="label"><span class="full">${t.label}</span><span class="short">${t.short}</span></div><div class="v"><span class="num">${t.value}</span>${spark(t.series)}</div><div class="d">${t.said}</div></div>`).join('')
   const box = v.box ? v.box.map(([k, f, said]) => `<div class="m">${k}<div class="meter"><i style="width:${Math.round(Math.min(1, f ?? 0) * 100)}%"></i></div><span class="num" style="text-align:right">${said}</span></div>`).join('')
     : '<p>The relay has not reported yet.</p>'

@@ -19,12 +19,13 @@
  * their own; then whatever is left. A row of equal boxes is a spreadsheet, and
  * the difference between that and a room is the one small column.
  */
+import { TALL_AT } from '../look'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { ago, cap, deviceById, done, justDone, keptPrints, scenesFor, store, whatsOn } from '../store'
 import { printCards } from '../printers'
 import PrintCard from '../tiles/PrintCard.vue'
 import { leave } from '../leaving'
-import { alwaysIds, homeRow, type RowCard } from '../onhome'
+import { alwaysIds, fitRow, homeRow, leftLine, type RowCard } from '../onhome'
 import type { Device, Printer, Room } from '../api'
 import SceneBar from '../SceneBar.vue'
 import CameraTile from '../tiles/CameraTile.vue'
@@ -37,7 +38,8 @@ import PlainTile from '../tiles/PlainTile.vue'
    arrive again rather than only on the first load. `when` names the part of the
    day the scenes card serves, and comes from the arrangement above because that
    is where the clock already is. */
-const props = defineProps<{ rooms: Room[]; when: string; woke?: number }>()
+const props = defineProps<{ rooms: Room[]; when: string; woke?: number; fit?: boolean }>()   // fit: the row fills the screen above the dock, so a tall one can be fitted to it
+const emit = defineEmits<{ rooms: [] }>()
 
 /* The row's cards, in the order drawn. A device is a card; the scenes are one
    card among them ('scenes'), so the grid can place them all the same way. */
@@ -118,6 +120,32 @@ const cards = computed<Card[]>(() => {
   return homeRow({ prints: prints.value, on: on.value, lead: lead.value, glance, always: always.value, scenes: scenes.value })
 })
 const empty = computed(() => !cards.value.length)
+
+/* A tall screen (design/every-screen/, Tall10): the row becomes a grid three across that fits the screen,
+   and the last place says what is left and opens Rooms. How many rows fit is measured, because what is
+   above the row (a nudge, a longer sentence) changes it; each row is about as tall as a card is wide. */
+const TALL = '(min-width: 480px) and (orientation: portrait)'
+const tallMq = window.matchMedia(TALL)
+const tall = ref(tallMq.matches)
+const onTall = () => (tall.value = tallMq.matches)
+const GAP = 18, CELL = 200
+const rows = ref(0), across = ref(3)
+let sized: ResizeObserver | undefined
+function measure() {
+  const h = bento.value?.parentElement?.clientHeight ?? 0
+  across.value = window.innerWidth < TALL_AT ? 2 : 3   // a 7-inch hung tall is two across; the size rule counts the screen, not the row
+  bento.value?.style.setProperty('--across', String(across.value))
+  rows.value = Math.max(1, Math.floor((h + GAP) / (CELL + GAP)))
+  bento.value?.style.setProperty('--cell', `${Math.floor((h - GAP * (rows.value - 1)) / rows.value)}px`)
+}
+const fitted = computed(() => props.fit && tall.value && rows.value ? fitRow(cards.value, rows.value * across.value) : { shown: cards.value, left: [] })
+const left = computed(() => leftLine(fitted.value.left))
+onMounted(() => {
+  tallMq.addEventListener('change', onTall)
+  sized = new ResizeObserver(measure)
+  if (bento.value?.parentElement) sized.observe(bento.value.parentElement)
+})
+onUnmounted(() => { tallMq.removeEventListener('change', onTall); sized?.disconnect() })
 const tile = (d: Device) => cap(d) === 'light' ? LightTile : cap(d) === 'media' ? MediaTile : cap(d) === 'climate' ? ClimateTile : cap(d) === 'camera' ? CameraTile : PlainTile
 
 /* The row's edge fade is CSS where the browser can drive it from scroll. These
@@ -177,7 +205,7 @@ onUnmounted(() => clearTimeout(settle))
 <template>
   <!-- --flow-i is the card's place in the row: the entrance leans on it for the stagger -->
   <div class="bento" ref="bento" v-if="!empty" :class="flow" role="group" aria-label="On right now">
-    <template v-for="(c, i) in cards" :key="c.key">
+    <template v-for="(c, i) in fitted.shown" :key="c.key">
       <PrintCard v-if="c.kind === 'print'" class="bento-card" :style="{ '--flow-i': i }" :printer="c.printer!" />
       <component v-else-if="c.kind === 'device'" :is="tile(c.device!)" class="bento-card" :class="{ going: !!going[c.device!.id], gone: !!gone[c.device!.id], kept: !!keptLine(c.device!) }" :data-kept="keptLine(c.device!) || null" :style="{ '--flow-i': i }" :device="c.device!" :always="c.always || undefined" v-hold="() => (store.opened = c.device!)" />
       <div v-else class="bento-card tile scene-card" :style="{ '--flow-i': i }">
@@ -185,6 +213,11 @@ onUnmounted(() => clearTimeout(settle))
         <SceneBar :room="null" />
       </div>
     </template>
+    <button v-if="fitted.left.length" class="bento-card tile bento-left" type="button" @click="emit('rooms')">
+      <span class="bento-left-count">{{ left.count }}</span>
+      <span class="bento-left-go">In Rooms</span>
+      <span class="bento-left-names">{{ left.names }}</span>
+    </button>
   </div>
   <slot name="quiet" v-else />
 </template>

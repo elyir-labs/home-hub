@@ -29,6 +29,7 @@ PARTS = [
     ("music-data", (".cache", "*.log", "*.log.*")),
 ]
 REQUEST, STATE, ARCHIVE = DATA / "restore.request", DATA / "restore.json", DATA / "restore.tar.gz"
+RESET = DATA / "reset.request"
 
 
 def _skipper(prefix, patterns):
@@ -90,6 +91,22 @@ class Backup:
         REQUEST.write_text(json.dumps({"at": time.time(), "manifest": manifest}))
         self.hub.log.add("home", "restore", None, "requested", source="user", detail=manifest)
         return {"ok": True, "manifest": manifest}
+
+    def start_over(self, who: str = "the wall") -> dict:
+        """Start over (design/leaving/, B): erase the house and open on Welcome. The host does the erasing
+        (host/reset.sh); this checks it may, gives the web address's name back while the house still holds its
+        secret, and asks. A hub with no code has nothing standing between anybody on the Wi-Fi and this, which is
+        the reason /backup refuses there too."""
+        if not self.hub.lock.locked:
+            raise PermissionError("Set a passcode first. Without one, anyone on your Wi\u2011Fi could erase the hub.")
+        if any(p.exists() for p in (RESET, REQUEST, ARCHIVE)):
+            raise ValueError("The hub is already being started over or restored.")
+        try: self.hub.address.forget(who)
+        except Exception: pass         # the host takes the address's secret out of .env either way
+        self.hub.log.add("home", "reset", None, "requested", source="user", detail={"who": who})
+        RESET.parent.mkdir(parents=True, exist_ok=True)
+        RESET.write_text(json.dumps({"at": time.time(), "who": who}))
+        return {"ok": True}
 
     def state(self):
         try: return json.loads(STATE.read_text())
