@@ -6,10 +6,10 @@ The judge cases are shaped exactly like what frps 0.71.0 sent a plugin on 1 Octo
 the real frps and frpc, docs/away.md step 4): Login carries `user` and `metas`, NewProxy carries the
 same metas under `user`, and frps has already prefixed the proxy name with the user.
 """
-import tempfile, unittest
+import sqlite3, tempfile, unittest
 from pathlib import Path
 
-from registry import DAY, Registry, clean, problem
+from registry import DAY, VOUCH_CAP, Registry, WrongKey, clean, problem
 
 
 class Clock:
@@ -213,3 +213,91 @@ class Invites(Base):
     def test_an_invited_house_is_let_through_by_frps(self):
         made = self.r.claim("desk", invite=self.r.invite(self.until()))
         self.assertIsNone(self.r.judge("Login", login("desk", made["secret"])))
+
+
+class Vouching(Base):
+    """A Bench Box's new printer is carried on a sibling's key, as long as the sibling is and no further."""
+    def until(self, days=365): return self.clock.t + days * DAY
+
+    def carried(self, name, days=365):
+        secret = self.r.claim(name)["secret"]
+        self.r.grant(name, self.until(days), "by hand")
+        return secret
+
+    def test_a_carried_name_brings_a_sibling_along(self):
+        key = self.carried("atlas")
+        made = self.r.claim("juno")
+        self.r.vouch("juno", "atlas", key)
+        self.assertEqual(self.r.status("juno"), {"carried": True, "held_until": None, "entitled_until": self.until()})
+        row = next(h for h in self.r.houses() if h["name"] == "juno")
+        self.assertEqual(row["vouched_by"], "atlas"); self.assertEqual(row["note"], "vouched by atlas")
+        self.assertIsNone(self.r.judge("Login", login("juno", made["secret"])))
+
+    def test_it_runs_out_with_the_day_it_was_given_not_the_vouchers_renewal(self):
+        key = self.carried("atlas", days=30)
+        self.r.claim("juno"); self.r.vouch("juno", "atlas", key)
+        self.r.grant("atlas", self.until(365), "renewed")
+        self.clock.t += 31 * DAY
+        self.assertTrue(self.r.status("atlas")["carried"])
+        self.assertFalse(self.r.status("juno")["carried"]); self.assertTrue(self.r.taken("juno"))
+
+    def test_a_name_carried_longer_already_is_left_as_it_is(self):
+        key = self.carried("atlas", days=30)
+        self.carried("juno", days=365)
+        self.r.vouch("juno", "atlas", key)
+        self.assertEqual(self.r.status("juno")["entitled_until"], self.until(365))
+        self.assertIsNone(next(h for h in self.r.houses() if h["name"] == "juno")["vouched_by"])
+
+    def test_refused_without_the_vouchers_own_key(self):
+        self.carried("atlas"); self.r.claim("juno")
+        with self.assertRaisesRegex(WrongKey, "doesn't hold that key"): self.r.vouch("juno", "atlas", "a guess")
+        with self.assertRaises(WrongKey): self.r.vouch("juno", "nobody", "a guess")
+        self.assertFalse(self.r.status("juno")["carried"])
+
+    def test_a_name_cant_vouch_for_itself(self):
+        key = self.r.claim("juno")["secret"]
+        with self.assertRaisesRegex(PermissionError, "itself"): self.r.vouch("juno", "juno", key)
+        self.assertFalse(self.r.status("juno")["carried"])
+
+    def test_a_name_that_isnt_carried_cant_vouch(self):
+        held = self.r.claim("atlas")["secret"]
+        self.r.claim("juno")
+        with self.assertRaisesRegex(PermissionError, "isn't carried"): self.r.vouch("juno", "atlas", held)
+        lapsed = self.carried("vega", days=1)
+        self.clock.t += 2 * DAY
+        with self.assertRaisesRegex(PermissionError, "isn't carried"): self.r.vouch("juno", "vega", lapsed)
+        self.assertFalse(self.r.status("juno")["carried"])
+
+    def test_no_chains_a_vouched_name_cant_vouch(self):
+        key = self.carried("atlas")
+        juno = self.r.claim("juno")["secret"]
+        self.r.vouch("juno", "atlas", key)
+        self.r.claim("vega")
+        with self.assertRaisesRegex(PermissionError, "vouched for itself"): self.r.vouch("vega", "juno", juno)
+        self.assertFalse(self.r.status("vega")["carried"])
+        self.r.grant("juno", self.until(), "paid now")          # carried on its own account, it may vouch
+        self.r.vouch("vega", "juno", juno)
+        self.assertTrue(self.r.status("vega")["carried"])
+
+    def test_one_name_vouches_for_at_most_the_cap(self):
+        key = self.carried("atlas")
+        for i in range(VOUCH_CAP):
+            self.r.claim(f"juno-{i}"); self.r.vouch(f"juno-{i}", "atlas", key)
+        self.r.vouch("juno-0", "atlas", key)                    # again for one it already brought: not one more
+        self.r.claim("vega")
+        with self.assertRaisesRegex(PermissionError, f"vouched for {VOUCH_CAP} already"): self.r.vouch("vega", "atlas", key)
+        self.assertFalse(self.r.status("vega")["carried"])
+        self.r.release("juno-0")
+        self.r.vouch("vega", "atlas", key)
+        self.assertTrue(self.r.status("vega")["carried"])
+
+    def test_a_file_from_before_vouching_gains_the_column(self):
+        path = Path(self.dir.name) / "old.db"
+        old = sqlite3.connect(path)
+        old.executescript("""create table houses (name text primary key, secret_hash text not null, claimed real not null,
+                             held_until real, entitled_until real, note text not null default '');
+                             insert into houses values ('atlas', 'x', 1, null, 4102444800.0, 'by hand');""")
+        old.close()
+        r = Registry(path, now=self.clock)
+        self.assertIsNone(r.houses()[0]["vouched_by"])
+        r.db.close()

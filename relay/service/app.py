@@ -3,8 +3,8 @@
 """The registration service: names for houses, and the relay's yes or no.
 
 Two audiences on one port. Hubs, from anywhere, at https://api.elyir.app: is this name free, take it
-(with an invite code, if somebody was handed one), how is it doing, bring an invite to it later, let it go, and
-hand a sealed notification to a phone in the store app (push.py). And frps, on this same box, asking before it carries a house (docs/service.md,
+(with an invite code, if somebody was handed one), how is it doing, bring an invite to it later, have a sibling
+name vouch for it, let it go, and hand a sealed notification to a phone in the store app (push.py). And frps, on this same box, asking before it carries a house (docs/service.md,
 Where the check goes) -- which must never be reachable from outside, because whoever could answer it
 could open the relay to anybody. The api name reaches this service the way a house reaches its own
 door, through frps and a local Caddy (relay/terraform), so every request from outside arrives with
@@ -23,10 +23,11 @@ from pydantic import BaseModel
 
 from home import Home, serve
 from push import Apns, Limit, problem
-from registry import RESERVED, Payers, Registry, read_ticket
+from registry import RESERVED, Payers, Registry, WrongKey, read_ticket
 
 CLAIMS_PER_DAY = 5               # per address: enough for a household changing its mind, not for a script
 WRONG_INVITES_PER_DAY = 10       # per house: typos, not guessing
+WRONG_VOUCHES_PER_DAY = 10       # per house: a box with a stale key, not somebody trying keys
 
 
 def watch_key(token: str) -> str:
@@ -57,6 +58,7 @@ def make(registry: Registry, now=time.time, relay: dict | None = None, offer: di
     app = FastAPI(title="home-hub relay registration", docs_url=None, redoc_url=None, openapi_url=None)
     claims: dict[str, list[float]] = {}
     wrong: dict[str, list[float]] = {}
+    wrong_vouches: dict[str, list[float]] = {}
     relay = relay or {"addr": f"relay.{registry.zone}", "token": ""}
     offer = offer or {"open": False, "price": None, "pay": None}
     home = home or Home(registry, now=now)
@@ -143,6 +145,22 @@ def make(registry: Registry, now=time.time, relay: dict | None = None, offer: di
         try: until, note = read_ticket(body.ticket, name, payers.keys(), now())
         except PermissionError as e: raise HTTPException(403, {"why": "ticket", "message": str(e)}) from None
         registry.carry(name, until, note)
+        return {"name": name, "address": f"{name}.{registry.zone}", **registry.status(name), "relay": relay}
+
+    class Vouch(BaseModel):
+        by: str
+        secret: str
+
+    @app.post("/houses/{name}/vouch")
+    def vouch(name: str, body: Vouch, authorization: str | None = Header(default=None)):
+        """A carried name brings this one along: a Bench Box's new printer, on a sibling's key (registry.py, vouching)."""
+        owner(name, authorization)
+        recent = [t for t in wrong_vouches.get(name, []) if now() - t < 24 * 3600]
+        if len(recent) >= WRONG_VOUCHES_PER_DAY: raise HTTPException(429, "Too many keys that didn't work today. Try again tomorrow.")
+        try: registry.vouch(name, body.by.strip().lower(), body.secret)
+        except PermissionError as e:
+            if isinstance(e, WrongKey): wrong_vouches[name] = recent + [now()]
+            raise HTTPException(403, {"why": "vouch", "message": str(e)}) from None
         return {"name": name, "address": f"{name}.{registry.zone}", **registry.status(name), "relay": relay}
 
     @app.get("/houses/{name}")

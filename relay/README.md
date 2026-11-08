@@ -104,6 +104,15 @@ carries at most 45 days ahead, never shortening a longer grant: a plan that stop
 the name stays the house's. Payers and their keys are lines of `name key` in `/var/lib/relay/service/payers`
 on the volume (read again when it changes, kept across a new box), or `RELAY_PAYERS=name=key`.
 
+**Or a sibling vouches for it.** A Bench Box speaks for several printers, each under its own name, and
+the one added last needn't wait on the operator when the others are carried: the new name's holder
+brings a carried name and that name's secret (`POST /houses/<name>/vouch {"by", "secret"}` with its
+own secret) and is carried until the same day, noted "vouched by" that name. Only a name carried on its
+own account -- a grant, an invite or a ticket -- may vouch, never one that was vouched for itself, and
+one name vouches for at most ten. A vouched name doesn't follow its voucher's renewals; it runs out on
+the day it was given and the box vouches again. Stopping the voucher doesn't stop the names it brought:
+stop each, which `cli.py list` shows by its note.
+
 **The printer app** (`printers.elyir.app`, since 2 October 2026) is static files served by the same
 Caddy as `api`, carried through frps as one more always-carried name whose secret is derived from the
 relay token. It belongs to the printer project and is published from that repository, never edited on
