@@ -347,6 +347,39 @@ C
   touch "$fake/no-daemon"
   run 'mosquitto exited\n'
   is "a docker that does not answer starts nothing" "$(up)" nothing
+  rm -f "$fake/no-daemon"
+
+  # A brain that stops answering: a full restart first, and the machine only when that did not help.
+  printf '#!/usr/bin/env bash\nshift; exec "$@"\n' > "$bin/timeout"
+  printf '#!/usr/bin/env bash\necho "$*" >> "$FAKE/systemctl"\n' > "$bin/systemctl"
+  chmod +x "$bin/timeout" "$bin/systemctl"
+  rung() { sed -n 's/.*"rung":"\([a-z]*\)".*/\1/p' "$data/restart.json" 2>/dev/null || true; }
+  booted() { cat "$fake/systemctl" 2>/dev/null || echo nothing; }
+  whole='mosquitto running\nhomeassistant running\nbrain running\n'
+  rm -f "$fake/answering" "$data/watchdog.state"
+
+  run "$whole"
+  is "a brain that stops answering gets the whole house recreated" "$(up)" "--force-recreate --remove-orphans"
+  is "...said as a full restart nobody asked for" "$(rung)" everything
+  is "...and the machine is left alone" "$(booted)" nothing
+
+  run "$whole"
+  is "still not answering after that full restart: the machine is restarted" "$(booted)" reboot
+  is "...said as the machine, so the panel can tell the house" "$(rung)" machine
+  is "...and nothing is brought up on the way down" "$(up)" nothing
+
+  rm -f "$fake/systemctl"
+  run "$whole"; run "$whole"
+  is "a second time in the same six hours brings the house up rather than rebooting again" "$(booted)" nothing
+  is "...and still recreates it" "$(up)" "--force-recreate --remove-orphans"
+
+  printf 'full=%s\nmachine=\n' "$(( $(date +%s) - 3600 ))" > "$data/watchdog.state"
+  run "$whole"
+  is "a full restart an hour ago is not this one, so it is a full restart again" "$(booted)" nothing
+
+  printf 'full=1; touch %s/sourced\n' "$fake" > "$data/watchdog.state"
+  run "$whole"
+  [ -e "$fake/sourced" ] && no "what the brain can write is read, never run" "it ran" || ok "what the brain can write is read, never run"
   rm -rf "$root"
 }
 

@@ -146,6 +146,11 @@ brings the stack up again itself and writes what happened where the brain will f
 `restart: unless-stopped` and self-heal from a crash already; what has no watchdog today is a *stack* that
 came up wrong, and a restart button is what makes that reachable by a household.
 
+*Built (9 November 2026):* `host/watchdog.sh` climbs the same ladder. A brain that misses three looks a minute
+apart gets the whole stack recreated (rung 3); still not answering on its next look within twenty minutes, the
+machine is restarted (rung 4), at most once in six hours. Both leave `restart.json` with `source: watchdog`, so
+the panel says the hub started itself again.
+
 **Away from home.** This is the rung that can strand somebody, and it decides piece 6.
 
 ## Piece 6: who may, and from where
