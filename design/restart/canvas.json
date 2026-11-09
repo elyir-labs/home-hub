@@ -1,0 +1,162 @@
+{
+  "name": "Restarting the hub",
+  "areas": [
+    "Wall screens",
+    "Tools"
+  ],
+  "reading": [
+    "why",
+    "Today.dc.html",
+    "Today-ask.dc.html",
+    "Today-weary.dc.html",
+    "today",
+    "Owed.dc.html",
+    "owed",
+    "pick",
+    "NextSoonerA.dc.html",
+    "a",
+    "QuietlyB.dc.html",
+    "QuietlyB-machine.dc.html",
+    "b",
+    "DeveloperC.dc.html",
+    "c"
+  ],
+  "pages": [
+    {
+      "id": "restart",
+      "name": "Restarting the hub"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today · The hub: one Restart",
+      "page": "restart"
+    },
+    {
+      "file": "Today-ask.dc.html",
+      "x": 1580,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today · Restart asks, and offers only a quick restart",
+      "page": "restart"
+    },
+    {
+      "file": "Today-weary.dc.html",
+      "x": 3160,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today · A full restart appears after three quick ones in an hour",
+      "page": "restart"
+    },
+    {
+      "file": "Owed.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "Every direction · The hub says when it needs to restart",
+      "page": "restart"
+    },
+    {
+      "file": "NextSoonerA.dc.html",
+      "x": 0,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "A · A restart that didn't help is enough to offer the next",
+      "page": "restart"
+    },
+    {
+      "file": "QuietlyB.dc.html",
+      "x": 0,
+      "y": 3900,
+      "w": 1440,
+      "h": 900,
+      "title": "B · All three, the smallest first",
+      "page": "restart"
+    },
+    {
+      "file": "QuietlyB-machine.dc.html",
+      "x": 1580,
+      "y": 3900,
+      "w": 1440,
+      "h": 900,
+      "title": "B · Power off and on, asked like the others",
+      "page": "restart"
+    },
+    {
+      "file": "DeveloperC.dc.html",
+      "x": 0,
+      "y": 5200,
+      "w": 1440,
+      "h": 900,
+      "title": "C · All three on For working on the hub",
+      "page": "restart"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "restart",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS (9 NOVEMBER 2026)\n\nThe hub can power itself off and on. restart.py has had the rung since September, and host/restart.sh does it. But nobody can get to it. Restart on The hub always starts with a quick restart, which restarts only the hub's own software. A full restart is offered only after three quick restarts in an hour, and Power off and on only after three full ones. Six restarts to reach the one that was wanted.\n\nTwo real cases have needed it:\n- A CHANGE THAT ONLY TAKES EFFECT AT BOOT. Turning the screen, turning on the hardware watchdog, a system update to the machine underneath. The hub knows a boot is owed and says nothing.\n- A HUB THAT IS STUCK BELOW ITS SOFTWARE. A wedged Docker, a USB radio gone deaf. Restarting the software does nothing; only power does.\n\nThe second is now the hub's own job: since 9 November the watchdog powers the hub off and on by itself when a full restart did not bring it back, at most once in six hours (host/watchdog.sh). So these boards are about the first case, and about the person who knows something is wrong when nothing is reporting it.\n\nWhat is not in question: docs/restart.md's rule that the smallest restart comes first and the household is never handed a diagnosis, the passcode, the warning to a phone away from home, and the words Quick restart, Full restart and Power off and on (design/words-settings/).\n\nThe boards are the shipped panel on the mock house with each board's row drawn into it (boards.js, app/mock/restart-shots.mjs)."
+    },
+    {
+      "id": "today",
+      "page": "restart",
+      "x": 0,
+      "y": 960,
+      "w": 4600,
+      "text": "TODAY: ONE DOOR, AND THE LADDER BEHIND IT LOCKED\n\nThe row says If something's stuck, restart the hub. Tapping it asks, in the row, with what keeps working and what stops, and offers only Quick restart. The next rung appears only once the same one has been asked for three times in the past hour, with the line The hub has restarted 3 times in the past hour. Three was chosen so the panel would not join in with a hub that restarting is not fixing. In practice it means Power off and on is out of reach."
+    },
+    {
+      "id": "owed",
+      "page": "restart",
+      "x": 1580,
+      "y": 1300,
+      "w": 1300,
+      "text": "IN EVERY DIRECTION: THE HUB SAYS WHEN IT NEEDS TO RESTART\n\nThis is the case the hub can see, so it is the hub's to say, and it is the same whichever of A, B or C is picked.\n\nWhen something has changed that only takes effect when the machine starts again, the Restart row says so in place of its usual line: why, how long, that switches keep working, and that it will do it by itself tonight if nobody does. The button is Restart now and it powers the hub off and on. A dot on the row's name, in the lamp color, so it reads as news rather than a fault. It is not a line in Needs a look, because nothing is wrong.\n\nHow it is known: the host writes brain-data/reboot.json when the system says a restart is required (/var/run/reboot-required), or when the boot settings (config.txt, cmdline.txt) are newer than the last boot. The brain reads it, never writes it. Tonight is the overnight update window the hub already uses.\n\nThe words name the reason the hub knows: to finish an update, to finish turning the screen. Never a file name or a package."
+    },
+    {
+      "id": "a",
+      "page": "restart",
+      "x": 1580,
+      "y": 2600,
+      "w": 1300,
+      "text": "A: THE NEXT ONE, SOONER\n\nThe ladder stays and only its threshold moves. One restart in the past half hour is enough: tap Restart again and the row offers the next rung first, says why (You did a full restart 10 minutes ago), and keeps the smaller one as a ghost button beside it. Quick, then Full, then Power off and on: three taps on the same row in the worst case, each one earned by the last.\n\nFOR: it keeps docs/restart.md whole. The household is still never asked to choose how deep, and the row still opens on the smallest restart. The hub learns what the person meant from what they just did, which is the honest signal: somebody tapping Restart again ten minutes later is telling it the last one did not help. It is the least to build: DEEPER and WEARY already exist in restart.py, and this changes one number and one window.\n\nAGAINST: somebody who already knows they want the machine restarted still waits through two smaller ones first, about two and a half minutes of a dark screen. A person who restarts twice for two unrelated reasons is offered more than they need, though the smaller one is right beside it."
+    },
+    {
+      "id": "b",
+      "page": "restart",
+      "x": 0,
+      "y": 4860,
+      "w": 3020,
+      "text": "B: ALWAYS THERE, QUIETLY\n\nRestart still asks and still offers Quick restart as the button. Under what keeps working and what stops, one quiet line: Still stuck after restarting? Full restart · Power off and on. Each opens the same ask as the first, with its own cost said in full: how long the screen is dark, that everything the hub talks to goes quiet, and the warning to a phone away from home.\n\nFOR: nobody waits through a restart they know will not help. It is one line, under the default, and the default is still the smallest. It is what people already expect from a computer: restart, or shut down.\n\nAGAINST: it is the menu docs/restart.md argued against. The person at the wall cannot tell Full from Power off and on, which is why they are at the wall, and a line that offers both hands them the diagnosis. A household that learns to tap the deepest one every time loses three minutes and all its radios for a fault a quick restart would have fixed."
+    },
+    {
+      "id": "c",
+      "page": "restart",
+      "x": 1580,
+      "y": 5200,
+      "w": 1300,
+      "text": "C: FOR WHOEVER IS WORKING ON IT\n\nThe household's row stays as today: one Restart, the smallest first, the next only after three. The developer page, For working on the hub, gets a fourth card: how long the hub has been up, when it last restarted and who asked, and all three restarts side by side, each with what it restarts and how long it takes.\n\nFOR: it is honest about who asks for a particular restart. A household never needs to choose, and now does not have to, because the hub says when a restart is owed and the watchdog powers it off and on when it is stuck. The person who knows they want the machine restarted is working on the hub, and this is their page. Up since and last restarted are what a developer asks first.\n\nAGAINST: a household with a real stuck hub and no developer page still has the six-restart wait, if the watchdog does not catch it first, which it will not when the brain is still answering. And the page is only there on a hub following development, or after seven taps and the passcode."
+    },
+    {
+      "id": "pick",
+      "page": "restart",
+      "x": 4740,
+      "y": 0,
+      "w": 900,
+      "text": "WHICH ONE\n\nRecommended: A, with C's card.\n\nA fixes the household's row without turning it into a menu: the hub still chooses, it just believes the person sooner. C's card is cheap, belongs on that page whatever is picked, and is the one place where asking for Power off and on straight away is the right shape.\n\nB is drawn because it is what most people would expect, and because the argument against it is docs/restart.md's, which is worth seeing on a board before it is held to.\n\nOr something else, described in your own words. That is a real option."
+    }
+  ]
+}
