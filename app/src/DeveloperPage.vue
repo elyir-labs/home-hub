@@ -4,15 +4,15 @@
 -->
 <script setup lang="ts">
 /*
- * For working on the hub (design/developer/, B, shown by default on a hub not on releases). Three cards: what
- * the hub follows, SSH, and the wall screens in the house. Nothing here is needed to run a house, and the page
+ * For working on the hub (design/developer/, B, shown by default on a hub not on releases). Four cards: what
+ * the hub follows, SSH, the wall screens in the house, and restarting it at whichever depth (design/restart/, C). Nothing here is needed to run a house, and the page
  * says so first. A key is added from a phone or computer and never typed on a shared screen: there the SSH card
  * offers a code for this page on a phone instead (the phone board).
  */
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { store, notify, loadDeveloper } from './store'
-import { allowKeys, followChannel, githubKeys, hideDeveloper, qrUrl, removeKey, turnSsh, updateScreen, updateScreens, type DevKey, type DevScreen, type GithubKey } from './api'
-import { behindScreens, choices, keySource, keyUrl, readKey, screenBuild, screenState, screenWhere, shortPrint, type Choice } from './developer'
+import { store, notify, loadDeveloper, restartHub } from './store'
+import { allowKeys, askRestart, followChannel, githubKeys, hideDeveloper, qrUrl, removeKey, turnSsh, updateScreen, updateScreens, type DevKey, type DevScreen, type GithubKey, type RestartAsk, type Rung } from './api'
+import { RESTARTS, behindScreens, choices, keySource, keyUrl, readKey, restartLine, restartSay, screenBuild, screenState, screenWhere, shortPrint, type Choice } from './developer'
 import { isScreen } from './screen'
 import { onWall } from './keys'
 import { locale } from './lang'
@@ -98,6 +98,20 @@ async function allow() {
 const screens = computed(() => d.value?.screens ?? [])
 const behind = computed(() => behindScreens(d.value, now.value))
 const state = (s: DevScreen) => screenState(s, now.value)
+
+/* Restarting, at the depth named: the household's row picks for them, this card does not. Each asks once, in its
+   row, with the hub's own words for what stops, as everywhere else a restart is asked. */
+const restartAsk = ref<RestartAsk | null>(null)
+async function askFor(rung: Rung) {
+  try { restartAsk.value = await askRestart(rung) } catch (e: any) { notify(e.message, 'error') }
+}
+async function restartNow() {
+  const a = restartAsk.value
+  if (!a || busy.value) return
+  busy.value = 'restart'
+  if (await restartHub(a.rung, !!a.warn)) restartAsk.value = null
+  busy.value = ''
+}
 
 async function takeAway() {
   if (await act('hide', hideDeveloper)) store.sheet = 'house'
@@ -190,6 +204,7 @@ async function takeAway() {
         </section>
       </div>
 
+      <div class="dev-col">
       <section class="dev-card" aria-label="Screens in this house">
         <h3>Screens in this house</h3>
         <p class="dev-say">{{ screens.length ? 'Each keeps up with this hub by itself, overnight, after the hub’s own update.' : 'No wall screens have joined this house yet.' }}</p>
@@ -213,6 +228,27 @@ async function takeAway() {
           <button class="button small ghost" v-if="behind.length" :class="{ busy: busy === 'all' }" @click="act('all', updateScreens)">Update all</button>
         </div>
       </section>
+
+      <section class="dev-card" aria-label="Restart" v-if="d.restart">
+        <h3>Restart</h3>
+        <p class="dev-say">{{ restartSay(d.restart, now) }}</p>
+        <template v-for="r in RESTARTS" :key="r.rung">
+          <div class="dev-step">
+            <span>{{ r.name }}<span>{{ restartLine(d.restart, r.rung, r.what) }}</span></span>
+            <button class="button small ghost" :disabled="!!store.restarting" @click="askFor(r.rung)">Restart</button>
+          </div>
+          <div class="dev-ask" v-if="restartAsk?.rung === r.rung">
+            <p>{{ restartAsk.keeps }} The screen goes dark for {{ restartAsk.how_long }}.</p>
+            <p v-for="(line, i) in [...restartAsk.flight, restartAsk.warn, restartAsk.blocked].filter(Boolean)" :key="i" class="dev-warn">{{ line }}</p>
+            <p v-if="!restartAsk.may" class="dev-warn">Restarting needs the passcode. Someone who joined with it can do it.</p>
+            <span class="dev-acts">
+              <button class="button small" v-if="restartAsk.may && !restartAsk.blocked" :class="{ busy: busy === 'restart' }" @click="restartNow">{{ restartAsk.yes }}</button>
+              <button class="button small ghost" @click="restartAsk = null">Not now</button>
+            </span>
+          </div>
+        </template>
+      </section>
+      </div>
     </div>
   </div>
 </template>

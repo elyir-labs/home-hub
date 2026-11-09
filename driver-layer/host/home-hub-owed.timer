@@ -1,0 +1,11 @@
+# Every five minutes: a change waiting for a restart is news for The hub's Restart row, not an emergency.
+[Unit]
+Description=Home Hub: watch for a change waiting for the machine to restart
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+Unit=home-hub-owed.service
+
+[Install]
+WantedBy=timers.target

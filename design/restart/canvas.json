@@ -24,7 +24,16 @@
   "pages": [
     {
       "id": "restart",
-      "name": "Restarting the hub"
+      "name": "Restarting the hub",
+      "decided": {
+        "on": "2026-11-09",
+        "chose": "A, with C's card",
+        "board": "NextSoonerA.dc.html"
+      }
+    },
+    {
+      "id": "restart-rejected",
+      "name": "Restarting the hub: not chosen"
     }
   ],
   "artboards": [
@@ -76,20 +85,20 @@
     {
       "file": "QuietlyB.dc.html",
       "x": 0,
-      "y": 3900,
+      "y": 0,
       "w": 1440,
       "h": 900,
       "title": "B · All three, the smallest first",
-      "page": "restart"
+      "page": "restart-rejected"
     },
     {
       "file": "QuietlyB-machine.dc.html",
       "x": 1580,
-      "y": 3900,
+      "y": 0,
       "w": 1440,
       "h": 900,
       "title": "B · Power off and on, asked like the others",
-      "page": "restart"
+      "page": "restart-rejected"
     },
     {
       "file": "DeveloperC.dc.html",
@@ -136,9 +145,9 @@
     },
     {
       "id": "b",
-      "page": "restart",
+      "page": "restart-rejected",
       "x": 0,
-      "y": 4860,
+      "y": 960,
       "w": 3020,
       "text": "B: ALWAYS THERE, QUIETLY\n\nRestart still asks and still offers Quick restart as the button. Under what keeps working and what stops, one quiet line: Still stuck after restarting? Full restart · Power off and on. Each opens the same ask as the first, with its own cost said in full: how long the screen is dark, that everything the hub talks to goes quiet, and the warning to a phone away from home.\n\nFOR: nobody waits through a restart they know will not help. It is one line, under the default, and the default is still the smallest. It is what people already expect from a computer: restart, or shut down.\n\nAGAINST: it is the menu docs/restart.md argued against. The person at the wall cannot tell Full from Power off and on, which is why they are at the wall, and a line that offers both hands them the diagnosis. A household that learns to tap the deepest one every time loses three minutes and all its radios for a fault a quick restart would have fixed."
     },
@@ -157,6 +166,14 @@
       "y": 0,
       "w": 900,
       "text": "WHICH ONE\n\nRecommended: A, with C's card.\n\nA fixes the household's row without turning it into a menu: the hub still chooses, it just believes the person sooner. C's card is cheap, belongs on that page whatever is picked, and is the one place where asking for Power off and on straight away is the right shape.\n\nB is drawn because it is what most people would expect, and because the argument against it is docs/restart.md's, which is worth seeing on a board before it is held to.\n\nOr something else, described in your own words. That is a real option."
+    },
+    {
+      "id": "decided",
+      "page": "restart",
+      "x": 4740,
+      "y": 1300,
+      "w": 900,
+      "text": "DECIDED 9 NOVEMBER 2026: A, WITH C'S CARD\n\nThe door on The hub still picks the restart, and believes the person sooner: back within half an hour of a restart they asked for, the next one is offered first, with the one they tried beside it as \"Full restart again\". The row says when the machine is waiting to start again, and the hub does it at its minute of the night if nobody does. For working on the hub has all three restarts, how long the hub has been up, and who restarted it last.\n\nB is on its own page with its case intact.\n\nBuilt: brain/hub/restart.py (recent, owed, tick, facts), host/owed.sh and home-hub-owed.timer, HubPage.vue's Restart row, DeveloperPage.vue's Restart card. Pinned by brain/tests/test_restart.py, app/e2e/restart.spec.ts, app/tests/developer.test.ts and the owing group in driver-layer/host/tests.sh."
     }
   ]
 }

@@ -33,6 +33,7 @@ log = logging.getLogger("hub.restart")
 
 REQUEST = DATA / "restart.request"   # the host's home-hub-restart.path is watching for exactly this
 STATE = DATA / "restart.json"        # written on the way down, read and cleared on the way back up
+OWED = DATA / "reboot.json"          # host/owed.sh says here that the machine has a change waiting for a boot
 
 RUNGS = ("hub", "everything", "machine")
 DEEPER = {"hub": "everything", "everything": "machine", "machine": None}
@@ -42,6 +43,8 @@ GOING = 1.0        # how long the brain waits before going, so the answer reache
 CAP = 900          # a gap longer than this was not a restart, so nothing is learned from it
 IN_FLIGHT = 300    # after this, a restart that never came back stops standing in the way of the next
 WEARY, HOUR = 3, 3600.0   # restarts in an hour past which the same rung has stopped being the answer
+SOON = 1800        # a restart somebody asked for this recently, and they are back at the door: it did not help
+OWED_RETRY = 20 * HOUR   # one boot a night for a change that is owed, so one that does not clear it cannot loop
 
 TITLE = {"hub": "Restart the hub?", "everything": "Full restart?", "machine": "Power the hub off and on?"}
 DO = {"hub": "Quick restart", "everything": "Full restart", "machine": "Power off and on"}   # how deep, not which part (design/words-settings/)
@@ -49,9 +52,22 @@ DO = {"hub": "Quick restart", "everything": "Full restart", "machine": "Power of
 # asking about: a Zigbee group bound coordinator-side keeps switching, a Brilliant pair migrated to
 # the house's own network talks switch-to-switch with the hub out of the path, and a wall switch is a
 # wall switch. "The house goes dark" is the fear; it is not what happens.
+# Somebody is back at the door within SOON of the last restart they asked for (design/restart/, A). The
+# next rung is offered first, and this says why, so it is never a mystery that the button got bigger.
+AGAIN = {"hub": "You restarted the hub {ago}. If something's still stuck, a full restart starts everything the hub runs again, the radios included.",
+         "everything": "You did a full restart {ago}. If something's still stuck, powering it off and on starts it fresh, radios included.",
+         "machine": "You powered the hub off and on {ago}."}
+# The change the machine is waiting to boot for, in the words the Restart row shows. A word from a fixed
+# set, as the restart request is: what the host writes is never shown as it was written.
+OWED_WHY = {"update": "The hub needs to restart to finish an update.",
+            "change": "The hub needs to restart to finish a change to how it's set up."}
 KEEPS = {"hub": "Lights and switches keep working.",
          "everything": "Switches on the wall keep working.",
          "machine": "Switches on the wall keep working."}
+
+
+def ago(seconds: float) -> str:
+    return "a minute ago" if seconds < 90 else f"{int(round(seconds / 60.0))} minutes ago"
 
 
 def plainly(seconds: int) -> str:
@@ -152,15 +168,80 @@ class Restart:
         return sum(1 for e in self.hub.log.recent(limit=50, subject="restart", kinds=("home",))
                    if e["new"] == "asked" and now - e["ts"] < within)
 
+    def recent(self, now: float | None = None) -> dict | None:
+        """The last restart somebody in the house asked for, if it was within SOON. The hub's own
+        (the watchdog, a change owed a boot) do not count: nobody came back to the door after those."""
+        now = now or time.time()
+        for e in self.hub.log.recent(limit=20, subject="restart", kinds=("home",), since=now - SOON):
+            if e["new"] == "asked" and e["source"] == "user" and e["old"] in RUNGS: return e
+        return None
+
+    # ---- a change the machine is waiting to boot for ----
+    def owed(self) -> dict | None:
+        """What the Restart row says in place of its usual line, or None. In every direction of
+        design/restart/: the one case the hub can see, so the hub says it."""
+        try: why = json.loads(OWED.read_text()).get("why")
+        except (OSError, ValueError, AttributeError): return None
+        if why not in OWED_WHY: return None
+        more = f"It powers off and on, which takes {plainly(self.seconds('machine'))}. Switches on the wall keep working."
+        at = self.tonight()
+        if at: more += f" If you leave it, it does this by itself tonight at {at}."
+        return {"why": why, "text": OWED_WHY[why], "more": more}
+
+    def tonight(self) -> str | None:
+        """When this hub would boot for an owed change by itself: its own minute of the update window,
+        the clock everything the hub does unasked keeps. None where it never does anything unasked."""
+        u = getattr(self.hub, "updates", None)
+        if u is None or not u.auto: return None
+        from .updates import WINDOW
+        h, m = divmod(WINDOW[0] * 60 + u.minute_of_the_night(), 60)
+        return f"{h % 12 or 12}:{m:02d} {'AM' if h < 12 else 'PM'}"
+
+    def tick(self, now: float | None = None) -> bool:
+        """Boot for an owed change, at this hub's minute of the night, with nobody up. Called from the
+        update loop so there is one clock for everything the hub does by itself. An update due the same
+        night goes first; this waits for the next tick."""
+        now = now or time.time()
+        u = self.hub.updates
+        if not self.owed() or not u.auto or not u.quiet_hours(now): return False
+        if now - float(self.hub.settings.get("owed_tried") or 0) < OWED_RETRY: return False
+        if self.blocked() or self.pending() or u.due(now): return False
+        self.hub.settings.set(owed_tried=now)
+        log.info("powering off and on for a change that was waiting for it")
+        self.go("machine", "the hub itself", source="hub")
+        return True
+
+    # ---- for working on the hub (design/restart/, C) ----
+    def facts(self) -> dict:
+        """How long the machine has been up and the last restart anybody asked for, for the developer page."""
+        try: up = time.time() - float(open("/proc/uptime").read().split()[0])
+        except (OSError, ValueError, IndexError): up = None
+        # "back" too: the watchdog's restarts are only ever written down on the way back up.
+        last = next((e for e in self.hub.log.recent(limit=20, subject="restart", kinds=("home",)) if e["new"] in ("asked", "back")), None)
+        if last:
+            try: who = (json.loads(last["detail"] or "{}") or {}).get("who")
+            except (ValueError, TypeError): who = None
+            last = {"at": last["ts"], "rung": last["old"], "source": last["source"], "who": who}
+        return {"up_since": up, "last": last, "how_long": {r: plainly(self.seconds(r)) for r in RUNGS}}
+
     # ---- the sheet ----
-    def ask(self, rung: str = "hub", away: bool = False) -> dict:
+    def ask(self, rung: str | None = None, away: bool = False) -> dict:
         """Everything the confirmation needs, written here rather than in the panel: the panel does not
-        know what it is looking at and so decides none of these words."""
+        know what it is looking at and so decides none of these words.
+
+        No rung is the door on The hub, and the hub picks: the smallest, unless somebody asked for a
+        restart within SOON and is back, in which case that one did not help and the next is offered
+        first, with the smaller beside it (design/restart/, A). A named rung is that rung."""
+        last = self.recent() if rung is None else None
+        if rung is None: rung = (DEEPER[last["old"]] or "machine") if last else "hub"
         rung = rung if rung in RUNGS else "hub"
         lately = self.lately()        # a query against the log; the sheet asked it three times over
         weary = lately >= WEARY
         secs = self.seconds(rung)
         return {"rung": rung, "title": TITLE[rung], "yes": DO[rung], "keeps": KEEPS[rung],
+                "again": AGAIN[last["old"]].format(ago=ago(time.time() - last["ts"])) if last else None,
+                "smaller": {"rung": last["old"], "yes": f"{DO[last['old']]} again"} if last and last["old"] != rung else None,
+                "owed": self.owed(),
                 "stops": self.stops(rung, away), "flight": self.flight(rung),
                 "seconds": secs, "how_long": plainly(secs),
                 "blocked": self.blocked(), "busy": self.pending(), "lately": lately,

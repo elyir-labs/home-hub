@@ -46,7 +46,9 @@ function seed(q, now) {
         { id: 'hallway', name: 'Hallway wall screen', host: 'screen-2.local', ip: '192.168.1.57', version: `pi-image-wall-${SHA}`, commit: SHA, channel: 'pi-image-wall', landed: true, current: false, seen: now - 120, updating: false },
         { id: 'bedroom', name: 'Bedroom wall screen', host: 'screen-3.local', ip: '192.168.1.63', version: 'development-71c0d2e', commit: '71c0d2e9a0b1', channel: 'development', landed: false, current: true, seen: now - 2 * 86400, updating: false },
       ],
-      requested: { channel: null } },
+      requested: { channel: null },
+      restart: { up_since: now - 6 * 86400, last: { at: now - 2 * 86400, rung: 'everything', source: 'watchdog', who: 'the hub itself' },
+        how_long: { hub: 'about 30 seconds', everything: 'about 2 minutes', machine: 'about 3 minutes' } } },
   }
 }
 function page(req) {

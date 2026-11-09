@@ -3,7 +3,7 @@
 /* For working on the hub (design/developer/, B, shown by default on a hub that is not on releases), as rules
    rather than drawing. DeveloperPage.vue draws them; these are the parts a test can hold. Nothing here reaches a
    household: the page is on This house's list only when the brain says `shown`. */
-import type { Developer, DevScreen } from './api'
+import type { Developer, DevRestart, DevScreen, Rung } from './api'
 
 /** A build's name as people read it: "pi-image-wall · e39341a" for a branch build, a release as it is. */
 export function versionLabel(v?: string | null): string {
@@ -47,6 +47,32 @@ export function ago(ts: number, now = Date.now() / 1000): string {
   if (s < 3600) { const m = Math.max(1, Math.round(s / 60)); return m === 1 ? 'a minute ago' : `${m} minutes ago` }
   if (s < 86400 * 2) { const h = Math.round(s / 3600); return h === 1 ? 'an hour ago' : h < 36 ? `${h} hours ago` : 'yesterday' }
   return `${Math.round(s / 86400)} days ago`
+}
+/* The Restart card (design/restart/, C): all three, side by side, in the words The hub uses for them. */
+export const RESTARTS: { rung: Rung; name: string; what: string }[] = [
+  { rung: 'hub', name: 'Quick restart', what: 'The hub’s own software' },
+  { rung: 'everything', name: 'Full restart', what: 'Everything the hub runs, the radios included' },
+  { rung: 'machine', name: 'Power off and on', what: 'The machine itself' },
+]
+export const restartLine = (r: DevRestart | undefined, rung: Rung, what: string) => {
+  const t = r?.how_long?.[rung]
+  return t ? `${what}. ${t[0].toUpperCase()}${t.slice(1)}.` : `${what}.`
+}
+function span(s: number): string {
+  if (s < 3600) { const m = Math.max(1, Math.round(s / 60)); return m === 1 ? 'a minute' : `${m} minutes` }
+  if (s < 86400 * 2) { const h = Math.round(s / 3600); return h === 1 ? 'an hour' : `${h} hours` }
+  return `${Math.round(s / 86400)} days`
+}
+/** "Up 6 days. Last restarted 2 days ago, by the hub itself." What is asked first about a hub misbehaving. */
+export function restartSay(r: DevRestart | undefined, now = Date.now() / 1000): string {
+  if (!r) return ''
+  const out: string[] = []
+  if (r.up_since != null) out.push(`Up ${span(Math.max(0, now - r.up_since))}.`)
+  if (r.last) {
+    const by = r.last.source === 'user' ? (r.last.who ? `, by ${r.last.who}` : '') : ', by the hub itself'
+    out.push(`Last restarted ${ago(r.last.at, now)}${by}.`)
+  } else out.push('Not restarted from here yet.')
+  return out.join(' ')
 }
 /** Where a screen is, or when it was last heard from. */
 export function screenWhere(s: DevScreen, now = Date.now() / 1000): string {

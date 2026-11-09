@@ -3000,7 +3000,7 @@ def update_auto(body: dict):
 
 # ---------- turning it off and on again ----------
 @app.get("/restart")
-def restart_ask(request: Request, rung: str = "hub"):
+def restart_ask(request: Request, rung: str | None = None):
     """What a restart at this rung would cost, in this house, right now.
 
     Every word of the sheet is written here rather than in the panel, the way Needs a look's buttons

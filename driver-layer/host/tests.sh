@@ -1457,9 +1457,35 @@ SH
   rm -rf "$root"
 }
 
+# ---------------------------------------------------------------- a change waiting for the machine to restart
+# The Restart row says so, and the hub does it at night (design/restart/). The brain shows its own sentence
+# for the word, so the one property worth proving here is which word, and that nothing is left once a boot cleared it.
+owing() {
+  group "A change waiting for the machine to restart is said, and only while it waits"
+  local root; root="$(mktemp -d)"
+  local dir="$root/hub" run="$root/run" mods="$root/modules" boot="$root/boot" stat="$root/stat" out
+  out="$dir/driver-layer/brain-data/reboot.json"
+  mkdir -p "$dir/driver-layer/brain-data" "$run" "$mods/6.6.51" "$boot"
+  echo "btime 1700000000" > "$stat"
+  run() { HOME_HUB_DIR="$dir" HUB_RUN="$run" HUB_MODULES="$mods" HUB_BOOT="$boot" HUB_STAT="$stat" HUB_KERNEL=6.6.51 "$HERE/owed.sh"; }
+  said() { sed -n 's/.*"why":"\([a-z]*\)".*/\1/p' "$out" 2>/dev/null || true; }
+  touch -t 202301010000 "$boot/config.txt" "$boot/cmdline.txt"
+
+  run; is "nothing waiting writes nothing" "$([ -e "$out" ] && echo there || echo gone)" gone
+  touch "$run/reboot-required"; run
+  is "the system saying so is an update" "$(said)" update
+  rm "$run/reboot-required"; mv "$mods/6.6.51" "$mods/6.6.62"; run
+  is "a kernel replaced under the running one is an update" "$(said)" update
+  mv "$mods/6.6.62" "$mods/6.6.51"; touch "$boot/cmdline.txt"; run
+  is "boot settings changed since this boot are a change" "$(said)" change
+  echo "btime $(( $(date +%s) + 60 ))" > "$stat"; run
+  is "...and once the machine has started again, nothing is left" "$([ -e "$out" ] && echo there || echo gone)" gone
+  rm -rf "$root"
+}
+
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; sizing; guessing; awake; setting_up; moving_in; moving; describing; starting_over
+signatures; holds; undo; radios; tiers; watchdog; owing; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; sizing; guessing; awake; setting_up; moving_in; moving; describing; starting_over
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

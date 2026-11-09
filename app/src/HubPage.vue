@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { store, notify, installUpdate, restartHub, loadDeveloper } from './store'
-import { askRestart, askUpdate, checkForUpdate, downloadBackup, getNetwork, getUpdateNotes, listBridges, markNotesRead, setAutoUpdate, setLanguage, type BridgeRow, type NetState, type RestartAsk, type Rung, type UpdateAsk, type UpdateNotes } from './api'
+import { askRestart, askUpdate, checkForUpdate, downloadBackup, getNetwork, getUpdateNotes, listBridges, markNotesRead, setAutoUpdate, setLanguage, type BridgeRow, type NetState, type Owed, type RestartAsk, type Rung, type UpdateAsk, type UpdateNotes } from './api'
 import Restore from './Restore.vue'
 import AdvancedLink from './AdvancedLink.vue'
 import Drivers from './Drivers.vue'
@@ -135,6 +135,7 @@ onMounted(async () => {
   loadNet()     // not awaited: the Network row is a fact the hub already holds, and nothing below needs it
   loadAddress()
   loadBridges()
+  loadOwed()
   try { notes.value = await getUpdateNotes() } catch { /* an older hub, or no notes in this build */ }
   if (store.status?.update?.whats_new) { try { await markNotesRead() } catch { /* it will come back tomorrow */ } }
   /* Opening this page is also the check for an update: no button to explain, "checked just now" under
@@ -145,8 +146,10 @@ onMounted(async () => {
 /* Turning it off and on again.
  *
  * One button and no rung picker. A person at the wall cannot tell "restart the brain" from "restart
- * the machine" -- that is the whole reason they are at the wall -- so the hub picks the smallest
- * rung that could help and the next one up appears only once this one has visibly stopped helping.
+ * the machine" -- that is the whole reason they are at the wall -- so the hub picks: the smallest rung,
+ * unless somebody restarted it in the past half hour and is back, when the next one up comes first with the
+ * smaller one beside it (design/restart/, A). A change the machine is waiting to start again for is the
+ * one restart the hub can see coming, so the row says so in place of its own line.
  *
  * The first tap asks the hub what it would cost and turns the button into the question, the way
  * Needs a look does: every word of it is the brain's, because what stops, what keeps working and how
@@ -155,9 +158,15 @@ onMounted(async () => {
 const ask = ref<RestartAsk | null>(null)
 const rung = ref<Rung>('hub')
 const restartBusy = ref(false)
-async function openRestart(which: Rung = 'hub') {
-  rung.value = which
-  try { ask.value = await askRestart(which) } catch (e: any) { notify(e.message, 'error') }
+const owed = ref<Owed | null>(null)
+async function loadOwed() { try { owed.value = (await askRestart()).owed ?? null } catch { /* an older hub: the row stays as it was */ } }
+async function openRestart(which?: Rung) {
+  try { ask.value = await askRestart(which); rung.value = ask.value.rung } catch (e: any) { notify(e.message, 'error') }
+}
+async function goSmaller() {
+  if (!ask.value?.smaller) return
+  rung.value = ask.value.smaller.rung
+  await goRestart()
 }
 async function goRestart(understood = false) {
   if (restartBusy.value) return
@@ -367,16 +376,23 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
         <span class="hub-v">Put a backup back, here or on a new hub.<span class="hub-sub line">Everything running now is replaced by what is in the file.</span></span>
         <Restore small />
       </li>
-      <li :class="{ asking: !!ask }">
+      <li :class="{ asking: !!ask, 'restart-owed': !!owed && !ask }">
         <span class="hub-k">Restart</span>
-        <template v-if="!ask">
+        <template v-if="!ask && owed">
+          <span class="hub-v">{{ owed.text }}<span class="hub-sub line">{{ owed.more }}</span></span>
+          <button class="button small" v-if="!store.restarting" @click="openRestart('machine')">Restart now</button>
+          <span class="hub-sub" v-else>Restarting…</span>
+        </template>
+        <template v-else-if="!ask">
           <span class="hub-v">If something's stuck, restart the hub.<span class="hub-sub line">Lights and switches keep working. It takes under a minute and this screen comes back on its own.</span></span>
-          <button class="button small" v-if="!store.restarting" @click="openRestart('hub')">Restart</button>
+          <button class="button small" v-if="!store.restarting" @click="openRestart()">Restart</button>
           <span class="hub-sub" v-else>Restarting…</span>
         </template>
         <template v-else>
           <span class="hub-v">
             <b>{{ ask.title }}</b>
+            <!-- Why the button is bigger than last time: the last restart was minutes ago and they are back. -->
+            <span class="hub-sub line" v-if="ask.again">{{ ask.again }}</span>
             <!-- What is still true while it is away, first: it is the thing people are actually asking. -->
             <span class="hub-sub line">{{ ask.keeps }} The screen goes dark for {{ ask.how_long }}.</span>
             <span class="hub-sub line" v-for="(line, i) in ask.stops" :key="i">{{ line }}</span>
@@ -389,6 +405,7 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
           </span>
           <span class="note-ask">
             <button class="button small" v-if="ask.may && !ask.blocked" :class="{ busy: restartBusy }" @click="goRestart(!!ask.warn)">{{ ask.yes }}</button>
+            <button class="button small ghost" v-if="ask.smaller && ask.may && !ask.blocked" @click="goSmaller">{{ ask.smaller.yes }}</button>
             <!-- The next rung up, and only once the hub says this one has stopped being the answer.
                  A ladder drawn as a menu is the diagnosis handed back to the household. -->
             <button class="button small ghost" v-if="ask.harder" @click="openRestart(ask.harder)">{{ ask.harder === 'machine' ? 'Power off and on' : 'Full restart' }}</button>
@@ -424,6 +441,9 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
    three columns and stacks. `warn` is the attention color the rest of the panel already uses. */
 .hub-rows li.asking { align-items: flex-start; }
 .hub-sub.warn { color: var(--lamp); opacity: 0.95; }
+/* A change waiting for the machine to start again: news, not a fault, so the lamp rather than danger. */
+.restart-owed .hub-k { color: var(--lamp-text); }
+.restart-owed .hub-k::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--lamp); margin: 0 8px 1px 0; }
 /* One earlier release per line, quieter than the one this hub is on. Kept here rather than in
    panel.css: it is three declarations and only this page has them. */
 .was { display: block; margin-top: 0.45em; font-size: 0.92em; opacity: 0.55; }

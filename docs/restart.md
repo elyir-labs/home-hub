@@ -151,6 +151,13 @@ apart gets the whole stack recreated (rung 3); still not answering on its next l
 machine is restarted (rung 4), at most once in six hours. Both leave `restart.json` with `source: watchdog`, so
 the panel says the hub started itself again.
 
+*Built (9 November 2026), `design/restart/`, A with C's card:* the door believes the person sooner. Back at
+Restart within half an hour of a restart they asked for, the next rung is offered first, with the one they
+tried beside it. The machine saying it is waiting to start again (`host/owed.sh`: the system's
+reboot-required, a replaced kernel, boot settings newer than the boot) puts a line on the Restart row, and the
+hub powers off and on at its own minute of the night if nobody does. For working on the hub has all three
+rungs side by side.
+
 **Away from home.** This is the rung that can strand somebody, and it decides piece 6.
 
 ## Piece 6: who may, and from where

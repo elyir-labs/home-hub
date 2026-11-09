@@ -338,6 +338,14 @@ Do not reopen these, and do not propose around them.
   the one the screen showed, and the stick is never written, so one stick sets up hub after hub. Pinned by
   `app/tests/drive.test.ts`, `app/e2e/move-to-drive.spec.ts`, `brain/tests/test_drive.py` and the `moving_in`,
   `moving` and `describing` groups in `driver-layer/host/tests.sh`.
+- **Restart picks how deep, and believes the person sooner** (9 November, `design/restart/`, A with C's card). The
+  door on The hub is one Restart and the hub chooses: the smallest, unless somebody asked for one in the past half
+  hour and is back, when the next comes first with the one they tried beside it ("Full restart again"). A change the
+  machine is waiting to start again for is said on the Restart row, and done at the hub's minute of the night if
+  nobody does it. A full restart that did not bring the hub back is followed by the watchdog powering it off and on,
+  at most once in six hours. All three, side by side, are only on For working on the hub. `brain/hub/restart.py`,
+  `driver-layer/host/owed.sh`, `driver-layer/host/watchdog.sh`; pinned by `brain/tests/test_restart.py`,
+  `app/e2e/restart.spec.ts` and the `watchdog` and `owing` groups in `driver-layer/host/tests.sh`.
 - **Leaving a house: erasing is on The hub, handing over is on People** (1 November, `design/leaving/`, B). Start over
   is the last row of The hub: behind the passcode, refused outright on a hub with none, only in the house, and a hold.
   It erases everything that is the house, keeps what is the unit's (what it updates from, its name on the network, its

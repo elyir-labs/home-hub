@@ -500,6 +500,10 @@ class Updates:
                     self.request(source="hub")
                 # The bridges' fixes ride the same clock. Their own try: a puck that cannot be reached
                 # must not stop the hub updating itself, nor the other way round.
+                # A change the machine is waiting to boot for rides the same clock (design/restart/).
+                if (r := getattr(self.hub, "restart", None)):
+                    try: r.tick()
+                    except Exception: log.exception("restart tick")
                 if (bridge := getattr(self.hub, "bridge", None)):
                     try: await bridge.firmware.tick()
                     except Exception: log.exception("bridge update tick")

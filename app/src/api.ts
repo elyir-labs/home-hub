@@ -686,14 +686,20 @@ export type RestartAsk = {
   busy: boolean          // one is already going
   lately: number         // how many restarts somebody has asked for in the past hour
   harder: Rung | null    // the next rung up, once this one has stopped being the answer
+  again: string | null   // somebody is back within half an hour of the last restart they asked for, and the hub stepped up (design/restart/, A)
+  smaller: { rung: Rung; yes: string } | null   // ...and the one they tried, beside it, as "Quick restart again"
+  owed: Owed | null      // the machine has a change waiting for it to start again
   weary: string | null
   warn: string | null    // away, and about to restart the machine nobody is there to unplug
   may: boolean           // whether THIS phone may go through with it
 }
+/** What the Restart row says in place of its own line while a change waits for the machine to start again. */
+export type Owed = { why: 'update' | 'change'; text: string; more: string }
 /** What a restart at this rung would cost, in this house, right now. Open: a sheet that wanted the
-    code before it would say what the button does is a sheet nobody reads. */
-export async function askRestart(rung: Rung = 'hub'): Promise<RestartAsk> {
-  const r = await request(`/restart?rung=${rung}`); if (!r.ok) await fail(r); return r.json()
+    code before it would say what the button does is a sheet nobody reads. No rung is the door, and the
+    hub picks which. */
+export async function askRestart(rung?: Rung): Promise<RestartAsk> {
+  const r = await request(rung ? `/restart?rung=${rung}` : '/restart'); if (!r.ok) await fail(r); return r.json()
 }
 /** Go. `understood` answers the one extra question an away phone is asked before the machine. */
 export const doRestart = (rung: Rung, understood = false) =>
@@ -998,7 +1004,12 @@ export type DevScreen = { id: string; name: string; host: string; ip: string; ve
   landed: boolean; current: boolean | null; seen: number | null; updating: boolean }
 export type Developer = { shown: boolean; channel: string; version: string; commit: string; landed: string | null; behind: number | null
   ssh: { on: boolean; user: string; host: string; ip: string; keys: DevKey[]; pending: boolean }
-  screens: DevScreen[]; requested: { channel: string | null } }
+  screens: DevScreen[]; requested: { channel: string | null }
+  restart?: DevRestart }
+/** For the Restart card (design/restart/, C). `up_since` is when the machine started; `last` is the last restart
+    anybody asked for, the hub itself included; `how_long` is each rung as this hub has measured it. */
+export type DevRestart = { up_since: number | null; last: { at: number; rung: Rung; source: string; who: string | null } | null
+  how_long: Record<Rung, string> }
 export type GithubKey = { line: string; type: string; fingerprint: string; name: string }
 export async function getDeveloper(): Promise<Developer | null> {
   const r = await request('/developer'); if (r.status === 404) return null; if (!r.ok) await fail(r); return r.json()

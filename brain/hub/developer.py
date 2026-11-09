@@ -307,4 +307,5 @@ class Developer:
         u = self.hub.updates
         return {"shown": self.shown, "channel": u.channel, "version": u.version, "commit": u.commit,
                 "landed": (u.latest or {}).get("landed"), "behind": self.behind(), "ssh": self.ssh(),
-                "screens": self.screen_rows(), "requested": {"channel": self.requested_channel()}}
+                "screens": self.screen_rows(), "requested": {"channel": self.requested_channel()},
+                "restart": self.hub.restart.facts()}

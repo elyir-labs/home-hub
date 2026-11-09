@@ -4,8 +4,8 @@
    house's list by default whenever the hub is not on releases. These fail on purpose if the rules drift from
    PageB.dc.html and KeyPhone.dc.html. */
 import { describe, expect, it } from 'vitest'
-import type { Developer, DevScreen } from '../src/api'
-import { behindScreens, choices, keySource, keyUrl, QUIET_AFTER, readKey, screenBuild, screenState, screenWhere, sha256, shortPrint, sshHint, tapper, TAPS, versionLabel } from '../src/developer'
+import type { Developer, DevRestart, DevScreen } from '../src/api'
+import { RESTARTS, behindScreens, choices, restartLine, restartSay, keySource, keyUrl, QUIET_AFTER, readKey, screenBuild, screenState, screenWhere, sha256, shortPrint, sshHint, tapper, TAPS, versionLabel } from '../src/developer'
 
 const SHA = 'e39341a161495b2f26826c292bc0bbdb1a213aeb'
 const now = 1_792_800_000
@@ -110,5 +110,25 @@ describe('seven taps on the version', () => {
     const slow = tapper()
     for (let i = 0; i < 6; i++) slow(1000 + i * 300)
     expect(slow(1000 + 5 * 300 + 2000)).toBe(false)
+  })
+})
+
+describe('the Restart card (design/restart/, C)', () => {
+  const now = 1_800_000_000
+  const r = (last: DevRestart['last'], up: number | null = now - 6 * 86400): DevRestart =>
+    ({ up_since: up, last, how_long: { hub: 'about 30 seconds', everything: 'about 2 minutes', machine: 'about 3 minutes' } })
+
+  it('says how long it has been up and who restarted it last', () => {
+    expect(restartSay(r({ at: now - 2 * 86400, rung: 'everything', source: 'watchdog', who: null }), now))
+      .toBe('Up 6 days. Last restarted 2 days ago, by the hub itself.')
+    expect(restartSay(r({ at: now - 600, rung: 'hub', source: 'user', who: 'Wall screen' }, now - 300), now))
+      .toBe('Up 5 minutes. Last restarted 10 minutes ago, by Wall screen.')
+    expect(restartSay(r(null, null), now)).toBe('Not restarted from here yet.')
+  })
+
+  it('names the three the way The hub does, deepest last, each with this hub\'s own time', () => {
+    expect(RESTARTS.map(x => x.name)).toEqual(['Quick restart', 'Full restart', 'Power off and on'])
+    expect(restartLine(r(null), 'machine', 'The machine itself')).toBe('The machine itself. About 3 minutes.')
+    expect(restartLine(undefined, 'hub', 'The hub’s own software')).toBe('The hub’s own software.')
   })
 })

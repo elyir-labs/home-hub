@@ -627,10 +627,24 @@ export function createHouse({ env = {}, qr = null } = {}) {
       })
     }
     if (p === '/restart' && req.method !== 'POST') {
-      const rung = url.searchParams.get('rung') || 'hub'
+      /* RESTART=again: somebody did a full restart ten minutes ago and is back at the door, so the door offers
+         the machine with the full one beside it (design/restart/, A). OWED=update|change: the machine has a
+         change waiting for it to start again, and the row says so. Either can also ride on the page's own address,
+         ?restart=again or ?owed=update, read off the Referer the way mock/developer.mjs reads ?dev=. */
+      let ref = new URLSearchParams()
+      try { ref = new URL(req.headers?.referer || '').searchParams } catch { /* no page behind it */ }
+      const knob = (k) => ref.get(k.toLowerCase()) || env[k]
+      const again = knob('RESTART') === 'again'
+      const rung = url.searchParams.get('rung') || (again ? 'machine' : 'hub')
       const secs = { hub: 30, everything: 120, machine: 180 }[rung] ?? 30
-      const weary = env.RESTART === 'weary'
+      const weary = knob('RESTART') === 'weary'
+      const door = !url.searchParams.get('rung') && again
+      const OWED = knob('OWED')
+      const owed = OWED ? { why: OWED, text: OWED === 'change' ? 'The hub needs to restart to finish a change to how it\u2019s set up.' : 'The hub needs to restart to finish an update.',
+        more: 'It powers off and on, which takes about 3 minutes. Switches on the wall keep working. If you leave it, it does this by itself tonight at 3:12 AM.' } : null
       return json(res, {
+        again: door ? 'You did a full restart 10 minutes ago. If something\u2019s still stuck, powering it off and on starts it fresh, radios included.' : null,
+        smaller: door ? { rung: 'everything', yes: 'Full restart again' } : null, owed,
         rung, title: { hub: 'Restart the hub?', everything: 'Full restart?', machine: 'Power the hub off and on?' }[rung],
         yes: { hub: 'Quick restart', everything: 'Full restart', machine: 'Power off and on' }[rung],
         keeps: rung === 'hub' ? 'Lights and switches keep working.' : 'Switches on the wall keep working.',

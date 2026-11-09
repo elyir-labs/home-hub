@@ -1,0 +1,9 @@
+# Runs owed.sh: whether the machine has a change waiting for it to start again. Started by home-hub-owed.timer.
+[Unit]
+Description=Home Hub: say whether the machine is waiting to restart
+
+[Service]
+Type=oneshot
+Environment=HOME_HUB_DIR=/opt/home-hub
+ExecStart=/opt/home-hub/driver-layer/host/owed.sh
+StandardOutput=journal
