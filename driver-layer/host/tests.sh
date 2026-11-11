@@ -1327,7 +1327,7 @@ changing() {
   is "...the request is used once" "$([ -f "$root/turn.request" ] && echo kept || echo gone)" "gone"
   is "turned a quarter, the orientation is changed rather than another added" "$(boot 90)" \
     "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60,panel_orientation=left_side_up video=HDMI-A-2:panel_orientation=left_side_up"
-  is "...and the touch is turned with it, so a tap lands where the picture now is" "$(touch_rule)" "0 1 0 -1 0 1"
+  is "...and the touch is turned with it, so a tap lands where the picture now is" "$(touch_rule)" "0 -1 1 1 0 0"
   is "...the touchscreen, and only it, leaves and comes back so the running wall reads it" "$(paste -sd, "$root/triggered")" "--action=remove event1,--action=add event1,--action=remove event1,--action=add event1"
   is "turned back, only what it added goes" "$(boot 0)" "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60"
   is "...and the touch is as the glass reports it again" "$([ -e "$root/rules/90-elyir-touch.rules" ] && echo turned || echo as-made)" "as-made"
@@ -1339,12 +1339,16 @@ changing() {
       ELYIR_TOUCH_RULES="$root/rules/90-elyir-touch.rules" HUB_INPUT="$root/input" HUB_UDEVADM="$root/udevadm" \
       "$HERE/../../startup/wall.sh" settle >/dev/null 2>&1; }
   mkdir -p "$root/ask"; echo 270 > "$root/turn"; settle
-  is "a screen turned before its touch was, turns its touch as the wall starts" "$(touch_rule)" "0 -1 1 1 0 0"
+  is "a screen turned before its touch was, turns its touch as the wall starts" "$(touch_rule)" "0 1 0 -1 0 1"
   is "...and its startup" "$(grep -o 'DSI-1:[^ ]*' "$root/cmdline.txt")" "DSI-1:800x480@60,panel_orientation=right_side_up"
   : > "$root/triggered"; settle
   is "...and once it has, the next start touches nothing" "$(wc -l < "$root/triggered" | tr -d ' ')" "0"
+  printf '# Written by startup/turn.sh: touch turned 270, the way the screen is.\nSUBSYSTEM=="input", ENV{ID_INPUT_TOUCHSCREEN}=="1", ENV{LIBINPUT_CALIBRATION_MATRIX}="0 -1 1 1 0 0"\n' > "$root/rules/90-elyir-touch.rules"
+  settle
+  is "a touch turned when the two quarters were the wrong way round is turned again" "$(touch_rule)" "0 1 0 -1 0 1"
+  : > "$root/triggered"
   echo 90 > "$root/ask/turn.request"; echo 90 > "$root/turn"; settle
-  is "a turn left waiting for a watcher that isn't there is acted on" "$(touch_rule) $([ -e "$root/ask/turn.request" ] && echo left || echo used)" "0 1 0 -1 0 1 used"
+  is "a turn left waiting for a watcher that isn't there is acted on" "$(touch_rule) $([ -e "$root/ask/turn.request" ] && echo left || echo used)" "0 -1 1 1 0 0 used"
   rm -rf "$root/ask"; echo 180 > "$root/turn"; settle
   is "a screen set up before This screen, with nowhere for the helper to leave a turn, still turns its touch" "$(touch_rule)" "-1 0 1 0 -1 1"
   rm -f "$root/turn"; settle
