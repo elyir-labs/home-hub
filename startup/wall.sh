@@ -84,14 +84,15 @@ transform() {
 
 # A turn This screen made that nothing has acted on: a unit set up before turn.sh's watcher existed (an update
 # brings the script but never installs the watcher), or one whose touch was left unturned before turn.sh turned it.
-# The touch rule names the turn it was written for. Run as root before the wall starts, so cage reads the touch fresh.
+# The touch rule names the turn it was written for, in words changed when the two quarters were put right, so a rule
+# written the wrong way round is written again. Run as root before the wall starts, so cage reads the touch fresh.
 settle() {
   local ask="${ELYIR_SCREEN_ASK:-/var/lib/elyir-screen}" rules="${ELYIR_TOUCH_RULES:-/etc/udev/rules.d/90-elyir-touch.rules}"
   local file="${ELYIR_TURN_FILE:-$(getent passwd elyir-wall 2>/dev/null | cut -d: -f6)/.config/elyir/turn}" t
   t=$(tr -cd '0-9' < "$file" 2>/dev/null) || return 0
   [ -n "$t" ] || return 0
   if [ ! -e "$ask/turn.request" ]; then
-    if [ "$t" = 0 ]; then [ -e "$rules" ] || return 0; else grep -qs "touch turned $t," "$rules" && return 0; fi
+    if [ "$t" = 0 ]; then [ -e "$rules" ] || return 0; else grep -qs "touch follows a turn of $t," "$rules" && return 0; fi
     # a hub whose screen was set up before This screen has no such folder, and its helper could not make one
     install -d -o elyir-wall -m 0755 "$ask" 2>/dev/null || mkdir -p "$ask" || return 0
     echo "$t" > "$ask/turn.request" || return 0
