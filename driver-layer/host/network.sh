@@ -301,6 +301,24 @@ finish_install() {
     -E HOME_HUB_DIR="$DIR" -E HOME_HUB_CHANNEL="${channel:-release}" "$DIR/install.sh" >/dev/null 2>&1
 }
 
+# A unit with a screen looked for the house's hub at its first start, on no network, and found none
+# (firstboot.sh). The first time it is online it looks once more, and if the house has a hub it asks to
+# be that hub's screen the way This screen does: one word left for startup/role.sh. Never once somebody
+# has finished setting a house up here, and never while first boot is still at work. Says no (1) only
+# when it asked, so nothing else is started on a unit about to stop being a hub.
+LOOK="${HUB_LOOK_AGAIN:-/var/lib/home-hub/look-again}"
+ROLE_REQ="${ELYIR_ROLE_REQUEST:-/var/lib/elyir-screen/role.request}"
+look_again() {
+  [ -f "$LOOK" ] && [ -f "${HUB_FIRSTBOOT_MARK:-/var/lib/home-hub/firstboot.done}" ] && online || return 0
+  rm -f "$LOOK"
+  grep -qs '"setup_done": *true' "$DATA/settings.json" && return 0
+  local hub; hub="$(FIND_FOR="${HOME_HUB_LOOK_FOR:-15}" "$DIR/startup/find-hub.sh" 2>/dev/null)" || { say "online: no other hub on this network, so this one runs the house"; return 0; }
+  [ -d "$(dirname "$ROLE_REQ")" ] || return 0
+  say "online: this house already has a hub at $hub, so this unit becomes its screen"
+  printf screen > "$ROLE_REQ"
+  return 1
+}
+
 saved_wifi() { nmcli -t -f NAME,TYPE connection show 2>/dev/null | grep ':802-11-wireless$' | grep -qv "^$SETUP_CON:"; }
 
 # ---------------------------------------------------------------- moving this hub
@@ -406,14 +424,14 @@ if [ -f "$REQ" ]; then
   rm -f "$REQ"
   case "$DO" in
     scan)   scan ;;
-    join)   join "$SSID" "$PASS" ;;
+    join)   join "$SSID" "$PASS"; look_again || true ;;
     forget) forget "$SSID" ;;
     off)    nmcli radio wifi off >/dev/null 2>&1; say "radio off" ;;
     *)      say "not a thing this hub knows how to do: ${DO:-<nothing>} -- nothing done" ;;
   esac
 else
   setup_tick
-  finish_install
+  look_again && finish_install
 fi
 
 write_state

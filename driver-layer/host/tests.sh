@@ -618,21 +618,23 @@ becoming() {
   printf '#!/usr/bin/env bash\ntouch "%s/screen-installed"\n' "$root" > "$dir/startup/install.sh"
   printf '#!/usr/bin/env bash\ntouch "%s/hub-installed"\n' "$root" > "$dir/install.sh"
   for c in hostnamectl apt-get avahi-browse; do printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/$c"; done
+  printf '#!/usr/bin/env bash\n[ -n "${ROUTE:-}" ] && echo "default via 192.168.1.1 dev $ROUTE"\nexit 0\n' > "$bin/ip"
   # systemctl and docker write down what they were asked, so a unit that was a hub can be seen to stop being one
   printf '#!/usr/bin/env bash\necho "systemctl $*" >> "%s/asked"\n[ "$1" = list-unit-files ] && printf "home-hub-watchdog.timer enabled enabled\\nhome-hub-update.path enabled enabled\\n"\nexit 0\n' "$root" > "$bin/systemctl"
   printf '#!/usr/bin/env bash\necho "docker $* in $PWD" >> "%s/asked"\n' "$root" > "$bin/docker"
   mkdir -p "$dir/driver-layer" "$root/avahi"; touch "$dir/driver-layer/docker-compose.yml"
   chmod +x "$dir/startup/"*.sh "$dir/install.sh" "$bin"/*
   boot() {   # role, found, dsi, hdmi, the board's model
-    rm -f "$root"/*-installed "$root/done" "$root/conf" "$root/asked"; rm -rf "${drm:?}"/*
+    rm -f "$root"/*-installed "$root/done" "$root/conf" "$root/asked" "$root/look"; rm -rf "${drm:?}"/*
     echo '<service-group/>' > "$root/avahi/home-hub.service"
     [ -n "$1" ] && echo "HUB_ROLE=\"$1\"" > "$root/conf"
     [ -n "$3" ] && { mkdir -p "$drm/card1-DSI-1"; echo connected > "$drm/card1-DSI-1/status"; }
     mkdir -p "$drm/card1-HDMI-A-1"; if [ -n "${4:-}" ]; then echo connected; else echo disconnected; fi > "$drm/card1-HDMI-A-1/status"
     printf '%s' "${5:-}" > "$root/model"
     PATH="$bin:$PATH" FOUND="$2" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_FIRSTBOOT_MARK="$root/done" HUB_DRM="$drm" HUB_AVAHI="$root/avahi" \
-      HUB_MODEL="$root/model" "$HERE/firstboot.sh" >/dev/null 2>&1
+      HUB_MODEL="$root/model" HUB_LOOK_AGAIN="$root/look" "$HERE/firstboot.sh" >/dev/null 2>&1
   }
+  looks() { [ -f "$root/look" ] && echo again || echo no; }
   wall() { cat "$root/asked" 2>/dev/null | grep -c 'systemctl start --no-block elyir-wall.service' || true; }
   ran() { local out=""; for k in hub screen; do [ -f "$root/$k-installed" ] && out="$out$k "; done; [ -f "$root/done" ] && out="${out}done"; echo "${out% }"; }
 
@@ -665,6 +667,15 @@ becoming() {
   is "a Pi with nothing plugged in: a hub, and no wall" "$(ran) $(wall)" "hub done 0"
   boot hub http://hub.local dsi
   is "HUB_ROLE=hub skips the look" "$(ran)" "hub screen done"
+  # A unit told its Wi-Fi on its own screen is on nothing when it looks, so that look proves nothing.
+  boot "" "" dsi
+  is "no hub found while on no network: it runs the house for now, and looks once more when it is on one" "$(ran) $(looks)" "hub screen done again"
+  ROUTE=eth0 boot "" "" dsi
+  is "no hub found on a network: the look was a real one, and is not repeated" "$(ran) $(looks)" "hub screen done no"
+  boot "" "" "" "" "Raspberry Pi 4 Model B Rev 1.5"
+  is "a hub with no screen never looks, then or later" "$(looks)" "no"
+  boot hub "" dsi
+  is "...nor one told it is the hub" "$(looks)" "no"
   rm -rf "$root"
 }
 
@@ -1012,6 +1023,31 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
   fresh; ROUTE=wlp1s0 finish
   is "online: the install is finished, on the channel it started on" "$(grep -c "systemd-run --no-block --collect --unit=home-hub-finish -E HOME_HUB_DIR=$dir -E HOME_HUB_CHANNEL=development $dir/install.sh" "$root/asked")" "1"
   is "...once" "$([ -f "$root/finish" ] && echo still || echo gone)" "gone"
+
+  # A unit with a screen that looked for the house's hub while on nothing looks once more when it is first online
+  # (firstboot.sh leaves the mark), and asks to be that hub's screen with the word This screen would leave.
+  mkdir -p "$dir/startup" "$root/screen"
+  printf '#!/usr/bin/env bash\n[ -n "${FOUND:-}" ] && echo "$FOUND"\n' > "$dir/startup/find-hub.sh"; chmod +x "$dir/startup/find-hub.sh"
+  look() { HUB_LOOK_AGAIN="$root/look" HUB_FIRSTBOOT_MARK="$root/done" ELYIR_ROLE_REQUEST="$root/screen/role.request" finish; }
+  again() { fresh; rm -f "$root/screen/role.request" "$data/settings.json" "$root/finish"; : > "$root/look"; : > "$root/done"; }
+  word() { cat "$root/screen/role.request" 2>/dev/null; }
+  waits() { [ -f "$root/look" ] && echo waiting || echo looked; }
+  again; FOUND=http://hub.local look
+  is "a unit that could not see the house at first boot, still on nothing: it has not looked" "$(word) $(waits)" " waiting"
+  again; echo development > "$root/finish"; ROUTE=wlp1s0 FOUND=http://hub.local look
+  is "online, and the house has a hub: it asks to be that hub's screen" "$(word) $(waits)" "screen looked"
+  is "...and does not go on installing a hub of its own" "$(grep -c 'systemd-run' "$root/asked")" "0"
+  again; ROUTE=wlp1s0 look
+  is "online, and no hub: it runs the house, and does not look again" "$(word) $(waits)" " looked"
+  again; printf '{\n "setup_done": true\n}' > "$data/settings.json"; ROUTE=wlp1s0 FOUND=http://hub.local look
+  is "a house somebody finished setting up here is never given away" "$(word) $(waits)" " looked"
+  again; rm -f "$root/done"; ROUTE=wlp1s0 FOUND=http://hub.local look
+  is "while first boot is still at work, it waits" "$(word) $(waits)" " waiting"
+  again; rmdir "$root/screen"; ROUTE=wlp1s0 FOUND=http://hub.local look
+  is "a unit with no screen of its own has nobody to ask" "$(waits) $([ -e "$root/screen" ] && echo left || echo nothing)" "looked nothing"
+  mkdir -p "$root/screen"; again; printf '%s' '{"do": "join", "ssid": "Bluebell", "password": "right"}' > "$data/network.request"
+  ROUTE=wlp1s0 FOUND=http://hub.local look
+  is "told its Wi-Fi on its own screen: it looks the moment that Wi-Fi is up, not a minute later" "$(word)" "screen"
   rm -rf "$root"
 }
 

@@ -57,8 +57,11 @@ systemctl disable systemd-networkd.service systemd-networkd-wait-online.service 
 # Like the Pi image: no login, no SSH. Nothing on the hub needs either.
 systemctl disable ssh.service ssh.socket >/dev/null 2>&1 || true
 
-echo hub > /etc/hostname
-sed -i 's/^127\.0\.1\.1.*/127.0.1.1\thub/' /etc/hosts; grep -q '^127\.0\.1\.1' /etc/hosts || printf '127.0.1.1\thub\n' >> /etc/hosts
+# Not `hub` yet: a unit takes that name when it decides to run a house (install.sh), or `screen` when the house
+# already has a hub (firstboot.sh). One that started as `hub` argued with the house's real hub over hub.local
+# while it was still deciding, and left neither of them holding it.
+echo elyir > /etc/hostname
+sed -i 's/^127\.0\.1\.1.*/127.0.1.1\telyir/' /etc/hosts; grep -q '^127\.0\.1\.1' /etc/hosts || printf '127.0.1.1\telyir\n' >> /etc/hosts
 
 git clone --depth 1 --branch "$HOME_HUB_REF" "$HOME_HUB_REPO" /opt/home-hub
 chmod +x /opt/home-hub/install.sh /opt/home-hub/driver-layer/radios.sh /opt/home-hub/driver-layer/host/firstboot.sh /opt/home-hub/driver-layer/host/move-to-drive.sh

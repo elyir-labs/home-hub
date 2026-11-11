@@ -14,7 +14,8 @@
 #      that already has a hub: become that hub's screen and stop there -- no second house
 #      (design/companion/, C). HUB_ROLE=hub in /etc/home-hub.conf skips the look. HUB_ROLE=screen makes any display the screen (an HDMI monitor too), looks for ten
 #      minutes instead of twenty seconds, and never installs a hub: finding none, it tries again at
-#      the next start.
+#      the next start. A unit that looked while on no network looks once more when it first has one
+#      (network.sh), since a look from nowhere proves nothing.
 #   4. Run install.sh, which does everything a hand install would.
 #   5. On a unit with its own screen: startup/install.sh, the splash and the panel full screen, started
 #      now rather than at the next boot.
@@ -151,6 +152,13 @@ if screen_here && [ "${HUB_ROLE:-}" != hub ]; then
     exit 1
   fi
   log "no hub found: this unit will run the house"
+  # On nothing yet, the look found no hub because it could see no house. A unit waiting to be told its
+  # Wi-Fi on its own screen always starts this way, so it looks once more when it first gets onto a
+  # network (network.sh, look_again), before anybody has made a house on it.
+  if ! ip -4 route show default 2>/dev/null | grep -q .; then
+    : > "${HUB_LOOK_AGAIN:-/var/lib/home-hub/look-again}"
+    log "...it is on no network yet, so it will look once more when it is"
+  fi
 fi
 
 # The containers a flashed image carries (pi-image/, x86-image/): enough to serve the Wi-Fi step before
