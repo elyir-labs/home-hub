@@ -6,8 +6,8 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from app import CLAIMS_PER_DAY, WRONG_INVITES_PER_DAY, make, nearby_origins, seed_own_names, watch_key
-from registry import DAY, TICKET_REACH, Payers, Registry, sign_ticket
+from app import CLAIMS_PER_DAY, WRONG_INVITES_PER_DAY, WRONG_VOUCHES_PER_DAY, make, nearby_origins, seed_own_names, watch_key
+from registry import DAY, TICKET_REACH, VOUCH_CAP, Payers, Registry, sign_ticket
 
 
 class Service(unittest.TestCase):
@@ -170,6 +170,60 @@ class Service(unittest.TestCase):
         self.assertEqual(payers.keys(), {"other": "k"})
         keyfile.write_text("bench s3cret\n")
         self.assertEqual(payers.keys(), {"other": "k", "bench": "s3cret"})
+
+    def test_a_bench_box_vouches_for_its_new_printer_with_a_siblings_key(self):
+        atlas = self.c.post("/houses", json={"name": "atlas", "invite": self.r.invite(self.t + 365 * DAY)}).json()["secret"]
+        juno = self.c.post("/houses", json={"name": "juno"}).json()["secret"]
+        me = {"Authorization": f"Bearer {juno}"}
+        got = self.c.post("/houses/juno/vouch", json={"by": "atlas", "secret": atlas}, headers=me)
+        self.assertEqual(got.status_code, 200)
+        self.assertEqual(got.json(), {"name": "juno", "address": "juno.elyir.app", "carried": True, "held_until": None,
+                                      "entitled_until": self.t + 365 * DAY, "relay": {"addr": "relay.elyir.app", "token": ""}})
+        self.assertTrue(self.c.get("/houses/juno", headers=me).json()["carried"])
+
+    def test_only_the_holder_asks_to_be_vouched_for(self):
+        atlas = self.c.post("/houses", json={"name": "atlas", "invite": self.r.invite(self.t + 365 * DAY)}).json()["secret"]
+        self.c.post("/houses", json={"name": "juno"})
+        for key in ({}, {"Authorization": "Bearer nope"}, {"Authorization": f"Bearer {atlas}"}):
+            self.assertEqual(self.c.post("/houses/juno/vouch", json={"by": "atlas", "secret": atlas}, headers=key).status_code, 404)
+        self.assertFalse(self.r.status("juno")["carried"])
+
+    def test_a_vouch_that_cant_carry_says_why(self):
+        atlas = self.c.post("/houses", json={"name": "atlas", "invite": self.r.invite(self.t + 365 * DAY)}).json()["secret"]
+        held = self.c.post("/houses", json={"name": "vega"}).json()["secret"]
+        juno = self.c.post("/houses", json={"name": "juno"}).json()["secret"]
+        me = {"Authorization": f"Bearer {juno}"}
+        for body, why in (({"by": "juno", "secret": juno}, "itself"), ({"by": "atlas", "secret": "a guess"}, "doesn't hold that key"),
+                          ({"by": "vega", "secret": held}, "isn't carried")):
+            r = self.c.post("/houses/juno/vouch", json=body, headers=me)
+            self.assertEqual(r.status_code, 403); self.assertEqual(r.json()["detail"]["why"], "vouch")
+            self.assertIn(why, r.json()["detail"]["message"])
+        self.c.post("/houses/juno/vouch", json={"by": "atlas", "secret": atlas}, headers=me)
+        orion = {"Authorization": f"Bearer {self.c.post('/houses', json={'name': 'orion'}).json()['secret']}"}
+        chained = self.c.post("/houses/orion/vouch", json={"by": "juno", "secret": juno}, headers=orion)
+        self.assertEqual(chained.status_code, 403); self.assertIn("vouched for itself", chained.json()["detail"]["message"])
+
+    def test_one_name_vouches_for_ten_at_most(self):
+        atlas = self.r.claim("atlas", invite=self.r.invite(self.t + 365 * DAY))["secret"]
+        for i in range(VOUCH_CAP + 1):
+            key = {"Authorization": f"Bearer {self.r.claim(f'juno-{i}')['secret']}"}
+            r = self.c.post(f"/houses/juno-{i}/vouch", json={"by": "atlas", "secret": atlas}, headers=key)
+            self.assertEqual(r.status_code, 200 if i < VOUCH_CAP else 403, i)
+        self.assertIn(f"vouched for {VOUCH_CAP} already", r.json()["detail"]["message"])
+
+    def test_wrong_keys_stop_for_the_day_and_other_refusals_dont_count(self):
+        atlas = self.c.post("/houses", json={"name": "atlas", "invite": self.r.invite(self.t + 365 * DAY)}).json()["secret"]
+        juno = self.c.post("/houses", json={"name": "juno"}).json()["secret"]
+        me = {"Authorization": f"Bearer {juno}"}
+        for _ in range(WRONG_VOUCHES_PER_DAY + 3):
+            self.assertEqual(self.c.post("/houses/juno/vouch", json={"by": "juno", "secret": juno}, headers=me).status_code, 403)
+        for _ in range(WRONG_VOUCHES_PER_DAY):
+            self.assertEqual(self.c.post("/houses/juno/vouch", json={"by": "atlas", "secret": "a guess"}, headers=me).status_code, 403)
+        self.assertEqual(self.c.post("/houses/juno/vouch", json={"by": "atlas", "secret": atlas}, headers=me).status_code, 429)
+        self.assertFalse(self.r.status("juno")["carried"])
+        self.r.redeem("juno", self.r.invite(self.t + 2 * DAY))     # keep the name past its held day
+        self.t += DAY + 1
+        self.assertEqual(self.c.post("/houses/juno/vouch", json={"by": "atlas", "secret": atlas}, headers=me).status_code, 200)
 
     def test_cloud_is_kept_for_the_service(self):
         for name in ("cloud", "cloud-staging", "printers-staging"):

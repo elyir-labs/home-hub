@@ -72,6 +72,19 @@ http:// {
 			redir http://10.42.0.1/ 302
 		}
 	}
+	# The house's own Wi-Fi, asked by a name or an address the first door was never told. That door knows
+	# hub.local and the address the hub had on the day it was installed; the network may since have named
+	# it hub-2 (a second hub, or avahi arguing with itself) and the router may have moved it, and a hub
+	# that then answered nothing could be reached by nobody, nor recognized by a screen looking for it
+	# (two hubs in one house, 11 November 2026). Any one-word .local name and any bare address is let in:
+	# neither can be pointed here by a web page somewhere else, which is what naming the hosts is for.
+	@house header_regexp Host (?i)^([a-z0-9-]+\.local|[0-9]{1,3}(\.[0-9]{1,3}){3})(:[0-9]+)?$
+	handle @house {
+		encode gzip
+		reverse_proxy {$BRAIN_UPSTREAM:localhost:8300} {
+			header_up -X-Hub-Via
+		}
+	}
 	abort
 }
 

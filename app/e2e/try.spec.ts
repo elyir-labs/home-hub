@@ -114,3 +114,78 @@ test('the pretend house answers the widget as a house does, and a routine run th
   expect(before.temp).toBe('78°')
   expect(after.said[0], 'Everything off reached the rooms it can').not.toBe(before.said[0])
 })
+
+test('on a page of its own the pretend house says what it is and leads back to the site, and fits the screen under that', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(`${SITE}/try/`)
+  const back = page.getByRole('link', { name: 'Back to the site' })
+  await expect(back).toBeVisible()
+  await expect(back).toHaveAttribute('href', '/')
+  await expect(page.locator('.try-bar')).toContainText('A pretend house')
+  const shell = (await page.locator('.shell').boundingBox())!
+  expect(shell.y, 'the panel starts under the bar').toBe(44)
+  expect(shell.y + shell.height, 'and ends at the foot of the screen').toBeCloseTo(844, 0)
+  expect(await page.evaluate(() => document.scrollingElement!.scrollHeight), 'nothing to scroll past the panel').toBeLessThanOrEqual(844)
+})
+
+test("inside the site's frame on a computer the pretend house has no bar of its own", async ({ page }) => {
+  await page.setContent(`<iframe src="${SITE}/try/" width="1440" height="900"></iframe>`)
+  const frame = page.frameLocator('iframe')
+  await expect(frame.locator('.shell')).toBeVisible()
+  await expect(frame.locator('.try-bar')).toHaveCount(0)
+})
+
+test('set up from the box: a pretend hub walks first run, and its bar says what a real one would be doing off the screen', async ({ page }) => {
+  test.setTimeout(120_000)
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(`${SITE}/try/?box`)
+  const bar = page.locator('.try-bar')
+  await expect(bar).toContainText('A pretend hub')
+  await expect(page.getByRole('link', { name: 'Leave' })).toHaveAttribute('href', '/')
+
+  await expect(page.getByRole('heading', { name: 'Which Wi‑Fi is yours?' })).toBeVisible()
+  await expect(bar).toContainText('On a real hub this is your own Wi‑Fi. Here, any password joins.')
+  const middle = async (part: string) => { const b = (await bar.locator(part).boundingBox())!; return b.y + b.height / 2 }
+  expect(Math.abs(await middle('.try-say') - await middle('b')), 'one line, not a class of the panel\'s pulling it up').toBeLessThan(2)
+  await page.getByText('Bluebell', { exact: true }).click()
+  await page.locator('.wifi-secret input').fill('anything at all')
+  await page.getByRole('button', { name: 'Join' }).first().click()
+  await expect(bar).toContainText('This one takes a moment.', { timeout: 8000 })
+  await expect(page.getByRole('button', { name: 'Get started' })).toBeEnabled({ timeout: 15_000 })
+  await expect(bar.locator('.try-say'), 'nothing to say while the screen is doing it all').toBeEmpty()
+  await page.getByRole('button', { name: 'Get started' }).click()
+
+  await page.getByLabel('Your name').fill('Robin')
+  await page.getByLabel('A name for the house').fill('Maple Court')
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByLabel('Passcode, 4 to 8 digits').fill('2468', { timeout: 8000 })
+  await page.getByLabel('Type it again').fill('2468')
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByRole('button', { name: 'Skip for now' }).click()
+  await page.getByRole('button', { name: 'Kitchen', exact: true }).click()
+  await page.getByRole('button', { name: 'Continue' }).click()
+
+  await page.getByRole('button', { name: /A plug, bulb or sensor/ }).click()
+  await expect(bar).toContainText('A plug or bulb joins when you switch it on, or press its button.')
+  const switchOn = bar.getByRole('button', { name: 'Switch one on' })
+  await page.waitForTimeout(6000)
+  await expect(page.getByText('Looking for it…'), 'a bulb in a browser waits for a hand, as a real one does').toBeVisible()
+  await switchOn.click()
+  await expect(page.getByRole('heading', { name: 'Added.' })).toBeVisible({ timeout: 8000 })
+  await expect(switchOn).toHaveCount(0, { timeout: 3000 })
+  await page.screenshot({ path: test.info().outputPath('joined.png') })
+})
+
+test('on a phone the pretend hub says it over two lines, and the screen still fits under it', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(`${SITE}/try/?box`)
+  const bar = page.locator('.try-bar')
+  await expect(bar).toContainText('Here, any password joins.')
+  const [top, shell] = [(await bar.boundingBox())!, (await page.locator('.shell').boundingBox())!]
+  expect(top.height, 'the line under the name, not squeezed beside it').toBeGreaterThan(60)
+  expect(shell.y).toBeCloseTo(top.height, 0)
+  expect(shell.y + shell.height).toBeCloseTo(844, 0)
+  const code = page.locator('img[src^="data:image/svg+xml"]')
+  await expect(code, "the hub's own Wi-Fi as a code, drawn by the pretend house").toHaveCount(1)
+  expect(await code.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0)
+})

@@ -1,0 +1,828 @@
+{
+  "name": "Every screen, and where the menu lives",
+  "areas": [
+    "Wall screens",
+    "Phones and away"
+  ],
+  "reading": [
+    "why",
+    "today",
+    "Today.dc.html",
+    "Today-Wide7.dc.html",
+    "Today-Tall10.dc.html",
+    "Today-Tall7.dc.html",
+    "Today-Tablet.dc.html",
+    "Today-Phone.dc.html",
+    "size",
+    "b",
+    "DockB.dc.html",
+    "DockB-Wide7.dc.html",
+    "DockB-Tall10.dc.html",
+    "DockB-Tall7.dc.html",
+    "DockB-Phone.dc.html",
+    "DockB-Tablet.dc.html",
+    "tablet",
+    "decided",
+    "a",
+    "RailA.dc.html",
+    "RailA-Wide7.dc.html",
+    "RailA-Tall10.dc.html",
+    "RailA-Tall7.dc.html",
+    "RailA-Phone.dc.html",
+    "c",
+    "SideC.dc.html",
+    "SideC-Wide7.dc.html",
+    "SideC-Tall10.dc.html",
+    "SideC-Tall7.dc.html",
+    "SideC-Phone.dc.html",
+    "s-why",
+    "s-behind",
+    "s-today",
+    "SheetToday.dc.html",
+    "SheetToday-Wide7.dc.html",
+    "SheetToday-Tall7.dc.html",
+    "SheetToday-Phone.dc.html",
+    "s-b",
+    "SheetListB.dc.html",
+    "SheetListB-Wide7.dc.html",
+    "SheetListB-Tall7.dc.html",
+    "SheetListB-Phone.dc.html",
+    "s-decided",
+    "s-a",
+    "SheetAllA.dc.html",
+    "SheetAllA-Wide7.dc.html",
+    "SheetAllA-Tall7.dc.html",
+    "SheetAllA-Phone.dc.html",
+    "s-c",
+    "SheetMenuC.dc.html",
+    "SheetMenuC-Wide7.dc.html",
+    "SheetMenuC-Tall7.dc.html",
+    "SheetMenuC-Phone.dc.html",
+    "r-why",
+    "r-today",
+    "RoomToday.dc.html",
+    "PaneToday.dc.html",
+    "PaneToday-Wide7.dc.html",
+    "RoomToday-Tall7.dc.html",
+    "PaneToday-Tall7.dc.html",
+    "RoomToday-Phone.dc.html",
+    "r-wide",
+    "RoomWide.dc.html",
+    "RoomWide-Wide7.dc.html",
+    "r-a",
+    "RoomGridA-Tall7.dc.html",
+    "RoomGridA-Tall10.dc.html",
+    "RoomGridA-Phone.dc.html",
+    "RoomGridA-Tablet.dc.html",
+    "r-decided",
+    "r-b",
+    "RoomReachB-Tall7.dc.html",
+    "RoomReachB-Tall10.dc.html",
+    "RoomReachB-Phone.dc.html",
+    "r-c",
+    "RoomListC-Tall7.dc.html",
+    "RoomListC-Tall10.dc.html",
+    "RoomListC-Phone.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "every",
+      "name": "Every screen, and where the menu lives",
+      "decided": {
+        "on": "2026-11-01",
+        "chose": "B",
+        "board": "DockB.dc.html"
+      }
+    },
+    {
+      "id": "every-rejected",
+      "name": "Every screen, and where the menu lives: not chosen"
+    },
+    {
+      "id": "sheet",
+      "name": "This house, from the dock",
+      "decided": {
+        "on": "2026-11-01",
+        "chose": "B",
+        "board": "SheetListB.dc.html"
+      }
+    },
+    {
+      "id": "sheet-rejected",
+      "name": "This house, from the dock: not chosen"
+    },
+    {
+      "id": "room",
+      "name": "A room and a lamp, on every screen",
+      "decided": {
+        "on": "2026-11-01",
+        "chose": "A",
+        "board": "RoomGridA-Tall7.dc.html"
+      }
+    },
+    {
+      "id": "room-rejected",
+      "name": "A room and a lamp, on every screen: not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: the 10-inch wall, the shape everything is drawn for",
+      "page": "every"
+    },
+    {
+      "file": "Today-Wide7.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1024,
+      "h": 576,
+      "title": "Today: a 7-inch hung wide, everything at 64% and the cards cut off at the foot",
+      "page": "every"
+    },
+    {
+      "file": "Today-Tall10.dc.html",
+      "x": 2700,
+      "y": 0,
+      "w": 900,
+      "h": 1440,
+      "title": "Today: the 10-inch hung tall, the cards still running sideways off the edge",
+      "page": "every"
+    },
+    {
+      "file": "Today-Tall7.dc.html",
+      "x": 3720,
+      "y": 0,
+      "w": 576,
+      "h": 1024,
+      "title": "Today: a 7-inch hung tall, the same at 64%, a third of it empty",
+      "page": "every"
+    },
+    {
+      "file": "Today-Tablet.dc.html",
+      "x": 4416,
+      "y": 0,
+      "w": 820,
+      "h": 1180,
+      "title": "Today: a tablet held tall gets the phone's page",
+      "page": "every"
+    },
+    {
+      "file": "Today-Phone.dc.html",
+      "x": 5356,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Today: a phone, for reference",
+      "page": "every"
+    },
+    {
+      "file": "RailA.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "A: a rail down the side, a bar along the foot, on the 10-inch wall, hung wide, 1440x900",
+      "page": "every-rejected"
+    },
+    {
+      "file": "RailA-Wide7.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1024,
+      "h": 576,
+      "title": "A: a rail down the side, a bar along the foot, on a 7-inch hung wide, 1024x576",
+      "page": "every-rejected"
+    },
+    {
+      "file": "RailA-Tall10.dc.html",
+      "x": 2700,
+      "y": 0,
+      "w": 900,
+      "h": 1440,
+      "title": "A: a rail down the side, a bar along the foot, on the 10-inch wall hung tall, 900x1440",
+      "page": "every-rejected"
+    },
+    {
+      "file": "RailA-Tall7.dc.html",
+      "x": 3720,
+      "y": 0,
+      "w": 576,
+      "h": 1024,
+      "title": "A: a rail down the side, a bar along the foot, on a 7-inch hung tall, 576x1024",
+      "page": "every-rejected"
+    },
+    {
+      "file": "RailA-Phone.dc.html",
+      "x": 4416,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "A: a rail down the side, a bar along the foot, on a phone, 390x844",
+      "page": "every-rejected"
+    },
+    {
+      "file": "DockB.dc.html",
+      "x": 0,
+      "y": 1800,
+      "w": 1440,
+      "h": 900,
+      "title": "B: one dock at the foot of every screen, on the 10-inch wall, hung wide, 1440x900",
+      "page": "every"
+    },
+    {
+      "file": "DockB-Wide7.dc.html",
+      "x": 1560,
+      "y": 1800,
+      "w": 1024,
+      "h": 576,
+      "title": "B: one dock at the foot of every screen, on a 7-inch hung wide, 1024x576",
+      "page": "every"
+    },
+    {
+      "file": "DockB-Tall10.dc.html",
+      "x": 2700,
+      "y": 1800,
+      "w": 900,
+      "h": 1440,
+      "title": "B: one dock at the foot of every screen, on the 10-inch wall hung tall, 900x1440",
+      "page": "every"
+    },
+    {
+      "file": "DockB-Tall7.dc.html",
+      "x": 3720,
+      "y": 1800,
+      "w": 576,
+      "h": 1024,
+      "title": "B: one dock at the foot of every screen, on a 7-inch hung tall, 576x1024",
+      "page": "every"
+    },
+    {
+      "file": "DockB-Phone.dc.html",
+      "x": 4416,
+      "y": 1800,
+      "w": 390,
+      "h": 844,
+      "title": "B: one dock at the foot of every screen, on a phone, 390x844",
+      "page": "every"
+    },
+    {
+      "file": "SideC.dc.html",
+      "x": 0,
+      "y": 1800,
+      "w": 1440,
+      "h": 900,
+      "title": "C: a side list that names the rooms and the everyday pages, on the 10-inch wall, hung wide, 1440x900",
+      "page": "every-rejected"
+    },
+    {
+      "file": "SideC-Wide7.dc.html",
+      "x": 1560,
+      "y": 1800,
+      "w": 1024,
+      "h": 576,
+      "title": "C: a side list that names the rooms and the everyday pages, on a 7-inch hung wide, 1024x576",
+      "page": "every-rejected"
+    },
+    {
+      "file": "SideC-Tall10.dc.html",
+      "x": 2700,
+      "y": 1800,
+      "w": 900,
+      "h": 1440,
+      "title": "C: a side list that names the rooms and the everyday pages, on the 10-inch wall hung tall, 900x1440",
+      "page": "every-rejected"
+    },
+    {
+      "file": "SideC-Tall7.dc.html",
+      "x": 3720,
+      "y": 1800,
+      "w": 576,
+      "h": 1024,
+      "title": "C: a side list that names the rooms and the everyday pages, on a 7-inch hung tall, 576x1024",
+      "page": "every-rejected"
+    },
+    {
+      "file": "SideC-Phone.dc.html",
+      "x": 4416,
+      "y": 1800,
+      "w": 390,
+      "h": 844,
+      "title": "C: a side list that names the rooms and the everyday pages, on a phone, 390x844",
+      "page": "every-rejected"
+    },
+    {
+      "file": "SheetToday.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: one list of twelve down the left, the overview beside it",
+      "page": "sheet"
+    },
+    {
+      "file": "SheetToday-Wide7.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1024,
+      "h": 576,
+      "title": "Today, a 7-inch hung wide: the list runs past the foot",
+      "page": "sheet"
+    },
+    {
+      "file": "SheetToday-Tall7.dc.html",
+      "x": 2700,
+      "y": 0,
+      "w": 576,
+      "h": 1024,
+      "title": "Today, a 7-inch hung tall: list and overview squeezed side by side",
+      "page": "sheet"
+    },
+    {
+      "file": "SheetToday-Phone.dc.html",
+      "x": 3396,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Today, a phone: Finish setting up, then one list",
+      "page": "sheet"
+    },
+    {
+      "file": "SheetAllA.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "A: every group at once, rising from the dock, on the 10-inch wall",
+      "page": "sheet-rejected"
+    },
+    {
+      "file": "SheetAllA-Wide7.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1024,
+      "h": 576,
+      "title": "A: every group at once, rising from the dock, on a 7-inch hung wide",
+      "page": "sheet-rejected"
+    },
+    {
+      "file": "SheetAllA-Tall7.dc.html",
+      "x": 2700,
+      "y": 0,
+      "w": 576,
+      "h": 1024,
+      "title": "A: every group at once, rising from the dock, on a 7-inch hung tall",
+      "page": "sheet-rejected"
+    },
+    {
+      "file": "SheetAllA-Phone.dc.html",
+      "x": 3396,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "A: every group at once, rising from the dock, on a phone",
+      "page": "sheet-rejected"
+    },
+    {
+      "file": "SheetListB.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "B: today's sheet, grouped, on the 10-inch wall",
+      "page": "sheet"
+    },
+    {
+      "file": "SheetListB-Wide7.dc.html",
+      "x": 1560,
+      "y": 1300,
+      "w": 1024,
+      "h": 576,
+      "title": "B: today's sheet, grouped, on a 7-inch hung wide",
+      "page": "sheet"
+    },
+    {
+      "file": "SheetListB-Tall7.dc.html",
+      "x": 2700,
+      "y": 1300,
+      "w": 576,
+      "h": 1024,
+      "title": "B: today's sheet, grouped, on a 7-inch hung tall",
+      "page": "sheet"
+    },
+    {
+      "file": "SheetListB-Phone.dc.html",
+      "x": 3396,
+      "y": 1300,
+      "w": 390,
+      "h": 844,
+      "title": "B: today's sheet, grouped, on a phone",
+      "page": "sheet"
+    },
+    {
+      "file": "SheetMenuC.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "C: a short menu over the dock, on the 10-inch wall",
+      "page": "sheet-rejected"
+    },
+    {
+      "file": "SheetMenuC-Wide7.dc.html",
+      "x": 1560,
+      "y": 1300,
+      "w": 1024,
+      "h": 576,
+      "title": "C: a short menu over the dock, on a 7-inch hung wide",
+      "page": "sheet-rejected"
+    },
+    {
+      "file": "SheetMenuC-Tall7.dc.html",
+      "x": 2700,
+      "y": 1300,
+      "w": 576,
+      "h": 1024,
+      "title": "C: a short menu over the dock, on a 7-inch hung tall",
+      "page": "sheet-rejected"
+    },
+    {
+      "file": "SheetMenuC-Phone.dc.html",
+      "x": 3396,
+      "y": 1300,
+      "w": 390,
+      "h": 844,
+      "title": "C: a short menu over the dock, on a phone",
+      "page": "sheet-rejected"
+    },
+    {
+      "file": "RoomToday.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: the Living room on the 10-inch wall",
+      "page": "room"
+    },
+    {
+      "file": "PaneToday.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: its Ceiling light on the 10-inch wall",
+      "page": "room"
+    },
+    {
+      "file": "PaneToday-Wide7.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1024,
+      "h": 576,
+      "title": "Today: the Ceiling light on a 7-inch hung wide, at 64%",
+      "page": "room"
+    },
+    {
+      "file": "RoomToday-Tall7.dc.html",
+      "x": 4264,
+      "y": 0,
+      "w": 576,
+      "h": 1024,
+      "title": "Today: the Living room on a 7-inch hung tall, three stretched columns",
+      "page": "room"
+    },
+    {
+      "file": "PaneToday-Tall7.dc.html",
+      "x": 4960,
+      "y": 0,
+      "w": 576,
+      "h": 1024,
+      "title": "Today: the Ceiling light on a 7-inch hung tall, its colors and usual three gone",
+      "page": "room"
+    },
+    {
+      "file": "RoomToday-Phone.dc.html",
+      "x": 5656,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Today: the Living room on a phone",
+      "page": "room"
+    },
+    {
+      "file": "RoomWide.dc.html",
+      "x": 0,
+      "y": 1400,
+      "w": 1440,
+      "h": 900,
+      "title": "Every direction, the 10-inch wall: the shipped room and lamp, under the dock",
+      "page": "room"
+    },
+    {
+      "file": "RoomWide-Wide7.dc.html",
+      "x": 1560,
+      "y": 1400,
+      "w": 1024,
+      "h": 576,
+      "title": "Every direction, a 7-inch hung wide: the same, at the wall's size",
+      "page": "room"
+    },
+    {
+      "file": "RoomGridA-Tall7.dc.html",
+      "x": 0,
+      "y": 2800,
+      "w": 576,
+      "h": 1024,
+      "title": "A: the home's grid, the lamp as a whole sheet, on a 7-inch hung tall",
+      "page": "room"
+    },
+    {
+      "file": "RoomGridA-Tall10.dc.html",
+      "x": 696,
+      "y": 2800,
+      "w": 900,
+      "h": 1440,
+      "title": "A: the home's grid, the lamp as a whole sheet, on the 10-inch hung tall",
+      "page": "room"
+    },
+    {
+      "file": "RoomGridA-Phone.dc.html",
+      "x": 1716,
+      "y": 2800,
+      "w": 390,
+      "h": 844,
+      "title": "A: the home's grid, the lamp as a whole sheet, on a phone",
+      "page": "room"
+    },
+    {
+      "file": "RoomReachB-Tall7.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 576,
+      "h": 1024,
+      "title": "B: the scenes by the dock, the lamp as half a sheet, on a 7-inch hung tall",
+      "page": "room-rejected"
+    },
+    {
+      "file": "RoomReachB-Tall10.dc.html",
+      "x": 696,
+      "y": 0,
+      "w": 900,
+      "h": 1440,
+      "title": "B: the scenes by the dock, the lamp as half a sheet, on the 10-inch hung tall",
+      "page": "room-rejected"
+    },
+    {
+      "file": "RoomReachB-Phone.dc.html",
+      "x": 1716,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "B: the scenes by the dock, the lamp as half a sheet, on a phone",
+      "page": "room-rejected"
+    },
+    {
+      "file": "RoomListC-Tall7.dc.html",
+      "x": 0,
+      "y": 1800,
+      "w": 576,
+      "h": 1024,
+      "title": "C: the room as a list, the lamp opening in its row, on a 7-inch hung tall",
+      "page": "room-rejected"
+    },
+    {
+      "file": "RoomListC-Tall10.dc.html",
+      "x": 696,
+      "y": 1800,
+      "w": 900,
+      "h": 1440,
+      "title": "C: the room as a list, the lamp opening in its row, on the 10-inch hung tall",
+      "page": "room-rejected"
+    },
+    {
+      "file": "RoomListC-Phone.dc.html",
+      "x": 1716,
+      "y": 1800,
+      "w": 390,
+      "h": 844,
+      "title": "C: the room as a list, the lamp opening in its row, on a phone",
+      "page": "room-rejected"
+    },
+    {
+      "file": "DockB-Tablet.dc.html",
+      "x": 4926,
+      "y": 1800,
+      "w": 820,
+      "h": 1180,
+      "title": "B, by size rule 2: a tablet held tall, 820x1180, arranged as the 10-inch hung tall",
+      "page": "every"
+    },
+    {
+      "file": "RoomGridA-Tablet.dc.html",
+      "x": 2226,
+      "y": 2800,
+      "w": 820,
+      "h": 1180,
+      "title": "A, by size rule 2: the room and the lamp on a tablet held tall, as on the 10-inch",
+      "page": "room"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "every",
+      "x": -620,
+      "y": -700,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n1 November 2026, after living with it: the panel is drawn for two screens, a 1440x900 wall and a phone, and anything else gets whichever of those it is closest to by width. A Raspberry Pi Touch Display 2 (7 inches, made tall) hung tall on a wall should look as composed as the wall does, and so should a size nobody has tested. And the menu has not grown with the house: three tabs at the top, Add and This house as two round doors, and fifteen pages in one flat list behind This house.\n\nWhat decides the layout today:\n- One width seam. placeOf() in app/src/look.ts: under 861 is the phone's page (stack), 861 to 1279 is rail, 1280 and up is wall. panel.css has 40-odd blocks on that same 860/861 seam and almost nothing on height.\n- The wall scales by pixels, not by size. startup/wall.sh makes every glass at least 1440x900 CSS pixels. A 10-inch at 1920x1200 is 4/3 and right. A 7-inch at 1280x720 is 0.8, so the browser gets 1600x900 and everything is drawn at 64% of the 10-inch's size: a 44-point button is 4 mm.\n- A tall home is not designed (design/this-screen/, design/sideways-start/): a glass made tall is turned to wide on its first start because of it.\n\nSo this collection draws two things together, because where the menu sits is what changes most between a wide screen and a tall one: how the panel fits a shape it has not seen, and where the menu lives."
+    },
+    {
+      "id": "today",
+      "page": "every",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "TODAY. Not drawn: the shipped panel on the mock brain at 19:40, captured at the size the browser is handed, and shown at the glass's real size against the 10-inch wall.\n\nWall: composed, the cards run on sideways by design. 7-inch wide: 1600x900 shrunk onto a 7-inch, so every word is two thirds the wall's, and the row is cut off at the foot. 10-inch tall: the rail layout at 900 wide, the cards still in one sideways row through the middle, the top third empty, the right card cut. 7-inch tall: the same, at 64%. A tablet held tall (820): under 861, so it gets the phone's page with the rooms as a strip of tabs, while 900 gets the wall's. Phone: settled, for reference."
+    },
+    {
+      "id": "size",
+      "page": "every",
+      "x": -1180,
+      "y": 0,
+      "w": 500,
+      "text": "BEHIND EVERY DIRECTION: HOW A SCREEN IS SIZED\n\n1. Scale by the glass's size, not its pixel count. wall.sh reads the panel's physical size (the display reports it in millimeters) and makes a CSS pixel the same size it is on the 10-inch wall, about 6.6 to the millimeter, which is within a tenth of a phone's. A 7-inch (155x87 mm) becomes 1024x576 wide or 576x1024 tall; the 10-inch stays 1440x900. A bigger glass gets more room, not bigger cards. A glass that reports no size keeps today's rule. Every board here is drawn at that density, so sizes compare by eye.\n\n2. Pick the arrangement by width and height together. Narrow (under 640 wide: phone, 7-inch tall): two across. Tall (640 to 1100 wide, taller than wide: 10-inch tall, tablet held tall): three across. Wide: the shipped wall. Short and wide (under 700 tall: a 7-inch hung wide): the wall's row with shorter cards and a one-line greeting. A tablet at 820 stops getting the phone's page.\n\n3. On a tall screen nothing runs past an edge. The cards fit the screen and the last one says how many more are on and opens Rooms. Only the wide wall keeps its sideways row; the phone scrolls as it does now.\n\n4. Pinned like app/tests/rooms.test.ts: each arrangement at the five sizes, and every card inside the screen.\n\nThis part could be built first on its own, under today's menu, and the 7-inch would be fixed before the menu changes."
+    },
+    {
+      "id": "a",
+      "page": "every-rejected",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "A: A RAIL DOWN THE SIDE, A BAR ALONG THE FOOT.\n\nThe same five things as today, moved to the edge nearest for the shape: the three places, Add as its own round door with its dot, This house, and the command box's orb at the end. A wide screen has them down the left; a tall one along the foot, where a hand reaches.\n\nFOR: it changes no decision already made. The tabs are still three and Add is still a door, not a tab. The top of every screen goes back to the clock and the house. The 7-inch tall fits on one screen.\n\nAGAINST: two menus to learn, left on a wide screen and the foot on a tall one, though most homes have one shape on the wall and phones. The rail takes 104 of the wall's width, and the wall's row starts later. It does not answer 'options are growing': This house still holds fifteen pages behind one door."
+    },
+    {
+      "id": "b",
+      "page": "every",
+      "x": -620,
+      "y": 1800,
+      "w": 500,
+      "text": "B: ONE DOCK AT THE FOOT OF EVERY SCREEN.\n\nThe same order on the wall, a 7-inch either way up and the phone: the orb, the three places, what is playing, Add, This house. It floats on the glass, so the cards run under it to the edge. Where it is narrow, the words go under the pictures and what is playing gives up its place.\n\nFOR: one thing to learn on every screen in the house, the phone included. The foot is where a hand reaches on a wall screen hung at eye height and where the thumb is on a phone. It carries what is live, so music has a place without becoming a fourth tab. Nothing is at the top but the clock and the house.\n\nAGAINST: on a 7-inch hung wide it takes 64 of 576. On the phone it replaces the strip of room tabs across the top, which changes a settled phone. Like A, it leaves This house's fifteen pages as they are."
+    },
+    {
+      "id": "c",
+      "page": "every-rejected",
+      "x": -620,
+      "y": 1800,
+      "w": 500,
+      "text": "C: A SIDE LIST THAT NAMES THE HOUSE.\n\nThe menu lists the rooms with what is on in each, the cameras, and an Every day group: Music, Routines, What happened, moved out of This house. Add and This house stay round doors at its foot. A tall screen gets a bar of four or five, the rest stay in This house, and the two doors go to the top.\n\nFOR: it answers 'options are growing' head on. A new everyday thing has somewhere to go, and every room is one tap instead of two.\n\nAGAINST: it reopens two decisions. 'The wall's tabs stay three' (design/music/, and the Add decision): Music and Routines become places of their own. It takes 264 of the wall's width, the most of the three. A house with twelve rooms makes a long list, and its order has to be argued again on every shape."
+    },
+    {
+      "id": "decided",
+      "page": "every",
+      "x": 6000,
+      "y": 0,
+      "w": 500,
+      "text": "DECIDED 1 NOVEMBER 2026\n\nB: one dock at the foot of every screen, in the same order everywhere. The size rules under Why come with it, and can be built first.\n\nThis house, which the dock's last button opens, is drawn next on its own page, This house, from the dock. A and C are on the next page with their cases."
+    },
+    {
+      "id": "s-why",
+      "page": "sheet",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS PAGE\n\nThe dock's last button is This house. Picking the dock decides where it is, not what it opens, and what it opens has grown without a plan: twelve to seventeen pages (Printers, Solar and battery, Needs a look and For working on the hub come and go) in one list, in the order they were built. What wants the household is wherever its page falls: Accounts sixth, the passcode last. On a 7-inch hung tall the list and the overview share 900 points and both are cramped.\n\nSo two questions, answered together by each direction: where the sheet sits against the dock, and how its pages are laid out on every shape."
+    },
+    {
+      "id": "s-today",
+      "page": "sheet",
+      "x": -620,
+      "y": 700,
+      "w": 500,
+      "text": "TODAY. Not drawn: the shipped sheet on the mock brain (?sheet=house), at the size the browser is handed and shown at the glass's real size. Wall: the list runs to the foot, What happened half cut. 7-inch wide: the same at 64%, past the foot. 7-inch tall: the two panes in 900 points, the overview's words wrapping, the bottom half empty. Phone: Finish setting up, then the list, then each page (the mock house is in its light look here)."
+    },
+    {
+      "id": "s-behind",
+      "page": "sheet",
+      "x": -1180,
+      "y": 0,
+      "w": 500,
+      "text": "BEHIND EVERY DIRECTION\n\nTHE DOCK STAYS. The sheet opens above it and never covers it. This house is lit while it is open; tapping it again closes the sheet, and tapping a place goes there. From any page, every place is one tap away.\n\nFOUR GROUPS, in plain words. Every day: Routines, What happened, What the lights tell you. People: People and phones, Share this house, Accounts. The house: Where home is, What this house has, and Printers and Solar and battery when the house has them. The hub and this screen: This screen (on a screen only), How it looks, The hub, Passcode, and For working on the hub when it is shown. The group names go through docs/wording.md before they ship.\n\nWHAT WANTS YOU COMES FIRST, said once: amber cards at the top in A and B, a dot in C. Needs a look joins them.\n\nADD LEAVES THE LIST. The dock has its own Add door, so the sheet no longer repeats it.\n\nA PAGE has a way back to This house above its title. Flip 'a page open' under any board."
+    },
+    {
+      "id": "s-a",
+      "page": "sheet-rejected",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "A: EVERY GROUP AT ONCE, RISING FROM THE DOCK.\n\nOn a wide screen the sheet rises from the dock only as far as the groups need: four groups side by side, nothing to scroll, the home still showing above it. A 7-inch hung tall gets two by two; a phone one column that scrolls. A page fills the sheet.\n\nFOR: the whole house in one look, hints included. The groups are the layout, so a new page has an obvious place and the sheet grows downward, not into a longer list. The same rule (as many group columns as fit) works on any shape.\n\nAGAINST: a page and the list are never side by side, so going from page to page is back, then tap. On a 7-inch hung wide it fills the screen anyway."
+    },
+    {
+      "id": "s-b",
+      "page": "sheet",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "B: TODAY'S SHEET, GROUPED.\n\nThe shipped two panes on a wide screen, list left and page right, with the list grouped and what needs you at the top of the first page. A tall screen gets the grouped list, then each page, as the phone does now.\n\nFOR: the least to learn. Anyone who knows today's sheet finds everything where it was, and on a wall you go from page to page in one tap.\n\nAGAINST: it is the sheet that is already crowded on a 7-inch: on the 7-inch wide the hints have to go. The grouped list is longer than the flat one and already reaches the dock on the wall, so with Printers or Solar it scrolls. It covers the home completely."
+    },
+    {
+      "id": "s-c",
+      "page": "sheet-rejected",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "C: A SHORT MENU OVER THE DOCK.\n\nThis house opens a menu above its own button: names and pictures, grouped, with the home still showing behind. Choosing one opens that page as the whole sheet. A dot marks what needs you. On a short screen the menu is two columns; on a phone it is the width of the screen.\n\nFOR: the fastest way to a page, and the lightest. It reads as part of the dock, like a stack on a Mac dock, rather than as somewhere new.\n\nAGAINST: the hints are gone (Nightfall, 3 people, 2 home), so it says less about the house at a glance, and what needs you is only a dot. With every optional page it reaches seventeen rows and needs two columns on more screens. A menu that pops up is a pattern the panel does not have anywhere else yet."
+    },
+    {
+      "id": "s-decided",
+      "page": "sheet",
+      "x": 4000,
+      "y": 0,
+      "w": 500,
+      "text": "DECIDED 1 NOVEMBER 2026\n\nB: today's sheet, grouped. Two panes on a wide screen, the grouped list left and the page right, with what needs you at the top of the first page; on a tall screen the grouped list, then each page. It opens above the dock, which stays, with This house lit, and Add leaves the list. A and C are on the next page with their cases.\n\nStill to settle when it is built: the list scrolling once Printers or Solar join it on the wall, and the hints dropping on a 7-inch hung wide."
+    },
+    {
+      "id": "r-why",
+      "page": "room",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS PAGE\n\nThe dock and the size rules change every screen, not only Your evening and This house. A room page and a device's control are where a household actually spends its taps, and on a tall screen today neither is composed.\n\nDrawn for the Living room, the house's busiest room (the TV, four scenes, two lamps on and one off, blinds, the thermostat, a speaker), and for its Ceiling light, the richest control the panel has: brightness, colors, the usual three and what it did today. Flip 'its ceiling light' under any board."
+    },
+    {
+      "id": "r-today",
+      "page": "room",
+      "x": -620,
+      "y": 640,
+      "w": 500,
+      "text": "TODAY. Not drawn: the shipped panel on the mock brain, ?room=living and a hold on the Ceiling light, at the size the browser is handed and shown at the glass's real size.\n\nThe wall is composed: the TV, the scenes, then the rest in a row that runs on to the right; the lamp is a sheet with what it is on the left and the controls on the right. On a 7-inch hung tall the room is three columns stretched to 1200 points, the third cut off, the scenes card three quarters empty. The lamp is worse: at 900 wide its colors and the usual three are not shown at all, the brightness column is 1100 points tall, and the left half is empty under the 35%. (A phone's lamp opens the same way the phone's room does, as a sheet; it was not captured.)"
+    },
+    {
+      "id": "r-wide",
+      "page": "room",
+      "x": -620,
+      "y": 1400,
+      "w": 500,
+      "text": "EVERY DIRECTION, ON A WIDE SCREEN: what ships, under the dock.\n\nThe wall's room and its lamp are composed today and stay as they are. The page ends above the dock rather than at the people line. The lamp's sheet still runs to the foot over the dock, as it ships: the roofline's pane and a held strip's are drawn to the wall's full height, and lose their floor if it stops 100 points short. Closing it is one tap, and on a wall there is room to spare. A 7-inch hung wide is drawn at the wall's size now, so the lamp loses only what it did today and who made it, which are a tap further in.\n\nWhat differs between the directions is a tall screen and the phone, below."
+    },
+    {
+      "id": "r-a",
+      "page": "room",
+      "x": -620,
+      "y": 2800,
+      "w": 500,
+      "text": "A: THE HOME'S GRID, THE LAMP AS A WHOLE SHEET.\n\nThe room is laid out the way Your evening is on the same shape: the TV across the top, then two across (three on the 10-inch), and a thing that is off as a short bar at the end. The scenes become a row of pills under the room's name. The lamp opens as a sheet above the dock with every part the wall has, stacked: name and buttons, the 35%, brightness beside colors and the usual three, then today.\n\nFOR: one rule for every page; the lamp loses nothing on any shape, which fixes today's missing colors outright. The room and the home look like one product.\n\nAGAINST: the scenes are pills, smaller than today's card. A room with twelve things scrolls, as the phone does now. The whole sheet hides the room you were looking at."
+    },
+    {
+      "id": "r-b",
+      "page": "room-rejected",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "B: THE SCENES BY THE DOCK, THE LAMP AS HALF A SHEET.\n\nThe room is A's grid, but the scenes sit in a strip just above the dock, where a hand already is. The lamp opens as half a sheet from the dock: its name and 35%, brightness beside the usual three, and a row of colors with Colors and more for the rest. The room stays visible above it, the lamp's card lit and the rest dimmed.\n\nFOR: the two things a household does most, a scene and a level, are at the foot of the screen, which on a wall hung at eye height is where the hand is, and on a phone where the thumb is. You can still see which card you opened.\n\nAGAINST: two layers at the foot (scenes and dock) make the bottom busy. The half sheet leaves out Automatic, the full colors and today, a tap further in, so it is a second shape of the lamp to keep in step with the wall's."
+    },
+    {
+      "id": "r-c",
+      "page": "room-rejected",
+      "x": -620,
+      "y": 1800,
+      "w": 500,
+      "text": "C: THE ROOM AS A LIST, THE LAMP OPENING IN ITS ROW.\n\nOn a tall screen a room is a list: each thing a row with its state, its color as a wash behind it, and the one control it needs at the end (on and off, pause, minus and plus). The scenes are pills at the top. Tapping a lamp opens its row in place: a brightness bar, the usual three, the colors, and Everything about this light for the rest. The 10-inch has two columns of rows.\n\nFOR: it scales. A room with twenty things is a list you can read, where a grid of twenty cards is not. The lamp opens without leaving the room.\n\nAGAINST: it gives up the cards' pictures, which are much of the panel's look, and on a tall screen the room no longer looks like the wall's. A brightness bar dragged across replaces the column dragged up, a change to how every lamp is dimmed (app/e2e/pane.spec.ts pins the column)."
+    },
+    {
+      "id": "r-decided",
+      "page": "room",
+      "x": 4400,
+      "y": 1400,
+      "w": 500,
+      "text": "DECIDED 1 NOVEMBER 2026\n\nA: on a tall screen and a phone the room is laid out the way Your evening is on the same shape, the TV across the top and two across (three on the 10-inch), with the scenes as pills under the room's name. A lamp opens as a whole sheet above the dock with every part the wall has, stacked, so nothing is lost on any shape. The wall and the 7-inch hung wide keep the shipped room and lamp, under the dock.\n\nLeft for when it is built: a room with more things than fit scrolls, as the phone does now. B and C are on the next page with their cases."
+    },
+    {
+      "id": "r-built",
+      "page": "room",
+      "x": 4400,
+      "y": 2000,
+      "w": 500,
+      "text": "BUILT 2 NOVEMBER 2026\n\nAs drawn on a tall screen and a phone: the room in the home's grid with its scenes as pills, and the lamp as one stacked sheet above the dock, its brightness standing beside the colors and the usual three. A phone on its side keeps brightness lying across, having no height for it.\n\nOne change from the boards: on the wall and a 7-inch hung wide the lamp's sheet runs over the dock rather than stopping above it, as it ships. The roofline's pane and a held strip's are drawn to the wall's full height, and changing that is a drawing of its own. Every direction, on a wide screen now draws it this way."
+    },
+    {
+      "id": "built",
+      "page": "every",
+      "x": 6000,
+      "y": 700,
+      "w": 500,
+      "text": "BUILT 2 NOVEMBER 2026\n\nThe dock is on the wall, a 7-inch either way up, the 10-inch hung tall and the phone, in the same order, with This house's door lit while setup is unfinished.\n\nOne change from the boards: the phone keeps its own Home page above the dock, with what it prints, what is kept on Home, On right now and its cameras, rather than the two-across grid B draws for it. The grid would have dropped all four. A 7-inch wall screen hung tall gets the grid, as drawn."
+    },
+    {
+      "id": "tablet",
+      "page": "every",
+      "x": 4926,
+      "y": 3060,
+      "w": 500,
+      "text": "A TABLET HELD TALL, 2 NOVEMBER 2026.\n\nNot a new direction: size rule 2, decided with B, says a screen 640 to 1100 wide and taller than wide is arranged as the 10-inch hung tall, three across, and that a tablet at 820 stops getting the phone's page. This board draws that at an iPad's size so there is a picture to build against.\n\nWhat it changes for a household: an iPad held tall shows Your evening as a fitted grid with the clock and the greeting, where today it shows the phone's scrolling page. Turned on its side it is wide and gets the wall's row, as now. A phone, 7-inch hung tall and anything under 640 keep two across.\n\nBUILT 2 NOVEMBER 2026: from 640 wide, a screen held tall is arranged this way (placeOf, PHONE and TALL_AT in app/src/look.ts). The lamp's pane scrolls as a whole on a tall screen, as on a phone, since 1180 is not the 10-inch's 1440. Pinned by app/e2e/shapes.spec.ts, room-shapes and pane-shapes."
+    }
+  ]
+}

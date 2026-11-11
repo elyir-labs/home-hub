@@ -1,0 +1,221 @@
+{
+  "name": "What the front page says",
+  "areas": [
+    "The website"
+  ],
+  "reading": [
+    "why",
+    "Today.dc.html",
+    "Today-phone.dc.html",
+    "Today-try.dc.html",
+    "today",
+    "decided",
+    "PlainChipsD.dc.html",
+    "PlainChipsD-phone.dc.html",
+    "PlainChipsD-try.dc.html",
+    "SaidPlainlyA.dc.html",
+    "SaidPlainlyA-phone.dc.html",
+    "SaidPlainlyA-try.dc.html",
+    "a",
+    "ShownB.dc.html",
+    "ShownB-phone.dc.html",
+    "ShownB-try.dc.html",
+    "b",
+    "QuestionsFirstC.dc.html",
+    "QuestionsFirstC-phone.dc.html",
+    "c"
+  ],
+  "pages": [
+    {
+      "id": "site-more",
+      "name": "What the front page says",
+      "decided": {
+        "on": "2026-11-02",
+        "chose": "A, with B's chips",
+        "board": "PlainChipsD.dc.html"
+      }
+    },
+    {
+      "id": "site-more-rejected",
+      "name": "What the front page says: not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 2575,
+      "title": "Today · the page as it is: what it looks like, how to get it, and nothing on what it does, what it works with, or the questions a buyer has",
+      "page": "site-more"
+    },
+    {
+      "file": "Today-phone.dc.html",
+      "x": 1580,
+      "y": 0,
+      "w": 390,
+      "h": 4398,
+      "title": "Today · on a phone",
+      "page": "site-more"
+    },
+    {
+      "file": "Today-try.dc.html",
+      "x": 2110,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Today · the pretend house on a phone is a page of its own, with no way back",
+      "page": "site-more"
+    },
+    {
+      "file": "PlainChipsD.dc.html",
+      "x": 0,
+      "y": 4598,
+      "w": 1440,
+      "h": 3792,
+      "title": "D · Chosen: A, with B’s chips for what it works with, the makers the hub knows by name, and What if I move?",
+      "page": "site-more"
+    },
+    {
+      "file": "PlainChipsD-phone.dc.html",
+      "x": 1580,
+      "y": 4598,
+      "w": 390,
+      "h": 6771,
+      "title": "D · On a phone",
+      "page": "site-more"
+    },
+    {
+      "file": "PlainChipsD-try.dc.html",
+      "x": 2110,
+      "y": 4598,
+      "w": 390,
+      "h": 844,
+      "title": "D · The pretend house on a page of its own: A’s bar, leading back",
+      "page": "site-more"
+    },
+    {
+      "file": "SaidPlainlyA.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 3741,
+      "title": "A · Said plainly: what it does under the top, what it works with after Try it, the questions open at the foot",
+      "page": "site-more-rejected"
+    },
+    {
+      "file": "SaidPlainlyA-phone.dc.html",
+      "x": 1580,
+      "y": 0,
+      "w": 390,
+      "h": 6693,
+      "title": "A · On a phone: the four things stack, each with its mark",
+      "page": "site-more-rejected"
+    },
+    {
+      "file": "SaidPlainlyA-try.dc.html",
+      "x": 2110,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "A · The pretend house gets a bar along the top that leads back",
+      "page": "site-more-rejected"
+    },
+    {
+      "file": "ShownB.dc.html",
+      "x": 0,
+      "y": 6893,
+      "w": 1440,
+      "h": 4064,
+      "title": "B · Shown on the panel: what it does is four of the panel’s own cards, after the day; the questions fold away",
+      "page": "site-more-rejected"
+    },
+    {
+      "file": "ShownB-phone.dc.html",
+      "x": 1580,
+      "y": 6893,
+      "w": 390,
+      "h": 6524,
+      "title": "B · On a phone: the cards two by two",
+      "page": "site-more-rejected"
+    },
+    {
+      "file": "ShownB-try.dc.html",
+      "x": 2110,
+      "y": 6893,
+      "w": 390,
+      "h": 844,
+      "title": "B · The pretend house gets a pill that floats over its foot",
+      "page": "site-more-rejected"
+    },
+    {
+      "file": "QuestionsFirstC.dc.html",
+      "x": 0,
+      "y": 13617,
+      "w": 1440,
+      "h": 3630,
+      "title": "C · The questions first: one section under the top, in the order a buyer asks; what it does and what it works with are answers in it",
+      "page": "site-more-rejected"
+    },
+    {
+      "file": "QuestionsFirstC-phone.dc.html",
+      "x": 1580,
+      "y": 13617,
+      "w": 390,
+      "h": 6152,
+      "title": "C · On a phone: question over answer",
+      "page": "site-more-rejected"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "site-more",
+      "x": -760,
+      "y": 0,
+      "w": 620,
+      "text": "WHY THIS EXISTS (2 NOVEMBER 2026)\n\nhub.elyir.com is live with the top and the pictures settled (design/site/, D; design/site-pair/, D). What it still lacks is the middle a buyer reads before deciding: what the hub does, what it works with, and answers to the questions everybody asks first. Two words on it need fixing, and the pretend house on a phone has no way back to the page.\n\nEach board is the built page (site/dist) with the board's sections put into it, so everything around them is the page's own (boards.js, app/mock/site-more-shots.mjs). Boards are shown dark, the page's own default; the light look follows from the same tokens.\n\nPick one, or something else -- describe it."
+    },
+    {
+      "id": "today",
+      "page": "site-more",
+      "x": 2640,
+      "y": 0,
+      "w": 620,
+      "text": "TODAY: IT SAYS HOW IT LOOKS, NOT WHAT IT DOES\n\nThe page answers three things well: what the hub looks like (the living room on the wall and the phone, then the wall through a day), how to try it, and how to get it. It never says what the hub does beyond its first sentence, never says whether it works with what somebody already has, and leaves the questions a buyer brings with them -- do I need Home Assistant, what if the internet goes down, what leaves my house -- to the footer or to nowhere.\n\nTwo words read badly to a newcomer: Sign in, at the top right, for houses.elyir.app, where nobody signs in to anything; and \"the phones you've let in\", which is our phrase.\n\nOn a phone, Try it live opens the pretend house as a page of its own, and nothing on it leads back to the site.\n\nWHAT EVERY DIRECTION DOES THE SAME: the same four things it does, the same eight kinds and list of makers, the same six questions, the same two wording fixes (Open your house; your household's phones), and a way back from the pretend house. They differ in where these go and how they are shown. The list of makers is drawn from what Home Assistant finds and what the hub's own setup guides for; it is checked against the Add flow before it ships."
+    },
+    {
+      "id": "a",
+      "page": "site-more-rejected",
+      "x": 2640,
+      "y": 0,
+      "w": 620,
+      "text": "A -- SAID PLAINLY\n\nThree short sections, each where a visitor looks for it. What it does goes straight under the top, in four lines with a mark each, because that is the question the first screen raises and does not answer. What it works with comes after Try it, beside Ways to get it, because that is when somebody is deciding. The questions sit open at the foot, two columns, all readable without a tap.\n\nThe case for it: the least change to a page that was just decided (design/site-pair/, D), all words, nothing to keep up to date when the panel changes. The pretend house on a phone gets a light bar along the top: what it is, and Back to the site. It pushes the panel down 44 px and costs nothing else.\n\nThe case against: words where the page's strength is pictures, and the page grows by about a screen and a half."
+    },
+    {
+      "id": "b",
+      "page": "site-more-rejected",
+      "x": 2640,
+      "y": 6893,
+      "w": 620,
+      "text": "B -- SHOWN ON THE PANEL\n\nWhat it does is the panel's own cards, cut from the pretend house: the routines, the command box with a sentence in it, a speaker, a camera's room. It comes after the day, so the page goes picture, picture, picture before it asks for anything. What it works with is a row of chips, kinds a person recognizes at a glance. The questions fold, one open, so the foot stays short.\n\nThe case for it: every claim has its proof beside it, the page keeps one voice (the panel), and folded questions cost the least height.\n\nThe case against: four more pictures to remake whenever the panel changes (they come from site-shots like the rest), the first card proves 'works without the internet' only by showing routines, and an answer behind a tap is one fewer read. The pretend house's way back floats over its foot as a pill, which never moves the panel but covers a little of whatever is under it."
+    },
+    {
+      "id": "c",
+      "page": "site-more-rejected",
+      "x": 2110,
+      "y": 13617,
+      "w": 620,
+      "text": "C -- THE QUESTIONS FIRST\n\nOne section, straight under the top, in the order a buyer asks: will it work with what I have, what does it do, do I need Home Assistant, what if the internet is down, what does it cost, what leaves my house, Apple Home or Google Home, what screen. What it does and what it works with are answers in it, not sections of their own. The day and Try it come after.\n\nThe case for it: the people this page is for arrive with questions, and the answers come before anything else is asked of them; one section instead of three.\n\nThe case against: a page of text right after the pictures, and Through the day -- the page's best picture -- moves a long way down. The pretend house gets A's bar."
+    },
+    {
+      "id": "decided",
+      "page": "site-more",
+      "x": 2640,
+      "y": 4598,
+      "w": 620,
+      "text": "DECIDED 2 NOVEMBER 2026: A, WITH B'S CHIPS\n\nA's three sections in words, where a visitor looks for each: what it does under the top, what it works with after Try it, the questions open at the foot. It keeps the picture-led page settled on 28 October (design/site-pair/, D) and adds nothing that has to be remade when the panel changes. B's chips take the place of A's list, because kinds are read at a glance. The pretend house on a page of its own gets A's bar, which is always there and never covers the panel; inside the site's frame on a computer it has the site around it and shows no bar.\n\nTwo changes since the boards were drawn. The makers named are only those the hub's own code knows by name, with \"most of what Home Assistant works with\" for the rest -- IKEA, Lutron and Shelly were guesses and came out. And Moving out and Start over now exist (design/leaving/, B), so What if I move? is the seventh question.\n\nThe words are the page's: site/index.html, pinned by site/site.test.mjs; the bar is app/src/try.ts, pinned by app/e2e/try.spec.ts."
+    }
+  ]
+}

@@ -101,6 +101,9 @@ test('weeks are the last seven days and the six before them, as in the Monday no
 test('a page with nothing yet still draws, and says what it does not know', () => {
   const html = render(shape({ now: NOW, names, latest: [], state: {}, hours: [], incidents: [], relay: null, carried: Array(8).fill(null), loads: [], joins: [], joinedTotal: 0, downloads: Array(9).fill(null) }))
   assert.match(html, /No checks yet/)
+  assert.match(html, /<h1>Not checked yet\.<\/h1>/, 'nothing is said to be up before anything was asked')
+  assert.ok(!/Everything is up|Nothing was down|class="ok st">Up</.test(html))
+  assert.equal((html.match(/class="ok st none">–</g) || []).length, CHECKS.length)
   assert.match(html, /The relay has not reported yet\./)
   assert.ok(!/NaN|undefined|Infinity/.test(html))
 })

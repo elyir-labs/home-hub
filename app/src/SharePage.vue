@@ -347,7 +347,7 @@ onUnmounted(() => clearInterval(poll))
 .share-wire {
   display: none;
 }
-@media (min-width: 861px) {
+@media (min-width: 861px), (min-width: 640px) and (orientation: portrait) {
   .share-mid {
     grid-template-columns: 56px auto 56px;
     /* The dashes belong on the badge's own row, not spanning all three: centered over mark+word+note
@@ -374,7 +374,7 @@ onUnmounted(() => clearInterval(poll))
     border-top-color: rgba(var(--live-rgb), 0.5);
   }
 }
-@media (max-width: 860px) {
+@media (max-width: 639px), (max-width: 860px) and (orientation: landscape) {
   .share-map {
     grid-template-columns: 1fr;
     gap: 16px;

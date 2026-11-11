@@ -17,6 +17,9 @@ An invite is a grant made before anybody claims: the house that brings the code 
 name, or any time after -- is carried until the date, without anybody running grant. Each works once
 and is no good after 30 days. The code is shown once; the relay keeps only its hash.
 
+A name a carried sibling vouched for (registry.py) lists with "vouched by <name>" as its note. Stopping
+the sibling leaves it carried until its own date, so stop it too.
+
 Granting is the only one with a consequence a household would notice the same minute: a house that
 was refused at login is carried the next time its frpc retries, which it does on its own.
 """

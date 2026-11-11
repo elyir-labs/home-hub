@@ -27,12 +27,14 @@ TURN="$(head -c 8 "$REQ" | tr -cd '0-9')"
 rm -f "$REQ"
 # The same direction the compositor's transform means: a display hung with its left side up shows the
 # picture turned a quarter the other way, which is the panel's 90. TOUCH is libinput's calibration matrix for the
-# same turn, from where the glass reports a touch to where that point now is in the turned picture.
+# same turn, from where the glass reports a touch to where that point now is in the turned picture. Each is the
+# compositor's own arithmetic for that transform (apply_output_transform in wlroots' wlr_cursor.c: 90 is x'=1-y,
+# y'=x), not worked out again here: the two quarters were once the wrong way round, which left a tap upside down.
 case "$TURN" in
   0) WAY='' TOUCH='' ;;
-  90) WAY=left_side_up TOUCH="0 1 0 -1 0 1" ;;
+  90) WAY=left_side_up TOUCH="0 -1 1 1 0 0" ;;
   180) WAY=upside_down TOUCH="-1 0 1 0 -1 1" ;;
-  270) WAY=right_side_up TOUCH="0 -1 1 1 0 0" ;;
+  270) WAY=right_side_up TOUCH="0 1 0 -1 0 1" ;;
   *) log "asked to turn by '$TURN', which is not a quarter"; exit 1 ;;
 esac
 
@@ -40,7 +42,7 @@ esac
 # arrives, so each touchscreen is made to leave and come back, which the running compositor follows.
 if [ -n "$TOUCH" ]; then
   mkdir -p "$(dirname "$RULES")"
-  printf '# Written by startup/turn.sh: touch turned %s, the way the screen is.\nSUBSYSTEM=="input", ENV{ID_INPUT_TOUCHSCREEN}=="1", ENV{LIBINPUT_CALIBRATION_MATRIX}="%s"\n' \
+  printf '# Written by startup/turn.sh: touch follows a turn of %s, the way the compositor turns it.\nSUBSYSTEM=="input", ENV{ID_INPUT_TOUCHSCREEN}=="1", ENV{LIBINPUT_CALIBRATION_MATRIX}="%s"\n' \
     "$TURN" "$TOUCH" > "$RULES"
 else
   rm -f "$RULES"

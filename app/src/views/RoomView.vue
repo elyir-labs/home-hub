@@ -96,7 +96,17 @@ function sizeOf(d: Device): Size {
    the things that are not. Equal sizes ending up adjacent is not a nicety: it
    is what lets a column pack full instead of leaving a hole halfway down. */
 const doing = (d: Device) => !isDead(d) && (cap(d) === 'charger' ? d.state === 'charging' : d.state !== 'off' && d.state !== 'unavailable')
-type Cell = { key: string; size: Size }
+type Cell = { key: string; size: Size; quiet?: boolean }
+
+/* A tall screen or a phone (design/every-screen/, room A, chosen 1 November 2026): the room is laid out the
+   way Your evening is on the same shape, a grid down the page, and the scenes are a row of pills under the
+   room's name rather than a card in it. */
+const PILLS = '(max-width: 860px), (orientation: portrait)'
+const pillsMq = window.matchMedia(PILLS)
+const pills = ref(pillsMq.matches)
+const onPills = () => (pills.value = pillsMq.matches)
+onMounted(() => pillsMq.addEventListener('change', onPills))
+onUnmounted(() => pillsMq.removeEventListener('change', onPills))
 
 function arrange(): Cell[] {
   /* A machine is never "doing" something: its ice maker being on is not news the way a lamp is, so
@@ -110,8 +120,8 @@ function arrange(): Cell[] {
   ]
   const ds: Cell[] = ranked
     .sort((a, b) => SIZES[b.size] - SIZES[a.size] || Number(b.doing) - Number(a.doing) || a.rank - b.rank)
-    .map(c => ({ key: c.key, size: c.size }))
-  if (!scenesFor(props.room).length) return ds
+    .map(c => ({ key: c.key, size: c.size, quiet: !c.doing }))
+  if (pills.value || !scenesFor(props.room).length) return ds
   /* The scenes are a CARD among the devices rather than a bar above them. A bar
      costs 62px off the top of every room in the house before anything in the
      room is shown, and nothing about four scenes is more urgent than the lamp
@@ -148,7 +158,7 @@ function arrange(): Cell[] {
 const plan = ref<Cell[]>([])
 const byId = computed(() => new Map(props.room.devices.map(d => [d.id, d])))
 watch(
-  () => `${props.room.id}|${devices.value.map(d => d.id).join()}|${machines.value.map(m => m.key + m.devices.length).join()}|${printers.value.map(p => p.id).join()}`,
+  () => `${props.room.id}|${devices.value.map(d => d.id).join()}|${machines.value.map(m => m.key + m.devices.length).join()}|${printers.value.map(p => p.id).join()}|${pills.value}`,
   () => (plan.value = arrange()),
   { immediate: true },
 )
@@ -202,6 +212,7 @@ onUnmounted(() => clearInterval(tick))
         </div>
       </div>
       <button class="back room-edit" @click="editing = true" aria-label="Edit this room" title="Rename, move or remove things"><Icon name="edit" :size="20" /></button>
+      <SceneBar v-if="pills" :room="room" class="scenes-pills" />
     </header>
 
     <div class="tiles" v-if="devices.length || machines.length || printers.length">
@@ -212,7 +223,7 @@ onUnmounted(() => clearInterval(tick))
         </div>
         <PrinterTile v-else-if="printerByKey.get(c.key)" :printer="printerByKey.get(c.key)!" :data-size="c.size" />
         <MachineTile v-else-if="machineByKey.get(c.key)" :machine="machineByKey.get(c.key)!" :room="room" :data-size="c.size" />
-        <component v-else-if="byId.get(c.key)" :is="tile(cap(byId.get(c.key)!))" :data-size="c.size" :device="byId.get(c.key)!" v-hold="() => (store.opened = byId.get(c.key)!)" />
+        <component v-else-if="byId.get(c.key)" :is="tile(cap(byId.get(c.key)!))" :data-size="c.size" :data-quiet="c.quiet ? '' : null" :device="byId.get(c.key)!" v-hold="() => (store.opened = byId.get(c.key)!)" />
       </template>
     </div>
     <div v-else-if="!readings.length" class="empty-room">

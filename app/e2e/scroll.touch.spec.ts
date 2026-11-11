@@ -29,11 +29,11 @@ async function swipe(page: Page, x: number, y: number, dx: number) {
 
 type Row = { what: string; url: string; tab?: string; scroller: string; card: string }
 
-/* ?nav=top pins the tabbed panel whatever the mock's look says; the Rooms tab has no URL knob of
-   its own, so it is reached the way a person reaches it. */
+/* ?nav=top pins the tabbed panel whatever the mock's look says; the Rooms place has no URL knob of
+   its own, so it is reached the way a person reaches it, from the dock. */
 async function swipesUnderAFinger(page: Page, { what, url, tab, scroller, card }: Row) {
   await page.goto(url, { waitUntil: 'networkidle' })
-  if (tab) await page.locator('.tabs .tab', { hasText: tab }).click()
+  if (tab) await page.locator('.dock-place', { hasText: tab }).click()
   const row = page.locator(scroller).first()
   await expect(row).toBeVisible()
   await page.waitForTimeout(700)

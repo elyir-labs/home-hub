@@ -150,7 +150,7 @@ test.describe('letting a printer in (FoundLine, AddList, AddAsking, AddAnswers)'
     await page.goto(at('found'), { waitUntil: 'networkidle' })
     const line = page.locator('.nudge', { hasText: 'Found 3 new things nearby' })
     await expect(line).toContainText('Atlas, Juno and Vega, 3D printers')
-    await expect(page.locator('.topbar-add').first()).toHaveClass(/attention/)
+    await expect(page.locator('.dock-add')).toHaveClass(/attention/)
     await expect(page.locator('.house')).toHaveCount(0)
   })
 

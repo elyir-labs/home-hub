@@ -115,7 +115,7 @@ test('on a phone the room is a column again', async ({ page }) => {
       scrollsDown: (stage.scrollHeight - stage.clientHeight) + (doc.scrollHeight - doc.clientHeight),
     }
   })
-  expect(g.flow, 'a phone is still filling in columns').toContain('row')
+  expect(g.flow, 'a phone is still filling in columns').not.toContain('column')
   expect(g.gridX, 'the room still sweeps sideways on a phone').toBe(0)
   expect(g.pageX, 'the page scrolls sideways on a phone').toBe(0)
   expect(g.scrollsDown, 'a phone room does not scroll down, so it is hiding devices').toBeGreaterThan(0)

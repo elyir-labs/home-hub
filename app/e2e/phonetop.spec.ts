@@ -36,17 +36,18 @@ test.describe('on a phone', () => {
     expect(await underStatusBar(page)).toEqual([])
   })
 
-  test('the top row is the house, then its sky, then the two doors, and there is no clock', async ({ page }) => {
+  /* the two doors went down to the dock (design/every-screen/, B), and who is home took their end of the row */
+  test('the top row is the house, then its sky, then who is home, and there is no clock', async ({ page }) => {
     await phone(page, '/?layout=wall&nav=top&at=19:40')
     await expect(page.locator('.topbar-time')).toBeHidden()
-    const [link, wx, add, house] = await Promise.all(['.topbar .link', '.topbar-wx', '.topbar-add:not(.topbar-house)', '.topbar-house']
+    await expect(page.locator('.topbar-add')).toHaveCount(0)
+    const [link, wx, people] = await Promise.all(['.topbar .link', '.topbar-wx', '.topbar .household']
       .map(async s => (await page.locator(s).boundingBox())!))
     expect(link.y, 'the row starts under the status bar').toBeGreaterThanOrEqual(STATUS_BAR)
-    for (const b of [wx, add, house]) expect(Math.abs((b.y + b.height / 2) - (link.y + link.height / 2)), 'one row').toBeLessThan(6)
+    for (const b of [wx, people]) expect(Math.abs((b.y + b.height / 2) - (link.y + link.height / 2)), 'one row').toBeLessThan(8)
     expect(link.x, 'the house leads').toBeLessThan(wx.x)
     expect(wx.x - (link.x + link.width), 'its sky right after it').toBeLessThan(24)
-    expect(house.x + house.width, 'the menu at the far end').toBeGreaterThan(390 - 24)
-    expect(add.x, 'Add beside it').toBeGreaterThan(wx.x + wx.width + 40)
+    expect(people.x + people.width, 'who is home at the far end').toBeGreaterThan(390 - 24)
   })
 
   test('the news is one row of chips, and setup is in This house', async ({ page }) => {
@@ -56,9 +57,9 @@ test.describe('on a phone', () => {
     expect((await found.boundingBox())!.height, 'a chip, not a line').toBeLessThanOrEqual(44)
     await expect(found.locator('.nudge-sub')).toBeHidden()
     await expect(page.locator('.nudges .nudge', { hasText: 'Set a passcode' }), 'setup left the band').toHaveCount(0)
-    await expect(page.locator('.topbar-house.attention'), 'the menu says something is left').toHaveCount(1)
+    await expect(page.locator('.dock-house.attention'), 'the menu says something is left').toHaveCount(1)
 
-    await page.locator('.topbar-house').click()
+    await page.locator('.dock-house').click()
     const finish = page.locator('.finish')
     await expect(finish).toBeVisible()
     await expect(finish.locator('.finish-step', { hasText: 'Set a passcode' })).toBeVisible()

@@ -473,6 +473,30 @@ SH
 }
 
 
+# A hub's update brings the screen's side up to date only when startup/ changed: a hub set up before a unit was
+# added there gets it, and one already current is not set up again every night. id never says root here, so "run
+# as root" is the sign it went on to install.
+catching_up() {
+  group "a hub's update sets its screen up again when the screen's side changed, and only then"
+  local root co; root=$(mktemp -d); co="$root/co"; mkdir -p "$co/startup" "$co/driver-layer/host" "$root/bin"
+  printf '#!/usr/bin/env bash\necho 1000\n' > "$root/bin/id"; chmod +x "$root/bin/id"   # never root, whoever runs this
+  echo one > "$co/startup/wall.sh"; echo awake > "$co/driver-layer/host/wifi-awake.sh"
+  git -C "$co" init -q && git -C "$co" add -A && git -C "$co" -c user.name=t -c user.email=t@t commit -qm one
+  up() { PATH="$root/bin:$PATH" HOME_HUB_DIR="$co" ELYIR_STARTUP_STAMP="$root/installed" "$HERE/../../startup/install.sh" --if-changed 2>&1 | head -1; }
+  sum() { git -C "$co" ls-files -s startup driver-layer/host/wifi-awake.sh | cksum | cut -d' ' -f1; }
+
+  is "never set up from this checkout: it is" "$(up)" "run as root"
+  sum > "$root/installed"
+  is "set up from these same files: nothing is done" "$(up)" ""
+  echo two > "$co/startup/wall.sh"; git -C "$co" -c user.name=t -c user.email=t@t commit -qam two
+  is "the screen's side changed: it is set up again" "$(up)" "run as root"
+  sum > "$root/installed"; echo "# a comment" > "$co/README.md"; git -C "$co" add -A; git -C "$co" -c user.name=t -c user.email=t@t commit -qm three
+  is "only the rest of the hub changed: nothing is done" "$(up)" ""
+  rm -rf "$co/.git"
+  is "no git to say what it is: it is set up, rather than guessed current" "$(up)" "run as root"
+  rm -rf "$root"
+}
+
 # A screen opens the hub by its name, and the name is found by asking the whole Wi-Fi. When the Wi-Fi
 # stops hearing the answers the hub is still right there, so the address it last had is kept in the
 # hosts file, refreshed whenever the name answers and the thing answering is a hub.
@@ -547,6 +571,21 @@ speaking() {
   rm -rf "$root"
 }
 
+# Every glass draws the panel the 10-inch wall's size, by its size in millimeters (design/every-screen/).
+sizing() {
+  group "a screen draws the panel the same size whatever its glass, and an unknown glass the way it always has"
+  local w="$HERE/../../startup/wall.sh"
+  across() { awk -v m="$1" -v s="$("$w" fit "$1" "${2:-}")" 'BEGIN { split(m, a, "x"); printf "%dx%d", a[1] / s + .5, a[2] / s + .5 }'; }
+  is "the 10-inch wall stays 1440 by 900" "$(across 1920x1200 217x136)" "1440x900"
+  is "a 7-inch hung wide is drawn at the wall's size, not shrunk to fit 1440 by 900" "$(across 1280x720 155x87)" "1029x579"
+  is "...and hung tall, the same the other way" "$(across 720x1280 87x155)" "579x1029"
+  is "a big monitor gets more room, not bigger cards, up to 2560 across" "$(across 1920x1080 531x299)" "2560x1440"
+  is "a glass that reports no size keeps the pixel rule" "$(across 1920x1200)" "1440x900"
+  is "...as does a TV, read from across the room" "$(across 1920x1080 1210x680)" "1600x900"
+  is "...and a size that is really an aspect ratio" "$(across 1920x1080 16x9)" "1600x900"
+  is "wlr-randr's outputs are read as name, mode and size" "$(printf '%s\n' 'DSI-1 "(null) (DSI-1)"' '  Physical size: 87x155 mm' '  Modes:' '    720x1280 px, 60.000000 Hz (preferred, current)' 'HDMI-A-1 "x"' '  Enabled: no' | "$w" outputs | paste -sd, -)" "DSI-1 720x1280 87x155,HDMI-A-1 - 0x0"
+}
+
 # A glass made tall comes up wide the first time the wall starts, and only then (design/sideways-start/, B).
 guessing() {
   group "a tall glass is turned a quarter the first time, and a kept turn is never guessed over"
@@ -579,21 +618,23 @@ becoming() {
   printf '#!/usr/bin/env bash\ntouch "%s/screen-installed"\n' "$root" > "$dir/startup/install.sh"
   printf '#!/usr/bin/env bash\ntouch "%s/hub-installed"\n' "$root" > "$dir/install.sh"
   for c in hostnamectl apt-get avahi-browse; do printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/$c"; done
+  printf '#!/usr/bin/env bash\n[ -n "${ROUTE:-}" ] && echo "default via 192.168.1.1 dev $ROUTE"\nexit 0\n' > "$bin/ip"
   # systemctl and docker write down what they were asked, so a unit that was a hub can be seen to stop being one
   printf '#!/usr/bin/env bash\necho "systemctl $*" >> "%s/asked"\n[ "$1" = list-unit-files ] && printf "home-hub-watchdog.timer enabled enabled\\nhome-hub-update.path enabled enabled\\n"\nexit 0\n' "$root" > "$bin/systemctl"
   printf '#!/usr/bin/env bash\necho "docker $* in $PWD" >> "%s/asked"\n' "$root" > "$bin/docker"
   mkdir -p "$dir/driver-layer" "$root/avahi"; touch "$dir/driver-layer/docker-compose.yml"
   chmod +x "$dir/startup/"*.sh "$dir/install.sh" "$bin"/*
   boot() {   # role, found, dsi, hdmi, the board's model
-    rm -f "$root"/*-installed "$root/done" "$root/conf" "$root/asked"; rm -rf "${drm:?}"/*
+    rm -f "$root"/*-installed "$root/done" "$root/conf" "$root/asked" "$root/look"; rm -rf "${drm:?}"/*
     echo '<service-group/>' > "$root/avahi/home-hub.service"
     [ -n "$1" ] && echo "HUB_ROLE=\"$1\"" > "$root/conf"
     [ -n "$3" ] && { mkdir -p "$drm/card1-DSI-1"; echo connected > "$drm/card1-DSI-1/status"; }
     mkdir -p "$drm/card1-HDMI-A-1"; if [ -n "${4:-}" ]; then echo connected; else echo disconnected; fi > "$drm/card1-HDMI-A-1/status"
     printf '%s' "${5:-}" > "$root/model"
     PATH="$bin:$PATH" FOUND="$2" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_FIRSTBOOT_MARK="$root/done" HUB_DRM="$drm" HUB_AVAHI="$root/avahi" \
-      HUB_MODEL="$root/model" "$HERE/firstboot.sh" >/dev/null 2>&1
+      HUB_MODEL="$root/model" HUB_LOOK_AGAIN="$root/look" "$HERE/firstboot.sh" >/dev/null 2>&1
   }
+  looks() { [ -f "$root/look" ] && echo again || echo no; }
   wall() { cat "$root/asked" 2>/dev/null | grep -c 'systemctl start --no-block elyir-wall.service' || true; }
   ran() { local out=""; for k in hub screen; do [ -f "$root/$k-installed" ] && out="$out$k "; done; [ -f "$root/done" ] && out="${out}done"; echo "${out% }"; }
 
@@ -626,6 +667,15 @@ becoming() {
   is "a Pi with nothing plugged in: a hub, and no wall" "$(ran) $(wall)" "hub done 0"
   boot hub http://hub.local dsi
   is "HUB_ROLE=hub skips the look" "$(ran)" "hub screen done"
+  # A unit told its Wi-Fi on its own screen is on nothing when it looks, so that look proves nothing.
+  boot "" "" dsi
+  is "no hub found while on no network: it runs the house for now, and looks once more when it is on one" "$(ran) $(looks)" "hub screen done again"
+  ROUTE=eth0 boot "" "" dsi
+  is "no hub found on a network: the look was a real one, and is not repeated" "$(ran) $(looks)" "hub screen done no"
+  boot "" "" "" "" "Raspberry Pi 4 Model B Rev 1.5"
+  is "a hub with no screen never looks, then or later" "$(looks)" "no"
+  boot hub "" dsi
+  is "...nor one told it is the hub" "$(looks)" "no"
   rm -rf "$root"
 }
 
@@ -973,6 +1023,31 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
   fresh; ROUTE=wlp1s0 finish
   is "online: the install is finished, on the channel it started on" "$(grep -c "systemd-run --no-block --collect --unit=home-hub-finish -E HOME_HUB_DIR=$dir -E HOME_HUB_CHANNEL=development $dir/install.sh" "$root/asked")" "1"
   is "...once" "$([ -f "$root/finish" ] && echo still || echo gone)" "gone"
+
+  # A unit with a screen that looked for the house's hub while on nothing looks once more when it is first online
+  # (firstboot.sh leaves the mark), and asks to be that hub's screen with the word This screen would leave.
+  mkdir -p "$dir/startup" "$root/screen"
+  printf '#!/usr/bin/env bash\n[ -n "${FOUND:-}" ] && echo "$FOUND"\n' > "$dir/startup/find-hub.sh"; chmod +x "$dir/startup/find-hub.sh"
+  look() { HUB_LOOK_AGAIN="$root/look" HUB_FIRSTBOOT_MARK="$root/done" ELYIR_ROLE_REQUEST="$root/screen/role.request" finish; }
+  again() { fresh; rm -f "$root/screen/role.request" "$data/settings.json" "$root/finish"; : > "$root/look"; : > "$root/done"; }
+  word() { cat "$root/screen/role.request" 2>/dev/null; }
+  waits() { [ -f "$root/look" ] && echo waiting || echo looked; }
+  again; FOUND=http://hub.local look
+  is "a unit that could not see the house at first boot, still on nothing: it has not looked" "$(word) $(waits)" " waiting"
+  again; echo development > "$root/finish"; ROUTE=wlp1s0 FOUND=http://hub.local look
+  is "online, and the house has a hub: it asks to be that hub's screen" "$(word) $(waits)" "screen looked"
+  is "...and does not go on installing a hub of its own" "$(grep -c 'systemd-run' "$root/asked")" "0"
+  again; ROUTE=wlp1s0 look
+  is "online, and no hub: it runs the house, and does not look again" "$(word) $(waits)" " looked"
+  again; printf '{\n "setup_done": true\n}' > "$data/settings.json"; ROUTE=wlp1s0 FOUND=http://hub.local look
+  is "a house somebody finished setting up here is never given away" "$(word) $(waits)" " looked"
+  again; rm -f "$root/done"; ROUTE=wlp1s0 FOUND=http://hub.local look
+  is "while first boot is still at work, it waits" "$(word) $(waits)" " waiting"
+  again; rmdir "$root/screen"; ROUTE=wlp1s0 FOUND=http://hub.local look
+  is "a unit with no screen of its own has nobody to ask" "$(waits) $([ -e "$root/screen" ] && echo left || echo nothing)" "looked nothing"
+  mkdir -p "$root/screen"; again; printf '%s' '{"do": "join", "ssid": "Bluebell", "password": "right"}' > "$data/network.request"
+  ROUTE=wlp1s0 FOUND=http://hub.local look
+  is "told its Wi-Fi on its own screen: it looks the moment that Wi-Fi is up, not a minute later" "$(word)" "screen"
   rm -rf "$root"
 }
 
@@ -1288,7 +1363,7 @@ changing() {
   is "...the request is used once" "$([ -f "$root/turn.request" ] && echo kept || echo gone)" "gone"
   is "turned a quarter, the orientation is changed rather than another added" "$(boot 90)" \
     "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60,panel_orientation=left_side_up video=HDMI-A-2:panel_orientation=left_side_up"
-  is "...and the touch is turned with it, so a tap lands where the picture now is" "$(touch_rule)" "0 1 0 -1 0 1"
+  is "...and the touch is turned with it, so a tap lands where the picture now is" "$(touch_rule)" "0 -1 1 1 0 0"
   is "...the touchscreen, and only it, leaves and comes back so the running wall reads it" "$(paste -sd, "$root/triggered")" "--action=remove event1,--action=add event1,--action=remove event1,--action=add event1"
   is "turned back, only what it added goes" "$(boot 0)" "console=tty3 root=PARTUUID=1 rootwait quiet splash video=DSI-1:800x480@60"
   is "...and the touch is as the glass reports it again" "$([ -e "$root/rules/90-elyir-touch.rules" ] && echo turned || echo as-made)" "as-made"
@@ -1300,20 +1375,98 @@ changing() {
       ELYIR_TOUCH_RULES="$root/rules/90-elyir-touch.rules" HUB_INPUT="$root/input" HUB_UDEVADM="$root/udevadm" \
       "$HERE/../../startup/wall.sh" settle >/dev/null 2>&1; }
   mkdir -p "$root/ask"; echo 270 > "$root/turn"; settle
-  is "a screen turned before its touch was, turns its touch as the wall starts" "$(touch_rule)" "0 -1 1 1 0 0"
+  is "a screen turned before its touch was, turns its touch as the wall starts" "$(touch_rule)" "0 1 0 -1 0 1"
   is "...and its startup" "$(grep -o 'DSI-1:[^ ]*' "$root/cmdline.txt")" "DSI-1:800x480@60,panel_orientation=right_side_up"
   : > "$root/triggered"; settle
   is "...and once it has, the next start touches nothing" "$(wc -l < "$root/triggered" | tr -d ' ')" "0"
+  printf '# Written by startup/turn.sh: touch turned 270, the way the screen is.\nSUBSYSTEM=="input", ENV{ID_INPUT_TOUCHSCREEN}=="1", ENV{LIBINPUT_CALIBRATION_MATRIX}="0 -1 1 1 0 0"\n' > "$root/rules/90-elyir-touch.rules"
+  settle
+  is "a touch turned when the two quarters were the wrong way round is turned again" "$(touch_rule)" "0 1 0 -1 0 1"
+  : > "$root/triggered"
   echo 90 > "$root/ask/turn.request"; echo 90 > "$root/turn"; settle
-  is "a turn left waiting for a watcher that isn't there is acted on" "$(touch_rule) $([ -e "$root/ask/turn.request" ] && echo left || echo used)" "0 1 0 -1 0 1 used"
+  is "a turn left waiting for a watcher that isn't there is acted on" "$(touch_rule) $([ -e "$root/ask/turn.request" ] && echo left || echo used)" "0 -1 1 1 0 0 used"
+  rm -rf "$root/ask"; echo 180 > "$root/turn"; settle
+  is "a screen set up before This screen, with nowhere for the helper to leave a turn, still turns its touch" "$(touch_rule)" "-1 0 1 0 -1 1"
   rm -f "$root/turn"; settle
-  is "a screen never turned is left alone" "$(touch_rule)" "0 1 0 -1 0 1"
+  is "a screen never turned is left alone" "$(touch_rule)" "-1 0 1 0 -1 1"
+  rm -rf "$root"
+}
+
+# Start over (design/leaving/, B): everything that is the house goes, what install left comes back, and the unit's
+# own lines of .env stay. docker, mqtt-auth.sh and host-tier.sh are scripts that say they ran.
+starting_over() {
+  group "starting over: the house is erased, the unit is kept, every secret is new"
+  local root dir dl bin keys; root=$(mktemp -d); dir="$root/hub"; dl="$dir/driver-layer"; bin="$root/bin"; keys="$root/keys"
+  mkdir -p "$dl/host" "$dl/zigbee2mqtt" "$dl/mosquitto/config" "$bin" "$keys"
+  cp "$HERE/reset.sh" "$dl/host/"
+  echo "seed" > "$dl/zigbee2mqtt/configuration.yaml"; echo "listener 1883" > "$dl/mosquitto/config/mosquitto.conf"
+  echo "services: {}" > "$dl/docker-compose.yml"
+  printf '#!/usr/bin/env bash\necho mqtt-auth >> "$ROOT/asked"\n' > "$dl/mqtt-auth.sh"
+  printf '#!/usr/bin/env bash\necho host-tier >> "$ROOT/asked"\n' > "$dl/host-tier.sh"
+  git init -q "$dir"; git -C "$dir" config user.email t@t; git -C "$dir" config user.name t
+  git -C "$dir" add -A; git -C "$dir" commit -qm seed
+  # the house, lived in
+  mkdir -p "$dl/brain-data" "$dl/homeassistant/.storage" "$dl/caddy/data" "$dl/zwave-js-ui"
+  echo '{"owner": "Jordan"}' > "$dl/brain-data/settings.json"; echo auth > "$dl/homeassistant/.storage/auth"
+  echo "network_key: [1, 2, 3]" >> "$dl/zigbee2mqtt/configuration.yaml"; echo db > "$dl/zigbee2mqtt/database.db"
+  echo "hub:hash" > "$dl/mosquitto/config/passwd"; echo ca > "$dl/caddy/data/ca.key"; echo keys > "$dl/zwave-js-ui/keys"
+  echo "not the house" > "$dl/notes.txt"
+  printf 'TZ=America/Chicago\nHUB_HOST=hub.local\nHUB_CHANNEL=release\nCOMPOSE_PROFILES=zigbee\nMQTT_PASSWORD=old\nZWAVE_SESSION_SECRET=old\nHUB_SHARE_TOKEN=old\nHUB_AWAY_HOUSE=maple\nHUB_RELAY_SECRET=s3cret\nANTHROPIC_API_KEY=sk-x\n' > "$dl/.env"
+  echo "ssh-ed25519 AAAA jordan@laptop" > "$keys/pi.keys"
+  printf '#!/usr/bin/env bash\necho "docker $*" >> "$ROOT/asked"\n' > "$bin/docker"
+  cat > "$bin/nmcli" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "-t -f UUID,TYPE connection show") printf 'u-home:802-11-wireless\nu-setup:802-11-wireless\nu-cable:802-3-ethernet\n' ;;
+  "-g connection.id connection show u-setup") echo home-hub-setup ;;
+  "-g connection.id connection show u-home") echo "Bluebell" ;;
+  "connection delete "*) echo "$3" >> "$ROOT/forgot" ;;
+esac
+SH
+  chmod +x "$bin/docker" "$bin/nmcli" "$dl"/*.sh
+  run() { rm -f "$root/asked"; PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_KEYS_DIR="$keys" "$dl/host/reset.sh" >/dev/null 2>&1; }
+  env_has() { grep -c "^$1" "$dl/.env" | tr -d ' '; }
+
+  run
+  is "with nothing asked, nothing is touched" "$(cat "$dl/brain-data/settings.json") $([ -f "$root/asked" ] && echo ran || echo still)" '{"owner": "Jordan"} still'
+  echo '{"at": 1}' > "$dl/brain-data/reset.request"; run
+  is "asked: the house is stopped, then started again" "$(paste -sd, "$root/asked")" "docker compose stop,mqtt-auth,host-tier,docker compose up -d"
+  is "...the brain's data is gone, but for what it says about starting over" "$(ls "$dl/brain-data" | paste -sd, -)" "reset.json,reset.log"
+  is "...and it says it is done" "$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["state"])' "$dl/brain-data/reset.json")" "done"
+  is "the engine's settings, the radios' keys and the front door's certificates are gone" \
+    "$(find "$dl/homeassistant" "$dl/zwave-js-ui" "$dl/caddy/data" -type f | wc -l | tr -d ' ') $([ -f "$dl/zigbee2mqtt/database.db" ] && echo db || echo no-db)" "0 no-db"
+  is "...what install left is back as it was" "$(cat "$dl/zigbee2mqtt/configuration.yaml") $(cat "$dl/mosquitto/config/mosquitto.conf")" "seed listener 1883"
+  is "...and the broker's old password file is gone, to be made again" "$([ -f "$dl/mosquitto/config/passwd" ] && echo there || echo gone)" "gone"
+  is "what is not the house is left alone" "$(cat "$dl/notes.txt") $(cat "$dl/docker-compose.yml")" "not the house services: {}"
+  is "the unit's lines of .env stay" "$(env_has TZ=America/Chicago)$(env_has HUB_HOST=hub.local)$(env_has HUB_CHANNEL=release)$(env_has COMPOSE_PROFILES=zigbee)" "1111"
+  is "...the house's are gone: the broker's password, the web address, the assistant's key" \
+    "$(env_has MQTT_PASSWORD)$(env_has HUB_AWAY_HOUSE)$(env_has HUB_RELAY_SECRET)$(env_has ANTHROPIC_API_KEY)" "0000"
+  is "...and every secret install makes is made again" \
+    "$(env_has ZWAVE_SESSION_SECRET=old)$(env_has HUB_SHARE_TOKEN=old) $(env_has ZWAVE_SESSION_SECRET=)$(env_has HUB_SHARE_TOKEN=)" "00 11"
+  is "the house's Wi-Fi is forgotten; the hub's own and the cable are not" "$(paste -sd, "$root/forgot")" "u-home"
+  is "the SSH keys This hub was given are emptied" "$(wc -c < "$keys/pi.keys" | tr -d ' ')" "0"
+  is "...and the request is gone" "$([ -f "$dl/brain-data/reset.request" ] && echo there || echo gone)" "gone"
+
+  # Moving out: the brain did the house's people already; only what it cannot reach goes, and the house stays.
+  mkdir -p "$dl/matter-bridge-data" "$dl/ring-mqtt"; echo fabric > "$dl/matter-bridge-data/fabrics"; echo token > "$dl/ring-mqtt/ring-state.json"
+  echo db > "$dl/zigbee2mqtt/database.db"; echo '{"location": 1}' > "$dl/brain-data/settings.json"; echo "ssh-ed25519 AAAA jordan@laptop" > "$keys/pi.keys"
+  printf 'ANTHROPIC_API_KEY=sk-y\nHUB_AWAY_HOUSE=maple\nHUB_RELAY_SECRET=s\n' >> "$dl/.env"; local secret; secret="$(grep '^ZWAVE_SESSION_SECRET=' "$dl/.env")"
+  rm -f "$root/forgot"; echo '{"at": 3, "what": "people"}' > "$dl/brain-data/reset.request"; run
+  is "moving out: Ring's sign-in and the sharing pairings go" "$(find "$dl/matter-bridge-data" "$dl/ring-mqtt" -type f | wc -l | tr -d ' ')" "0"
+  is "...the house stays: the radios' network and the brain's settings" "$(cat "$dl/zigbee2mqtt/database.db") $(cat "$dl/brain-data/settings.json")" 'db {"location": 1}'
+  is "...the assistant's key and the web address leave .env, and its secrets are not made again" \
+    "$(env_has ANTHROPIC_API_KEY)$(env_has HUB_AWAY_HOUSE)$(env_has HUB_RELAY_SECRET) $(grep -c "^$secret$" "$dl/.env")" "000 1"
+  is "...the Wi-Fi and the SSH keys go too" "$(paste -sd, "$root/forgot") $(wc -c < "$keys/pi.keys" | tr -d ' ')" "u-home 0"
+
+  rm -rf "$dir/.git"; echo '{"owner": "Robin"}' > "$dl/brain-data/settings.json"; echo '{"at": 2}' > "$dl/brain-data/reset.request"; run
+  is "a hub that is not a checkout cannot tell install's files from the house's, and says so rather than guess" \
+    "$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["state"])' "$dl/brain-data/reset.json") $(grep -c 'not a checkout' "$dl/brain-data/reset.log")" "failed 1"
   rm -rf "$root"
 }
 
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; keeping; speaking; guessing; awake; setting_up; moving_in; moving; describing
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; sizing; guessing; awake; setting_up; moving_in; moving; describing; starting_over
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

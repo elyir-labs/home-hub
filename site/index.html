@@ -5,14 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Elyir Home Hub</title>
 <meta name="description" content="Your house on one screen: lights, locks, cameras and the thermostat, on a screen on the wall and every phone in the house. Set up by answering a few questions. Free and open source.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hub.elyir.com/">
+<meta property="og:title" content="Elyir Home Hub">
+<meta property="og:description" content="Your house on one screen: lights, locks, cameras and the thermostat, on a screen on the wall and every phone in the house. Set up by answering a few questions. Free and open source.">
+<meta property="og:image" content="https://hub.elyir.com/shots/card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The living room on the hub's wall screen: the TV, the lights, the blinds and the thermostat.">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
 <style>
   /* The panel's own face, served from here so a visit asks nobody else for anything (fonts/OFL.txt). */
   @font-face { font-family: 'Instrument Sans'; src: url('/fonts/instrument-sans.woff2') format('woff2'); font-weight: 400 700; font-display: swap }
   /* hub.elyir.com: design/site, D (A with C's line), its pictures design/site-pair's D: the living room on both
-     screens, then the wall through a day. The panel's own colors and type; dark unless the visitor's setting is light,
-     and every picture in the same look as the page. The pretend house (/try) starts when asked: inline on the wall on a computer, on its own page on a phone. */
+     screens, then the wall through a day. What it does, what it works with and the questions are design/site-more's D.
+     The panel's own colors and type; dark unless the visitor's setting is light,
+     and every picture in the same look as the page. The pretend house (/try) starts when asked: inline on the wall on a computer, on its own page on a phone.
+     Set one up from the box opens a pretend hub's first run on a page of its own (design/try-setup/, A). */
   :root {
     --ground: #0c0d10;
     --surface: #15171c;
@@ -158,6 +169,38 @@
   .price h2 em { font-style: normal; color: var(--lamp-text) }
   .price p { color: var(--quiet); font-size: 15px; max-width: 64ch; flex: 1 1 360px }
 
+  .does { display: grid; gap: 26px }
+  .does .lines { display: grid; gap: 12px }
+  .does .four { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px }
+  .does .one { display: grid; gap: 10px; align-content: start }
+  .does .one svg { color: var(--lamp-text) }
+  .does .one h3 { font-weight: 500; font-size: 19px; letter-spacing: -.01em }
+  .does .one p { color: var(--quiet); font-size: 15px }
+  .works { display: grid; grid-template-columns: minmax(0, 480px) minmax(0, 1fr); gap: 56px; align-items: start }
+  .works .lines { display: grid; gap: 14px }
+  .works .lines p:not(.label) { color: var(--quiet); font-size: 18px }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none }
+  .chips li { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--surface); font-size: 15px }
+  .chips svg { color: var(--lamp-text); flex: none }
+  .makers { color: var(--faint); font-size: 14.5px; margin-top: 16px; max-width: 70ch }
+  .makers b { color: var(--quiet); font-weight: 500 }
+  .faq h2 { margin-bottom: 26px }
+  .faq .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 56px }
+  .faq .q { display: grid; gap: 6px; align-content: start }
+  .faq h3 { font-weight: 500; font-size: 17px }
+  .faq .q p { color: var(--quiet); font-size: 15.5px }
+  .faq .q a { color: var(--lamp-text); text-decoration: none }
+  @media (max-width: 960px) {
+    .does .four { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 18px }
+    .works { grid-template-columns: minmax(0, 1fr); gap: 24px }
+    .faq .two { grid-template-columns: minmax(0, 1fr) }
+  }
+  @media (max-width: 640px) {
+    .does .four { grid-template-columns: minmax(0, 1fr) }
+    .does .one { grid-template-columns: 28px 1fr; gap: 4px 12px }
+    .does .one svg { grid-row: span 2; margin-top: 3px }
+  }
   footer { border-top: 1px solid var(--line); padding-top: 32px; display: flex; flex-wrap: wrap; gap: 20px 48px; align-items: flex-start; color: var(--faint); font-size: 14px }
   footer .by { display: grid; gap: 8px; color: var(--quiet) }
   footer .by svg { display: block }
@@ -171,7 +214,7 @@
 <div class="wrap">
   <nav>
     <a class="home" href="/"><svg width="28" height="28" viewBox="84 92 344 336" aria-hidden="true"><path d="M112 248 256 120l144 128" fill="none" stroke="currentColor" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/><path d="M148 226v170h216V226" fill="none" stroke="currentColor" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/><circle cx="256" cy="306" r="32" fill="#e9b872"/></svg>Elyir Home Hub</a>
-    <div class="links"><a href="#try">Try it</a><a href="#get">Get it</a><a href="#anywhere">Use it anywhere</a><a class="signin" href="https://houses.elyir.app">Sign in</a></div>
+    <div class="links"><a href="#try">Try it</a><a href="#get">Get it</a><a href="#anywhere">Use it anywhere</a><a class="signin" href="https://houses.elyir.app">Open your house</a></div>
   </nav>
 
   <header class="hero">
@@ -197,6 +240,15 @@
     </figure>
   </header>
 
+  <section id="does" class="does">
+    <div class="lines"><p class="label">What it does</p><h2>Everything in the house, from one place</h2></div>
+    <div class="four">
+      <div class="one"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11 12 4l8 7"/><path d="M6 10v10h12V10"/></svg><h3>Works when the internet doesn't</h3><p>Everything runs on the hub in your house. If the internet goes down, the lights, switches and routines don't notice.</p></div>
+      <div class="one"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v10H9l-5 4z"/></svg><h3>Tell it in words</h3><p>Type <i>kitchen lights off</i> or <i>movie in the living room</i> and it happens, the same as a tap.</p></div>
+      <div class="one"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><h3>Music in every room</h3><p>Play something on the speakers you already have, in one room or in several at once.</p></div>
+      <div class="one"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg><h3>Cameras on the wall</h3><p>See the front door and the yard on the wall and on every phone in the house.</p></div>
+    </div>
+  </section>
   <section id="day" class="day">
     <div class="lines">
       <p class="label">Through the day</p>
@@ -215,6 +267,7 @@
       <p class="label">Try it</p>
       <h2>A pretend house, right here</h2>
       <p>A whole house that isn't real. Tap the lights, run Bedtime, type <i>kitchen lights off</i>. It starts when you ask, so the page stays quick.</p>
+      <div class="doors"><a class="pill" href="/try/?box">Set one up from the box</a></div>
     </div>
     <figure>
       <div class="wall"><picture><source media="(prefers-color-scheme: light)" srcset="/shots/wall-rooms-light.jpg"><img src="/shots/wall-rooms-dark.jpg" width="1440" height="900" loading="lazy" alt="Every room of the house on the wall screen, the busiest first: the living room, the kitchen, the bedroom, the garage and more."></picture></div>
@@ -222,6 +275,22 @@
     </figure>
   </section>
 
+  <section id="works" class="works">
+    <div class="lines"><p class="label">Works with</p><h2>What's already in your house</h2><p>Bring the lights, locks and speakers you have. The hub finds them and asks which room each is in.</p></div>
+    <div>
+      <ul class="chips">
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg>Lights and plugs</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg>Switches and dimmers</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Locks</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><circle cx="12" cy="17" r="3.5"/><path d="M10 6h4M10 9h4"/></svg>Thermostats</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg>Cameras and doorbells</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16M5 4v12h14V4M5 8h14M5 12h14"/><path d="M12 16v4"/></svg>Blinds and shades</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2"/><circle cx="12" cy="14" r="3"/><circle cx="12" cy="7" r="1"/></svg>Speakers and TVs</li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4"/></svg>Motion and door sensors</li>
+      </ul>
+      <p class="makers">Including <b>Philips Hue, Sonos, Google Nest, Ring, ecobee, WiZ, TP-Link Kasa, Chromecast</b> and <b>Roku</b>, <b>Samsung, LG and Android TVs</b>, anything that works with <b>Matter</b>, <b>Zigbee</b> or <b>Z-Wave</b> things with a USB radio, and most of what Home Assistant works with.</p>
+    </div>
+  </section>
   <section id="get">
     <h2>Ways to get it</h2>
     <div class="ways">
@@ -249,9 +318,21 @@
 
   <section id="anywhere" class="price">
     <h2>Free at home. <em>$3 a month</em> to use it anywhere.</h2>
-    <p>Your house gets its own web address, so the phones you've let in work away from home. Stop any time: only reaching it from outside stops, and the house carries on. Have a server of your own? Run that part yourself, free.</p>
+    <p>Your house gets its own web address, so your household's phones work away from home. Stop any time: only using it away from home stops, and the house carries on. Have a server of your own? Run that part yourself, free.</p>
   </section>
 
+  <section id="faq" class="faq">
+    <h2>Questions</h2>
+    <div class="two">
+      <div class="q"><h3>Do I need to know Home Assistant?</h3><p>No. The hub runs it for you, and nothing in the house ever asks you to open it.</p></div>
+      <div class="q"><h3>What happens when the internet is down?</h3><p>The house keeps working: the wall, the phones at home and the routines. Only using it away from home waits for the internet to come back.</p></div>
+      <div class="q"><h3>What does it cost?</h3><p>Nothing at home: the software is free, on a computer you have. Using it away from home is $3 a month, and stopping only stops that.</p></div>
+      <div class="q"><h3>What leaves my house?</h3><p>Nothing unless you ask for it. <a href="/privacy">What leaves your house</a> says exactly what does when you do.</p></div>
+      <div class="q"><h3>Does it work with Apple Home or Google Home?</h3><p>Yes. Share the house with either from the hub, and the lights you choose show up there too.</p></div>
+      <div class="q"><h3>What screen goes on the wall?</h3><p>Any tablet or touchscreen with a web browser. Every phone in the house gets the same house.</p></div>
+      <div class="q"><h3>What if I move?</h3><p>Leave the hub for the next people: your phones, passcode and sign-ins go, and the rooms, lights and routines stay for them. Or erase it and take it with you.</p></div>
+    </div>
+  </section>
   <footer>
     <div class="by"><svg width="92" viewBox="50 20 470 340" role="img" aria-label="elyir"><path d="M68 222C80 216 90 211 100 205C120 195 145 180 145 165C145 150 118 152 110 175C102 200 110 240 140 240C160 240 175 225 185 205C200 170 225 90 225 55C225 25 200 25 195 60C190 100 190 200 200 230C207 245 225 245 240 225C248 210 252 185 255 160C252 195 255 240 280 240C300 240 310 205 312 160C312 230 310 300 295 330C285 350 260 345 268 320C278 290 320 265 345 235C352 215 358 185 362 160C358 195 356 225 368 240C378 250 395 235 405 215C410 195 415 175 420 160C428 168 440 170 448 162C450 190 452 220 458 240C463 228 476 214 494 208" fill="none" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/><circle cx="363" cy="120" r="15" fill="#e9b872"/></svg>
       <span>Elyir makes Elyir Home Hub and <a href="https://bench.elyir.com">Elyir Bench</a>.</span></div>
@@ -259,7 +340,7 @@
       <p>Built on Home Assistant, which nobody in the house ever has to open.</p>
       <p>Free software under the AGPL: <a href="https://github.com/elyir-labs/home-hub">the code is on GitHub</a>, so you can run it, read it and change it.</p>
       <p><a href="/privacy">What leaves your house</a>, and what this site and the waitlist keep.</p>
-      <p>Home Assistant, Raspberry Pi and NUC are trademarks of their owners. Elyir isn't affiliated with them.</p>
+      <p>Home Assistant, Raspberry Pi, NUC and the makers named above are trademarks of their owners. Elyir isn't affiliated with them.</p>
     </div>
   </footer>
 </div>

@@ -34,6 +34,11 @@ echo "the front door"
 is "on the hub's own Wi-Fi, its address is the panel, stamped as the setup Wi-Fi" "$(ask 10.42.0.5 10.42.0.1)" "via=setup 200 "
 is "...and a phone's internet check is sent there, which opens its sign-in sheet" "$(ask 10.42.0.5 captive.apple.com)" " 302 http://10.42.0.1/"
 is "on the house's Wi-Fi, a stamp a phone brought is taken off" "$(ask 10.42.1.5 hub.local setup)" "via=None 200 "
+is "a hub the network renamed still answers by the name it has now" "$(ask 10.42.1.5 hub-2.local setup)" "via=None 200 "
+is "...and by an address it was not installed on" "$(ask 10.42.1.5 192.168.1.214 screen)" "via=None 200 "
+is "...on a port, too" "$(ask 10.42.1.5 hub-3.local:80)" "via=None 200 "
+is "a name from somewhere else is still dropped" "$(ask 10.42.1.5 hub.example.com)" " 000 "
+is "...and one that only starts like the hub's" "$(ask 10.42.1.5 hub.local.example.com)" " 000 "
 is "the screen on the hub itself is stamped as that screen" \
   "$(docker exec hub-door-caddy wget -qO- --header 'Host: localhost' http://127.0.0.1/ 2>/dev/null)" "via=screen"
 

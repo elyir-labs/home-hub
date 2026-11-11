@@ -114,13 +114,24 @@ test('the box is still the command box when it is resting', async ({ page }) => 
   await expect(page.locator('.say-box input')).toBeFocused()
 })
 
-/* The half that matters, and it is the same half every slice of this port has carried: paper is
-   untouched. The move is the face's, so under paper the whole box is there from the start. */
-test('paper keeps the whole box', async ({ page }) => {
+/* In the dock (design/every-screen/, B) the box is its orb on every face and every screen, the phone
+   included, because the dock begins with it and a 460px field would push the three places off a small
+   screen; one touch opens it across the dock just the same. */
+test('paper is its orb in the dock on a phone too, and opens across it', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/?face=paper&nav=top&at=19:40', { waitUntil: 'networkidle' })
+  await expect(page.locator('.dock-body .say-box')).toBeVisible()
+  await page.waitForTimeout(600)
+  const orb = (await page.locator('.say-box').boundingBox())!
+  expect(Math.abs(orb.width - orb.height), 'the docked box is not its orb').toBeLessThan(2)
+  await page.locator('.say-box').click()
+  await expect.poll(async () => (await page.locator('.say-box').boundingBox())!.width).toBeGreaterThan(300)
+  await expect.poll(() => page.locator('.say-box input').evaluate((e) => getComputedStyle(e).opacity)).toBe('1')
+
+  await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/?face=paper&layout=wall&nav=top&at=19:40', { waitUntil: 'networkidle' })
-  await expect(page.locator('.say-box')).toBeVisible()
-  await page.waitForTimeout(400)
-  const box = (await page.locator('.say-box').boundingBox())!
-  expect(box.width, 'paper has learned the move').toBeGreaterThan(box.height * 4)
-  expect(await page.locator('.say-box input').evaluate((e) => getComputedStyle(e).opacity)).toBe('1')
+  await expect(page.locator('.dock-body .say-box')).toBeVisible()
+  await page.waitForTimeout(600)
+  const docked = (await page.locator('.say-box').boundingBox())!
+  expect(Math.abs(docked.width - docked.height), 'the docked box is not its orb').toBeLessThan(2)
 })

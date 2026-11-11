@@ -54,6 +54,8 @@ test('a household that kept the drive finds it on This hub, and erases on a hold
   await page.goto('/?sheet=hub')
   await page.getByRole('button', { name: 'Move…' }).click()
   const hold = page.getByRole('button', { name: 'Hold to erase the drive' })
+  const [outer, label] = [(await hold.boundingBox())!, (await hold.locator('span').boundingBox())!]
+  expect(Math.abs(outer.x + outer.width / 2 - (label.x + label.width / 2)), 'the words sit in the middle of the hold').toBeLessThan(2)
   await hold.click()
   await page.waitForTimeout(300)
   expect(sent).toEqual([])

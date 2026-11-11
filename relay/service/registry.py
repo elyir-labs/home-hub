@@ -27,6 +27,14 @@ Bench Cloud) signs "carry this name until then" with a key it shares with this r
 house, and the house brings it here with its own secret. Both are needed: the payer can't carry a name its
 holder didn't ask for, and a holder can't carry itself without a payer's say-so. Tickets are good for an
 hour and carry at most TICKET_REACH ahead, so a plan that stops simply runs out.
+
+Vouching is how a name already carried brings a sibling along: a Bench Box speaks for several printers, each
+with its own name, and the one added last shouldn't wait on the operator when the others are carried. The new
+name's holder brings a carried name and that name's secret, and is carried as long as it is -- found out when
+the vouching name is, and no further. Only a name carried on its own account (a grant, an invite, a ticket) may
+vouch, never one that was itself vouched for, so a chain can't grow from one paid name, and one name vouches for
+at most VOUCH_CAP others. A vouched name doesn't follow its voucher's later renewals: it runs out on the day it
+was given, and the box vouches again. Being carried on its own account later makes it a name like any other.
 """
 import base64, hashlib, hmac, json, re, secrets, sqlite3, threading, time
 from contextlib import contextmanager
@@ -38,6 +46,7 @@ ALWAYS = 4102444800.0            # 2100: "always", as a number JSON can carry
 LABEL = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$")
 INVITE_KEEP = 30 * DAY           # an invite nobody used by then is no good
 TICKET_REACH = 45 * DAY          # the furthest ahead a payer's ticket may carry a house
+VOUCH_CAP = 10                   # names one carried name may bring along: a box's printers, not a reseller's
 # Crockford's letters without the ones a person misreads (0 O 1 I L U): twelve of them is ~59 bits, read
 # aloud or typed off a phone, and nobody guesses one at five claims a day.
 INVITE_LETTERS = "23456789ABCDEFGHJKMNPQRSTVWXYZ"
@@ -105,6 +114,10 @@ def clean(text: str) -> str:
     return t[:30].strip("-")
 
 
+class WrongKey(PermissionError):
+    """A secret that isn't the name's: a guess, or a typo, never a rule."""
+
+
 class Registry:
     def __init__(self, path: Path | str, zone: str = "elyir.app", now=time.time):
         self.zone, self.now = zone, now
@@ -113,9 +126,9 @@ class Registry:
         self.lock = threading.RLock()    # one connection, many request threads: one transaction at a time
         self.db.execute("pragma journal_mode=wal")
         self.db.executescript(SCHEMA)
-        # Where each house's tunnel last came from, for /nearby. Added 2 October 2026 to a file that
-        # already had houses in it, so added rather than declared.
-        for col in ("last_ip text", "seen_at real"):
+        # Added to a file that already had houses in it, so added rather than declared: where each house's
+        # tunnel last came from, for /nearby (2 October 2026), and which name vouched for it (7 November 2026).
+        for col in ("last_ip text", "seen_at real", "vouched_by text"):
             try: self.db.execute(f"alter table houses add column {col}")
             except sqlite3.OperationalError: pass
 
@@ -200,7 +213,7 @@ class Registry:
     # ---- the operator's side, until payments do it ----
     def grant(self, label: str, until: float, note: str = ""):
         """Carry this house until then. The name stops being a mere hold and is the house's."""
-        n = self.db.execute("update houses set entitled_until = ?, held_until = null, note = ? where name = ?",
+        n = self.db.execute("update houses set entitled_until = ?, held_until = null, note = ?, vouched_by = null where name = ?",
                             (until, note, label)).rowcount
         if not n: raise LookupError(label)
 
@@ -217,12 +230,27 @@ class Registry:
             raise LookupError(label)
         return secret
 
-    def carry(self, label: str, until: float, note: str = ""):
+    def carry(self, label: str, until: float, note: str = "", vouched_by: str | None = None):
         """Carry this house until then, unless it is carried longer already (a grant or an invite reaches further)."""
         r = self._row(label)
         if not r: raise LookupError(label)
         if (r["entitled_until"] or 0) >= until: return
-        self.db.execute("update houses set entitled_until = ?, held_until = null, note = ? where name = ?", (until, note, label))
+        self.db.execute("update houses set entitled_until = ?, held_until = null, note = ?, vouched_by = ? where name = ?",
+                        (until, note, vouched_by, label))
+
+    # ---- vouching: a carried name brings a sibling along ----
+    def vouch(self, label: str, by: str, secret: str):
+        """Carry this house as long as `by` is carried, on `by`'s secret. PermissionError saying why not;
+        WrongKey when the secret isn't `by`'s, which the service counts like a code that didn't work."""
+        with self._together():
+            if by == label: raise PermissionError("A name can't vouch for itself.")
+            if not self.holder(by, secret): raise WrongKey("The name vouching doesn't hold that key.")
+            voucher = self._row(by)
+            if not self.status(by)["carried"]: raise PermissionError("The name vouching isn't carried, so it can't carry another.")
+            if voucher["vouched_by"]: raise PermissionError("The name vouching was vouched for itself. Only a name carried on its own can vouch.")
+            brought = self.db.execute("select count(*) from houses where vouched_by = ? and name != ?", (by, label)).fetchone()[0]
+            if brought >= VOUCH_CAP: raise PermissionError(f"The name vouching has vouched for {VOUCH_CAP} already.")
+            self.carry(label, voucher["entitled_until"], f"vouched by {by}", vouched_by=by)
 
     # ---- invites: a grant made ahead of time ----
     def invite(self, until: float, note: str = "", keep: float = INVITE_KEEP) -> str:
