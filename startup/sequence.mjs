@@ -68,12 +68,19 @@ export const SLOW = 'This is taking longer than usual. If it stays like this, un
 // What a first start says while it installs (design/first-start/, A with B's quieter line, and Ready, decided
 // 20 October 2026). Each step is sent by the step itself as it starts (startup/say.sh); every other start says
 // nothing but the name. The quiet line is only where there is something to know.
+// Round 2 (design/first-start/, first-2: A with C's pulse, decided 18 November 2026): the long "getting ready" is
+// split into the steps it hid, every step without a quiet line of its own says how long a first start takes, and
+// the lamp pulses deeper and quicker until Ready.
+export const ONCE = 'A first start takes about 10 minutes. It happens only once.'
 export const FIRST = {
   preparing: { line: 'Getting the hub ready' },
   moving: { line: 'Moving onto this computer’s drive', quiet: 'Leave it plugged in. It restarts by itself when this is done.' },
+  unpacking: { line: 'Unpacking what it came with' },
+  setting: { line: 'Setting up the hub' },
   downloading: { line: 'Downloading the rest of the hub' },
   starting: { line: 'Starting the house for the first time' },
 }
+export const FIRST_BREATH = { period: 2.4, low: 0.45, blend: 1.5 }
 
 // The end of a first start on a screen that is not a wall: where to go next. The address, the Wi-Fi's name and
 // its password are this hub's own, so they are drawn on the unit from the letters in GLYPHS.

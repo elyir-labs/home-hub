@@ -168,6 +168,7 @@ PRELOAD="${HUB_PRELOAD:-/var/lib/home-hub/preload}"
 if ls "$PRELOAD"/*.tar >/dev/null 2>&1 && command -v docker >/dev/null 2>&1; then
   systemctl start docker >/dev/null 2>&1 || true
   log "loading the containers this image carries, so it can start before it has internet"
+  [ -x "$DIR/startup/say.sh" ] && "$DIR/startup/say.sh" step unpacking
   for t in "$PRELOAD"/*.tar; do docker load -i "$t" >/dev/null 2>&1 && rm -f "$t"; done
 fi
 

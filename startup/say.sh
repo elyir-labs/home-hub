@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Tells the startup splash what a first start is doing (design/first-start/, A with B's quieter line, and Ready).
+# Tells the startup splash what a first start is doing (design/first-start/: A with B's quieter line, and Ready;
+# round 2, A with C's pulse).
 # Each step calls it as the step starts, so the line under the house is never a guess. With no splash up -- an
 # update, a hub with no screen, an install by hand -- it does nothing, quietly.
 #
-#   say.sh step preparing|moving|downloading|starting
+#   say.sh step preparing|moving|unpacking|setting|downloading|starting
 #   say.sh first      at the very start of a boot: marks it a first start, and says it is getting ready
 #   say.sh end        once the hub answers: a first start ends on where to go next, any other start as it always has
 set -uo pipefail
@@ -43,7 +44,7 @@ open(sys.argv[1], "wb").write(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", size) + chun
 
 case "${1:-}" in
   step)
-    case "${2:-}" in preparing|moving|downloading|starting) ;; *) echo "say.sh: no step called ${2:-}" >&2; exit 2 ;; esac
+    case "${2:-}" in preparing|moving|unpacking|setting|downloading|starting) ;; *) echo "say.sh: no step called ${2:-}" >&2; exit 2 ;; esac
     up && tell "elyir:step:$2" ;;
   first)
     [ -e "$DONE" ] && exit 0

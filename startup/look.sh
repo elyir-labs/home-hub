@@ -25,7 +25,9 @@ Xvfb :1 -screen 0 1440x900x24 >/dev/null 2>&1 & sleep 2; export DISPLAY=:1
 shot() { xwd -root -display :1 | convert xwd:- "/out/$1.png"; echo "  $1.png"; }
 start() { plymouthd --tty="$(tty)" --kernel-command-line="quiet splash plymouth.ignore-serial-consoles"; sleep 1; plymouth show-splash; }
 start; sleep 2; shot 1-name; sleep 5; shot 2-house
-for s in preparing moving downloading starting; do plymouth update --status=elyir:step:$s; sleep 1; shot "3-$s"; done
+for s in preparing moving unpacking setting downloading starting; do plymouth update --status=elyir:step:$s; sleep 1; shot "3-$s"; done
+# A first start'"'"'s lamp, half a pulse apart: the two should differ plainly (first-2, C'"'"'s pulse).
+sleep 2; shot 3-pulse-a; sleep 1.2; shot 3-pulse-b
 plymouth quit; sleep 1
 fail=0
 for net in cable wifi; do

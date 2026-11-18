@@ -6,7 +6,7 @@
 // check what is committed without drawing anything; render.mjs draws the images and writes these.
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST, GLYPHS, WORDS, SCAN } from './sequence.mjs'
+import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST_BREATH, FIRST, GLYPHS, WORDS, SCAN } from './sequence.mjs'
 
 export const THEME = 'elyir'
 export const DIR = `/usr/share/plymouth/themes/${THEME}`
@@ -67,6 +67,7 @@ dotted = ${TIME.dotted}; lit_at = ${TIME.lit}; hold = ${TIME.hold}; name_out = $
 leave = ${TIME.leave}; house_in = ${TIME.houseIn}; land = ${TIME.land};
 ending = ${TIME.ending}; ready_after = ${TIME.readyAfter}; slow_after = ${TIME.slowAfter};
 breath_period = ${BREATH.period}; low = ${BREATH.low};
+first_period = ${FIRST_BREATH.period}; first_low = ${FIRST_BREATH.low}; first_blend = ${FIRST_BREATH.blend};
 panel_r = ${pr}; panel_g = ${pg}; panel_b = ${pb};
 pi = 3.14159265;
 
@@ -85,7 +86,7 @@ Window.SetBackgroundBottomColor(0, 0, 0);
 fun clamp01(v) { if (v < 0) { return 0; } if (v > 1) { return 1; } return v; }
 fun ramp(t, a, b) { return clamp01((t - a) / (b - a)); }
 fun ease(x) { return x * x * (3 - 2 * x); }
-fun breath(t) { return 0.5 + 0.5 * Math.Sin(t / breath_period * 2 * pi - pi / 2); }
+fun breath(t, period) { return 0.5 + 0.5 * Math.Sin(t / period * 2 * pi - pi / 2); }
 fun pad(i) { if (i < 10) { return "0" + i; } return "" + i; }
 fun fit(image) { if (r == 1) { return image; } return image.Scale(Math.Int(image.GetWidth() * r + 0.5), Math.Int(image.GetHeight() * r + 0.5)); }
 
@@ -124,8 +125,9 @@ slow.SetPosition(Math.Int((screen_w - slow_image.GetWidth()) / 2), Math.Int(oy +
 # the house becomes that step's, with a quieter line under it where there is something to know. elyir:hello ends a
 # first start on where to go next: elyir:addr, elyir:wifi or elyir:pass, then that hub's own words one character
 # at a time as elyir:c:<character>, drawn from the letters below. A first start never shows the slow sentence.
+once_image = fit(Image("quiet-once.png"));
 ${Object.entries(FIRST).map(([id, w]) => `global.step_line["${id}"] = fit(Image("step-${id}.png"));` +
-  (w.quiet ? ` global.step_quiet["${id}"] = fit(Image("quiet-${id}.png"));` : '')).join('\n')}
+  (w.quiet ? ` global.step_quiet["${id}"] = fit(Image("quiet-${id}.png"));` : ` global.step_quiet["${id}"] = once_image;`)).join('\n')}
 ${[...GLYPHS].map((c) => `global.glyph["${quote(c)}"] = fit(Image("${glyphFile(c)}")); global.small["${quote(c)}"] = fit(Image("${smallFile(c)}")); global.char_of["elyir:c:${quote(c)}"] = "${quote(c)}";`).join('\n')}
 ready_image = fit(Image("ready.png"));
 where_image["addr"] = fit(Image("where-cable.png"));
@@ -157,6 +159,7 @@ global.ending_at = -1;
 global.widths["none"] = 0;
 global.first = 0;
 global.step_at = -1;
+global.first_at = -1;
 global.hello_at = -1;
 global.field = "";
 global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0;
@@ -170,6 +173,7 @@ fun centered(sprite, image, top) {
 
 fun step(id) {
   global.first = 1;
+  if (global.first_at < 0) { global.first_at = global.frame / 50; }
   global.step_at = global.frame / 50;
   centered(line, global.step_line[id], ${WORDS.line.top});
   global.quiet_on = 0;
@@ -275,7 +279,14 @@ fun refresh() {
   if (inn > 0) { place("house", house, house_image, house_cx, hy, house_size * s * grow * hs); }
 
   appear = ease(ramp(t, dotted, dotted + 0.3)) * (1 - out);
-  k = ease(ramp(t, lit_at, lit_at + 0.8)) * (low + (1 - low) * breath(t));
+  # A first start pulses deeper and quicker (first-2, C's pulse), blended in so the change is never a jump.
+  calm = low + (1 - low) * breath(t, breath_period);
+  if (global.first_at >= 0) {
+    quick = first_low + (1 - first_low) * breath(t - global.first_at, first_period);
+    mix = ease(ramp(t, global.first_at, global.first_at + first_blend));
+    calm = calm + (quick - calm) * mix;
+  }
+  k = ease(ramp(t, lit_at, lit_at + 0.8)) * calm;
   if (global.ending_at >= 0) { k = 1; }
   k = k + (1 - k) * hello;
   move = ease(ramp(t, leave, land));

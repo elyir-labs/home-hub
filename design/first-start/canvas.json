@@ -406,13 +406,18 @@
    "x": 3120,
    "y": 0,
    "w": 520,
-   "text": "WHICH ONE\n\nRecommendation: A, with C's deeper lamp pulse, now; B's bar on the copy and the download after.\n\nA changes the line on every real step and says up front that a first start takes about 10 minutes and happens once, which answers \"is this normal?\" before anybody asks. The deeper pulse costs one constant and makes the house read as alive across a room. B is the honest answer for the steps that are really long when they happen (the copy, the download), but it can't help the step that was actually watched, which has nothing to count. C's sweep and clock I would leave out: motion the work doesn't drive is a frozen screen with better lighting.\n\nFirst, though: measure a first start on the NUC from its log, and cut whatever in install.sh is waiting on a network that isn't there. The fastest first start needs the least reassurance.\n\nOr something else: describe it, and I'll draw it."
+   "text": "DECIDED 18 NOVEMBER 2026\n\nA, with C's deeper lamp pulse. The steps \"getting ready\" hid are named as each starts (Unpacking what it came with, Setting up the hub), every step without a quiet line of its own says a first start takes about 10 minutes and happens once, and the lamp pulses 45% to full every 2.4 s until Ready. C's sweep and clock, and B's bar, are not built.\n\nStill owed: \"about 10 minutes\" is a placeholder until a first start is timed on the NUC and the Pi, and the offline waits inside install.sh are worth cutting whatever this says.\n\nWHICH ONE\n\nRecommendation: A, with C's deeper lamp pulse, now; B's bar on the copy and the download after.\n\nA changes the line on every real step and says up front that a first start takes about 10 minutes and happens once, which answers \"is this normal?\" before anybody asks. The deeper pulse costs one constant and makes the house read as alive across a room. B is the honest answer for the steps that are really long when they happen (the copy, the download), but it can't help the step that was actually watched, which has nothing to count. C's sweep and clock I would leave out: motion the work doesn't drive is a frozen screen with better lighting.\n\nFirst, though: measure a first start on the NUC from its log, and cut whatever in install.sh is waiting on a network that isn't there. The fastest first start needs the least reassurance.\n\nOr something else: describe it, and I'll draw it."
   }
  ],
  "pages": [
   {
    "id": "first-2",
-   "name": "A first start that looks alive"
+   "name": "A first start that looks alive",
+   "decided": {
+    "on": "2026-11-18",
+    "chose": "A, with C's deeper lamp pulse",
+    "board": "NamedA-1.dc.html"
+   }
   },
   {
    "id": "first",
