@@ -17,3 +17,7 @@
 .choice.k.on .cap { border-color: #e9b872; color: #e9b872; }
 .choices.three { top: 476px; }
 .choices.three .choice { padding: 12px 22px; margin-bottom: 10px; }
+/* As built (the Ask and Step boards): every answer one line of words and one small line, at the splash's size. */
+.choices.built .choice { height: 82px; margin-bottom: 10px; padding: 0 22px; align-items: center; }
+.choices.built .choice span:last-child { white-space: nowrap; }
+.entry .hold { color: #4a4b52; }

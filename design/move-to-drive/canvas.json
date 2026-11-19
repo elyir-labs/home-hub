@@ -359,6 +359,105 @@
       "h": 900,
       "title": "AC2: the same form for a try found on this computer",
       "page": "keys-2"
+    },
+    {
+      "file": "BuiltDrive-1.dc.html",
+      "x": 0,
+      "y": 6500,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: the drive isn't empty",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltHere-1.dc.html",
+      "x": 1560,
+      "y": 6500,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: a try made here",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltAway-1.dc.html",
+      "x": 3120,
+      "y": 6500,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: a try from another computer",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltHub-1.dc.html",
+      "x": 4680,
+      "y": 6500,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: a hub already on the drive",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltErase-1.dc.html",
+      "x": 0,
+      "y": 7800,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: the box, waiting for erase",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltErase-2.dc.html",
+      "x": 1560,
+      "y": 7800,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: erase typed",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltOver-1.dc.html",
+      "x": 3120,
+      "y": 7800,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: start over",
+      "page": "stick-try"
+    },
+    {
+      "file": "StepTrying-1.dc.html",
+      "x": 4680,
+      "y": 7800,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: a try, picked",
+      "page": "stick-try"
+    },
+    {
+      "file": "StepUnasked-1.dc.html",
+      "x": 0,
+      "y": 9100,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: a try, nobody answered",
+      "page": "stick-try"
+    },
+    {
+      "file": "StepClearing-1.dc.html",
+      "x": 1560,
+      "y": 9100,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: starting over",
+      "page": "stick-try"
+    },
+    {
+      "file": "StepToDrive-1.dc.html",
+      "x": 3120,
+      "y": 9100,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: the hub on the drive",
+      "page": "stick-try"
     }
   ],
   "annotations": [
@@ -561,6 +660,14 @@
       "y": 5200,
       "w": 500,
       "text": "DECIDED 19 NOVEMBER 2026\n\nA, with the Both board for a fresh stick beside a drive that has a hub, every question in the keys-2 form (AC2). The card says when the try was set up and last used, not devices and rooms, which the stick can't read before the house starts."
+    },
+    {
+      "id": "built-t",
+      "page": "stick-try",
+      "x": -620,
+      "y": 6500,
+      "w": 500,
+      "text": "AS BUILT (19 NOVEMBER 2026)\n\nThe screens the splash draws, in the words startup/sequence.mjs carries; startup/startup.test.mjs fails when they stop agreeing. Every answer is one line and one small line, so the small lines are shorter than AC1 and AC2 drew them. The card on a try says when it was set up and last used. Backspace goes back to the question with the same answer highlighted."
     }
   ],
   "pages": [

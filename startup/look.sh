@@ -50,28 +50,59 @@ for f in before after; do read=$(zbarimg -q --raw "/out/5-follow-$f.png" || true
 [ "$r_before" = "WIFI:T:WPA;S:Elyir Hub 4F2A;P:kite-maple-41;;" ] && [ "$r_after" = "http://hub.local" ] || fail=1
 plymouth quit; wait $follow 2>/dev/null
 
-# Asked at the keyboard on a first start beside a drive with something on it (design/move-to-drive/, screen-asks): the
-# question, a word half typed, erase typed, Backspace back, and Enter. Keys go to the window Plymouth draws in, as on a unit.
+# Asked at the keyboard on a start from the stick (design/move-to-drive/: screen-asks, keys-2, stick-try). Plymouth
+# drops the arrows, so say.sh reads the keyboard itself (keys.py); here a fifo stands in for /dev/input, and key
+# presses are written into it as the kernel would.
 drive="{\"model\": \"Samsung SSD 980 512GB\", \"bytes\": 512110190592, \"system\": \"Ubuntu 24.04\", \"hub\": true, \"used\": 61000000000, \"last\": $(( $(date +%s) - 100000 ))}"
-key() { for k in "$@"; do xdotool key "$k" 2>/dev/null; sleep 0.25; done; sleep 1; }
+try="{\"present\": true, \"here\": true, \"made\": $(( $(date +%s) - 90000 )), \"last\": $(( $(date +%s) - 100000 ))}"
+mkdir -p /tmp/input; rm -f /tmp/input/event0; mkfifo /tmp/input/event0; export HUB_INPUT_DIR=/tmp/input
+key() {
+  python3 -c "import struct, sys, time
+codes = dict(up=103, down=108, tab=15, enter=28, back=14, wheel=-1, **{c: k for k, c in zip(range(16, 26), \"qwertyuiop\")},
+             **{c: k for k, c in zip(range(30, 39), \"asdfghjkl\")}, **{c: k for k, c in zip(range(44, 51), \"zxcvbnm\")})
+for k in sys.argv[1:]:
+    c = codes[k]
+    ev = struct.pack(\"llHHi\", 0, 0, 2, 8, -1) if c < 0 else struct.pack(\"llHHi\", 0, 0, 1, c, 1) + struct.pack(\"llHHi\", 0, 0, 1, c, 0)
+    sys.stdout.buffer.write(ev); sys.stdout.flush(); time.sleep(0.3)" "$@" >&9
+  sleep 1
+}
+ask() { bash /startup/say.sh ask "$@" > /tmp/answer & asking=$!; exec 9>/tmp/input/event0; sleep 2; }
+answered() { wait $asking; exec 9>&-; echo "    answered: \"$(cat /tmp/answer)\" (want \"$1\")"; [ "$(cat /tmp/answer)" = "$1" ] || fail=1; }
 start; sleep 7
-bash /startup/say.sh ask-drive "$drive" > /tmp/answer & asking=$!
-sleep 3; shot 6-ask
+ask drive TE "$drive"; sleep 4; shot 6-ask
+key down; shot 6-highlight
+key enter; shot 6-box
 key e r a; shot 6-typing
 key s e; shot 6-sure
-key BackSpace; shot 6-back
-key e Return; wait $asking; echo "    answered: $(cat /tmp/answer)"; [ "$(cat /tmp/answer)" = erase ] || fail=1
+key back; shot 6-back
+key e enter; answered erase
 bash /startup/say.sh step moving; sleep 1.5; shot 6-moving
 plymouth quit; sleep 1
 start; sleep 7
-bash /startup/say.sh ask-drive "$drive" > /tmp/answer & asking=$!
-sleep 2; key Return; wait $asking; echo "    answered: $(cat /tmp/answer)"; [ "$(cat /tmp/answer)" = keep ] || fail=1
-bash /startup/say.sh step keeping; sleep 1.5; shot 6-kept
+ask drive TE "$drive"; key wheel wheel enter; answered try
+bash /startup/say.sh step trying; sleep 1.5; shot 6-trying
 plymouth quit; sleep 1
 start; sleep 7
-ELYIR_ASK_FOR=3 bash /startup/say.sh ask-drive "$drive" > /tmp/answer
-echo "    nobody answered: \"$(cat /tmp/answer)\""; [ -z "$(cat /tmp/answer)" ] || fail=1
+ELYIR_ASK_FOR=3 ask drive TE "$drive"; answered ""
 bash /startup/say.sh step unasked; sleep 1.5; shot 6-unasked
+plymouth quit; sleep 1
+start; sleep 7
+ask here CDS "$drive" "$try"; sleep 4; shot 8-here
+key s; shot 8-over
+key back d; shot 8-here-erase
+key back tab; shot 8-here-tab
+key up up enter; answered carry
+plymouth quit; sleep 1
+start; sleep 7
+ask away NB "" "$try"; sleep 3; shot 8-away
+key n; answered new
+bash /startup/say.sh step clearing; sleep 1.5; shot 8-clearing
+plymouth quit; sleep 1
+start; sleep 7
+ask hub HTR "$drive"; sleep 4; shot 8-hub
+key r; shot 8-hub-erase
+key back up up enter; answered drive
+bash /startup/say.sh step todrive; sleep 1.5; shot 8-todrive
 plymouth quit; sleep 1
 
 # Ready while the phone still has the question about the drive (B1), with the code for the Wi-Fi under it.

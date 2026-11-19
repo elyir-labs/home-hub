@@ -1056,12 +1056,13 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
 # empty drive, to any other only when asked for it by its serial, and never by writing the stick. Disks are
 # scripts on PATH; mount, reboot and poweroff write down what they were asked and do nothing.
 moving_in() {
-  group "the x86 image moves off its stick onto an empty drive, onto any other only when asked, and never writes the stick"
+  group "the x86 image moves off its stick onto an empty drive, onto any other only when asked, and the stick is never the hub"
   local root dir bin sys var; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"; var="$root/var"
   mkdir -p "$dir/driver-layer/host" "$bin" "$sys/sda" "$var"
   printf '#!/usr/bin/env bash\necho "move $*" >> "%s/asked"\n[ -z "${MOVE_FAILS:-}" ]\n' "$root" > "$dir/driver-layer/host/move-to-drive.sh"
   mkdir -p "$dir/startup"
-  printf '#!/usr/bin/env bash\necho "say $*" >> "%s/asked"\n[ "$1" = ask-drive ] && echo "${ANSWER:-}"\nexit 0\n' "$root" > "$dir/startup/say.sh"
+  printf '#!/usr/bin/env bash\necho "say $*" >> "%s/asked"\n[ "$1" = ask ] && echo "${ANSWER:-}"\nexit 0\n' "$root" > "$dir/startup/say.sh"
+  printf '#!/usr/bin/env bash\necho "try $*" >> "%s/asked"\n[ "$1" = status ] && { [ -n "${TRYJ:-}" ] && echo "$TRYJ" || echo "{}"; }\nexit 0\n' "$root" > "$dir/driver-layer/host/try.sh"
   printf '#!/usr/bin/env bash\necho "describe $*" >> "%s/asked"\necho "{\\"name\\": \\"$2\\"}"\n' "$root" > "$dir/driver-layer/host/drive.sh"
   printf '#!/usr/bin/env bash\necho "boot-next $*" >> "%s/asked"\n' "$root" > "$dir/driver-layer/host/boot-next.sh"
   printf 'I: Bus=0019 Vendor=0000 Product=0001 Version=0000\nN: Name="Power Button"\nH: Handlers=kbd event0\nB: EV=3\n\n' > "$root/buttons"
@@ -1098,22 +1099,30 @@ SH
   is "...with the disk read-only while it is copied, and writable again after" "$(asked 'mount -o remount,ro /') $(asked 'mount -o remount,rw /')" "1 1"
   is "...and restarts from the drive" "$(asked 'systemctl --no-block reboot')" "1"
   is "...without ever wiping the stick" "$(asked 'wipefs -a')" "0"
-  is "...nothing asked of anybody, and the stick's start-next entry goes" "$(asked 'ask-drive') $(asked '^boot-next gone$')" "0 1"
+  is "...nothing asked of anybody, no try made, and the stick's start-next entry goes" "$(asked 'say ask') $(asked '^try make') $(asked '^boot-next gone$')" "0 0 1"
   USED=1 early
-  is "a drive with a partition on it is never moved to on its own" "$(asked '^move ')" "0"
+  is "a drive with a partition on it is never moved to on its own: a try is made, and it restarts onto it" "$(asked '^move ') $(asked '^try make$') $(asked '^say step unasked$') $(asked 'systemctl --no-block reboot')" "0 1 1 1"
   SIGNED=1 early
-  is "nor one with any signature on it" "$(asked '^move ')" "0"
+  is "nor one with any signature on it" "$(asked '^move ') $(asked '^try make$')" "0 1"
   EXTRA="HUB_AUTO_INTERNAL=0" early
-  is "HUB_AUTO_INTERNAL=0 keeps it on the stick" "$(asked '^move ')" "0"
+  is "HUB_AUTO_INTERNAL=0 keeps it on the stick, as a try" "$(asked '^move ') $(asked '^try make$')" "0 1"
+  TRYJ='{"present": true, "here": true, "disk": "sda"}' USED=1 early
+  is "a try on the stick and no keyboard: it carries on, nothing cleared, made or moved, and comes back to the stick" "$(asked '^try clear') $(asked '^try make') $(asked '^move ') $(asked 'reboot') $(asked '^boot-next stick sda$')" "0 0 0 0 1"
+  TRYJ='{"present": true, "here": false}' USED=1 early
+  is "...a try from another computer, the same: carried on, never cleared by nobody answering" "$(asked '^try clear') $(asked '^try adopt') $(asked 'reboot')" "0 0 0"
+  date +%s > "$var/try.over"; TRYJ='{"present": true, "here": true}' USED=1 early
+  is "Start over, asked on the phone: the try is cleared, and it restarts as flashed" "$(asked '^try clear$') $(asked 'systemctl --no-block reboot') $([ -f "$var/try.over" ] && echo kept || echo gone)" "1 1 gone"
+  TRYJ='{"present": true, "here": true, "disk": "sda"}' ROOTDEV=overlay early
+  is "started on a try, / is an overlay: the stick is the disk the try names" "$(asked '^boot-next stick sda$') $(asked '^boot-next gone$')" "1 0"
   ask; USED=1 early
   is "a drive with something on it, asked for by its serial: the system moves there" "$(asked '^move sda nvme0n1$')" "1"
   is "...and the request is used up" "$([ -f "$var/move.request" ] && echo kept || echo gone)" "gone"
   ask OTHER-SERIAL; USED=1 early
   is "asked for by a serial that is not this drive's: nothing moves" "$(asked '^move ')" "0"
   ask; USED=1 MOVE_FAILS=1 early
-  is "a move that was asked for and failed is said, and the hub carries on from the stick" "$([ -s "$var/move.failed" ] && echo said) $(asked 'reboot')" "said 0"
+  is "a move that was asked for and failed is said, and the hub carries on from the stick, in a try" "$([ -s "$var/move.failed" ] && echo said) $(asked '^try make$')" "said 1"
   rm -f "$var/move.failed"; MOVED=1 early
-  is "started from the stick with its hub already on the drive: off, for the stick to come out" "$(asked '^poweroff') $(asked '^move ')" "1 0"
+  is "a fresh stick beside a hub already on the drive, no keyboard: it restarts into that hub" "$(asked '^boot-next drive nvme0n1$') $(asked 'systemctl --no-block reboot') $(asked '^poweroff') $(asked '^move ')" "1 1 0 0"
   ask; TRAN=nvme ROOTDEV=/dev/nvme0n1p1 early
   is "already on the drive: nothing moves, and a request copied over with it is dropped" "$(asked '^move ') $([ -f "$var/move.request" ] && echo kept || echo gone)" "0 gone"
   printf 'HUB_IMAGE=\n' > "$root/conf"; rm -f "$root/asked"
@@ -1125,11 +1134,12 @@ SH
 # Asked at the keyboard on the first start beside a drive with something on it (design/move-to-drive/, screen-asks: C
 # with BootNext). The splash and its keys are startup/say.sh's, stood in for here by a script that answers.
 asking_first() {
-  group "the first start asks at the keyboard before anything is written, once, and the phone asks only what the screen didn't"
+  group "a start from the stick asks at the keyboard before anything is written, about the drive, a try, or a hub already there"
   local root dir bin sys var; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"; var="$root/var"
   mkdir -p "$dir/driver-layer/host" "$dir/startup" "$bin" "$sys/sda" "$var"
   printf '#!/usr/bin/env bash\necho "move $*" >> "%s/asked"\n[ -z "${MOVE_FAILS:-}" ]\n' "$root" > "$dir/driver-layer/host/move-to-drive.sh"
-  printf '#!/usr/bin/env bash\necho "say $*" >> "%s/asked"\n[ "$1" = ask-drive ] && echo "${ANSWER:-}"\nexit 0\n' "$root" > "$dir/startup/say.sh"
+  printf '#!/usr/bin/env bash\necho "say $*" >> "%s/asked"\n[ "$1" = ask ] && echo "${ANSWER:-}"\nexit 0\n' "$root" > "$dir/startup/say.sh"
+  printf '#!/usr/bin/env bash\necho "try $*" >> "%s/asked"\n[ "$1" = status ] && { [ -n "${TRYJ:-}" ] && echo "$TRYJ" || echo "{}"; }\nexit 0\n' "$root" > "$dir/driver-layer/host/try.sh"
   printf '#!/usr/bin/env bash\necho "describe $*" >> "%s/asked"\necho "{\\"name\\": \\"$2\\"}"\n' "$root" > "$dir/driver-layer/host/drive.sh"
   printf '#!/usr/bin/env bash\necho "boot-next $*" >> "%s/asked"\n' "$root" > "$dir/driver-layer/host/boot-next.sh"
   printf 'N: Name="Power Button"\nH: Handlers=kbd event0\nB: EV=3\n\n' > "$root/buttons"
@@ -1142,7 +1152,7 @@ case "$*" in
   "-dno NAME,TRAN,TYPE") printf 'sda usb disk\nnvme0n1 nvme disk\n' ;;
   "-dno SERIAL /dev/nvme0n1") echo " S6P7NS0T " ;;
   "-no NAME /dev/nvme0n1") echo nvme0n1; [ -n "${EMPTY:-}" ] || echo nvme0n1p1 ;;
-  "-no LABEL /dev/nvme0n1") echo ;;
+  "-no LABEL /dev/nvme0n1") echo; [ -n "${MOVED:-}" ] && echo hub-root ;;
 esac
 exit 0
 SH
@@ -1161,25 +1171,37 @@ SH
   fresh() { rm -f "$var/drive.screen" "$var/firstboot.done" "$var/move.failed"; }
 
   ANSWER=erase early
-  is "a keyboard and a drive with something on it: asked, about that drive, before anything else" "$(asked '^describe describe nvme0n1$') $(asked '^say ask-drive')" "1 1"
+  is "a keyboard and a drive with something on it: asked, about that drive, before anything else" "$(asked '^describe describe nvme0n1$') $(asked '^say ask drive TE ')" "1 1"
   is "erase typed: the system moves there" "$(asked '^move sda nvme0n1$') $(asked 'systemctl --no-block reboot')" "1 1"
   is "...the answer is kept, with the drive's serial, so the phone never asks it" "$(told answer) $(told serial)" "erase S6P7NS0T"
   is "...and the stick's start-next entry goes once it has moved" "$(asked '^boot-next gone$') $(asked '^boot-next stick')" "1 0"
   fresh; ANSWER=erase MOVE_FAILS=1 early
-  is "erase typed and the copy failed: said, and the hub carries on from the stick, coming back to it after a restart" "$([ -s "$var/move.failed" ] && echo said) $(asked reboot) $(asked '^boot-next stick sda$')" "said 0 1"
-  fresh; ANSWER=keep early
-  is "Enter: the drive is kept, nothing moves, and the screen says so" "$(asked '^move ') $(told answer) $(asked '^say step keeping$')" "0 keep 1"
-  is "...and a restart comes back to the stick" "$(asked '^boot-next stick sda$')" "1"
-  early
-  is "answered once: not asked again on the next start" "$(asked '^say ask-drive')" "0"
+  is "erase typed and the copy failed: said, and it carries on in a try, coming back to the stick after a restart" "$([ -s "$var/move.failed" ] && echo said) $(asked '^try make$') $(asked '^boot-next stick sda$')" "said 1 1"
+  fresh; ANSWER=try early
+  is "Try picked: the drive is kept, nothing moves, a try is made, and the screen says so" "$(asked '^move ') $(told answer) $(asked '^try make$') $(asked '^say step trying$')" "0 keep 1 1"
+  is "...and it restarts onto the try, coming back to the stick" "$(asked 'systemctl --no-block reboot') $(asked '^boot-next stick sda$')" "1 1"
   fresh; ANSWER="" early
-  is "nobody answered in time: nothing moves, nothing is kept, and the phone will ask" "$(asked '^move ') $(told answer) $(asked '^say step unasked$')" "0 none 1"
+  is "nobody answered in time: nothing moves, a try is made, and the phone will ask" "$(asked '^move ') $(told answer) $(asked '^try make$') $(asked '^say step unasked$')" "0 none 1 1"
   fresh; INPUT=buttons ANSWER=erase early
-  is "no keyboard, only a power button: never asked, and the screen says the phone will" "$(asked '^say ask-drive') $(asked '^move ') $(asked '^say step unasked$')" "0 0 1"
-  fresh; date +%s > "$var/firstboot.done"; ANSWER=erase early
-  is "past the first start: never asked at the keyboard" "$(asked '^say ask-drive') $(asked '^move ')" "0 0"
-  fresh; EMPTY=1 ANSWER=keep early
-  is "an empty drive: moved onto without a question" "$(asked '^say ask-drive') $(asked '^move sda nvme0n1$')" "0 1"
+  is "no keyboard, only a power button: never asked, and the screen says the phone will" "$(asked '^say ask') $(asked '^move ') $(asked '^say step unasked$')" "0 0 1"
+  fresh; EMPTY=1 ANSWER=try early
+  is "an empty drive: moved onto without a question" "$(asked '^say ask') $(asked '^move sda nvme0n1$')" "0 1"
+  fresh; TRYJ='{"present": true, "here": true}' ANSWER=carry early
+  is "a try made here: asked about it, with the drive beside it, and carried on" "$(asked '^say ask here CDS ') $(asked '^move ') $(asked '^try ') $(asked 'reboot')" "1 0 1 0"
+  TRYJ='{"present": true, "here": true}' ANSWER=move early
+  is "...put on the drive: it moves, the try with it" "$(asked '^move sda nvme0n1$')" "1"
+  TRYJ='{"present": true, "here": true}' ANSWER=over early
+  is "...start over: the try is cleared and it restarts" "$(asked '^try clear$') $(asked '^say step clearing$') $(asked 'systemctl --no-block reboot') $(asked '^move ')" "1 1 1 0"
+  TRYJ='{"present": true, "here": false}' ANSWER=bring early
+  is "a try from another computer, brought here: it's this computer's from now on" "$(asked '^say ask away NB ') $(asked '^try adopt$') $(asked 'reboot')" "1 1 0"
+  TRYJ='{"present": true, "here": false}' ANSWER=new early
+  is "...or a new hub here: the try is cleared first" "$(asked '^try clear$') $(asked 'systemctl --no-block reboot')" "1 1"
+  MOVED=1 ANSWER="" early
+  is "a hub already on the drive, nobody answered: it restarts into that hub" "$(asked '^say ask hub HTR ') $(asked '^boot-next drive nvme0n1$') $(asked '^say step todrive$')" "1 1 1"
+  MOVED=1 ANSWER=try early
+  is "...Try picked: a try from the stick, and the drive's hub is left alone" "$(asked '^try make$') $(asked '^move ') $(asked '^boot-next drive')" "1 0 0"
+  MOVED=1 ANSWER=erase early
+  is "...replaced: erase typed, and the stick's hub goes onto the drive" "$(asked '^move sda nvme0n1$')" "1"
   rm -rf "$root"
 }
 
@@ -1192,6 +1214,7 @@ starting_next() {
   STICK=aaaaaaaa-1111-2222-3333-444444444444
   cat > "$bin/lsblk" <<SH
 #!/usr/bin/env bash
+[ "\$*" = "-lno PARTN,PARTUUID,PARTTYPE /dev/nvme0n1" ] && { echo "1 \${DRIVE_UUID:-cccccccc-0000-0000-0000-000000000000} C12A7328-F81F-11D2-BA4B-00A0C93EC93B"; exit 0; }
 [ "\$*" = "-lno PARTN,PARTUUID,PARTTYPE /dev/sda" ] || exit 0
 [ -n "\${NO_ESP:-}" ] || echo "15 \${STICK_UUID:-$STICK} C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
 echo "1 bbbbbbbb-0000-0000-0000-000000000000 0fc63daf-8483-4772-8e79-3d69d8477de4"
@@ -1211,7 +1234,8 @@ if "-v" in args:
     for n, (label, path_) in sorted(e.items()): print(f"Boot{n}* {label}	{path_}")
 elif "--create-only" in args or "-c" in args:
     n = f"{max([int(k, 16) for k in e] or [0]) + 1:04X}"
-    e[n] = [opt("-L"), f"HD({opt('-p')},GPT,{os.environ.get('STICK_UUID') or fw['uuid']},0x800,0x32000)/File({opt('-l')})"]
+    uuid = os.environ.get("DRIVE_UUID") if opt("-d") == "/dev/nvme0n1" else (os.environ.get("STICK_UUID") or fw["uuid"])
+    e[n] = [opt("-L"), f"HD({opt('-p')},GPT,{uuid},0x800,0x32000)/File({opt('-l')})"]
     if "--create-only" not in args: fw["order"].insert(0, n)
     fw.setdefault("made", []).append(n)
 elif "-B" in args:
@@ -1243,6 +1267,10 @@ else: print(",".join(fw[k]) if isinstance(fw.get(k), list) else fw.get(k) or "no
   is "...and the boot order is still the firmware's own" "$(fw order)" "0001,0002"
   next gone
   is "on the drive: the stick's entry goes, and nothing else" "$(fw ours) $(python3 -c 'import json,sys; print(",".join(sorted(json.load(open(sys.argv[1]))["entries"])))' "$root/fw.json") $(fw order)" "none 0001,0002 0001,0002"
+  firmware; next drive nvme0n1
+  is "the hub on the drive, asked for next: its own entry, once, and nothing made or reordered" "$(fw next) $(fw made) $(fw order)" "0001 0 0001,0002"
+  firmware; DRIVE_UUID=eeeeeeee-0000-0000-0000-000000000000 next drive nvme0n1
+  is "...a drive the firmware has no entry for: one made outside the order, and asked for once" "$(fw next) $(fw made) $(fw order)" "0003 1 0001,0002"
   firmware; NO_ESP=1 next stick sda
   is "a stick with no EFI partition: nothing is made or asked for" "$(fw ours) $(fw next)" "none none"
   firmware; rmdir "$efi"; next stick sda

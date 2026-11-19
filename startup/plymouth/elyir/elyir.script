@@ -80,8 +80,10 @@ global.step_line["unpacking"] = fit(Image("step-unpacking.png")); global.step_qu
 global.step_line["setting"] = fit(Image("step-setting.png")); global.step_quiet["setting"] = once_image;
 global.step_line["downloading"] = fit(Image("step-downloading.png")); global.step_quiet["downloading"] = once_image;
 global.step_line["starting"] = fit(Image("step-starting.png")); global.step_quiet["starting"] = once_image;
-global.step_line["keeping"] = fit(Image("step-keeping.png")); global.step_quiet["keeping"] = fit(Image("quiet-keeping.png"));
+global.step_line["trying"] = fit(Image("step-trying.png")); global.step_quiet["trying"] = fit(Image("quiet-trying.png"));
 global.step_line["unasked"] = fit(Image("step-unasked.png")); global.step_quiet["unasked"] = fit(Image("quiet-unasked.png"));
+global.step_line["clearing"] = fit(Image("step-clearing.png")); global.step_quiet["clearing"] = fit(Image("quiet-clearing.png"));
+global.step_line["todrive"] = fit(Image("step-todrive.png")); global.step_quiet["todrive"] = fit(Image("quiet-todrive.png"));
 global.glyph["a"] = fit(Image("g-97.png")); global.small["a"] = fit(Image("q-97.png")); global.char_of["elyir:c:a"] = "a";
 global.glyph["b"] = fit(Image("g-98.png")); global.small["b"] = fit(Image("q-98.png")); global.char_of["elyir:c:b"] = "b";
 global.glyph["c"] = fit(Image("g-99.png")); global.small["c"] = fit(Image("q-99.png")); global.char_of["elyir:c:c"] = "c";
@@ -181,21 +183,34 @@ scan_line = Sprite(); scan_line.SetZ(30); scan_line.SetOpacity(0);
 drive_ready_image = fit(Image("drive-ready.png"));
 drive_scan_image = fit(Image("drive-scan.png"));
 
-# Asked on the screen at the start (design/move-to-drive/, screen-asks). elyir:drive:ask puts the question up: the house
-# small at the top, the drive named on its card, and the two keys. Its words come as fields like the Wi-Fi's (elyir:dmodel,
-# dsys, drest, dwarn, then a character at a time), and what is typed comes from Plymouth's own question, whose entry the
-# script reads a letter at a time (Plymouth 24, the x86 image's). elyir:drive:done takes it down.
+# Asked on the screen at the start (design/move-to-drive/: screen-asks, keys-2, stick-try). elyir:ask:<kind> puts a
+# question up: the house small at the top, a card, and the answers, added in order by elyir:opt:<kind>:<letter>.
+# elyir:pick:<n> moves the highlight and elyir:page:<choose|erase|over> turns to the box for erase or to starting over.
+# The card's words come as fields like the Wi-Fi's (elyir:dmodel, dsys, drest, then a character at a time), the erase
+# page's drive card as its own (emodel, esys, erest, dwarn), so turning to it redraws nothing, and so does what is typed
+# (elyir:dtyped): say.sh reads the keys (keys.py) and the splash only draws. elyir:ask:done ends it.
 global.cc["a"] = "97"; global.cc["b"] = "98"; global.cc["c"] = "99"; global.cc["d"] = "100"; global.cc["e"] = "101"; global.cc["f"] = "102"; global.cc["g"] = "103"; global.cc["h"] = "104"; global.cc["i"] = "105"; global.cc["j"] = "106"; global.cc["k"] = "107"; global.cc["l"] = "108"; global.cc["m"] = "109"; global.cc["n"] = "110"; global.cc["o"] = "111"; global.cc["p"] = "112"; global.cc["q"] = "113"; global.cc["r"] = "114"; global.cc["s"] = "115"; global.cc["t"] = "116"; global.cc["u"] = "117"; global.cc["v"] = "118"; global.cc["w"] = "119"; global.cc["x"] = "120"; global.cc["y"] = "121"; global.cc["z"] = "122"; global.cc["A"] = "65"; global.cc["B"] = "66"; global.cc["C"] = "67"; global.cc["D"] = "68"; global.cc["E"] = "69"; global.cc["F"] = "70"; global.cc["G"] = "71"; global.cc["H"] = "72"; global.cc["I"] = "73"; global.cc["J"] = "74"; global.cc["K"] = "75"; global.cc["L"] = "76"; global.cc["M"] = "77"; global.cc["N"] = "78"; global.cc["O"] = "79"; global.cc["P"] = "80"; global.cc["Q"] = "81"; global.cc["R"] = "82"; global.cc["S"] = "83"; global.cc["T"] = "84"; global.cc["U"] = "85"; global.cc["V"] = "86"; global.cc["W"] = "87"; global.cc["X"] = "88"; global.cc["Y"] = "89"; global.cc["Z"] = "90"; global.cc["0"] = "48"; global.cc["1"] = "49"; global.cc["2"] = "50"; global.cc["3"] = "51"; global.cc["4"] = "52"; global.cc["5"] = "53"; global.cc["6"] = "54"; global.cc["7"] = "55"; global.cc["8"] = "56"; global.cc["9"] = "57"; global.cc["-"] = "45"; global.cc["."] = "46"; global.cc[" "] = "32"; global.cc["·"] = "183"; global.cc[","] = "44"; global.cc["’"] = "8217"; global.cc["("] = "40"; global.cc[")"] = "41"; global.cc["/"] = "47"; global.cc["+"] = "43"; global.cc["_"] = "95"; global.cc[":"] = "58";
-global.dfield["dmodel"] = "m"; global.dfield["dsys"] = "s"; global.dfield["drest"] = "r"; global.dfield["dwarn"] = "w";
-drive_ask_image = fit(Image("drive-ask.png"));
-drive_sure_image = fit(Image("drive-sure.png"));
-drive_undone_image = fit(Image("drive-undone.png"));
-drive_foot_image = fit(Image("drive-foot.png"));
+global.dfield["dmodel"] = "m"; global.dfield["dsys"] = "s"; global.dfield["drest"] = "r"; global.dfield["dwarn"] = "w"; global.dfield["dtyped"] = "t";
+global.dfield["emodel"] = "m"; global.dfield["esys"] = "s"; global.dfield["erest"] = "r";
 drive_card_image = fit(Image("drive-card.png"));
-drive_keys_image = fit(Image("drive-keys.png"));
+home_card_image = fit(Image("home-card.png"));
+ask_title["drive"] = fit(Image("ask-drive-title.png")); ask_foot["drive"] = fit(Image("ask-drive-foot.png")); ask_card["drive"] = drive_card_image;
+ask_title["here"] = fit(Image("ask-here-title.png")); ask_foot["here"] = fit(Image("ask-here-foot.png")); ask_card["here"] = home_card_image;
+ask_title["away"] = fit(Image("ask-away-title.png")); ask_foot["away"] = fit(Image("ask-away-foot.png")); ask_card["away"] = home_card_image;
+ask_title["hub"] = fit(Image("ask-hub-title.png")); ask_foot["hub"] = fit(Image("ask-hub-foot.png")); ask_card["hub"] = home_card_image;
+ask_hint_image = fit(Image("ask-hint.png"));
+drive_sure_image = fit(Image("drive-sure.png"));
+drive_type_image = fit(Image("drive-type.png"));
+drive_hold_image = fit(Image("drive-hold.png"));
+drive_undone_image = fit(Image("drive-undone.png"));
 drive_sure_keys_image = fit(Image("drive-sure-keys.png"));
+drive_back_key_image = fit(Image("drive-back-key.png"));
 drive_entry_image = fit(Image("drive-entry.png"));
 drive_caret_image = fit(Image("drive-caret.png"));
+over_title_image = fit(Image("over-title.png"));
+over_warn_image = fit(Image("over-warn.png"));
+over_keys_image = fit(Image("over-keys.png"));
+global.kind = "drive"; global.page = "choose"; global.optn = 0; global.pick = 0; global.n["dtyped"] = 0;
 global.dln = 0;
 
 global.frame = 0;
@@ -263,46 +278,71 @@ fun dadd(set, field) {
   }
 }
 
-fun drive_layout() {
+# An answer's picture is loaded the first time it is shown.
+fun option_image(i, on) {
+  key = global.kind + "-" + global.opt[i] + "-" + on;
+  if (!global.oi[key]) { global.oi[key] = fit(Image("ask-" + key + ".png")); }
+  return global.oi[key];
+}
+
+fun ask_layout() {
   if (!global.d_title) {
-    global.d_title = dreg(Sprite()) + 1; global.d_card = dreg(Sprite()) + 1; global.d_keys = dreg(Sprite()) + 1;
-    global.d_foot = dreg(Sprite()) + 1; global.d_entry = dreg(Sprite()) + 1; global.d_caret = dreg(Sprite()) + 1;
-    global.d_undone = dreg(Sprite()) + 1; global.d_sure = dreg(Sprite()) + 1;
+    global.d_title = dreg(Sprite()) + 1; global.d_card = dreg(Sprite()) + 1; global.d_hint = dreg(Sprite()) + 1;
+    global.d_foot = dreg(Sprite()) + 1; global.d_type = dreg(Sprite()) + 1; global.d_entry = dreg(Sprite()) + 1;
+    global.d_hold = dreg(Sprite()) + 1; global.d_caret = dreg(Sprite()) + 1; global.d_undone = dreg(Sprite()) + 1;
+    global.d_keys = dreg(Sprite()) + 1;
+    i = 0; while (i < 4) { global.d_o[i] = dreg(Sprite()) + 1; i = i + 1; }
   }
-  e = global.entry;
-  st = 0;
-  if (e != "") { st = 1; }
-  if (e == "erase" || e == "Erase" || e == "ERASE") { st = 2; }
   i = 0; while (i < global.dln) { global.dw[i] = 0; i = i + 1; }
-  if (st == 2) { dat(global.d_title - 1, drive_sure_image, -1, 268); }
-  else { dat(global.d_title - 1, drive_ask_image, -1, 268); }
-  dat(global.d_card - 1, drive_card_image, 400, 336);
-  global.rpn = 0; dadd("m", "dmodel"); drow("model", 499, 359);
-  global.rpn = 0; dadd("s", "dsys"); dadd("r", "drest"); drow("system", 499, 392);
-  if (st == 0) { dat(global.d_keys - 1, drive_keys_image, 400, 492); }
-  if (st != 2) { dat(global.d_foot - 1, drive_foot_image, -1, 790); }
-  if (st != 0) {
-    dat(global.d_entry - 1, drive_entry_image, 560, 492);
-    global.rpn = 0; i = 0;
-    while (i < e.Length()) {
-      g = dglyph("t", e.CharAt(i));
+  card = ask_card[global.kind];
+  if (global.page == "erase") { card = drive_card_image; }
+  if (global.page == "over") { card = home_card_image; }
+  dat(global.d_card - 1, card, 400, 336);
+  f = "d";
+  if (global.page == "erase") { f = "e"; }
+  global.rpn = 0; dadd("m", f + "model"); drow("model", 499, 359);
+  global.rpn = 0; dadd("s", f + "sys"); dadd("r", f + "rest"); drow("system", 499, 392);
+  if (global.page == "choose") {
+    dat(global.d_title - 1, ask_title[global.kind], -1, 268);
+    i = 0;
+    while (i < global.optn) {
+      on = 0;
+      if (i == global.pick) { on = 1; }
+      dat(global.d_o[i] - 1, option_image(i, on), 400, 476 + i * 92);
+      i = i + 1;
+    }
+    dat(global.d_hint - 1, ask_hint_image, -1, 490 + global.optn * 92);
+    dat(global.d_foot - 1, ask_foot[global.kind], -1, 836);
+  }
+  if (global.page == "erase") {
+    dat(global.d_title - 1, drive_sure_image, -1, 268);
+    dat(global.d_type - 1, drive_type_image, -1, 462);
+    dat(global.d_entry - 1, drive_entry_image, 560, 504);
+    e = ""; global.rpn = 0; i = 0;
+    while (i < global.n["dtyped"]) {
+      ch = global.chars["dtyped-" + i]; e = e + ch;
+      g = dglyph("t", ch);
       if (g) { global.rp[global.rpn] = g; global.rpn = global.rpn + 1; }
       i = i + 1;
     }
-    right = drow("typed", -1, 505);
+    right = drow("typed", -1, 517);
+    if (global.n["dtyped"] == 0) {
+      dat(global.d_hold - 1, drive_hold_image, -1, 517);
+      right = (screen_w - drive_hold_image.GetWidth()) / 2;
+    }
     global.dl[global.d_caret - 1].SetImage(drive_caret_image);
-    global.dl[global.d_caret - 1].SetPosition(Math.Int(right + 3 * s), Math.Int(oy + 509 * s), 32);
+    global.dl[global.d_caret - 1].SetPosition(Math.Int(right + 3 * s), Math.Int(oy + 521 * s), 32);
     global.dw[global.d_caret - 1] = 1;
+    global.rpn = 0; dadd("w", "dwarn"); drow("warn", -1, 600);
+    dat(global.d_undone - 1, drive_undone_image, -1, 630.45);
+    if (e == "erase") { dat(global.d_keys - 1, drive_sure_keys_image, 400, 700); }
+    else { dat(global.d_keys - 1, drive_back_key_image, 400, 700); }
   }
-  if (st == 2) {
-    global.rpn = 0; dadd("w", "dwarn"); drow("warn", -1, 588);
-    dat(global.d_undone - 1, drive_undone_image, -1, 618.45);
-    dat(global.d_sure - 1, drive_sure_keys_image, 400, 680);
+  if (global.page == "over") {
+    dat(global.d_title - 1, over_title_image, -1, 268);
+    dat(global.d_type - 1, over_warn_image, -1, 492);
+    dat(global.d_keys - 1, over_keys_image, 400, 620);
   }
-}
-
-fun question(prompt, entry) {
-  if (global.asking) { global.entry = entry; drive_layout(); }
 }
 
 fun step(id) {
@@ -368,8 +408,10 @@ fun status(text) {
   if (text == "elyir:step:setting") { step("setting"); }
   if (text == "elyir:step:downloading") { step("downloading"); }
   if (text == "elyir:step:starting") { step("starting"); }
-  if (text == "elyir:step:keeping") { step("keeping"); }
+  if (text == "elyir:step:trying") { step("trying"); }
   if (text == "elyir:step:unasked") { step("unasked"); }
+  if (text == "elyir:step:clearing") { step("clearing"); }
+  if (text == "elyir:step:todrive") { step("todrive"); }
   if (text == "elyir:hello") { global.first = 1; global.hello_at = global.frame / 50; }
   if (text == "elyir:code") {
     made = Image("../../../../../run/elyir/code.png");
@@ -386,13 +428,36 @@ fun status(text) {
   if (text == "elyir:nocode") { global.coded = 0; where(); }
   if (text == "elyir:drive:phone") { global.drive_q = 1; where(); }
   if (text == "elyir:drive:none") { global.drive_q = 0; where(); }
-  if (text == "elyir:drive:ask") { global.first = 1; global.asking = 1; global.ask_at = global.frame / 50; global.entry = ""; drive_layout(); }
-  if (text == "elyir:drive:again") { global.entry = ""; drive_layout(); }
-  if (text == "elyir:drive:done") { global.asking = 0; global.done_at = global.frame / 50; }
+  if (text == "elyir:ask:drive") { global.kind = "drive"; global.optn = 0; global.pick = 0; global.page = "choose"; global.n["dtyped"] = 0; global.first = 1; if (!global.asking) { global.asking = 1; global.ask_at = global.frame / 50; } ask_layout(); }
+  if (text == "elyir:ask:here") { global.kind = "here"; global.optn = 0; global.pick = 0; global.page = "choose"; global.n["dtyped"] = 0; global.first = 1; if (!global.asking) { global.asking = 1; global.ask_at = global.frame / 50; } ask_layout(); }
+  if (text == "elyir:ask:away") { global.kind = "away"; global.optn = 0; global.pick = 0; global.page = "choose"; global.n["dtyped"] = 0; global.first = 1; if (!global.asking) { global.asking = 1; global.ask_at = global.frame / 50; } ask_layout(); }
+  if (text == "elyir:ask:hub") { global.kind = "hub"; global.optn = 0; global.pick = 0; global.page = "choose"; global.n["dtyped"] = 0; global.first = 1; if (!global.asking) { global.asking = 1; global.ask_at = global.frame / 50; } ask_layout(); }
+  if (text == "elyir:opt:drive:T") { global.opt[global.optn] = "T"; global.optn = global.optn + 1; ask_layout(); }
+  if (text == "elyir:opt:drive:E") { global.opt[global.optn] = "E"; global.optn = global.optn + 1; ask_layout(); }
+  if (text == "elyir:opt:here:C") { global.opt[global.optn] = "C"; global.optn = global.optn + 1; ask_layout(); }
+  if (text == "elyir:opt:here:D") { global.opt[global.optn] = "D"; global.optn = global.optn + 1; ask_layout(); }
+  if (text == "elyir:opt:here:S") { global.opt[global.optn] = "S"; global.optn = global.optn + 1; ask_layout(); }
+  if (text == "elyir:opt:away:N") { global.opt[global.optn] = "N"; global.optn = global.optn + 1; ask_layout(); }
+  if (text == "elyir:opt:away:B") { global.opt[global.optn] = "B"; global.optn = global.optn + 1; ask_layout(); }
+  if (text == "elyir:opt:hub:H") { global.opt[global.optn] = "H"; global.optn = global.optn + 1; ask_layout(); }
+  if (text == "elyir:opt:hub:T") { global.opt[global.optn] = "T"; global.optn = global.optn + 1; ask_layout(); }
+  if (text == "elyir:opt:hub:R") { global.opt[global.optn] = "R"; global.optn = global.optn + 1; ask_layout(); }
+  if (text == "elyir:pick:0") { global.pick = 0; ask_layout(); }
+  if (text == "elyir:pick:1") { global.pick = 1; ask_layout(); }
+  if (text == "elyir:pick:2") { global.pick = 2; ask_layout(); }
+  if (text == "elyir:pick:3") { global.pick = 3; ask_layout(); }
+  if (text == "elyir:page:choose") { global.page = "choose"; ask_layout(); }
+  if (text == "elyir:page:erase") { global.page = "erase"; ask_layout(); }
+  if (text == "elyir:page:over") { global.page = "over"; ask_layout(); }
+  if (text == "elyir:ask:done") { global.asking = 0; global.done_at = global.frame / 50; }
+  if (text == "elyir:dtyped") { global.field = "dtyped"; global.n["dtyped"] = 0; ask_layout(); }
   if (text == "elyir:dmodel") { global.field = "dmodel"; global.n["dmodel"] = 0; }
   if (text == "elyir:dsys") { global.field = "dsys"; global.n["dsys"] = 0; }
   if (text == "elyir:drest") { global.field = "drest"; global.n["drest"] = 0; }
   if (text == "elyir:dwarn") { global.field = "dwarn"; global.n["dwarn"] = 0; }
+  if (text == "elyir:emodel") { global.field = "emodel"; global.n["emodel"] = 0; }
+  if (text == "elyir:esys") { global.field = "esys"; global.n["esys"] = 0; }
+  if (text == "elyir:erest") { global.field = "erest"; global.n["erest"] = 0; }
   if (text == "elyir:addr") { global.field = "addr"; global.n["addr"] = 0; }
   if (text == "elyir:wifi") { global.field = "wifi"; global.n["wifi"] = 0; }
   if (text == "elyir:pass") { global.field = "pass"; global.n["pass"] = 0; }
@@ -401,7 +466,7 @@ fun status(text) {
   if (c && global.field != "") {
     global.chars[global.field + "-" + global.n[global.field]] = c;
     global.n[global.field] = global.n[global.field] + 1;
-    if (global.dfield[global.field]) { drive_layout(); } else { where(); }
+    if (global.dfield[global.field]) { ask_layout(); } else { where(); }
   }
 }
 
@@ -496,5 +561,4 @@ fun refresh() {
 }
 
 Plymouth.SetUpdateStatusFunction(status);
-Plymouth.SetDisplayQuestionFunction(question);
 Plymouth.SetRefreshFunction(refresh);
