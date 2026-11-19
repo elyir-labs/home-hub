@@ -297,7 +297,7 @@ fun drive_layout() {
   if (st == 2) {
     global.rpn = 0; dadd("w", "dwarn"); drow("warn", -1, 588);
     dat(global.d_undone - 1, drive_undone_image, -1, 618.45);
-    dat(global.d_sure - 1, drive_sure_keys_image, 470, 680);
+    dat(global.d_sure - 1, drive_sure_keys_image, 400, 680);
   }
 }
 

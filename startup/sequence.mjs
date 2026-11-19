@@ -135,7 +135,7 @@ export const DRIVE_AT = {
   system: { left: 499, top: 392, size: 18, color: '#d9d5cd' },
   rest: { size: 18, color: '#8f8b84' },
   keys: { left: 400, top: 492, width: 640 },
-  sureKeys: { left: 470, top: 680, width: 540 },
+  sureKeys: { left: 400, top: 680, width: 640 },
   entry: { left: 560, top: 492, width: 320, height: 64, text: 505, size: 30, color: '#f1eee8', spacing: 0.06 },
   caret: { width: 2, height: 30, top: 509, gap: 3, color: '#e9b872' },
   warn: { top: 588, size: 21, color: '#d9d5cd', step: 30.45 },
