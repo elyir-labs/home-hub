@@ -44,7 +44,9 @@ class Drive:
         host = self._host()
         drives = self.drives()
         on_stick = host.get("from") == "stick"
-        kept = bool(self.hub.settings.get("drive_kept"))
+        # Kept here, or at the keyboard on the first start (design/move-to-drive/, screen-asks): either is the answer.
+        screen = host.get("screen") if isinstance(host.get("screen"), dict) else {}
+        kept = bool(self.hub.settings.get("drive_kept")) or screen.get("answer") == "keep"
         moved = host.get("moved")
         asked = host.get("asked") if isinstance(host.get("asked"), dict) else {}
         return {

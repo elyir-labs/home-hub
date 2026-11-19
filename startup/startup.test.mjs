@@ -7,7 +7,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
-import { NAME, HOUSE, TIME, BREATH, FIRST_BREATH, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN } from './sequence.mjs'
+import { NAME, HOUSE, TIME, BREATH, FIRST_BREATH, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, DRIVE, DRIVE_AT } from './sequence.mjs'
 import { json } from './json.mjs'
 import { THEME, NAME_FRAMES, CODE, fingerprint, themeFile, timingSh, script } from './plymouth.mjs'
 
@@ -105,6 +105,52 @@ test('a first start never shows the slow sentence, and a step is only ever one t
   for (const id of Object.keys(FIRST)) assert.match(sc, new RegExp(`"elyir:step:${id}"`))
   const say = read(new URL('say.sh', import.meta.url))
   for (const id of Object.keys(FIRST)) assert.ok(say.includes(id), `say.sh knows ${id}`)
+})
+
+// design/move-to-drive/, screen-asks (C with BootNext) is the spec for the question at the start and for Ready while
+// the phone still has it.
+const move = (f) => read(new URL(`../design/move-to-drive/${f}`, import.meta.url))
+const text = (html, cls) => [...html.matchAll(new RegExp(`class="${cls}"[^>]*>(.*?)</div>`, 'g'))].map((m) => m[1])
+const css = (html, cls, prop) => +html.match(new RegExp(`class="${cls}" style="[^"]*${prop}: (\\d+)px`))[1]
+
+test('the question at the start says what the boards say, where they say it', () => {
+  const a1 = move('KeysA-1.dc.html'), a2 = move('KeysA-2.dc.html'), sheet = move('screen.css')
+  assert.deepEqual(text(a1, 'title'), [DRIVE.ask])
+  assert.deepEqual(text(a2, 'title'), [DRIVE.sure])
+  assert.deepEqual(text(a1, 'foot'), [DRIVE.foot])
+  const keys = (html) => [...html.matchAll(/<span class="cap">(.*?)<\/span><span>(.*?)(?:<small>(.*?)<\/small>)?<\/span>/g)].map((m) => [m[1], m[2], m[3]])
+  assert.deepEqual(keys(a1), DRIVE.keys.map((k) => [k.cap, k.text, k.small]))
+  assert.deepEqual(keys(a2), DRIVE.sureKeys.map((k) => [k.cap, k.text, undefined]))
+  assert.match(text(a2, 'warn')[0], new RegExp(`<br>${DRIVE.undone}$`))
+  assert.match(a2, /left: 470px/); assert.match(a2, /top: 680px/)
+  assert.deepEqual([DRIVE_AT.sureKeys.left, DRIVE_AT.sureKeys.top], [470, 680])
+  const rule = (sel, prop) => +sheet.match(new RegExp(`(^|\\n)\\${sel} \\{[^}]*?${prop}: (\\d+)px`))[2]
+  assert.equal(rule('.title', 'top'), DRIVE_AT.title.top); assert.equal(rule('.title', 'font-size'), DRIVE_AT.title.size)
+  assert.equal(rule('.card', 'left'), DRIVE_AT.card.left); assert.equal(rule('.card', 'top'), DRIVE_AT.card.top)
+  assert.equal(rule('.card', 'width'), DRIVE_AT.card.width)
+  assert.equal(rule('.keys', 'top'), DRIVE_AT.keys.top); assert.equal(rule('.keys', 'width'), DRIVE_AT.keys.width)
+  assert.equal(rule('.entry', 'left'), DRIVE_AT.entry.left); assert.equal(rule('.entry', 'top'), DRIVE_AT.entry.top)
+  assert.equal(rule('.entry', 'width'), DRIVE_AT.entry.width); assert.equal(rule('.entry', 'height'), DRIVE_AT.entry.height)
+  assert.equal(rule('.warn', 'top'), DRIVE_AT.warn.top); assert.equal(rule('.warn', 'font-size'), DRIVE_AT.warn.size)
+  assert.equal(rule('.foot', 'top'), DRIVE_AT.foot.top); assert.equal(rule('.foot', 'font-size'), DRIVE_AT.foot.size)
+  assert.ok(DRIVE.foot.includes(`${DRIVE.waitFor / 60} minutes`), 'the foot says how long the question waits')
+  assert.match(read(new URL('say.sh', import.meta.url)), new RegExp(`ELYIR_ASK_FOR:-${DRIVE.waitFor}`))
+})
+
+test('kept, unanswered, and Ready while the phone has the question, as the boards say', () => {
+  assert.deepEqual(said(move('KeysA-3.dc.html'), 'line'), [FIRST.keeping.line])
+  assert.deepEqual(said(move('KeysA-3.dc.html'), 'quiet'), [FIRST.keeping.quiet])
+  assert.deepEqual(said(move('BothC-1.dc.html'), 'line'), [FIRST.unasked.line])
+  assert.deepEqual(said(move('BothC-1.dc.html'), 'quiet'), [FIRST.unasked.quiet])
+  const b1 = move('PhoneB-1.dc.html')
+  assert.deepEqual(said(b1, 'ready'), [DRIVE.ready])
+  assert.deepEqual(said(b1, 'line'), [DRIVE.scan])
+  assert.equal(css(b1, 'say ready', 'top'), WORDS.scanReady.top)
+  assert.equal(css(b1, 'say line', 'top'), WORDS.scan.top)
+  const sc = script()
+  assert.match(sc, /Plymouth\.SetDisplayQuestionFunction\(question\);/)
+  for (const s of ['ask', 'again', 'done', 'phone', 'none']) assert.match(sc, new RegExp(`"elyir:drive:${s}"`))
+  for (const c of '·,’') assert.ok(GLYPHS.includes(c), `the drive's words need ${c}`)
 })
 
 test('no function in the splash shares a name with a global, which would overwrite it', () => {

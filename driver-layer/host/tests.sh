@@ -1060,6 +1060,12 @@ moving_in() {
   local root dir bin sys var; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"; var="$root/var"
   mkdir -p "$dir/driver-layer/host" "$bin" "$sys/sda" "$var"
   printf '#!/usr/bin/env bash\necho "move $*" >> "%s/asked"\n[ -z "${MOVE_FAILS:-}" ]\n' "$root" > "$dir/driver-layer/host/move-to-drive.sh"
+  mkdir -p "$dir/startup"
+  printf '#!/usr/bin/env bash\necho "say $*" >> "%s/asked"\n[ "$1" = ask-drive ] && echo "${ANSWER:-}"\nexit 0\n' "$root" > "$dir/startup/say.sh"
+  printf '#!/usr/bin/env bash\necho "describe $*" >> "%s/asked"\necho "{\\"name\\": \\"$2\\"}"\n' "$root" > "$dir/driver-layer/host/drive.sh"
+  printf '#!/usr/bin/env bash\necho "boot-next $*" >> "%s/asked"\n' "$root" > "$dir/driver-layer/host/boot-next.sh"
+  printf 'I: Bus=0019 Vendor=0000 Product=0001 Version=0000\nN: Name="Power Button"\nH: Handlers=kbd event0\nB: EV=3\n\n' > "$root/buttons"
+  { cat "$root/buttons"; printf 'I: Bus=0003 Vendor=046d Product=c31c Version=0110\nN: Name="USB Keyboard"\nH: Handlers=sysrq kbd leds event3\nB: EV=120013\n\n'; } > "$root/keyboard"
   cat > "$bin/lsblk" <<'SH'
 #!/usr/bin/env bash
 case "$*" in
@@ -1078,10 +1084,11 @@ SH
   printf '#!/usr/bin/env bash\n[ "$1" = -n ] && { [ -n "${SIGNED:-}" ] && echo "nvme0n1 ntfs"; exit 0; }\necho "wipefs $*" >> "%s/asked"\n' "$root" > "$bin/wipefs"
   printf '#!/usr/bin/env bash\n[ "$2" = / ]\n' > "$bin/mountpoint"
   for c in mount reboot poweroff systemctl sync; do printf '#!/usr/bin/env bash\necho "%s $*" >> "%s/asked"\n' "$c" "$root" > "$bin/$c"; done
-  chmod +x "$dir/driver-layer/host/move-to-drive.sh" "$bin"/*
+  chmod +x "$dir/driver-layer/host/"*.sh "$dir/startup/say.sh" "$bin"/*
   early() {
     rm -f "$root/asked"; printf 'HUB_IMAGE=x86\n%s\n' "${EXTRA:-}" > "$root/conf"; echo 0 > "$sys/sda/removable"
-    PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" "$HERE/move-early.sh" >/dev/null 2>&1
+    PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" HUB_INPUT="$root/${INPUT:-buttons}" \
+      HUB_KEYBOARD_WAIT=0 HUB_SAY_HOLD=0 "$HERE/move-early.sh" >/dev/null 2>&1
   }
   ask() { printf '{"disk": "nvme0n1", "serial": "%s"}\n' "${1:-S6P7NS0T}" > "$var/move.request"; }
   asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
@@ -1091,6 +1098,7 @@ SH
   is "...with the disk read-only while it is copied, and writable again after" "$(asked 'mount -o remount,ro /') $(asked 'mount -o remount,rw /')" "1 1"
   is "...and restarts from the drive" "$(asked 'systemctl --no-block reboot')" "1"
   is "...without ever wiping the stick" "$(asked 'wipefs -a')" "0"
+  is "...nothing asked of anybody, and the stick's start-next entry goes" "$(asked 'ask-drive') $(asked '^boot-next gone$')" "0 1"
   USED=1 early
   is "a drive with a partition on it is never moved to on its own" "$(asked '^move ')" "0"
   SIGNED=1 early
@@ -1111,6 +1119,134 @@ SH
   printf 'HUB_IMAGE=\n' > "$root/conf"; rm -f "$root/asked"
   PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" "$HERE/move-early.sh" >/dev/null 2>&1
   is "anywhere but the x86 image, it does nothing at all" "$(asked '.')" "0"
+  rm -rf "$root"
+}
+
+# Asked at the keyboard on the first start beside a drive with something on it (design/move-to-drive/, screen-asks: C
+# with BootNext). The splash and its keys are startup/say.sh's, stood in for here by a script that answers.
+asking_first() {
+  group "the first start asks at the keyboard before anything is written, once, and the phone asks only what the screen didn't"
+  local root dir bin sys var; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"; var="$root/var"
+  mkdir -p "$dir/driver-layer/host" "$dir/startup" "$bin" "$sys/sda" "$var"
+  printf '#!/usr/bin/env bash\necho "move $*" >> "%s/asked"\n[ -z "${MOVE_FAILS:-}" ]\n' "$root" > "$dir/driver-layer/host/move-to-drive.sh"
+  printf '#!/usr/bin/env bash\necho "say $*" >> "%s/asked"\n[ "$1" = ask-drive ] && echo "${ANSWER:-}"\nexit 0\n' "$root" > "$dir/startup/say.sh"
+  printf '#!/usr/bin/env bash\necho "describe $*" >> "%s/asked"\necho "{\\"name\\": \\"$2\\"}"\n' "$root" > "$dir/driver-layer/host/drive.sh"
+  printf '#!/usr/bin/env bash\necho "boot-next $*" >> "%s/asked"\n' "$root" > "$dir/driver-layer/host/boot-next.sh"
+  printf 'N: Name="Power Button"\nH: Handlers=kbd event0\nB: EV=3\n\n' > "$root/buttons"
+  { cat "$root/buttons"; printf 'N: Name="USB Keyboard"\nH: Handlers=sysrq kbd leds event3\nB: EV=120013\n\n'; } > "$root/keyboard"
+  cat > "$bin/lsblk" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "-no PKNAME /dev/sda1") echo sda ;;
+  "-dno TRAN /dev/sda") echo usb ;;
+  "-dno NAME,TRAN,TYPE") printf 'sda usb disk\nnvme0n1 nvme disk\n' ;;
+  "-dno SERIAL /dev/nvme0n1") echo " S6P7NS0T " ;;
+  "-no NAME /dev/nvme0n1") echo nvme0n1; [ -n "${EMPTY:-}" ] || echo nvme0n1p1 ;;
+  "-no LABEL /dev/nvme0n1") echo ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\necho /dev/sda1\n' > "$bin/findmnt"
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/wipefs"
+  printf '#!/usr/bin/env bash\n[ "$2" = / ]\n' > "$bin/mountpoint"
+  for c in mount reboot poweroff systemctl sync; do printf '#!/usr/bin/env bash\necho "%s $*" >> "%s/asked"\n' "$c" "$root" > "$bin/$c"; done
+  chmod +x "$dir/driver-layer/host/"*.sh "$dir/startup/say.sh" "$bin"/*
+  early() {
+    rm -f "$root/asked"; printf 'HUB_IMAGE=x86\n' > "$root/conf"; echo 0 > "$sys/sda/removable"
+    PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" HUB_INPUT="$root/${INPUT:-keyboard}" \
+      HUB_KEYBOARD_WAIT=0 HUB_SAY_HOLD=0 "$HERE/move-early.sh" >/dev/null 2>&1
+  }
+  asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
+  told() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])' "$var/drive.screen" "$1" 2>/dev/null || echo none; }
+  fresh() { rm -f "$var/drive.screen" "$var/firstboot.done" "$var/move.failed"; }
+
+  ANSWER=erase early
+  is "a keyboard and a drive with something on it: asked, about that drive, before anything else" "$(asked '^describe describe nvme0n1$') $(asked '^say ask-drive')" "1 1"
+  is "erase typed: the system moves there" "$(asked '^move sda nvme0n1$') $(asked 'systemctl --no-block reboot')" "1 1"
+  is "...the answer is kept, with the drive's serial, so the phone never asks it" "$(told answer) $(told serial)" "erase S6P7NS0T"
+  is "...and the stick's start-next entry goes once it has moved" "$(asked '^boot-next gone$') $(asked '^boot-next stick')" "1 0"
+  fresh; ANSWER=erase MOVE_FAILS=1 early
+  is "erase typed and the copy failed: said, and the hub carries on from the stick, coming back to it after a restart" "$([ -s "$var/move.failed" ] && echo said) $(asked reboot) $(asked '^boot-next stick sda$')" "said 0 1"
+  fresh; ANSWER=keep early
+  is "Enter: the drive is kept, nothing moves, and the screen says so" "$(asked '^move ') $(told answer) $(asked '^say step keeping$')" "0 keep 1"
+  is "...and a restart comes back to the stick" "$(asked '^boot-next stick sda$')" "1"
+  early
+  is "answered once: not asked again on the next start" "$(asked '^say ask-drive')" "0"
+  fresh; ANSWER="" early
+  is "nobody answered in time: nothing moves, nothing is kept, and the phone will ask" "$(asked '^move ') $(told answer) $(asked '^say step unasked$')" "0 none 1"
+  fresh; INPUT=buttons ANSWER=erase early
+  is "no keyboard, only a power button: never asked, and the screen says the phone will" "$(asked '^say ask-drive') $(asked '^move ') $(asked '^say step unasked$')" "0 0 1"
+  fresh; date +%s > "$var/firstboot.done"; ANSWER=erase early
+  is "past the first start: never asked at the keyboard" "$(asked '^say ask-drive') $(asked '^move ')" "0 0"
+  fresh; EMPTY=1 ANSWER=keep early
+  is "an empty drive: moved onto without a question" "$(asked '^say ask-drive') $(asked '^move sda nvme0n1$')" "0 1"
+  rm -rf "$root"
+}
+
+# BootNext, never BootOrder: a hub on its stick asks the firmware for the stick on the next start, once, and the system
+# on the drive keeps its place in the list. The firmware is a JSON file a fake efibootmgr reads and writes.
+starting_next() {
+  group "a hub on its stick comes back to the stick after a restart, without touching the firmware's own order"
+  local root bin efi; root=$(mktemp -d); bin="$root/bin"; efi="$root/efi"
+  mkdir -p "$bin" "$efi"
+  STICK=aaaaaaaa-1111-2222-3333-444444444444
+  cat > "$bin/lsblk" <<SH
+#!/usr/bin/env bash
+[ "\$*" = "-lno PARTN,PARTUUID,PARTTYPE /dev/sda" ] || exit 0
+[ -n "\${NO_ESP:-}" ] || echo "15 \${STICK_UUID:-$STICK} C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
+echo "1 bbbbbbbb-0000-0000-0000-000000000000 0fc63daf-8483-4772-8e79-3d69d8477de4"
+SH
+  cat > "$bin/efibootmgr" <<'SH'
+#!/usr/bin/env bash
+exec python3 - "$FIRMWARE" "$@" <<'PY'
+import json, os, sys
+path, args = sys.argv[1], sys.argv[2:]
+fw = json.load(open(path))
+e = fw["entries"]
+def opt(f):
+    return args[args.index(f) + 1] if f in args else None
+if "-v" in args:
+    print("BootOrder: " + ",".join(fw["order"]))
+    if fw.get("next"): print("BootNext: " + fw["next"])
+    for n, (label, path_) in sorted(e.items()): print(f"Boot{n}* {label}	{path_}")
+elif "--create-only" in args or "-c" in args:
+    n = f"{max([int(k, 16) for k in e] or [0]) + 1:04X}"
+    e[n] = [opt("-L"), f"HD({opt('-p')},GPT,{os.environ.get('STICK_UUID') or fw['uuid']},0x800,0x32000)/File({opt('-l')})"]
+    if "--create-only" not in args: fw["order"].insert(0, n)
+    fw.setdefault("made", []).append(n)
+elif "-B" in args:
+    n = opt("-b"); e.pop(n, None); fw["order"] = [o for o in fw["order"] if o != n]
+elif "-n" in args:
+    fw["next"] = opt("-n")
+json.dump(fw, open(path, "w"))
+PY
+SH
+  chmod +x "$bin"/*
+  firmware() { printf '{"uuid": "%s", "order": ["0001", "0002"], "entries": {"0001": ["ubuntu", "HD(1,GPT,cccccccc-0000-0000-0000-000000000000,0x800,0x100000)/File(\\\\EFI\\\\ubuntu\\\\shimx64.efi)"], "0002": ["UEFI: USB stick", "PciRoot(0x0)/USB(0x14,0x0)"]}}' "${STICK_UUID:-$STICK}" > "$root/fw.json"; }
+  next() { PATH="$bin:$PATH" FIRMWARE="$root/fw.json" HUB_EFI="$efi" STICK_UUID="${STICK_UUID:-$STICK}" "$HERE/boot-next.sh" "$@" >/dev/null 2>&1; }
+  fw() { python3 -c 'import json,sys
+fw=json.load(open(sys.argv[1])); k=sys.argv[2]
+if k == "ours": print(",".join(n for n,(l,_) in sorted(fw["entries"].items()) if l == "Elyir hub (USB stick)") or "none")
+elif k == "made": print(len(fw.get("made", [])))
+elif k == "path": print([p for l,p in fw["entries"].values() if l == "Elyir hub (USB stick)"][0])
+else: print(",".join(fw[k]) if isinstance(fw.get(k), list) else fw.get(k) or "none")' "$root/fw.json" "$1"; }
+
+  firmware; next stick sda
+  is "on the stick: an entry for it, made outside the boot order" "$(fw ours) $(fw order)" "0003 0001,0002"
+  is "...starting the stick's own loader from its EFI partition" "$(fw path)" "HD(15,GPT,$STICK,0x800,0x32000)/File(\\EFI\\BOOT\\BOOTX64.EFI)"
+  is "...and asked for once, on the next start" "$(fw next)" "0003"
+  python3 -c 'import json,sys; fw=json.load(open(sys.argv[1])); fw["next"]=None; json.dump(fw,open(sys.argv[1],"w"))' "$root/fw.json"
+  next stick sda
+  is "the next start from the stick: the same entry, asked for again, and no second one" "$(fw ours) $(fw next) $(fw made)" "0003 0003 1"
+  STICK_UUID=dddddddd-1111-2222-3333-444444444444 next stick sda
+  is "a different stick: the old one's entry goes, and this one gets its own" "$(fw ours) $(fw made) $(fw path | grep -c dddddddd)" "0003 2 1"
+  is "...and the boot order is still the firmware's own" "$(fw order)" "0001,0002"
+  next gone
+  is "on the drive: the stick's entry goes, and nothing else" "$(fw ours) $(python3 -c 'import json,sys; print(",".join(sorted(json.load(open(sys.argv[1]))["entries"])))' "$root/fw.json") $(fw order)" "none 0001,0002 0001,0002"
+  firmware; NO_ESP=1 next stick sda
+  is "a stick with no EFI partition: nothing is made or asked for" "$(fw ours) $(fw next)" "none none"
+  firmware; rmdir "$efi"; next stick sda
+  is "a computer that didn't start with EFI: nothing at all" "$(fw ours) $(fw next)" "none none"
   rm -rf "$root"
 }
 
@@ -1467,6 +1603,6 @@ SH
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; sizing; guessing; awake; setting_up; moving_in; moving; describing; starting_over
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; describing; starting_over
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

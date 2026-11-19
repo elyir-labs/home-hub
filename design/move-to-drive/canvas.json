@@ -293,13 +293,18 @@
       "x": 3120,
       "y": 2600,
       "w": 500,
-      "text": "WHICH ONE\n\nRecommendation: C, with BootNext.\n\nA is what was asked for, and on a NUC with a keyboard it removes the phone from the most dangerous question there is. B on its own repeats the failure that started this: a question only a phone can answer, on a hub a phone could not reach. C keeps A's question and B's sentence for the box with no keyboard, so nobody is left looking at a screen that never says a decision is waiting.\n\nOr something else: describe it, and I'll draw it."
+      "text": "DECIDED 18 NOVEMBER 2026\n\nC, with BootNext. On the first start from the stick, beside a drive with something on it, a keyboard gets A's question before anything is written; no keyboard, or no answer in 2 minutes, and the screen says the phone will ask (C1), and Ready says so too (B1). An answer at the keyboard is kept (drive.screen) and the phone never asks it again. Every start from the stick while the hub hasn't moved asks the firmware for the stick next (BootNext), and never changes BootOrder.\n\nChanged on building it: Esc is Plymouth's own key (it swaps the splash for the boot log on a real screen) and never reaches the theme, so going back is Backspace, which takes a letter off erase (A2 says so). Between the question and erase, the letters typed so far show in the field under the card, with the question's title and foot. The warning breaks before \"It can't be undone.\" so the drive's own words can be set from letters on one line.\n\nStill placeholders: the 2 minutes and the \"about 4 minutes\" for the move, until they are timed on the NUC.\n\nWHICH ONE\n\nRecommendation: C, with BootNext.\n\nA is what was asked for, and on a NUC with a keyboard it removes the phone from the most dangerous question there is. B on its own repeats the failure that started this: a question only a phone can answer, on a hub a phone could not reach. C keeps A's question and B's sentence for the box with no keyboard, so nobody is left looking at a screen that never says a decision is waiting.\n\nOr something else: describe it, and I'll draw it."
     }
   ],
   "pages": [
     {
       "id": "screen-asks",
-      "name": "Asked on the screen, at the start"
+      "name": "Asked on the screen, at the start",
+      "decided": {
+        "on": "2026-11-18",
+        "chose": "C, with BootNext",
+        "board": "BothC-1.dc.html"
+      }
     },
     {
       "id": "move",
