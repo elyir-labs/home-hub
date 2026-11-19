@@ -8,7 +8,9 @@ on:
   push:
     tags: ["v*"]
   pull_request:
-    paths: ["driver-layer/host/x86-image/**", "driver-layer/host/firstboot.sh", "startup/splash.sh", "startup/elyir-splash.service", "startup/say.sh", "startup/elyir-first-start.service", ".github/workflows/x86-image.yml"]
+    paths: ["driver-layer/host/x86-image/**", "driver-layer/host/firstboot.sh", "driver-layer/host/try.sh", "driver-layer/host/move-to-drive.sh",
+            "driver-layer/host/move-early.sh", "driver-layer/host/drive.sh", "driver-layer/host/boot-next.sh", "driver-layer/host/home-hub-try.*",
+            "driver-layer/host/home-hub-move.service", "startup/splash.sh", "startup/elyir-splash.service", "startup/say.sh", "startup/elyir-first-start.service", ".github/workflows/x86-image.yml"]
   workflow_dispatch:
 
 permissions:
@@ -75,3 +77,32 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           files: ${{ env.NAME }}.xz*
+
+  # The image started for real as a USB stick beside a drive (x86-image/stick-e2e.sh): the move onto an empty drive, a
+  # try made and kept across a restart, Start over, and a try put on the drive. A dozen starts under KVM, so it runs
+  # where the image is being changed or asked for by hand, not on a tag.
+  stick:
+    needs: image
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Room, and QEMU with KVM
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /usr/share/swift /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          sudo apt-get update -q && sudo apt-get install -yq --no-install-recommends qemu-system-x86 ovmf qemu-utils xz-utils
+          ls -l /dev/kvm; df -h /
+      - uses: actions/download-artifact@v4
+        with:
+          name: home-hub-x86-image
+      - name: Started as a USB stick
+        run: |
+          xz -d home-hub-*-x86.img.xz
+          sudo driver-layer/host/x86-image/stick-e2e.sh "$(ls home-hub-*-x86.img)" e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stick-e2e-logs
+          path: e2e/logs
+          retention-days: 7
