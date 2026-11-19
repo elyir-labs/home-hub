@@ -17,10 +17,16 @@ stick into the NUC with nothing else, and power it on.
   drive. Firmware that starts from any USB stick regardless finds its hub already on the drive and turns the computer
   off: take the stick out and switch it back on.
 - With **anything on the internal drive** (Windows, an old install), nothing on it is touched until somebody says so.
-  First run opens on the question: the drive named, with what is on it, and erase it and put the hub there, or keep
-  it and run from the stick. Erasing names what is lost and wakes only on the typed word *erase*. Keep is an answer,
-  and the first row on This hub offers the move again, on a hold, behind the passcode (`design/move-to-drive/`).
-  `HUB_AUTO_INTERNAL=0` in `/etc/home-hub.conf` keeps a hub on its stick even when the drive is empty.
+  With a keyboard plugged in, the first start asks on the screen before anything is written (`design/move-to-drive/`,
+  screen-asks): the drive named, with what is on it, type *erase* to put the hub there or Enter to keep it and run
+  from the stick. Erasing shows what is lost and waits for Enter; Backspace goes back. With no keyboard, or no answer
+  in 2 minutes, the screen says the phone will ask, and first run opens on the same question there: erase on the
+  typed word *erase*, or keep. Either answer is asked once. Keep is an answer, and the first row on This hub offers the
+  move again, on a hold, behind the passcode. `HUB_AUTO_INTERNAL=0` in `/etc/home-hub.conf` keeps a hub on its stick
+  even when the drive is empty.
+- **While it runs from the stick**, every start asks the firmware for the stick again on the next start (BootNext,
+  `host/boot-next.sh`), so a restart comes back to the hub rather than to what was on the drive. The firmware's own
+  boot order is never changed: take the stick out and the computer starts its old system as before.
 
 Then it is the same as every hub: with a cable it is at `http://hub.local`; without one it offers a Wi‑Fi of its own,
 named on its label (docs/network.md, piece 5). The image carries the brain, the front door and the broker, so the

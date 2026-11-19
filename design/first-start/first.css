@@ -32,3 +32,10 @@ body { width: 1440px; height: 900px; overflow: hidden; font-family: 'Instrument 
 .side .small b { color: #d9d5cd; font-weight: 500; }
 .house.small { left: 655px; top: 115px; width: 130px; height: 130px; }
 .quiet b { color: #d9d5cd; font-weight: 500; }
+
+/* Round 2 (A first start that looks alive): a slim bar under the line, filled or swept, as one scaled sprite each. */
+.track { position: absolute; left: 560px; top: 686px; width: 320px; height: 4px; border-radius: 2px; background: #2b2721; overflow: hidden; }
+.track .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: rgb(233, 184, 114); }
+.track .sweep { position: absolute; top: 0; bottom: 0; width: 96px; border-radius: 2px;
+                background: linear-gradient(90deg, rgba(233, 184, 114, 0), rgb(233, 184, 114), rgba(233, 184, 114, 0)); }
+.track + .nums, .track + .quiet { top: 706px; }

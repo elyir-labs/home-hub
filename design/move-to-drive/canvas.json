@@ -4,6 +4,21 @@
     "First run"
   ],
   "reading": [
+    "why-s",
+    "today-s",
+    "TodayStick-1.dc.html",
+    "TodayStick-2.dc.html",
+    "TodayStick-3.dc.html",
+    "a-s",
+    "KeysA-1.dc.html",
+    "KeysA-2.dc.html",
+    "KeysA-3.dc.html",
+    "b-s",
+    "PhoneB-1.dc.html",
+    "c-s",
+    "BothC-1.dc.html",
+    "restart-s",
+    "pick-s",
     "why",
     "Today.dc.html",
     "a",
@@ -101,6 +116,78 @@
       "h": 844,
       "title": "Kept: the first row on This hub, opening B's sheet",
       "page": "move"
+    },
+    {
+      "file": "TodayStick-1.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: a first start on the stick, saying nothing about the drive",
+      "page": "screen-asks"
+    },
+    {
+      "file": "TodayStick-2.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: Ready, and still nothing about the drive",
+      "page": "screen-asks"
+    },
+    {
+      "file": "TodayStick-3.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: after a restart, the old system on the drive",
+      "page": "screen-asks"
+    },
+    {
+      "file": "KeysA-1.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A1: asked at the start, on the keyboard",
+      "page": "screen-asks"
+    },
+    {
+      "file": "KeysA-2.dc.html",
+      "x": 1560,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A2: erase typed, and what goes with it",
+      "page": "screen-asks"
+    },
+    {
+      "file": "KeysA-3.dc.html",
+      "x": 3120,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A3: kept, and on with the first start",
+      "page": "screen-asks"
+    },
+    {
+      "file": "PhoneB-1.dc.html",
+      "x": 0,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "B1: Ready says the phone has a question first",
+      "page": "screen-asks"
+    },
+    {
+      "file": "BothC-1.dc.html",
+      "x": 0,
+      "y": 3900,
+      "w": 1440,
+      "h": 900,
+      "title": "C1: no answer at the keyboard, so the phone will ask",
+      "page": "screen-asks"
     }
   ],
   "annotations": [
@@ -151,9 +238,74 @@
       "w": 520,
       "text": "DECIDED 20 OCTOBER 2026\n\nA, with B's sheet reached from a row on This hub for whoever chose Keep. B's band on Home was not chosen: the question has been answered once by then, and a band for something that works reads as a fault.\n\nBoth moves happen the same way, which also answers B's cost. The panel asks; the hub restarts; the copy runs at the very start of the restart, with the disk read-only and before the house or the system log writes anything, so nothing is copied half-written. For B that means the house is restarting rather than stopped while live.",
       "page": "move"
+    },
+    {
+      "id": "why-s",
+      "page": "screen-asks",
+      "x": -1240,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS (18 NOVEMBER 2026)\n\nA NUC was set up from the stick with a keyboard plugged in, on a drive that still held Ubuntu with an earlier hub on it (installed with install.sh). The person expected to be asked, on that screen, as soon as it started, whether to move the hub onto the drive. Instead the whole first start ran from the stick and ended on Ready with the Wi-Fi code, and the drive was never mentioned. The phone's question (A, decided 20 October) was never reached, because the setup Wi-Fi it needed could not be found. After a restart the computer started the old Ubuntu from the drive, and the hub on the stick was simply left behind.\n\nA says the question belongs on a screen because erasing a drive is never the hub's call. It meant the phone. These boards ask whether the screen plugged into the computer should ask too, and what a restart starts while the question is open."
+    },
+    {
+      "id": "today-s",
+      "page": "screen-asks",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "TODAY\n\nmove-early.sh moves the stick onto the drive at the very start of a boot only when the drive is empty (or a move was asked for from the phone). Anything on the drive, and it carries on from the stick in silence. The question lives only on the phone, first in first run, so a hub nobody can reach from a phone never asks it.\n\nThe screen says \"Getting the hub ready\", then Ready with a code (left two). Nothing on it says the drive was found, kept, or that a question is waiting.\n\nA restart (right) starts whatever the firmware lists first. Only a finished move tells the firmware to start from the drive the hub is on; a hub still on the stick changes nothing, so the old system on the drive comes back and the stick's hub is gone from the screen. That is the second half of this report, and every direction below says what it does about it."
+    },
+    {
+      "id": "a-s",
+      "page": "screen-asks",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "A: ASKED AT THE START, ON THE KEYBOARD\n\nIn move-early.sh, before anything writes to a disk, the splash names the drive (model, size, the system on it, and that it holds a hub, read off the drive without changing it) and asks. Type erase to put the hub there; Enter keeps the drive and runs from the stick. Typing erase shows what goes with it, by name, and Enter starts the move that empty drives already get (A2), the same copy with the disk read-only. Keep says so and the first start carries on (A3); This hub's row still offers the move later, behind the passcode, as decided.\n\nOnly asked when a keyboard is there (an input device with keys, read from /proc/bus/input). With none, it is today's path at once. With a keyboard and no answer in 2 minutes, it starts from the stick and the phone asks, as now.\n\nAFTER A RESTART: while the hub is on the stick, unanswered or kept, it sets BootNext to itself on every boot (efibootmgr, an entry made for the stick if the firmware has none). BootNext is used once and leaves BootOrder alone, so the old system's place in the list is untouched: take the stick out and the computer starts it as before.\n\nTHE CASE: it is what was expected, at the moment it was expected, on the screen that is already in front of the person. Nothing about the house exists yet, so moving loses nothing.\n\nTHE COST: the splash learns to take keys: plymouth ask-question or watch-keystroke from move-early.sh, and the script's display-question callback drawing the typed letters from GLYPHS. The drive's words are this unit's own, so they are spelled like the Wi-Fi name, which wants '·' and ',' in GLYPHS. And move-early.sh waits up to 2 minutes, but only with a keyboard and nobody answering."
+    },
+    {
+      "id": "b-s",
+      "page": "screen-asks",
+      "x": -620,
+      "y": 2600,
+      "w": 500,
+      "text": "B: THE SCREEN POINTS TO THE PHONE\n\nNo keys. The question stays where A put it, first in first run on the phone, and the screen says it is waiting: Ready becomes \"One question before your hub is ready\", and the line under the code says the drive isn't empty and the phone asks what to do with it.\n\nAFTER A RESTART: the same BootNext as A, so a restart before the phone answers comes back to the stick, not to the old system.\n\nTHE CASE: no new input on the splash, one more line of words, and the decision stays on the page that can show everything about it.\n\nTHE COST: it only works when the phone can reach the hub, which is exactly what failed here. With an invisible setup Wi-Fi it is today's screen with a better sentence, and somebody with a keyboard in their hand is still told to go and find a phone."
+    },
+    {
+      "id": "c-s",
+      "page": "screen-asks",
+      "x": -620,
+      "y": 3900,
+      "w": 500,
+      "text": "C: BOTH. KEYS WHEN THERE ARE KEYS, THE PHONE WHEN THERE AREN'T\n\nA's question at the start whenever a keyboard is plugged in. Without one, or with no answer in 2 minutes, the screen says so as the first start carries on (C1), and Ready says the phone has the question first (B1). Erasing is only ever answered in one place at a time: once the screen has an answer the phone never asks, and a phone answer on a later boot is the move as decided.\n\nAFTER A RESTART: BootNext to the stick on every boot while the hub runs from it, as in A and B.\n\nTHE CASE: the person with a keyboard is asked where they are looking, and the one without is still told why the screen is waiting. Neither path depends on the setup Wi-Fi working.\n\nTHE COST: A's work and B's words together, and one more state for move-early.sh to remember (asked, kept, timed out) so the phone knows not to ask a question the screen already answered."
+    },
+    {
+      "id": "restart-s",
+      "page": "screen-asks",
+      "x": 3120,
+      "y": 1300,
+      "w": 500,
+      "text": "THE RESTART, ON ITS OWN\n\nThree ways to keep a hub on the stick from being left behind:\n\n- Nothing (today): a restart starts the old system. Simple, and the hub on the stick is lost from sight.\n- BootOrder: put the stick first for good. Every start comes back to the hub even if the stick moves to another port, but it rewrites the old system's place in the firmware's list, and the old system's own updates can put itself back first.\n- BootNext (recommended): ask for the stick once, on every boot, while the hub runs from it. Restarts and power cuts come back to the hub; the old system's entry is never changed, and pulling the stick starts it as before. A firmware that ignores BootNext behaves like today, and This hub's row says the stick has to stay first in the computer's startup settings.\n\nOnce the hub is on the drive, move-to-drive.sh already sets the drive first, so none of this applies after a move."
+    },
+    {
+      "id": "pick-s",
+      "page": "screen-asks",
+      "x": 3120,
+      "y": 2600,
+      "w": 500,
+      "text": "DECIDED 18 NOVEMBER 2026\n\nC, with BootNext. On the first start from the stick, beside a drive with something on it, a keyboard gets A's question before anything is written; no keyboard, or no answer in 2 minutes, and the screen says the phone will ask (C1), and Ready says so too (B1). An answer at the keyboard is kept (drive.screen) and the phone never asks it again. Every start from the stick while the hub hasn't moved asks the firmware for the stick next (BootNext), and never changes BootOrder.\n\nChanged on building it: Esc is Plymouth's own key (it swaps the splash for the boot log on a real screen) and never reaches the theme, so going back is Backspace, which takes a letter off erase (A2 says so). Between the question and erase, the letters typed so far show in the field under the card, with the question's title and foot. The warning breaks before \"It can't be undone.\" so the drive's own words can be set from letters on one line.\n\nStill placeholders: the 2 minutes and the \"about 4 minutes\" for the move, until they are timed on the NUC.\n\nWHICH ONE\n\nRecommendation: C, with BootNext.\n\nA is what was asked for, and on a NUC with a keyboard it removes the phone from the most dangerous question there is. B on its own repeats the failure that started this: a question only a phone can answer, on a hub a phone could not reach. C keeps A's question and B's sentence for the box with no keyboard, so nobody is left looking at a screen that never says a decision is waiting.\n\nOr something else: describe it, and I'll draw it."
     }
   ],
   "pages": [
+    {
+      "id": "screen-asks",
+      "name": "Asked on the screen, at the start",
+      "decided": {
+        "on": "2026-11-18",
+        "chose": "C, with BootNext",
+        "board": "BothC-1.dc.html"
+      }
+    },
     {
       "id": "move",
       "name": "Moving a hub off its USB stick",

@@ -65,6 +65,7 @@ else
   echo "This needs apt or dnf (Debian, Ubuntu, Raspberry Pi OS, Fedora)."; exit 1
 fi
 command -v systemctl >/dev/null 2>&1 || { echo "This needs systemd."; exit 1; }
+splash setting
 
 say "1/5  Docker"
 if ! command -v docker >/dev/null 2>&1; then

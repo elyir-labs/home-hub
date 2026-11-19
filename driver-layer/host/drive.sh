@@ -9,6 +9,7 @@
 #   drive.sh (with a request)   brain-data/drive.request asks to move onto a drive. Checked here, written for
 #                               move-early.sh, and the hub restarts; the copy happens at the very start of
 #                               that restart, before anything writes to the disk.
+#   drive.sh describe <disk>    one drive, as JSON, for the question move-early.sh asks on the screen.
 #
 # THE REQUEST NAMES A DRIVE AND ITS SERIAL, AND BOTH ARE CHECKED AGAIN HERE: only on the x86 image, only while
 # running from a stick, never the disk it is running from, and only if the serial is still the one the screen
@@ -30,7 +31,7 @@ empty() { [ -z "$(lsblk -no NAME "/dev/$1" | tail -n +2)" ] && [ -z "$(wipefs -n
 # A drive in a household's words: the system on it by its own name, how much is stored, when it was last
 # written. Read-only and without replaying a journal, so looking changes nothing.
 describe() {
-  local d="$1" system="" used=0 last=0 p fs m
+  local d="$1" system="" used=0 last=0 hub=0 p fs m
   for p in $(lsblk -lno NAME "/dev/$d" | tail -n +2); do
     fs="$(lsblk -no FSTYPE "/dev/$p" 2>/dev/null)"
     case "$fs" in ext4|ext3|xfs|btrfs|ntfs|ntfs3|vfat|exfat) ;; *) continue ;; esac
@@ -47,6 +48,7 @@ for l in open(sys.argv[1], errors="replace"):
         except ValueError: f[k]=v.strip("\"\x27")
 print((f.get("NAME") or "Linux")+(" "+f["VERSION_ID"] if f.get("VERSION_ID") else ""))' "$m/etc/os-release" 2>/dev/null)"
     elif [ -z "$system" ] && [ -d "$m/Windows/System32" ]; then system="Windows"; fi
+    [ -d "$m/opt/home-hub/driver-layer" ] && hub=1
     [ "$fs" = vfat ] || used=$(( used + $(df -B1 --output=used "$m" 2>/dev/null | tail -1 | tr -d ' ' || echo 0) ))
     for f in "$m/var/log" "$m/home" "$m/Windows/System32/config" "$m/Users"; do
       [ -e "$f" ] && { t=$(stat -c %Y "$f" 2>/dev/null || echo 0); [ "$t" -gt "$last" ] && last=$t; }
@@ -54,11 +56,11 @@ print((f.get("NAME") or "Linux")+(" "+f["VERSION_ID"] if f.get("VERSION_ID") els
     umount "$m" 2>/dev/null; rmdir "$m" 2>/dev/null
   done
   python3 -c 'import json,sys
-n,serial,model,size,empty,system,used,last=sys.argv[1:]
+n,serial,model,size,empty,system,used,last,hub=sys.argv[1:]
 print(json.dumps({"name":n,"serial":serial,"model":model.strip(),"bytes":int(size or 0),"empty":empty=="1",
-                  "system":system or None,"used":int(used) or None,"last":int(last) or None}))' \
+                  "system":system or None,"used":int(used) or None,"last":int(last) or None,"hub":hub=="1"}))' \
     "$d" "$(serial "$d")" "$(lsblk -dno MODEL "/dev/$d" 2>/dev/null)" "$(lsblk -bdno SIZE "/dev/$d" 2>/dev/null)" \
-    "$(empty "$d" && echo 1 || echo 0)" "$system" "$used" "$last"
+    "$(empty "$d" && echo 1 || echo 0)" "$system" "$used" "$last" "$hub"
 }
 
 write_state() {
@@ -68,6 +70,9 @@ write_state() {
   {
     printf '{"at": %s, "image": "%s", "from": "%s", "drives": [%s]' "$(date +%s)" "$IMAGE" "$from" "$drives"
     [ -f "$VAR/moved" ] && printf ', "moved": %s' "$(head -1 "$VAR/moved")"
+    # What the screen was told at the start (move-early.sh): a keep there is the household's answer, and the phone
+    # doesn't ask it again.
+    [ -s "$VAR/drive.screen" ] && printf ', "screen": %s' "$(head -1 "$VAR/drive.screen")"
     [ -f "$VAR/move.failed" ] && printf ', "failed": %s' "$(python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$(head -1 "$VAR/move.failed")")"
     [ -n "${1:-}" ] && printf ', "asked": %s' "$1"
     printf '}\n'
@@ -75,6 +80,8 @@ write_state() {
 }
 
 refuse() { write_state "$(python3 -c 'import json,sys; print(json.dumps({"refused": sys.argv[1]}))' "$1")"; exit 0; }
+
+if [ "${1:-}" = describe ]; then describe "${2:?which drive}"; exit 0; fi
 
 if [ -f "$REQ" ]; then
   DO="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("do",""))' "$REQ" 2>/dev/null)"

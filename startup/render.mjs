@@ -9,8 +9,8 @@
 // It borrows the panel's Playwright (app/node_modules) to draw; PLAYWRIGHT=<path to the package's
 // index.mjs> points it at another copy.
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { COLOR, NAME, HOUSE, TIME, SLOW, FIRST, READY, GLYPHS, WORDS, SCAN } from './sequence.mjs'
-import { THEME, K, NAME_FRAMES, fingerprint, themeFile, timingSh, script, glyphFile, smallFile } from './plymouth.mjs'
+import { COLOR, NAME, HOUSE, TIME, SLOW, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, DRIVE, DRIVE_AT } from './sequence.mjs'
+import { THEME, K, NAME_FRAMES, fingerprint, themeFile, timingSh, script, glyphFile, smallFile, driveFile, DRIVE_SETS } from './plymouth.mjs'
 
 const OUT = new URL(`plymouth/${THEME}/`, import.meta.url)
 const from = process.env.PLAYWRIGHT ?? new URL('../app/node_modules/playwright/index.mjs', import.meta.url).href
@@ -78,7 +78,7 @@ const sw = 1100 * K, sh = 80 * K
 await shoot('slow.png', sw, sh, `<div style="width:${sw}px;text-align:center;font:400 ${24 * K}px/1.35 'Instrument Sans',sans-serif;color:#b9b5ad">${SLOW}</div>`)
 
 // A first start's words (design/first-start/): a line per step, centered in a box as wide as the screen, and the
-// quieter line under it where a step has one.
+// quieter line under it: the step's own, or how long a first start takes.
 const font = (w, weight = 400) => `font:${weight} ${w.size * K}px/1.3 'Instrument Sans',sans-serif`
 const across = (file, w, text, color = w.color, weight = 400) =>
   shoot(file, 1400 * K, w.size * 1.3 * K, `<div style="text-align:center;white-space:nowrap;${font(w, weight)};color:${color}">${text}</div>`)
@@ -86,6 +86,7 @@ for (const [id, w] of Object.entries(FIRST)) {
   await across(`step-${id}.png`, WORDS.line, w.line)
   if (w.quiet) await across(`quiet-${id}.png`, WORDS.quiet, w.quiet)
 }
+await across('quiet-once.png', WORDS.quiet, ONCE)
 await across('ready.png', WORDS.ready, READY.line)
 
 // Where to go next is set on the unit from pieces laid side by side: the words, and this hub's own address, Wi-Fi
@@ -117,6 +118,48 @@ await piece('or-password.png', SCAN.orPassword, WORDS.or.color, 400, WORDS.or)
 await piece('or-addr.png', SCAN.orAddr, WORDS.or.color, 400, WORDS.or)
 await piece('or-addr-after.png', SCAN.orAddrAfter, WORDS.or.color, 400, WORDS.or)
 for (const c of GLYPHS) await piece(smallFile(c), c, WORDS.or.value, WORDS.or.weight, WORDS.or)
+
+// Asked on the screen at the start (design/move-to-drive/, screen-asks): the fixed parts are pictures, and the drive's
+// own words are set from letters in the sizes and colors the card, the warning and the typed word use.
+const at = (w) => ({ size: w.size, top: w.top, color: w.color })
+await across('drive-ask.png', at(DRIVE_AT.title), DRIVE.ask)
+await across('drive-sure.png', at(DRIVE_AT.title), DRIVE.sure)
+await across('drive-undone.png', at(DRIVE_AT.warn), DRIVE.undone)
+await across('drive-foot.png', at(DRIVE_AT.foot), DRIVE.foot)
+await across('drive-ready.png', WORDS.ready, DRIVE.ready)
+await across('drive-scan.png', WORDS.scan, DRIVE.scan)
+const c = DRIVE_AT.card
+await shoot('drive-card.png', c.width * K, c.height * K, `<div style="box-sizing:border-box;width:${c.width * K}px;height:${c.height * K}px;
+  padding:0 ${26 * K}px;border-radius:${16 * K}px;background:#15161a;border:${K}px solid #26272c;display:flex;align-items:center">
+  <span style="width:${52 * K}px;height:${52 * K}px;border-radius:${12 * K}px;background:#1f2025;display:grid;place-items:center">
+  <svg width="${28 * K}" height="${28 * K}" viewBox="0 0 24 24" fill="none" stroke="#d9d5cd" stroke-width="1.6" stroke-linecap="round">
+  <rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 12h.01M11 12h6"/></svg></span></div>`)
+const keyRows = (rows, width) => `<div style="width:${width * K}px;font-family:'Instrument Sans',sans-serif">${rows.map((r) =>
+  `<div style="display:flex;align-items:baseline;gap:${18 * K}px;margin-bottom:${20 * K}px;font-size:${21 * K}px;color:#d9d5cd;line-height:1.35">
+  <span style="flex:none;min-width:${84 * K}px;text-align:center;box-sizing:border-box;padding:${6 * K}px ${12 * K}px;border-radius:${9 * K}px;
+  border:${K}px solid #3a3b41;border-bottom-width:${3 * K}px;font-size:${18 * K}px;font-weight:500;color:#f1eee8;background:#1b1c20">${r.cap}</span>
+  <span>${r.text.replace(/<b>/g, '<b style="font-weight:500;color:#f1eee8">')}${r.small ? `<small style="display:block;margin-top:${2 * K}px;font-size:${18 * K}px;color:#8f8b84">${r.small}</small>` : ''}</span></div>`).join('')}</div>`
+const tall = async (html, width) => page.evaluate(([html, w]) => {
+  const d = document.createElement('div'); d.style.cssText = `position:absolute;width:${w}px`; d.innerHTML = html
+  document.body.appendChild(d); const h = d.getBoundingClientRect().height; d.remove(); return Math.ceil(h)
+}, [html, width])
+for (const [file, rows, w] of [['drive-keys.png', DRIVE.keys, DRIVE_AT.keys.width], ['drive-sure-keys.png', DRIVE.sureKeys, DRIVE_AT.sureKeys.width]]) {
+  const html = keyRows(rows, w)
+  await shoot(file, w * K, await tall(html, w * K), html)
+}
+const e = DRIVE_AT.entry, k = DRIVE_AT.caret
+await shoot('drive-entry.png', e.width * K, e.height * K, `<div style="box-sizing:border-box;width:${e.width * K}px;height:${e.height * K}px;
+  border-radius:${12 * K}px;border:${K}px solid ${k.color};background:#15161a"></div>`)
+await shoot('drive-caret.png', k.width * K, k.height * K, `<div style="width:${k.width * K}px;height:${k.height * K}px;background:${k.color}"></div>`)
+const letter = async (file, ch, w) => {
+  const f = `font:${w.weight || 400} ${w.size * K}px/1.3 'Instrument Sans',sans-serif;letter-spacing:${w.spacing || 0}em`
+  const width = await page.evaluate(([t, f]) => {
+    const span = document.createElement('span'); span.style.cssText = `${f};white-space:pre;position:absolute`; span.textContent = t
+    document.body.appendChild(span); const w = span.getBoundingClientRect().width; span.remove(); return w
+  }, [ch, f])
+  await shoot(file, Math.max(1, Math.round(width)), w.size * 1.3 * K, `<div style="white-space:pre;${f};color:${w.color}">${ch}</div>`)
+}
+for (const [set, key] of Object.entries(DRIVE_SETS)) for (const ch of GLYPHS) await letter(driveFile(set, ch), ch, DRIVE_AT[key])
 
 await browser.close()
 
