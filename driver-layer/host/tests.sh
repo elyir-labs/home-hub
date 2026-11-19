@@ -1325,14 +1325,20 @@ print("" if v is None else v)' "$dir/driver-layer/brain-data/drive.json" "$1"; }
 # prepared system in and umount copies it out again, so what the move did to the copy's own files can be read.
 moving() {
   group "the move gives the copy its own identity, and every file that names one follows"
-  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin" "$root/system/etc" "$root/system/boot/grub" "$root/system/boot/efi/EFI/ubuntu"
-  printf 'LABEL=cloudimg-rootfs / ext4 discard 0 1\nLABEL=BOOT /boot ext4 defaults 0 2\nLABEL=UEFI /boot/efi vfat umask=0077 0 1\n' > "$root/system/etc/fstab"
-  printf 'search --no-floppy --fs-uuid --set=root bbbb-boot\nlinux /vmlinuz root=PARTUUID=pppp-root ro\n' > "$root/system/boot/grub/grub.cfg"
-  printf 'search.fs_uuid bbbb-boot root hd0,gpt16\n' > "$root/system/boot/efi/EFI/ubuntu/grub.cfg"
-  mkdir -p "$root/system/boot/efi/EFI/BOOT"; cp "$root/system/boot/efi/EFI/ubuntu/grub.cfg" "$root/system/boot/efi/EFI/BOOT/grub.cfg"
-  echo stick-made-this > "$root/system/etc/machine-id"
-  cat > "$root/table" <<'T'
+  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin"
+  system() {
+    rm -rf "${root:?}/system"; mkdir -p "$root/system/etc" "$root/system/boot/grub" "$root/system/boot/efi/EFI/ubuntu" "$root/system/boot/efi/EFI/BOOT"
+    printf 'LABEL=cloudimg-rootfs / ext4 discard 0 1\nLABEL=BOOT /boot ext4 defaults 0 2\nLABEL=UEFI /boot/efi vfat umask=0077 0 1\n' > "$root/system/etc/fstab"
+    printf 'search --no-floppy --fs-uuid --set=root bbbb-boot\nlinux /vmlinuz root=PARTUUID=pppp-root ro\n' > "$root/system/boot/grub/grub.cfg"
+    printf 'search.fs_uuid bbbb-boot root hd0,gpt16\n' > "$root/system/boot/efi/EFI/ubuntu/grub.cfg"
+    cp "$root/system/boot/efi/EFI/ubuntu/grub.cfg" "$root/system/boot/efi/EFI/BOOT/grub.cfg"
+    echo stick-made-this > "$root/system/etc/machine-id"
+    echo stick > "$root/system/etc/home-hub-stick"
+  }
+  table() {
+    cat > "$root/table" <<'T'
 /dev/sda1 PARTUUID pppp-root
+/dev/sda2 PARTUUID pppp-try
 /dev/sda15 PARTUUID pppp-efi
 /dev/sda16 PARTUUID pppp-boot
 /dev/nvme0n1p1 LABEL cloudimg-rootfs
@@ -1341,8 +1347,21 @@ moving() {
 /dev/nvme0n1p16 LABEL BOOT
 /dev/nvme0n1p16 UUID bbbb-boot
 T
-  local parts='{"partitiontable": {"sectorsize": 512, "partitions": [{"node": "/dev/X1", "start": 2099200, "size": 4000000}, {"node": "/dev/X15", "start": 10240, "size": 217088}, {"node": "/dev/X16", "start": 227328, "size": 1869825}]}}'
-  printf '#!/usr/bin/env bash\necho "sfdisk $*" >> "$FAKES/asked"\n[ "$1" = -J ] && echo %q\nexit 0\n' "$parts" > "$bin/sfdisk"
+    local try=""; [ -n "${1:-}" ] && try=', {"node": "/dev/nvme0n1p2", "start": 6100992, "size": 20000000, "name": "hub-try"}'
+    printf '{"partitiontable": {"sectorsize": 512, "partitions": [{"node": "/dev/nvme0n1p1", "start": 2099200, "size": 4000000}%s, {"node": "/dev/nvme0n1p15", "start": 10240, "size": 217088}, {"node": "/dev/nvme0n1p16", "start": 227328, "size": 1869825}]}}\n' "$try" > "$root/parts.json"
+  }
+  cat > "$bin/sfdisk" <<'SH'
+#!/usr/bin/env bash
+echo "sfdisk $*" >> "$FAKES/asked"
+case "$1" in
+  -J) cat "$FAKES/parts.json" ;;
+  -q) [ "$2" = --delete ] && python3 -c 'import json,sys
+t=json.load(open(sys.argv[1])); p=t["partitiontable"]
+p["partitions"]=[x for x in p["partitions"] if not x["node"].endswith("p"+sys.argv[2])]
+json.dump(t,open(sys.argv[1],"w"))' "$FAKES/parts.json" "$4" ;;
+esac
+exit 0
+SH
   cat > "$bin/blkid" <<'SH'
 #!/usr/bin/env bash
 awk -v d="$5" -v k="$4" '$1==d && $2==k {v=$3} END {print v}' "$FAKES/table"
@@ -1356,18 +1375,22 @@ SH
 echo "e2label $*" >> "$FAKES/asked"; grep -v "^$1 LABEL " "$FAKES/table" > "$FAKES/t"; echo "$1 LABEL $2" >> "$FAKES/t"; mv "$FAKES/t" "$FAKES/table"
 SH
   printf '#!/usr/bin/env bash\nn=$(( $(cat "$FAKES/n" 2>/dev/null || echo 0) + 1 )); echo $n > "$FAKES/n"; echo "uuid-$n"\n' > "$bin/uuidgen"
-  printf '#!/usr/bin/env bash\n[ "$1" = /dev/nvme0n1p1 ] && cp -R "$FAKES/system/." "$2/"\nexit 0\n' > "$bin/mount"
+  printf '#!/usr/bin/env bash\necho "mount $*" >> "$FAKES/asked"\n[ "$1" = /dev/nvme0n1p1 ] && cp -R "$FAKES/system/." "$2/"\nexit 0\n' > "$bin/mount"
   printf '#!/usr/bin/env bash\n[ "$1" = -R ] && [ -d "$2/etc" ] && { rm -rf "$FAKES/after"; cp -R "$2" "$FAKES/after"; rm -rf "${2:?}"/*; }\nexit 0\n' > "$bin/umount"
   printf '#!/usr/bin/env bash\necho "${SIZE:-512110190592}"\n' > "$bin/blockdev"
-  for c in dd fatlabel e2fsck partx udevadm efibootmgr; do printf '#!/usr/bin/env bash\necho "%s $*" >> "$FAKES/asked"\n' "$c" > "$bin/$c"; done
+  printf '#!/usr/bin/env bash\necho /dev/sda2\n' > "$bin/findmnt"
+  # What the try holds, as the bind of / shows it: one file the house wrote.
+  printf '#!/usr/bin/env bash\necho "rsync $*" >> "$FAKES/asked"\n[ "${@: -1}" = "$FAKES/M/" ] || exit 0\nmkdir -p "$FAKES/M/etc"; echo house > "$FAKES/M/etc/house"\n' > "$bin/rsync"
+  for c in dd fatlabel e2fsck partx udevadm efibootmgr growpart resize2fs; do printf '#!/usr/bin/env bash\necho "%s $*" >> "$FAKES/asked"\n' "$c" > "$bin/$c"; done
+  printf '#!/usr/bin/env bash\nmkdir -p "$FAKES/M"; echo "$FAKES/M"\n' > "$bin/mktemp"
   chmod +x "$bin"/*
-  sed -i.bak 's|/dev/X|/dev/nvme0n1p|g' "$bin/sfdisk"
-  move() { PATH="$bin:$PATH" FAKES="$root" "$HERE/move-to-drive.sh" sda nvme0n1 >"$root/out" 2>&1; }
+  move() { rm -f "$root/asked"; PATH="$bin:$PATH" FAKES="$root" HUB_TRY_RUN="$root/try" "$HERE/move-to-drive.sh" sda nvme0n1 >"$root/out" 2>&1; }
   asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
+  never_the_stick() { grep -E -c '(sfdisk (-q )?--(disk-id|part-uuid|relocate|delete)|tune2fs|e2label|fatlabel|wipefs|growpart|resize2fs|mke2fs).* /dev/sda' "$root/asked"; }
 
-  move
+  system; table; move
   is "copies the stick onto the drive, as far as its last partition" "$(asked 'dd if=/dev/sda of=/dev/nvme0n1 bs=4M count=3122790400 iflag=count_bytes conv=fsync status=none')" "1"
-  is "...and never writes the stick" "$(grep -E -c '(sfdisk --(disk-id|part-uuid|relocate)|tune2fs|e2label|fatlabel|wipefs).* /dev/sda' "$root/asked")" "0"
+  is "...and never writes the stick" "$(never_the_stick)" "0"
   is "the copy gets its own partition ids" "$(asked 'sfdisk --part-uuid /dev/nvme0n1 ')" "3"
   is "...its own filesystem ids" "$(asked 'tune2fs -U random /dev/nvme0n1p')" "2"
   is "...and its own labels" "$(asked 'e2label /dev/nvme0n1p1 hub-root') $(asked 'e2label /dev/nvme0n1p16 hub-boot') $(asked 'fatlabel /dev/nvme0n1p15 HUB-EFI')" "1 1 1"
@@ -1375,9 +1398,221 @@ SH
   is "...and so does its boot menu" "$(cat "$root/after/boot/grub/grub.cfg" | tr '\n' ' ')" "search --no-floppy --fs-uuid --set=root new-nvme0n1p16 linux /vmlinuz root=PARTUUID=uuid-2 ro "
   is "...on every copy of it, the removable-media one included" "$(cat "$root/after/boot/efi/EFI/ubuntu/grub.cfg" "$root/after/boot/efi/EFI/BOOT/grub.cfg" | sort -u)" "search.fs_uuid new-nvme0n1p16 root hd0,gpt16"
   is "it makes its own machine id, rather than the one the stick made" "$(wc -c < "$root/after/etc/machine-id" | tr -d ' ')" "0"
-  rm -f "$root/asked"; SIZE=1000 move
+  is "...and never starts on the stick's overlay: the stick's mark is gone" "$([ -e "$root/after/etc/home-hub-stick" ] && echo kept || echo gone)" "gone"
+  is "a fresh stick brings no try along" "$(asked '^rsync ') $(asked '^growpart ')" "0 0"
+  SIZE=1000 move
   is "a drive too small for the system is refused before anything is written" "$(asked '^dd ')" "0"
-  rm -rf "$root"
+
+  # Running on the stick's try: the try's partition is listed after the system on the stick, and is not copied as one.
+  mkdir -p "$root/try/part/docker"; echo try > "$root/try/state"; date +%s > "$root/try/part/made"
+  system; table try; move
+  is "on a try: the system is copied only as far as its own last partition, not the try's" "$(asked 'dd if=/dev/sda of=/dev/nvme0n1 bs=4M count=3122790400 ')" "1"
+  is "...the copy's table drops the try's partition, whose bytes never came" "$(asked 'sfdisk -q --delete /dev/nvme0n1 2') $(asked 'sfdisk --part-uuid /dev/nvme0n1 ')" "1 3"
+  is "...the copy fills the drive before the try arrives" "$(asked 'growpart /dev/nvme0n1 1') $(asked 'resize2fs /dev/nvme0n1p1')" "1 1"
+  is "...the system as the try sees it lands on the copy, deletions included" "$(asked "rsync -aHAX --numeric-ids --delete --exclude=/etc/home-hub-stick $root/M/ $root/M/") $(cat "$root/after/etc/house")" "1 house"
+  is "...and so does Docker's own data, from the try's partition" "$(asked "rsync -aHAX --numeric-ids --delete $root/try/part/docker/ $root/M/var/lib/docker/")" "1"
+  is "...keeping the house's machine id" "$(cat "$root/after/etc/machine-id")" "stick-made-this"
+  is "...and without the stick's mark" "$([ -e "$root/after/etc/home-hub-stick" ] && echo kept || echo gone)" "gone"
+  is "...the drive knows which try to empty on the stick if it is still plugged in" "$(cat "$root/after/var/lib/home-hub/try.clear")" "pppp-try"
+  is "...and the try on the stick is emptied: no house is left on it" "$([ -e "$root/try/part/made" ] && echo made || echo gone) $([ -e "$root/try/part/clear" ] && echo marked)" "gone marked"
+  is "...still never writing the stick's system" "$(never_the_stick)" "0"
+  rm -rf "${root:?}"
+}
+
+# The one try a USB stick holds (design/move-to-drive/, stick-try). /run/home-hub-try is a directory here, as the
+# initramfs leaves it; the stick's table is JSON the fake sfdisk prints, with the try's partition once appended.
+trying() {
+  group "the stick holds one try, made from a start, bound to its computer, and emptied without touching the system"
+  local root bin run; root=$(mktemp -d); bin="$root/bin"; run="$root/run"; mkdir -p "$bin" "$root/dmi"
+  cat > "$bin/sfdisk" <<'SH'
+#!/usr/bin/env bash
+echo "sfdisk $*" >> "$FAKES/asked"
+case "$*" in
+  "-J /dev/sda")
+    t=""; [ -f "$FAKES/appended" ] && t=', {"node": "/dev/sda2", "start": 18876416, "size": 12000000, "name": "hub-try"}'
+    echo "{\"partitiontable\": {\"sectorsize\": 512, \"partitions\": [{\"node\": \"/dev/sda1\", \"start\": 2099200, \"size\": 16777183}$t, {\"node\": \"/dev/sda15\", \"start\": 10240, \"size\": 217088}]}}" ;;
+  *--append*) cat > "$FAKES/append-input"; touch "$FAKES/appended" ;;
+esac
+exit 0
+SH
+  cat > "$bin/lsblk" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "-dno NAME,TRAN,TYPE") printf 'sda usb disk\nnvme0n1 nvme disk\n' ;;
+  "-dno SERIAL /dev/nvme0n1") echo " ${SERIAL:-S6P7NS0T} " ;;
+  "-no NAME /dev/sda2") [ -f "$FAKES/appended" ] && echo sda2 || exit 32 ;;
+  "-lnpo NAME,PARTUUID") printf '/dev/sda\n/dev/sdb2 %s\n' "${STICK_UUID:-pppp-try}" ;;
+  "-no PARTLABEL /dev/sdb2") echo hub-try ;;
+  "-no MOUNTPOINT /dev/sdb2") echo "${IN_USE:-}" ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\necho "${STICK_BYTES:-16008609792}"\n' > "$bin/blockdev"
+  printf '#!/usr/bin/env bash\n[ -f "$FAKES/mounted" ]\n' > "$bin/mountpoint"
+  cat > "$bin/mount" <<'SH'
+#!/usr/bin/env bash
+echo "mount $*" >> "$FAKES/asked"
+case "$*" in
+  *"ro,noload /dev/sdb2 "*) if [ -n "${MARKED:-}" ]; then touch "${@: -1}/clear"; else touch "${@: -1}/made"; fi ;;
+  *) touch "$FAKES/mounted" ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\necho "umount $*" >> "$FAKES/asked"\nrm -f "$FAKES/mounted" "$1/clear" "$1/made"\n' > "$bin/umount"
+  for c in mke2fs partx udevadm; do printf '#!/usr/bin/env bash\necho "%s $*" >> "$FAKES/asked"\n' "$c" > "$bin/$c"; done
+  chmod +x "$bin"/*
+  t() { PATH="$bin:$PATH" FAKES="$root" HUB_TRY_RUN="$run" HUB_DMI="$root/dmi" HUB_VAR="$root/var" "$HERE/try.sh" "$@" 2>"$root/err"; }
+  field() { t status | python3 -c 'import json,sys; v=json.load(sys.stdin)[sys.argv[1]]; print(json.dumps(v))' "$1"; }
+  asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
+  boot() {   # fresh or try, as try-root.sh leaves it
+    rm -rf "${run:?}" "$root/asked" "$root/mounted"; mkdir -p "$run/fresh/upper/var/lib/home-hub" "$run/fresh/docker" "$run/fresh/containerd"
+    echo sda > "$run/disk"; echo "$1" > "$run/state"
+  }
+  echo 4C4C4544-0042-3510-8051-B4C04F4A4E32 > "$root/dmi/product_uuid"
+
+  is "a start from a drive: not the stick" "$(t status)" '{"stick": false, "active": false, "present": false, "here": false, "made": null, "last": null, "disk": null}'
+  t make; is "...and there is no try to make there, said on stderr" "$? $(grep -c '^\[home-hub\]' "$root/err")" "1 1"
+
+  boot fresh; echo keep > "$run/fresh/upper/var/lib/home-hub/drive.screen"; echo layer > "$run/fresh/docker/layer"
+  is "a fresh stick: on the stick, on memory, with no try, and names its disk" "$(t status)" '{"stick": true, "active": false, "present": false, "here": false, "made": null, "last": null, "disk": "sda"}'
+  STICK_BYTES=6000000000 t make
+  is "a stick with too little room after the system: no try, and its table is untouched" "$? $(asked -- '--append') $(asked -- '--relocate')" "1 0 0"
+  t make; local rc=$?
+  is "make: a partition in the free space after the system, aligned, and named hub-try" "$rc $(cat "$root/append-input")" "0 start=18876416, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name=hub-try"
+  is "...the stick's backup table moved to its end first, and the kernel told of the one new partition" "$(asked 'sfdisk -q --no-reread --no-tell-kernel --relocate gpt-bak-std /dev/sda') $(asked 'partx -a --nr 2 /dev/sda')" "1 1"
+  is "...given its own filesystem, and nothing else on the stick is written" "$(asked 'mke2fs -q -F -t ext4 -L hub-try /dev/sda2') $(grep -c '/dev/sda1' "$root/asked")" "1 0"
+  is "...what this start wrote is the try's first contents, Docker's included" "$(cat "$run/part/upper/var/lib/home-hub/drive.screen") $(cat "$run/part/docker/layer")" "keep layer"
+  is "...bound to this computer" "$(cat "$run/part/product") $(cat "$run/part/drives")" "4c4c4544-0042-3510-8051-b4c04f4a4e32 S6P7NS0T"
+  is "...and present, to be used from the next start" "$(field present) $(field active) $(field here) $([ "$(field made)" -gt 0 ] && echo dated)" "true false true dated"
+  t make; is "a second make before the restart is refused" "$?" "1"
+
+  echo try > "$run/state"; rm -f "$root/asked"
+  is "started on the try: active, present and here" "$(field active) $(field present) $(field here)" "true true true"
+  t make; is "...making another is refused" "$?" "1"
+  echo 1 > "$run/part/last"; t stamp
+  is "stamp: the try was used now" "$([ "$(field last)" -gt 1 ] && echo now)" "now"
+  echo 03000200-0400-0500-0006-000700080009 > "$root/dmi/product_uuid"
+  is "firmware with no id of its own: the same computer by its drive" "$(field here)" "true"
+  is "...and not with another drive in it" "$(SERIAL=OTHER field here)" "false"
+  echo 11111111-2222-3333-4444-555555555555 > "$root/dmi/product_uuid"
+  is "another computer: not here, whatever drive it has" "$(field here)" "false"
+  t adopt; is "adopt: the try is this computer's now" "$? $(field here)" "0 true"
+  t clear; rc=$?
+  is "clear while running on it: no try any more, emptied as the stick restarts" "$rc $(field present) $([ -e "$run/part/clear" ] && echo marked)" "0 false marked"
+  is "...without a filesystem made under the running system" "$(asked 'mke2fs')" "0"
+  rm -f "$run/part/last"; t stamp
+  is "...and a stamp after that writes nothing" "$([ -e "$run/part/last" ] && echo written || echo nothing)" "nothing"
+
+  boot fresh; touch "$root/appended" "$root/mounted"; mkdir -p "$run/part"; date +%s > "$run/part/made"
+  t clear; rc=$?
+  is "clear on a try made this start: emptied at once, the partition kept" "$rc $(asked 'umount ') $(asked 'mke2fs -q -F -t ext4 -L hub-try /dev/sda2') $(asked 'mount -o noatime /dev/sda2')" "0 1 1 1"
+
+  rm -rf "${run:?}"; mkdir -p "$root/var"; echo pppp-try > "$root/var/try.clear"; rm -f "$root/asked"
+  MARKED=1 t tidy
+  is "on the drive a try was moved onto: the try left on the stick is emptied for good" "$(asked 'mke2fs -q -F -t ext4 -L hub-try /dev/sdb2') $([ -f "$root/var/try.clear" ] && echo kept || echo emptied)" "1 emptied"
+  echo pppp-try > "$root/var/try.clear"; rm -f "$root/asked"; MARKED=1 IN_USE=/mnt t tidy
+  is "...never one that is in use" "$(asked 'mke2fs')" "0"
+  t tidy
+  is "...nor one that holds a try again, made since" "$(asked 'mke2fs') $([ -f "$root/var/try.clear" ] && echo kept || echo forgotten)" "0 forgotten"
+  echo pppp-try > "$root/var/try.clear"; rm -f "$root/asked"; STICK_UUID=other t tidy
+  is "...and with the stick gone, nothing, until it comes back" "$(asked 'mke2fs') $([ -f "$root/var/try.clear" ] && echo kept)" "0 kept"
+  rm -rf "${root:?}"
+}
+
+# The initramfs half (x86-image/try-root.sh), with mount and the disk tools as fakes: what it mounts, and what it never
+# does, which is let the stick's own system be written.
+stick_root() {
+  group "a start from the stick runs on an overlay over the stick's system, never on the system itself"
+  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin" "$root/sys/devices/usb/sda/sda1" "$root/sys/devices/usb/sda/sda2" "$root/sys/class/block"
+  touch "$root/sys/devices/usb/sda/sda1/partition"
+  ln -s ../../devices/usb/sda/sda1 "$root/sys/class/block/sda1"; ln -s ../../devices/usb/sda "$root/sys/class/block/sda"
+  cat > "$bin/blkid" <<'SH'
+#!/bin/sh
+case "$5" in /dev/sda1) echo "${LABEL:-cloudimg-rootfs}" ;; /dev/sda2) [ -e "$FAKES/sys/devices/usb/sda/sda2/partition" ] && echo hub-try ;; esac
+exit 0
+SH
+  cat > "$bin/mount" <<'SH'
+#!/bin/sh
+echo "mount $*" >> "$FAKES/asked"
+for a in "$@"; do last="$a"; done
+case "$*" in
+  *" /dev/sda2 "*) [ -n "${TRY_FAILS:-}" ] && exit 32; cp -R "$FAKES/try/." "$last/" 2>/dev/null ;;
+  *"-t overlay"*) [ -n "${OVERLAY_FAILS:-}" ] && exit 32 ;;
+esac
+exit 0
+SH
+  printf '#!/bin/sh\necho "e2fsck $*" >> "$FAKES/asked"\nexit ${FSCK:-0}\n' > "$bin/e2fsck"
+  printf '#!/bin/sh\necho "mke2fs $*" >> "$FAKES/asked"\nrm -rf "${FAKES:?}/try"; mkdir -p "$FAKES/try"\n' > "$bin/mke2fs"
+  printf '#!/bin/sh\necho "umount $*" >> "$FAKES/asked"\nfind "${1:?}" -mindepth 1 -delete\n' > "$bin/umount"
+  chmod +x "$bin"/*
+  start() {
+    rm -rf "${root:?}/run" "$root/asked" "$root/rootmnt"; mkdir -p "$root/rootmnt/etc" "$root/run"
+    printf 'LABEL=cloudimg-rootfs\t/\text4\tdiscard\t0 1\nLABEL=BOOT\t/boot\text4\tdefaults\t0 2\nLABEL=UEFI\t/boot/efi\tvfat\tumask=0077\t0 1\n' > "$root/rootmnt/etc/fstab"
+    [ -n "${UNMARKED:-}" ] || echo stick > "$root/rootmnt/etc/home-hub-stick"
+    printf '/dev/sda1 %s ext4 ro 0 0\n' "$root/rootmnt" > "$root/mounts"
+    HUB_PATH="$bin:$PATH" FAKES="$root" rootmnt="$root/rootmnt" HUB_TRY_RUN="$root/run/hht" HUB_MOUNTS="$root/mounts" \
+      HUB_BLOCK="$root/sys/class/block" sh "$HERE/x86-image/try-root.sh" >/dev/null 2>&1
+  }
+  asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
+  never_rw() { if [ -f "$root/asked" ]; then grep -c -E 'rw.* /dev/sda1|remount,rw' "$root/asked" || true; else echo 0; fi; }
+
+  start; local rc=$?
+  is "a fresh stick: the stick's system read-only, set aside, and memory on top" "$rc $(asked "mount -o remount,ro $root/rootmnt") $(asked "mount -o move $root/rootmnt $root/run/hht/lower") $(asked 'mount -t tmpfs')" "0 1 1 1"
+  is "...one overlay, named after the stick's system so the root still names its disk" "$(asked "mount -t overlay -o lowerdir=$root/run/hht/lower,upperdir=$root/run/hht/fresh/upper,workdir=$root/run/hht/fresh/work /dev/sda1 $root/rootmnt")" "1"
+  is "...Docker's and containerd's layers on a filesystem of their own" "$(asked "mount -o bind $root/run/hht/fresh/docker $root/rootmnt/var/lib/docker") $(asked "mount -o bind $root/run/hht/fresh/containerd $root/rootmnt/var/lib/containerd")" "1 1"
+  is "...and says what it started on, for try.sh" "$(cat "$root/run/hht/state") $(cat "$root/run/hht/disk") $(cat "$root/run/hht/system")" "fresh sda /dev/sda1"
+  is "the fstab it starts with has no root line, and the stick's boot partitions read-only and unchecked" "$(grep -c 'cloudimg-rootfs' "$root/run/hht/fstab") $(awk '$2 ~ /^\/boot/ {printf "%s %s ", $4, $6}' "$root/run/hht/fstab")" "0 defaults,ro,noload 0 umask=0077,ro 0 "
+  is "...in place of the stick's own, which is never edited" "$(asked "mount -o bind $root/run/hht/fstab $root/rootmnt/etc/fstab") $(grep -c cloudimg-rootfs "$root/rootmnt/etc/fstab")" "1 1"
+  is "...and nothing ever mounts the stick's system writable" "$(never_rw)" "0"
+
+  touch "$root/sys/devices/usb/sda/sda2/partition"; ln -s ../../devices/usb/sda/sda2 "$root/sys/class/block/sda2"
+  mkdir -p "$root/try/upper"; date +%s > "$root/try/made"
+  start
+  is "a stick with a try: checked, opened, and the try is the top layer" "$(asked 'e2fsck -p /dev/sda2') $(asked "upperdir=$root/run/hht/part/upper,workdir=$root/run/hht/part/work") $(asked 'mount -t tmpfs') $(cat "$root/run/hht/state")" "1 1 0 try"
+  is "...Docker's layers on the try's own filesystem" "$(asked "mount -o bind $root/run/hht/part/docker $root/rootmnt/var/lib/docker")" "1"
+  FSCK=4 start
+  is "a try that fails its check: this start runs on memory instead" "$(asked 'mount -t tmpfs') $(cat "$root/run/hht/state") $(never_rw)" "1 fresh 0"
+  TRY_FAILS=1 start
+  is "a try that won't open: memory too" "$(asked 'mount -t tmpfs') $(cat "$root/run/hht/state") $(never_rw)" "1 fresh 0"
+  OVERLAY_FAILS=1 start; rc=$?
+  is "...and if not even memory will go over the stick, the start stops rather than run on the stick itself" "$rc $(never_rw)" "3 0"
+  touch "$root/try/clear"; rm -f "$root/try/made"
+  start
+  is "a try emptied (Start over, or put on a drive): made empty before anything reads it, and the start is on memory" "$(asked 'mke2fs -q -F -t ext4 -L hub-try /dev/sda2') $(cat "$root/run/hht/state")" "1 fresh"
+  echo half > "$root/try/half-copied"
+  start
+  is "...and so is one never finished being made" "$(asked 'mke2fs') $(cat "$root/run/hht/state")" "1 fresh"
+  LABEL=hub-root start
+  is "a drive the stick was copied onto: an ordinary start, nothing mounted" "$(asked 'mount') $([ -d "$root/run/hht" ] && echo made || echo none)" "0 none"
+  UNMARKED=1 start
+  is "...and so is a root without the stick's mark" "$(asked 'mount')" "0"
+  rm -rf "${root:?}"
+}
+
+# On the stick, first boot leaves the system as flashed; on a drive it grows it to fill the disk.
+growing() {
+  group "first boot grows the system on a drive, never on the stick"
+  local root dir bin; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"
+  mkdir -p "$dir/startup" "$bin" "$root/sys/nvme0n1/nvme0n1p1"
+  echo 1 > "$root/sys/nvme0n1/nvme0n1p1/partition"
+  printf '#!/usr/bin/env bash\n' > "$dir/startup/find-hub.sh"
+  printf '#!/usr/bin/env bash\nexit 0\n' > "$dir/install.sh"
+  for c in hostnamectl apt-get avahi-browse systemctl docker resize2fs; do printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/$c"; done
+  printf '#!/usr/bin/env bash\necho "growpart $*" >> "%s/asked"\n' "$root" > "$bin/growpart"
+  printf '#!/usr/bin/env bash\necho /dev/nvme0n1p1\n' > "$bin/findmnt"
+  printf '#!/usr/bin/env bash\necho nvme0n1\n' > "$bin/lsblk"
+  chmod +x "$dir/startup/"*.sh "$dir/install.sh" "$bin"/*
+  boot() {
+    rm -f "$root/asked" "$root/done"; printf 'HUB_IMAGE=x86\n' > "$root/conf"
+    PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_FIRSTBOOT_MARK="$root/done" HUB_DRM="$root/drm" HUB_MODEL="$root/model" \
+      HUB_SYS_BLOCK="$root/sys" HUB_TRY_RUN="$root/try" "$HERE/firstboot.sh" >/dev/null 2>&1
+  }
+  asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
+  boot
+  is "on a drive: the system grows to fill it" "$(asked 'growpart /dev/nvme0n1 1')" "1"
+  mkdir -p "$root/try"; echo try > "$root/try/state"; boot
+  is "on the stick, on a try or on memory: never grown" "$(asked 'growpart')" "0"
+  rm -rf "${root:?}"
 }
 
 tiers() {
@@ -1603,6 +1838,6 @@ SH
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; describing; starting_over
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; trying; stick_root; growing; describing; starting_over
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

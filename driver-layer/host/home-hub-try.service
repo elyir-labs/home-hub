@@ -1,0 +1,14 @@
+# The USB stick's try (host/try.sh): while a hub runs on one, it writes down when it was last used; on a drive a try
+# was moved onto, it empties the try left on the stick for good if that stick is still plugged in. Inert otherwise.
+[Unit]
+Description=Home Hub: the USB stick's try
+After=local-fs.target home-hub-move.service
+ConditionPathExists=/etc/home-hub.conf
+
+[Service]
+Type=oneshot
+ExecStart=/opt/home-hub/driver-layer/host/try.sh stamp
+ExecStart=/opt/home-hub/driver-layer/host/try.sh tidy
+
+[Install]
+WantedBy=multi-user.target
