@@ -11,3 +11,9 @@
 .choice small { display: block; margin-top: 2px; font-size: 18px; color: #8f8b84; }
 .choice.on { border: 2px solid #e9b872; background: #17181c; color: #f1eee8; }
 .card .home { width: 52px; height: 52px; border-radius: 12px; background: #2a2219; display: grid; place-items: center; flex: none; }
+/* The hybrid (keys-2, decided): a highlight the arrows, Tab or a wheel move, and each answer's own letter. */
+.choice.k { display: flex; gap: 18px; align-items: baseline; }
+.choice.k .cap { min-width: 44px; padding: 6px 0; }
+.choice.k.on .cap { border-color: #e9b872; color: #e9b872; }
+.choices.three { top: 476px; }
+.choices.three .choice { padding: 12px 22px; margin-bottom: 10px; }

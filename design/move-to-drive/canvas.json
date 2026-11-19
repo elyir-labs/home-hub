@@ -341,6 +341,24 @@
       "h": 900,
       "title": "Both: this computer already has a hub on its drive",
       "page": "stick-try"
+    },
+    {
+      "file": "HybridAC-1.dc.html",
+      "x": 0,
+      "y": 5200,
+      "w": 1440,
+      "h": 900,
+      "title": "AC1: the highlight or the letter, either one",
+      "page": "keys-2"
+    },
+    {
+      "file": "HybridAC-2.dc.html",
+      "x": 1560,
+      "y": 5200,
+      "w": 1440,
+      "h": 900,
+      "title": "AC2: the same form for a try found on this computer",
+      "page": "keys-2"
     }
   ],
   "annotations": [
@@ -527,6 +545,22 @@
       "y": 3900,
       "w": 500,
       "text": "WHICH ONE\n\nRecommendation: A, with the Both board for a fresh stick beside a drive that has a hub."
+    },
+    {
+      "id": "decided-k2",
+      "page": "keys-2",
+      "x": -620,
+      "y": 5200,
+      "w": 500,
+      "text": "DECIDED 19 NOVEMBER 2026\n\nA and C together. Every question on the stick lists its answers as cards, each with its own letter. The safe answer starts highlighted (Try, Carry on, Start the hub on the drive). Up and down, Tab, or a mouse wheel move the highlight and Enter picks it, or the letter picks at once. Put the hub on a drive always goes to A3's box, where Enter erases only once erase is typed, and Backspace on an empty box goes back.\n\nBUILT THIS WAY: Plymouth 24 reads a USB keyboard through evdev and drops keys that make no character, so the arrows never reach the theme or `plymouth watch-keystroke`. It doesn't grab the device, so the hub reads the keyboards itself (startup/keys.py) for every question: arrows, Tab, the wheel, Enter, Backspace and the letters (US layout), and the splash only draws. Esc stays Plymouth's own key (it shows the boot log)."
+    },
+    {
+      "id": "decided-t",
+      "page": "stick-try",
+      "x": 1560,
+      "y": 5200,
+      "w": 500,
+      "text": "DECIDED 19 NOVEMBER 2026\n\nA, with the Both board for a fresh stick beside a drive that has a hub, every question in the keys-2 form (AC2). The card says when the try was set up and last used, not devices and rooms, which the stick can't read before the house starts."
     }
   ],
   "pages": [
@@ -554,11 +588,21 @@
     },
     {
       "id": "keys-2",
-      "name": "The keyboard question, round 2: Enter never decides"
+      "name": "The keyboard question, round 2: Enter never decides",
+      "decided": {
+        "on": "2026-11-19",
+        "chose": "A and C together: the highlight or the letter",
+        "board": "HybridAC-1.dc.html"
+      }
     },
     {
       "id": "stick-try",
-      "name": "The USB stick is a try, never the hub"
+      "name": "The USB stick is a try, never the hub",
+      "decided": {
+        "on": "2026-11-19",
+        "chose": "A, with the Both board, every question in the keys-2 form",
+        "board": "HybridAC-2.dc.html"
+      }
     }
   ]
 }
