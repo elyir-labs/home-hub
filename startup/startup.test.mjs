@@ -7,7 +7,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
-import { NAME, HOUSE, TIME, BREATH, FIRST, READY, GLYPHS, WORDS, SCAN } from './sequence.mjs'
+import { NAME, HOUSE, TIME, BREATH, FIRST_BREATH, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN } from './sequence.mjs'
 import { json } from './json.mjs'
 import { THEME, NAME_FRAMES, CODE, fingerprint, themeFile, timingSh, script } from './plymouth.mjs'
 
@@ -75,6 +75,21 @@ test('a first start says what the boards say, where they say it', () => {
   assert.equal(px('.quiet', 'top'), WORDS.quiet.top); assert.equal(px('.quiet', 'font-size'), WORDS.quiet.size)
   assert.equal(px('.ready', 'top'), WORDS.ready.top); assert.equal(px('.ready', 'font-size'), WORDS.ready.size)
   assert.equal(px('.ready + .quiet', 'top'), WORDS.where.top); assert.equal(px('.ready + .quiet', 'font-size'), WORDS.where.size)
+})
+
+// Round 2 (first-2: A with C's pulse): the steps "getting ready" hid, how long a first start takes, and a deeper,
+// quicker lamp than an ordinary start's.
+test('a first start names the steps it used to hide, and pulses where it can be seen', () => {
+  assert.deepEqual(said(first('NamedA-1.dc.html'), 'line'), [FIRST.unpacking.line])
+  assert.deepEqual(said(first('NamedA-2.dc.html'), 'line'), [FIRST.setting.line])
+  for (const f of ['NamedA-1.dc.html', 'NamedA-2.dc.html']) assert.deepEqual(said(first(f), 'quiet'), [ONCE])
+  const note = JSON.parse(first('canvas.json')).annotations.find((a) => a.id === 'c-2').text
+  assert.match(note, new RegExp(`${Math.round(FIRST_BREATH.low * 100)}% to full every ${FIRST_BREATH.period} s`))
+  assert.ok(FIRST_BREATH.period < BREATH.period && FIRST_BREATH.low < BREATH.low)
+  const sc = script()
+  assert.match(sc, /global\.step_quiet\["unpacking"\] = once_image;/)
+  assert.match(sc, /global\.step_quiet\["moving"\] = fit\(Image\("quiet-moving\.png"\)\);/)
+  assert.ok(existsSync(theme('quiet-once.png')))
 })
 
 test("every letter a hub's own address, Wi-Fi name and password can have is drawn", () => {

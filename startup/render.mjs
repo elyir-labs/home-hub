@@ -9,7 +9,7 @@
 // It borrows the panel's Playwright (app/node_modules) to draw; PLAYWRIGHT=<path to the package's
 // index.mjs> points it at another copy.
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { COLOR, NAME, HOUSE, TIME, SLOW, FIRST, READY, GLYPHS, WORDS, SCAN } from './sequence.mjs'
+import { COLOR, NAME, HOUSE, TIME, SLOW, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN } from './sequence.mjs'
 import { THEME, K, NAME_FRAMES, fingerprint, themeFile, timingSh, script, glyphFile, smallFile } from './plymouth.mjs'
 
 const OUT = new URL(`plymouth/${THEME}/`, import.meta.url)
@@ -78,7 +78,7 @@ const sw = 1100 * K, sh = 80 * K
 await shoot('slow.png', sw, sh, `<div style="width:${sw}px;text-align:center;font:400 ${24 * K}px/1.35 'Instrument Sans',sans-serif;color:#b9b5ad">${SLOW}</div>`)
 
 // A first start's words (design/first-start/): a line per step, centered in a box as wide as the screen, and the
-// quieter line under it where a step has one.
+// quieter line under it: the step's own, or how long a first start takes.
 const font = (w, weight = 400) => `font:${weight} ${w.size * K}px/1.3 'Instrument Sans',sans-serif`
 const across = (file, w, text, color = w.color, weight = 400) =>
   shoot(file, 1400 * K, w.size * 1.3 * K, `<div style="text-align:center;white-space:nowrap;${font(w, weight)};color:${color}">${text}</div>`)
@@ -86,6 +86,7 @@ for (const [id, w] of Object.entries(FIRST)) {
   await across(`step-${id}.png`, WORDS.line, w.line)
   if (w.quiet) await across(`quiet-${id}.png`, WORDS.quiet, w.quiet)
 }
+await across('quiet-once.png', WORDS.quiet, ONCE)
 await across('ready.png', WORDS.ready, READY.line)
 
 // Where to go next is set on the unit from pieces laid side by side: the words, and this hub's own address, Wi-Fi
