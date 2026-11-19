@@ -1,0 +1,13 @@
+/* Round 2 of the keys, and the stick as a try (pages keys-2, stick-try): what screen.css doesn't already draw. */
+.cap.one { min-width: 44px; padding: 6px 0; }
+.key.dim { opacity: .45; }
+.ask { position: absolute; left: 0; right: 0; text-align: center; font-size: 22px; color: #d9d5cd; }
+.ask b { color: #f1eee8; font-weight: 500; }
+.entry .hold { color: #4a4b52; }
+.nudge { position: absolute; left: 0; right: 0; text-align: center; font-size: 20px; color: #e9b872; }
+.choices { position: absolute; left: 400px; width: 640px; top: 492px; }
+.choice { box-sizing: border-box; padding: 16px 22px; margin-bottom: 14px; border-radius: 14px; border: 1px solid #26272c;
+          background: #101114; font-size: 21px; color: #d9d5cd; line-height: 1.35; }
+.choice small { display: block; margin-top: 2px; font-size: 18px; color: #8f8b84; }
+.choice.on { border: 2px solid #e9b872; background: #17181c; color: #f1eee8; }
+.card .home { width: 52px; height: 52px; border-radius: 12px; background: #2a2219; display: grid; place-items: center; flex: none; }
