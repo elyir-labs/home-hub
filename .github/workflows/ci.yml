@@ -256,6 +256,9 @@ jobs:
         startup/screen-report.sh
         driver-layer/host/channel.sh
         driver-layer/host/wifi-awake.sh
+        driver-layer/host/move-early.sh
+        driver-layer/host/drive.sh
+        driver-layer/host/boot-next.sh
         driver-layer/host/tests.sh
         driver-layer/caddy/tests.sh
         driver-layer/host/pi-image/stage-hub/prerun.sh

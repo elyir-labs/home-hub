@@ -6,7 +6,7 @@
 // check what is committed without drawing anything; render.mjs draws the images and writes these.
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST_BREATH, FIRST, GLYPHS, WORDS, SCAN } from './sequence.mjs'
+import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST_BREATH, FIRST, GLYPHS, WORDS, SCAN, DRIVE_AT } from './sequence.mjs'
 
 export const THEME = 'elyir'
 export const DIR = `/usr/share/plymouth/themes/${THEME}`
@@ -44,6 +44,9 @@ const n = (v) => +(+v).toFixed(4)
 export const glyphFile = (c) => `g-${c.charCodeAt(0)}.png`
 // The same letters, smaller, for the line under a code to scan.
 export const smallFile = (c) => `q-${c.charCodeAt(0)}.png`
+// The drive's own words on the question at the start (design/move-to-drive/, screen-asks), one set per place on it.
+export const DRIVE_SETS = { m: 'model', s: 'system', r: 'rest', w: 'warn', t: 'entry' }
+export const driveFile = (set, c) => `${set}-${c.charCodeAt(0)}.png`
 // Where startup/say.sh leaves this hub's code, reached from the theme's folder: Plymouth only opens images relative to it.
 export const CODE = '../../../../../run/elyir/code.png'
 const quote = (c) => (c === '"' || c === '\\' ? '\\' + c : c)
@@ -151,6 +154,25 @@ tile = Sprite(tile_image); tile.SetZ(29); tile.SetOpacity(0);
 tile.SetPosition(Math.Int(ox + ${SCAN.tile.left} * s), Math.Int(oy + ${SCAN.tile.top} * s), 29);
 code = Sprite(); code.SetZ(30); code.SetOpacity(0);
 scan_line = Sprite(); scan_line.SetZ(30); scan_line.SetOpacity(0);
+drive_ready_image = fit(Image("drive-ready.png"));
+drive_scan_image = fit(Image("drive-scan.png"));
+
+# Asked on the screen at the start (design/move-to-drive/, screen-asks). elyir:drive:ask puts the question up: the house
+# small at the top, the drive named on its card, and the two keys. Its words come as fields like the Wi-Fi's (elyir:dmodel,
+# dsys, drest, dwarn, then a character at a time), and what is typed comes from Plymouth's own question, whose entry the
+# script reads a letter at a time (Plymouth 24, the x86 image's). elyir:drive:done takes it down.
+${[...GLYPHS].map((c) => `global.cc["${quote(c)}"] = "${c.charCodeAt(0)}";`).join(' ')}
+global.dfield["dmodel"] = "m"; global.dfield["dsys"] = "s"; global.dfield["drest"] = "r"; global.dfield["dwarn"] = "w";
+drive_ask_image = fit(Image("drive-ask.png"));
+drive_sure_image = fit(Image("drive-sure.png"));
+drive_undone_image = fit(Image("drive-undone.png"));
+drive_foot_image = fit(Image("drive-foot.png"));
+drive_card_image = fit(Image("drive-card.png"));
+drive_keys_image = fit(Image("drive-keys.png"));
+drive_sure_keys_image = fit(Image("drive-sure-keys.png"));
+drive_entry_image = fit(Image("drive-entry.png"));
+drive_caret_image = fit(Image("drive-caret.png"));
+global.dln = 0;
 
 global.frame = 0;
 global.name_shown = -1;
@@ -169,6 +191,94 @@ global.coded = 0;
 fun centered(sprite, image, top) {
   sprite.SetImage(image);
   sprite.SetPosition(Math.Int((screen_w - image.GetWidth()) / 2), Math.Int(oy + top * s), 30);
+}
+
+fun dglyph(set, ch) {
+  key = set + ch;
+  if (!global.dg[key] && global.cc[ch]) { global.dg[key] = fit(Image(set + "-" + global.cc[ch] + ".png")); }
+  return global.dg[key];
+}
+
+fun dreg(sprite) {
+  sprite.SetOpacity(0);
+  global.dl[global.dln] = sprite; global.dw[global.dln] = 0; global.dln = global.dln + 1;
+  return global.dln - 1;
+}
+
+fun dat(i, image, left, top) {
+  global.dl[i].SetImage(image);
+  if (left < 0) { global.dl[i].SetPosition(Math.Int((screen_w - image.GetWidth()) / 2), Math.Int(oy + top * s), 32); }
+  else { global.dl[i].SetPosition(Math.Int(ox + left * s), Math.Int(oy + top * s), 32); }
+  global.dw[i] = 1;
+}
+
+# A row of letter pictures under one name, from the left edge given or centered (left < 0); returns its right edge.
+fun drow(row, left, top) {
+  w = 0; i = 0;
+  while (i < global.rpn) { w = w + global.rp[i].GetWidth(); i = i + 1; }
+  x = ox + left * s;
+  if (left < 0) { x = (screen_w - w) / 2; }
+  x = Math.Int(x); i = 0;
+  while (i < global.rpn) {
+    if (!global.rsi[row + i]) { global.rsi[row + i] = dreg(Sprite()) + 1; }
+    j = global.rsi[row + i] - 1;
+    global.dl[j].SetImage(global.rp[i]); global.dl[j].SetPosition(x, Math.Int(oy + top * s), 32); global.dw[j] = 1;
+    x = x + global.rp[i].GetWidth(); i = i + 1;
+  }
+  while (global.rsi[row + i]) { global.dw[global.rsi[row + i] - 1] = 0; i = i + 1; }
+  global.rpn = 0;
+  return x;
+}
+
+fun dadd(set, field) {
+  i = 0;
+  while (i < global.n[field]) {
+    g = dglyph(set, global.chars[field + "-" + i]);
+    if (g) { global.rp[global.rpn] = g; global.rpn = global.rpn + 1; }
+    i = i + 1;
+  }
+}
+
+fun drive_layout() {
+  if (!global.d_title) {
+    global.d_title = dreg(Sprite()) + 1; global.d_card = dreg(Sprite()) + 1; global.d_keys = dreg(Sprite()) + 1;
+    global.d_foot = dreg(Sprite()) + 1; global.d_entry = dreg(Sprite()) + 1; global.d_caret = dreg(Sprite()) + 1;
+    global.d_undone = dreg(Sprite()) + 1; global.d_sure = dreg(Sprite()) + 1;
+  }
+  e = global.entry;
+  st = 0;
+  if (e != "") { st = 1; }
+  if (e == "erase" || e == "Erase" || e == "ERASE") { st = 2; }
+  i = 0; while (i < global.dln) { global.dw[i] = 0; i = i + 1; }
+  if (st == 2) { dat(global.d_title - 1, drive_sure_image, -1, ${DRIVE_AT.title.top}); }
+  else { dat(global.d_title - 1, drive_ask_image, -1, ${DRIVE_AT.title.top}); }
+  dat(global.d_card - 1, drive_card_image, ${DRIVE_AT.card.left}, ${DRIVE_AT.card.top});
+  global.rpn = 0; dadd("m", "dmodel"); drow("model", ${DRIVE_AT.model.left}, ${DRIVE_AT.model.top});
+  global.rpn = 0; dadd("s", "dsys"); dadd("r", "drest"); drow("system", ${DRIVE_AT.system.left}, ${DRIVE_AT.system.top});
+  if (st == 0) { dat(global.d_keys - 1, drive_keys_image, ${DRIVE_AT.keys.left}, ${DRIVE_AT.keys.top}); }
+  if (st != 2) { dat(global.d_foot - 1, drive_foot_image, -1, ${DRIVE_AT.foot.top}); }
+  if (st != 0) {
+    dat(global.d_entry - 1, drive_entry_image, ${DRIVE_AT.entry.left}, ${DRIVE_AT.entry.top});
+    global.rpn = 0; i = 0;
+    while (i < e.Length()) {
+      g = dglyph("t", e.CharAt(i));
+      if (g) { global.rp[global.rpn] = g; global.rpn = global.rpn + 1; }
+      i = i + 1;
+    }
+    right = drow("typed", -1, ${DRIVE_AT.entry.text});
+    global.dl[global.d_caret - 1].SetImage(drive_caret_image);
+    global.dl[global.d_caret - 1].SetPosition(Math.Int(right + ${DRIVE_AT.caret.gap} * s), Math.Int(oy + ${DRIVE_AT.caret.top} * s), 32);
+    global.dw[global.d_caret - 1] = 1;
+  }
+  if (st == 2) {
+    global.rpn = 0; dadd("w", "dwarn"); drow("warn", -1, ${DRIVE_AT.warn.top});
+    dat(global.d_undone - 1, drive_undone_image, -1, ${n(DRIVE_AT.warn.top + DRIVE_AT.warn.step)});
+    dat(global.d_sure - 1, drive_sure_keys_image, ${DRIVE_AT.sureKeys.left}, ${DRIVE_AT.sureKeys.top});
+  }
+}
+
+fun question(prompt, entry) {
+  if (global.asking) { global.entry = entry; drive_layout(); }
 }
 
 fun step(id) {
@@ -204,8 +314,12 @@ fun where() {
     if (global.n["wifi"] > 0) { piece(or_image["wifi"]); letters("wifi"); piece(or_image["pass"]); letters("pass"); centered(scan_line, scan_image["wifi"], ${WORDS.scan.top}); }
     else { piece(or_image["addr"]); letters("addr"); piece(or_image["after"]); centered(scan_line, scan_image["addr"], ${WORDS.scan.top}); }
     centered(ready, ready_image, ${WORDS.scanReady.top});
+    # The phone still has the drive's question (B1): Ready says so, over the same code.
+    if (global.drive_q) { centered(ready, drive_ready_image, ${WORDS.scanReady.top}); centered(scan_line, drive_scan_image, ${WORDS.scan.top}); }
   }
   else {
+    centered(ready, ready_image, ${WORDS.ready.top});
+    if (global.drive_q) { centered(ready, drive_ready_image, ${WORDS.ready.top}); }
     if (global.n["wifi"] > 0) { piece(where_image["wifi"]); letters("wifi"); piece(where_image["pass"]); letters("pass"); }
     else { piece(where_image["addr"]); letters("addr"); }
   }
@@ -239,6 +353,15 @@ ${Object.keys(FIRST).map((id) => `  if (text == "elyir:step:${id}") { step("${id
   # Ready redrawn for a network that changed under it (say.sh end): the old words go, and the code is replaced.
   if (text == "elyir:clear") { global.field = ""; global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0; where(); }
   if (text == "elyir:nocode") { global.coded = 0; where(); }
+  if (text == "elyir:drive:phone") { global.drive_q = 1; where(); }
+  if (text == "elyir:drive:none") { global.drive_q = 0; where(); }
+  if (text == "elyir:drive:ask") { global.first = 1; global.asking = 1; global.ask_at = global.frame / 50; global.entry = ""; drive_layout(); }
+  if (text == "elyir:drive:again") { global.entry = ""; drive_layout(); }
+  if (text == "elyir:drive:done") { global.asking = 0; global.done_at = global.frame / 50; }
+  if (text == "elyir:dmodel") { global.field = "dmodel"; global.n["dmodel"] = 0; }
+  if (text == "elyir:dsys") { global.field = "dsys"; global.n["dsys"] = 0; }
+  if (text == "elyir:drest") { global.field = "drest"; global.n["drest"] = 0; }
+  if (text == "elyir:dwarn") { global.field = "dwarn"; global.n["dwarn"] = 0; }
   if (text == "elyir:addr") { global.field = "addr"; global.n["addr"] = 0; }
   if (text == "elyir:wifi") { global.field = "wifi"; global.n["wifi"] = 0; }
   if (text == "elyir:pass") { global.field = "pass"; global.n["pass"] = 0; }
@@ -247,7 +370,7 @@ ${Object.keys(FIRST).map((id) => `  if (text == "elyir:step:${id}") { step("${id
   if (c && global.field != "") {
     global.chars[global.field + "-" + global.n[global.field]] = c;
     global.n[global.field] = global.n[global.field] + 1;
-    where();
+    if (global.dfield[global.field]) { drive_layout(); } else { where(); }
   }
 }
 
@@ -276,8 +399,13 @@ fun refresh() {
   grow = (0.96 + 0.04 * inn) * (1 + 0.18 * out);
   # With a code, the house rises to the top and gets small (E); everything of it is moved by rise.
   rise = hello * global.coded;
-  hs = 1 + (${n(SCAN.house.size / HOUSE.size)} - 1) * rise;
-  hy = house_cy + (oy + ${SCAN.house.center[1]} * s - house_cy) * rise;
+  askv = 0;
+  if (global.done_at > 0) { askv = 1 - ease(ramp(t, global.done_at, global.done_at + 0.6)); }
+  if (global.asking) { askv = ease(ramp(t, global.ask_at, global.ask_at + 0.6)); }
+  up = rise;
+  if (askv > up) { up = askv; }
+  hs = 1 + (${n(SCAN.house.size / HOUSE.size)} - 1) * up;
+  hy = house_cy + (oy + ${SCAN.house.center[1]} * s - house_cy) * up;
   house.SetOpacity(inn * (1 - out));
   if (inn > 0) { place("house", house, house_image, house_cx, hy, house_size * s * grow * hs); }
 
@@ -292,6 +420,7 @@ fun refresh() {
   k = ease(ramp(t, lit_at, lit_at + 0.8)) * calm;
   if (global.ending_at >= 0) { k = 1; }
   k = k + (1 - k) * hello;
+  k = k + (1 - k) * askv;
   move = ease(ramp(t, leave, land));
   x = ox + (tittle_x + (lamp_x - tittle_x) * move) * s;
   y = oy + (tittle_y + (lamp_y - tittle_y) * move) * s;
@@ -323,8 +452,10 @@ fun refresh() {
   after_house = ease(ramp(t, land, land + 0.6));
   said = 0;
   if (global.step_at >= 0) { said = ease(ramp(t, global.step_at, global.step_at + 0.6)) * after_house * (1 - hello); }
-  line.SetOpacity(said);
-  quiet.SetOpacity(said * global.quiet_on);
+  line.SetOpacity(said * (1 - askv));
+  quiet.SetOpacity(said * global.quiet_on * (1 - askv));
+  i = 0;
+  while (i < global.dln) { global.dl[i].SetOpacity(global.dw[i] * askv * after_house); i = i + 1; }
   ready.SetOpacity(hello * after_house);
   tile.SetOpacity(rise * after_house);
   code.SetOpacity(rise * after_house);
@@ -334,6 +465,7 @@ fun refresh() {
 }
 
 Plymouth.SetUpdateStatusFunction(status);
+Plymouth.SetDisplayQuestionFunction(question);
 Plymouth.SetRefreshFunction(refresh);
 `
 }

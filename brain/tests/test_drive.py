@@ -42,6 +42,15 @@ class BesideADrive(ApiTest):
         r = self.client.get("/drive").json()
         self.assertEqual((r["ask"], r["kept"], r["drive"]["name"]), (False, True, "nvme0n1"))
 
+    def test_kept_at_the_keyboard_on_the_first_start_is_not_asked_again_on_the_phone(self):
+        self.write(screen={"answer": "keep", "disk": "nvme0n1", "serial": "S6P7NS0T", "at": 1})
+        r = self.client.get("/drive").json()
+        self.assertEqual((r["ask"], r["kept"], r["drive"]["name"]), (False, True, "nvme0n1"))
+
+    def test_no_answer_at_the_keyboard_leaves_the_question_to_the_phone(self):
+        self.write(screen={})
+        self.assertTrue(self.client.get("/drive").json()["ask"])
+
     def test_a_move_names_the_drive_by_the_serial_the_screen_showed(self):
         r = self.client.post("/drive/move", json={"name": "nvme0n1", "serial": "S6P7NS0T"})
         self.assertEqual(r.status_code, 200)

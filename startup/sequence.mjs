@@ -79,6 +79,8 @@ export const FIRST = {
   setting: { line: 'Setting up the hub' },
   downloading: { line: 'Downloading the rest of the hub' },
   starting: { line: 'Starting the house for the first time' },
+  keeping: { line: 'Keeping the drive as it is', quiet: 'The hub runs from the USB stick. Leave it plugged in. You can move it later on This hub.' },
+  unasked: { line: 'Starting from the USB stick for now', quiet: 'The drive hasn’t been touched. Your phone asks what to do with it when you set up the hub.' },
 }
 export const FIRST_BREATH = { period: 2.4, low: 0.45, blend: 1.5 }
 
@@ -102,7 +104,43 @@ export const SCAN = {
   orAddr: 'Or open ',
   orAddrAfter: ' on a phone on the same Wi‑Fi',
 }
-export const GLYPHS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-. '
+export const GLYPHS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-. ·,’()/+_:'
+
+// Asked on the screen at the start (design/move-to-drive/, screen-asks: C with BootNext, decided 18 November 2026).
+// On a first start from the stick, beside a drive with something on it, and with a keyboard plugged in, the splash
+// names the drive and asks before anything is written. Placed in the boards' space, as KeysA-1 and KeysA-2 draw it.
+// Esc is Plymouth's own (it shows the boot log), so going back is Backspace: the typed erase loses a letter.
+export const DRIVE = {
+  ask: 'This computer’s drive isn’t empty',
+  sure: 'Erase this drive?',
+  keys: [
+    { cap: 'erase', text: 'Type <b>erase</b> to put the hub on this drive', small: 'Faster, and the USB stick can come out afterwards. Everything on the drive goes.' },
+    { cap: 'Enter', text: 'Keep the drive as it is', small: 'The hub runs from the USB stick, which stays plugged in.' },
+  ],
+  sureKeys: [
+    { cap: 'Enter', text: 'Erase it and move the hub there, about 4 minutes' },
+    { cap: 'Backspace', text: 'Go back' },
+  ],
+  undone: 'It can’t be undone.',
+  foot: 'Nothing has been written to the drive. With no answer in 2 minutes, the hub starts from the stick and your phone asks instead.',
+  waitFor: 120,
+  // Ready while the phone still has the question (B1).
+  ready: 'One question before your hub is ready',
+  scan: 'This computer’s drive isn’t empty. Scan, and your phone asks what to do with it.',
+}
+export const DRIVE_AT = {
+  title: { top: 268, size: 34, color: '#f1eee8' },
+  card: { left: 400, top: 336, width: 640, height: 101 },
+  model: { left: 499, top: 359, size: 22, weight: 500, color: '#f1eee8' },
+  system: { left: 499, top: 392, size: 18, color: '#d9d5cd' },
+  rest: { size: 18, color: '#8f8b84' },
+  keys: { left: 400, top: 492, width: 640 },
+  sureKeys: { left: 400, top: 680, width: 640 },
+  entry: { left: 560, top: 492, width: 320, height: 64, text: 505, size: 30, color: '#f1eee8', spacing: 0.06 },
+  caret: { width: 2, height: 30, top: 509, gap: 3, color: '#e9b872' },
+  warn: { top: 588, size: 21, color: '#d9d5cd', step: 30.45 },
+  foot: { top: 790, size: 18, color: '#6f6b65' },
+}
 
 // Where and how big, in the boards' space, as design/first-start/first.css draws them.
 export const WORDS = {

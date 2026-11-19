@@ -80,6 +80,8 @@ global.step_line["unpacking"] = fit(Image("step-unpacking.png")); global.step_qu
 global.step_line["setting"] = fit(Image("step-setting.png")); global.step_quiet["setting"] = once_image;
 global.step_line["downloading"] = fit(Image("step-downloading.png")); global.step_quiet["downloading"] = once_image;
 global.step_line["starting"] = fit(Image("step-starting.png")); global.step_quiet["starting"] = once_image;
+global.step_line["keeping"] = fit(Image("step-keeping.png")); global.step_quiet["keeping"] = fit(Image("quiet-keeping.png"));
+global.step_line["unasked"] = fit(Image("step-unasked.png")); global.step_quiet["unasked"] = fit(Image("quiet-unasked.png"));
 global.glyph["a"] = fit(Image("g-97.png")); global.small["a"] = fit(Image("q-97.png")); global.char_of["elyir:c:a"] = "a";
 global.glyph["b"] = fit(Image("g-98.png")); global.small["b"] = fit(Image("q-98.png")); global.char_of["elyir:c:b"] = "b";
 global.glyph["c"] = fit(Image("g-99.png")); global.small["c"] = fit(Image("q-99.png")); global.char_of["elyir:c:c"] = "c";
@@ -145,6 +147,15 @@ global.glyph["9"] = fit(Image("g-57.png")); global.small["9"] = fit(Image("q-57.
 global.glyph["-"] = fit(Image("g-45.png")); global.small["-"] = fit(Image("q-45.png")); global.char_of["elyir:c:-"] = "-";
 global.glyph["."] = fit(Image("g-46.png")); global.small["."] = fit(Image("q-46.png")); global.char_of["elyir:c:."] = ".";
 global.glyph[" "] = fit(Image("g-32.png")); global.small[" "] = fit(Image("q-32.png")); global.char_of["elyir:c: "] = " ";
+global.glyph["·"] = fit(Image("g-183.png")); global.small["·"] = fit(Image("q-183.png")); global.char_of["elyir:c:·"] = "·";
+global.glyph[","] = fit(Image("g-44.png")); global.small[","] = fit(Image("q-44.png")); global.char_of["elyir:c:,"] = ",";
+global.glyph["’"] = fit(Image("g-8217.png")); global.small["’"] = fit(Image("q-8217.png")); global.char_of["elyir:c:’"] = "’";
+global.glyph["("] = fit(Image("g-40.png")); global.small["("] = fit(Image("q-40.png")); global.char_of["elyir:c:("] = "(";
+global.glyph[")"] = fit(Image("g-41.png")); global.small[")"] = fit(Image("q-41.png")); global.char_of["elyir:c:)"] = ")";
+global.glyph["/"] = fit(Image("g-47.png")); global.small["/"] = fit(Image("q-47.png")); global.char_of["elyir:c:/"] = "/";
+global.glyph["+"] = fit(Image("g-43.png")); global.small["+"] = fit(Image("q-43.png")); global.char_of["elyir:c:+"] = "+";
+global.glyph["_"] = fit(Image("g-95.png")); global.small["_"] = fit(Image("q-95.png")); global.char_of["elyir:c:_"] = "_";
+global.glyph[":"] = fit(Image("g-58.png")); global.small[":"] = fit(Image("q-58.png")); global.char_of["elyir:c::"] = ":";
 ready_image = fit(Image("ready.png"));
 where_image["addr"] = fit(Image("where-cable.png"));
 where_image["wifi"] = fit(Image("where-wifi.png"));
@@ -167,6 +178,25 @@ tile = Sprite(tile_image); tile.SetZ(29); tile.SetOpacity(0);
 tile.SetPosition(Math.Int(ox + 580 * s), Math.Int(oy + 355 * s), 29);
 code = Sprite(); code.SetZ(30); code.SetOpacity(0);
 scan_line = Sprite(); scan_line.SetZ(30); scan_line.SetOpacity(0);
+drive_ready_image = fit(Image("drive-ready.png"));
+drive_scan_image = fit(Image("drive-scan.png"));
+
+# Asked on the screen at the start (design/move-to-drive/, screen-asks). elyir:drive:ask puts the question up: the house
+# small at the top, the drive named on its card, and the two keys. Its words come as fields like the Wi-Fi's (elyir:dmodel,
+# dsys, drest, dwarn, then a character at a time), and what is typed comes from Plymouth's own question, whose entry the
+# script reads a letter at a time (Plymouth 24, the x86 image's). elyir:drive:done takes it down.
+global.cc["a"] = "97"; global.cc["b"] = "98"; global.cc["c"] = "99"; global.cc["d"] = "100"; global.cc["e"] = "101"; global.cc["f"] = "102"; global.cc["g"] = "103"; global.cc["h"] = "104"; global.cc["i"] = "105"; global.cc["j"] = "106"; global.cc["k"] = "107"; global.cc["l"] = "108"; global.cc["m"] = "109"; global.cc["n"] = "110"; global.cc["o"] = "111"; global.cc["p"] = "112"; global.cc["q"] = "113"; global.cc["r"] = "114"; global.cc["s"] = "115"; global.cc["t"] = "116"; global.cc["u"] = "117"; global.cc["v"] = "118"; global.cc["w"] = "119"; global.cc["x"] = "120"; global.cc["y"] = "121"; global.cc["z"] = "122"; global.cc["A"] = "65"; global.cc["B"] = "66"; global.cc["C"] = "67"; global.cc["D"] = "68"; global.cc["E"] = "69"; global.cc["F"] = "70"; global.cc["G"] = "71"; global.cc["H"] = "72"; global.cc["I"] = "73"; global.cc["J"] = "74"; global.cc["K"] = "75"; global.cc["L"] = "76"; global.cc["M"] = "77"; global.cc["N"] = "78"; global.cc["O"] = "79"; global.cc["P"] = "80"; global.cc["Q"] = "81"; global.cc["R"] = "82"; global.cc["S"] = "83"; global.cc["T"] = "84"; global.cc["U"] = "85"; global.cc["V"] = "86"; global.cc["W"] = "87"; global.cc["X"] = "88"; global.cc["Y"] = "89"; global.cc["Z"] = "90"; global.cc["0"] = "48"; global.cc["1"] = "49"; global.cc["2"] = "50"; global.cc["3"] = "51"; global.cc["4"] = "52"; global.cc["5"] = "53"; global.cc["6"] = "54"; global.cc["7"] = "55"; global.cc["8"] = "56"; global.cc["9"] = "57"; global.cc["-"] = "45"; global.cc["."] = "46"; global.cc[" "] = "32"; global.cc["·"] = "183"; global.cc[","] = "44"; global.cc["’"] = "8217"; global.cc["("] = "40"; global.cc[")"] = "41"; global.cc["/"] = "47"; global.cc["+"] = "43"; global.cc["_"] = "95"; global.cc[":"] = "58";
+global.dfield["dmodel"] = "m"; global.dfield["dsys"] = "s"; global.dfield["drest"] = "r"; global.dfield["dwarn"] = "w";
+drive_ask_image = fit(Image("drive-ask.png"));
+drive_sure_image = fit(Image("drive-sure.png"));
+drive_undone_image = fit(Image("drive-undone.png"));
+drive_foot_image = fit(Image("drive-foot.png"));
+drive_card_image = fit(Image("drive-card.png"));
+drive_keys_image = fit(Image("drive-keys.png"));
+drive_sure_keys_image = fit(Image("drive-sure-keys.png"));
+drive_entry_image = fit(Image("drive-entry.png"));
+drive_caret_image = fit(Image("drive-caret.png"));
+global.dln = 0;
 
 global.frame = 0;
 global.name_shown = -1;
@@ -185,6 +215,94 @@ global.coded = 0;
 fun centered(sprite, image, top) {
   sprite.SetImage(image);
   sprite.SetPosition(Math.Int((screen_w - image.GetWidth()) / 2), Math.Int(oy + top * s), 30);
+}
+
+fun dglyph(set, ch) {
+  key = set + ch;
+  if (!global.dg[key] && global.cc[ch]) { global.dg[key] = fit(Image(set + "-" + global.cc[ch] + ".png")); }
+  return global.dg[key];
+}
+
+fun dreg(sprite) {
+  sprite.SetOpacity(0);
+  global.dl[global.dln] = sprite; global.dw[global.dln] = 0; global.dln = global.dln + 1;
+  return global.dln - 1;
+}
+
+fun dat(i, image, left, top) {
+  global.dl[i].SetImage(image);
+  if (left < 0) { global.dl[i].SetPosition(Math.Int((screen_w - image.GetWidth()) / 2), Math.Int(oy + top * s), 32); }
+  else { global.dl[i].SetPosition(Math.Int(ox + left * s), Math.Int(oy + top * s), 32); }
+  global.dw[i] = 1;
+}
+
+# A row of letter pictures under one name, from the left edge given or centered (left < 0); returns its right edge.
+fun drow(row, left, top) {
+  w = 0; i = 0;
+  while (i < global.rpn) { w = w + global.rp[i].GetWidth(); i = i + 1; }
+  x = ox + left * s;
+  if (left < 0) { x = (screen_w - w) / 2; }
+  x = Math.Int(x); i = 0;
+  while (i < global.rpn) {
+    if (!global.rsi[row + i]) { global.rsi[row + i] = dreg(Sprite()) + 1; }
+    j = global.rsi[row + i] - 1;
+    global.dl[j].SetImage(global.rp[i]); global.dl[j].SetPosition(x, Math.Int(oy + top * s), 32); global.dw[j] = 1;
+    x = x + global.rp[i].GetWidth(); i = i + 1;
+  }
+  while (global.rsi[row + i]) { global.dw[global.rsi[row + i] - 1] = 0; i = i + 1; }
+  global.rpn = 0;
+  return x;
+}
+
+fun dadd(set, field) {
+  i = 0;
+  while (i < global.n[field]) {
+    g = dglyph(set, global.chars[field + "-" + i]);
+    if (g) { global.rp[global.rpn] = g; global.rpn = global.rpn + 1; }
+    i = i + 1;
+  }
+}
+
+fun drive_layout() {
+  if (!global.d_title) {
+    global.d_title = dreg(Sprite()) + 1; global.d_card = dreg(Sprite()) + 1; global.d_keys = dreg(Sprite()) + 1;
+    global.d_foot = dreg(Sprite()) + 1; global.d_entry = dreg(Sprite()) + 1; global.d_caret = dreg(Sprite()) + 1;
+    global.d_undone = dreg(Sprite()) + 1; global.d_sure = dreg(Sprite()) + 1;
+  }
+  e = global.entry;
+  st = 0;
+  if (e != "") { st = 1; }
+  if (e == "erase" || e == "Erase" || e == "ERASE") { st = 2; }
+  i = 0; while (i < global.dln) { global.dw[i] = 0; i = i + 1; }
+  if (st == 2) { dat(global.d_title - 1, drive_sure_image, -1, 268); }
+  else { dat(global.d_title - 1, drive_ask_image, -1, 268); }
+  dat(global.d_card - 1, drive_card_image, 400, 336);
+  global.rpn = 0; dadd("m", "dmodel"); drow("model", 499, 359);
+  global.rpn = 0; dadd("s", "dsys"); dadd("r", "drest"); drow("system", 499, 392);
+  if (st == 0) { dat(global.d_keys - 1, drive_keys_image, 400, 492); }
+  if (st != 2) { dat(global.d_foot - 1, drive_foot_image, -1, 790); }
+  if (st != 0) {
+    dat(global.d_entry - 1, drive_entry_image, 560, 492);
+    global.rpn = 0; i = 0;
+    while (i < e.Length()) {
+      g = dglyph("t", e.CharAt(i));
+      if (g) { global.rp[global.rpn] = g; global.rpn = global.rpn + 1; }
+      i = i + 1;
+    }
+    right = drow("typed", -1, 505);
+    global.dl[global.d_caret - 1].SetImage(drive_caret_image);
+    global.dl[global.d_caret - 1].SetPosition(Math.Int(right + 3 * s), Math.Int(oy + 509 * s), 32);
+    global.dw[global.d_caret - 1] = 1;
+  }
+  if (st == 2) {
+    global.rpn = 0; dadd("w", "dwarn"); drow("warn", -1, 588);
+    dat(global.d_undone - 1, drive_undone_image, -1, 618.45);
+    dat(global.d_sure - 1, drive_sure_keys_image, 400, 680);
+  }
+}
+
+fun question(prompt, entry) {
+  if (global.asking) { global.entry = entry; drive_layout(); }
 }
 
 fun step(id) {
@@ -220,8 +338,12 @@ fun where() {
     if (global.n["wifi"] > 0) { piece(or_image["wifi"]); letters("wifi"); piece(or_image["pass"]); letters("pass"); centered(scan_line, scan_image["wifi"], 673); }
     else { piece(or_image["addr"]); letters("addr"); piece(or_image["after"]); centered(scan_line, scan_image["addr"], 673); }
     centered(ready, ready_image, 275);
+    # The phone still has the drive's question (B1): Ready says so, over the same code.
+    if (global.drive_q) { centered(ready, drive_ready_image, 275); centered(scan_line, drive_scan_image, 673); }
   }
   else {
+    centered(ready, ready_image, 620);
+    if (global.drive_q) { centered(ready, drive_ready_image, 620); }
     if (global.n["wifi"] > 0) { piece(where_image["wifi"]); letters("wifi"); piece(where_image["pass"]); letters("pass"); }
     else { piece(where_image["addr"]); letters("addr"); }
   }
@@ -246,6 +368,8 @@ fun status(text) {
   if (text == "elyir:step:setting") { step("setting"); }
   if (text == "elyir:step:downloading") { step("downloading"); }
   if (text == "elyir:step:starting") { step("starting"); }
+  if (text == "elyir:step:keeping") { step("keeping"); }
+  if (text == "elyir:step:unasked") { step("unasked"); }
   if (text == "elyir:hello") { global.first = 1; global.hello_at = global.frame / 50; }
   if (text == "elyir:code") {
     made = Image("../../../../../run/elyir/code.png");
@@ -260,6 +384,15 @@ fun status(text) {
   # Ready redrawn for a network that changed under it (say.sh end): the old words go, and the code is replaced.
   if (text == "elyir:clear") { global.field = ""; global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0; where(); }
   if (text == "elyir:nocode") { global.coded = 0; where(); }
+  if (text == "elyir:drive:phone") { global.drive_q = 1; where(); }
+  if (text == "elyir:drive:none") { global.drive_q = 0; where(); }
+  if (text == "elyir:drive:ask") { global.first = 1; global.asking = 1; global.ask_at = global.frame / 50; global.entry = ""; drive_layout(); }
+  if (text == "elyir:drive:again") { global.entry = ""; drive_layout(); }
+  if (text == "elyir:drive:done") { global.asking = 0; global.done_at = global.frame / 50; }
+  if (text == "elyir:dmodel") { global.field = "dmodel"; global.n["dmodel"] = 0; }
+  if (text == "elyir:dsys") { global.field = "dsys"; global.n["dsys"] = 0; }
+  if (text == "elyir:drest") { global.field = "drest"; global.n["drest"] = 0; }
+  if (text == "elyir:dwarn") { global.field = "dwarn"; global.n["dwarn"] = 0; }
   if (text == "elyir:addr") { global.field = "addr"; global.n["addr"] = 0; }
   if (text == "elyir:wifi") { global.field = "wifi"; global.n["wifi"] = 0; }
   if (text == "elyir:pass") { global.field = "pass"; global.n["pass"] = 0; }
@@ -268,7 +401,7 @@ fun status(text) {
   if (c && global.field != "") {
     global.chars[global.field + "-" + global.n[global.field]] = c;
     global.n[global.field] = global.n[global.field] + 1;
-    where();
+    if (global.dfield[global.field]) { drive_layout(); } else { where(); }
   }
 }
 
@@ -297,8 +430,13 @@ fun refresh() {
   grow = (0.96 + 0.04 * inn) * (1 + 0.18 * out);
   # With a code, the house rises to the top and gets small (E); everything of it is moved by rise.
   rise = hello * global.coded;
-  hs = 1 + (0.3824 - 1) * rise;
-  hy = house_cy + (oy + 180 * s - house_cy) * rise;
+  askv = 0;
+  if (global.done_at > 0) { askv = 1 - ease(ramp(t, global.done_at, global.done_at + 0.6)); }
+  if (global.asking) { askv = ease(ramp(t, global.ask_at, global.ask_at + 0.6)); }
+  up = rise;
+  if (askv > up) { up = askv; }
+  hs = 1 + (0.3824 - 1) * up;
+  hy = house_cy + (oy + 180 * s - house_cy) * up;
   house.SetOpacity(inn * (1 - out));
   if (inn > 0) { place("house", house, house_image, house_cx, hy, house_size * s * grow * hs); }
 
@@ -313,6 +451,7 @@ fun refresh() {
   k = ease(ramp(t, lit_at, lit_at + 0.8)) * calm;
   if (global.ending_at >= 0) { k = 1; }
   k = k + (1 - k) * hello;
+  k = k + (1 - k) * askv;
   move = ease(ramp(t, leave, land));
   x = ox + (tittle_x + (lamp_x - tittle_x) * move) * s;
   y = oy + (tittle_y + (lamp_y - tittle_y) * move) * s;
@@ -344,8 +483,10 @@ fun refresh() {
   after_house = ease(ramp(t, land, land + 0.6));
   said = 0;
   if (global.step_at >= 0) { said = ease(ramp(t, global.step_at, global.step_at + 0.6)) * after_house * (1 - hello); }
-  line.SetOpacity(said);
-  quiet.SetOpacity(said * global.quiet_on);
+  line.SetOpacity(said * (1 - askv));
+  quiet.SetOpacity(said * global.quiet_on * (1 - askv));
+  i = 0;
+  while (i < global.dln) { global.dl[i].SetOpacity(global.dw[i] * askv * after_house); i = i + 1; }
   ready.SetOpacity(hello * after_house);
   tile.SetOpacity(rise * after_house);
   code.SetOpacity(rise * after_house);
@@ -355,4 +496,5 @@ fun refresh() {
 }
 
 Plymouth.SetUpdateStatusFunction(status);
+Plymouth.SetDisplayQuestionFunction(question);
 Plymouth.SetRefreshFunction(refresh);
