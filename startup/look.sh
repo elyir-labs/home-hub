@@ -19,7 +19,10 @@ T=/usr/share/plymouth/themes/elyir; mkdir -p $T /etc/plymouth /fake/cable /fake/
 printf "[Daemon]\nTheme=elyir\n" > /etc/plymouth/plymouthd.conf; cp /startup/plymouth/elyir/* $T/
 # The brain'"'"'s QR maker, stood in for by the same library; and a hub with no network, for the Wi-Fi code.
 printf "#!/bin/sh\nshift 3; exec python3 \"\$@\"\n" > /fake/cable/docker; cp /fake/cable/docker /fake/wifi/
-printf "#!/bin/sh\nexit 0\n" > /fake/wifi/ip; chmod +x /fake/*/*
+printf "#!/bin/sh\nexit 0\n" > /fake/wifi/ip
+# A hub that gets a cable while Ready is up: no route until /tmp/online appears.
+mkdir -p /fake/later; cp /fake/cable/docker /fake/later/
+printf "#!/bin/sh\n[ -e /tmp/online ] && echo \"default via 10.0.0.1\"\nexit 0\n" > /fake/later/ip; chmod +x /fake/*/*
 printf "HUB_SETUP_SSID=\"Elyir Hub 4F2A\"\nHUB_SETUP_PASS=\"kite-maple-41\"\n" > /tmp/conf
 Xvfb :1 -screen 0 1440x900x24 >/dev/null 2>&1 & sleep 2; export DISPLAY=:1
 shot() { xwd -root -display :1 | convert xwd:- "/out/$1.png"; echo "  $1.png"; }
@@ -32,11 +35,19 @@ plymouth quit; sleep 1
 fail=0
 for net in cable wifi; do
   start; sleep 7; touch /tmp/first
-  PATH="/fake/$net:$PATH" HUB_CONF=/tmp/conf ELYIR_FIRST=/tmp/first ELYIR_READY_URL=file:///etc/hostname bash /startup/say.sh end
-  sleep 2; shot "4-ready-$net"
+  PATH="/fake/$net:$PATH" HUB_CONF=/tmp/conf ELYIR_FIRST=/tmp/first ELYIR_READY_URL=file:///etc/hostname bash /startup/say.sh end & ended=$!
+  sleep 4; shot "4-ready-$net"
   read=$(zbarimg -q --raw "/out/4-ready-$net.png" || true); echo "    reads: $read"
   case "$net:$read" in "cable:http://hub.local"|"wifi:WIFI:T:WPA;S:Elyir Hub 4F2A;P:kite-maple-41;;") ;; *) fail=1 ;; esac
-  plymouth quit; sleep 1
+  plymouth quit; wait $ended 2>/dev/null; sleep 1
 done
+# Ready follows the network: drawn on nothing with the Wi-Fi code, then a cable, and the address replaces it.
+start; sleep 7; touch /tmp/first; rm -f /tmp/online
+PATH="/fake/later:$PATH" HUB_CONF=/tmp/conf ELYIR_FIRST=/tmp/first ELYIR_READY_URL=file:///etc/hostname ELYIR_FOLLOW_EVERY=1 \
+  bash /startup/say.sh end & follow=$!
+sleep 3; shot 5-follow-before; touch /tmp/online; sleep 5; shot 5-follow-after
+for f in before after; do read=$(zbarimg -q --raw "/out/5-follow-$f.png" || true); echo "    $f reads: $read"; eval "r_$f=\$read"; done
+[ "$r_before" = "WIFI:T:WPA;S:Elyir Hub 4F2A;P:kite-maple-41;;" ] && [ "$r_after" = "http://hub.local" ] || fail=1
+plymouth quit; wait $follow 2>/dev/null
 exit $fail'
 echo "pictures in $OUT"

@@ -42,6 +42,35 @@ open(sys.argv[1], "wb").write(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", size) + chun
   tell "elyir:code"
 }
 
+# The name phones find this hub by: avahi's, which is hub-2.local when another hub already answers to hub.local.
+mdns_name() {
+  local n
+  n="$(busctl --system call org.freedesktop.Avahi / org.freedesktop.Avahi.Server GetHostNameFqdn 2>/dev/null \
+    | sed -n 's/^s "\(.*\)"$/\1/p')"
+  printf '%s' "${n:-$(hostname 2>/dev/null || echo hub).local}"
+}
+# On a network, its address; on nothing, the Wi-Fi it makes of its own, which a flashed NUC has no label for.
+where_now() {
+  if ip -4 route show default 2>/dev/null | grep -q . || [ -z "$(conf HUB_SETUP_SSID)" ]; then
+    printf 'addr\t%s' "$(mdns_name)"
+  else
+    printf 'wifi\t%s\t%s' "$(conf HUB_SETUP_SSID)" "$(conf HUB_SETUP_PASS)"
+  fi
+}
+# Without a code it is the same words, under the house.
+draw() {
+  local kind a b
+  IFS=$'\t' read -r kind a b <<< "$1"
+  if [ "$kind" = addr ]; then
+    spell addr "$a"
+    code "http://$a" || tell "elyir:nocode"
+  else
+    spell wifi "$a"
+    spell pass "$b"
+    code "WIFI:T:WPA;S:$(wifi_escape "$a");P:$(wifi_escape "$b");;" || tell "elyir:nocode"
+  fi
+}
+
 case "${1:-}" in
   step)
     case "${2:-}" in preparing|moving|unpacking|setting|downloading|starting) ;; *) echo "say.sh: no step called ${2:-}" >&2; exit 2 ;; esac
@@ -55,19 +84,19 @@ case "${1:-}" in
     until curl -fsS -m 2 -o /dev/null "$READY_URL"; do sleep 1; done
     up || exit 0
     tell "elyir:step:starting"
-    # On a network, its address; on nothing, the Wi-Fi it makes of its own, which a flashed NUC has no label for.
-    # Without a code it is the same words, under the house.
-    if ip -4 route show default 2>/dev/null | grep -q . || [ -z "$(conf HUB_SETUP_SSID)" ]; then
-      name="$(hostname 2>/dev/null || echo hub).local"
-      spell addr "$name"
-      code "http://$name" || true
-    else
-      ssid="$(conf HUB_SETUP_SSID)" pass="$(conf HUB_SETUP_PASS)"
-      spell wifi "$ssid"
-      spell pass "$pass"
-      code "WIFI:T:WPA;S:$(wifi_escape "$ssid");P:$(wifi_escape "$pass");;" || true
-    fi
-    tell "elyir:hello" ;;
+    # Ready follows the network for as long as it is on screen: a cable plugged in after it was drawn turns the
+    # Wi-Fi's code into the address, and a name avahi changed (another hub already has hub.local) is redrawn.
+    shown=""
+    while up; do
+      now="$(where_now)"
+      if [ "$now" != "$shown" ]; then
+        [ -n "$shown" ] && tell "elyir:clear"
+        draw "$now"
+        [ -n "$shown" ] || tell "elyir:hello"
+        shown="$now"
+      fi
+      sleep "${ELYIR_FOLLOW_EVERY:-5}"
+    done ;;
   *) echo "usage: $0 step <name> | first | end" >&2; exit 2 ;;
 esac
 exit 0
