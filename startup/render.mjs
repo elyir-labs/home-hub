@@ -176,8 +176,12 @@ const e = A.entry, k = A.caret
 await shoot('drive-entry.png', e.width * K, e.height * K, `<div style="box-sizing:border-box;width:${e.width * K}px;height:${e.height * K}px;
   border-radius:${12 * K}px;border:${K}px solid ${k.color};background:#15161a"></div>`)
 await shoot('drive-caret.png', k.width * K, k.height * K, `<div style="width:${k.width * K}px;height:${k.height * K}px;background:${k.color}"></div>`)
-await shoot('drive-hold.png', e.width * K, e.size * 1.3 * K, `<div style="text-align:center;white-space:pre;font:400 ${e.size * K}px/1.3 'Instrument Sans',sans-serif;
-  letter-spacing:${e.spacing}em;color:${e.hold}">${ASK.placeholder}</div>`)
+const holdFont = `font:400 ${e.size * K}px/1.3 'Instrument Sans',sans-serif;letter-spacing:${e.spacing}em`
+const holdW = await page.evaluate(([t, f]) => {
+  const span = document.createElement('span'); span.style.cssText = `${f};white-space:pre;position:absolute`; span.textContent = t
+  document.body.appendChild(span); const w = span.getBoundingClientRect().width; span.remove(); return w
+}, [ASK.placeholder, holdFont])
+await shoot('drive-hold.png', Math.round(holdW), e.size * 1.3 * K, `<div style="white-space:pre;${holdFont};color:${e.hold}">${ASK.placeholder}</div>`)
 const letter = async (file, ch, w) => {
   const f = `font:${w.weight || 400} ${w.size * K}px/1.3 'Instrument Sans',sans-serif;letter-spacing:${w.spacing || 0}em`
   const width = await page.evaluate(([t, f]) => {
