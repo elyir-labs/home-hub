@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A: the wall, from the sofa</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css">
+<style>
+  /* The shipped wall at its own 1440 wide, drawn on the TV a third bigger: the hub's browser zooms, nothing else changes. */
+  #hint { position: absolute; z-index: 6; padding: 12px 20px; border-radius: 26px; background: rgba(12,14,18,.9);
+          border: 1px solid var(--edge-hi); box-shadow: 0 12px 30px rgba(0,0,0,.45); transition: top .18s, left .18s; }
+</style>
+</head>
+<body>
+<!-- the picture is the shipped panel on the mock brain in a 1440x810 browser at 4/3, which is this direction exactly;
+     the lit rims are where the remote is, placed on the panel's own buttons as the page measured them -->
+<div class="shot">
+  <img src="zoomed-home.jpg" alt="The shipped panel, zoomed for the TV">
+  <div id="rings"></div>
+  <div id="hint" class="keys" data-follow></div>
+</div>
+<script>
+  // [x, y, w, h] in the 1440-wide page, as measured; the TV draws them 4/3 bigger
+  const R = [
+    [40, 84, 262, 57, 'OK|See them'],
+    [244, 323, 201, 331, 'OK|The week ahead'],
+    [506, 193, 246, 409, 'OK|Pause;~Hold OK|More'],
+    [771, 150, 229, 239, 'OK|Watch the doorbell'],
+    [771, 407, 229, 236, 'OK|Warmer or cooler'],
+    [1018, 192, 294, 412, 'OK|Turn off;~Hold OK|Brightness and color', 1],
+    [1349, 225, 255, 77, 'OK|Start Bedtime'],
+    [1349, 312, 255, 77, 'OK|Start Everything off'],
+    [402, 729, 159, 52, 'OK|Your evening'],
+    [563, 729, 115, 52, 'OK|Go to Rooms'],
+    [681, 729, 131, 52, 'OK|Go to Cameras'],
+    [826, 729, 163, 52, 'OK|Pause;~Hold OK|What is playing'],
+    [997, 729, 52, 52, 'OK|Add something'],
+    [1057, 729, 52, 52, 'OK|This house'],
+  ]
+  const k = 4 / 3, box = document.getElementById('rings')
+  for (const [x, y, w, h, hint, start] of R) {
+    const d = document.createElement('div')
+    d.className = 'ring'; d.dataset.f = ''; d.dataset.hint = hint; if (start) d.dataset.fStart = ''
+    Object.assign(d.style, { left: x * k + 'px', top: y * k + 'px', width: w * k + 'px', height: h * k + 'px', borderRadius: (h < 80 ? h * k / 2 : 30) + 'px' })
+    box.appendChild(d)
+  }
+</script>
+<script src="tv.js"></script>
+</body>
+</html>
