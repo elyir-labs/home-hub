@@ -65,14 +65,16 @@ jobs:
         run: |
           xz -T0 -9e "$NAME"
           sha256sum "$NAME.xz" | tee "$NAME.xz.sha256"
-          ls -lh "$NAME.xz"
-          # GitHub refuses a release file over 2 GiB; say so here rather than at the upload.
-          [ "$(stat -c %s "$NAME.xz")" -lt 2147483648 ] || { echo "the image is over 2 GiB and cannot be attached to a release"; exit 1; }
+          ls -l "$NAME.xz"
       - uses: actions/upload-artifact@v4
         with:
           name: home-hub-x86-image
           path: ${{ env.NAME }}.xz*
           retention-days: 14
+      # GitHub refuses a release file over 2 GiB; say so here rather than at the upload. After the artifact, so an image
+      # that is too big can still be started and looked at (the stick job below).
+      - name: Small enough for a release
+        run: '[ "$(stat -c %s "$NAME.xz")" -lt 2147483648 ] || { echo "the image is over 2 GiB and cannot be attached to a release"; exit 1; }'
       - uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/v')
         with:
@@ -83,7 +85,8 @@ jobs:
   # where the image is being changed or asked for by hand, not on a tag.
   stick:
     needs: image
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    # Also when the image only failed the release's size limit: it was still built and uploaded.
+    if: always() && needs.image.result != 'cancelled' && (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
