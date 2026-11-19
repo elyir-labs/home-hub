@@ -257,6 +257,9 @@ fun status(text) {
       where();
     }
   }
+  # Ready redrawn for a network that changed under it (say.sh end): the old words go, and the code is replaced.
+  if (text == "elyir:clear") { global.field = ""; global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0; where(); }
+  if (text == "elyir:nocode") { global.coded = 0; where(); }
   if (text == "elyir:addr") { global.field = "addr"; global.n["addr"] = 0; }
   if (text == "elyir:wifi") { global.field = "wifi"; global.n["wifi"] = 0; }
   if (text == "elyir:pass") { global.field = "pass"; global.n["pass"] = 0; }
