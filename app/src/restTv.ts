@@ -25,7 +25,8 @@ export type Shape = 'wide' | 'tall'
 export type StillOn = { name: string; what: string; kind: 'light' | 'music' | 'door' }
 
 export const SLEEP_AFTER = 20 * 60 * 1000     // at rest this long with no key pressed, the TV goes to standby
-export const PHOTO_FOR = 60 * 1000            // each photo, or pair of upright ones, for a minute
+export const BEAT_FOR = { photo: 18_000, title: 7_000, collage: 12_000 }   // design/tv-moments/: a photo every 18 seconds
+export const MOVES = 4                       // the ways a photo can move: in, across, out, up; each photo keeps its own
 const BEDTIME_FROM = 22 * 60 + 30             // 10:30 PM, until
 const BEDTIME_TO = 4 * 60                     // 4 AM
 
@@ -80,18 +81,62 @@ export function bedtimeLine(left: StillOn[]): string {
 export const shapeOf = (p: Photo, learned: Record<string, Shape>): Shape | undefined =>
   p.w && p.h ? (p.h > p.w ? 'tall' : 'wide') : learned[p.id]
 
-/** Photos in the order they show: one wide photo alone, two upright ones side by side. A lone upright one shows alone. */
-export function slides(photos: Photo[], learned: Record<string, Shape> = {}): Photo[][] {
-  const out: Photo[][] = []
-  for (let i = 0; i < photos.length; i++) {
-    const p = photos[i], next = photos[i + 1]
-    if (shapeOf(p, learned) === 'tall' && next && shapeOf(next, learned) === 'tall') { out.push([p, next]); i++ }
-    else out.push([p])
+export type Play = 'each' | 'days'
+export type Beat =
+  | { kind: 'photo'; photo: Photo; move: number; ago?: number }
+  | { kind: 'title'; cover: Photo; count: number; by: string[] }
+  | { kind: 'collage'; photos: Photo[] }
+
+const when = (p: Photo) => new Date((p.taken ?? p.added) * 1000)
+const moveOf = (id: string) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % MOVES
+
+/** How many years ago today a photo was taken, or 0 when it wasn't taken on this date. */
+export function yearsAgo(p: Photo, now: Date): number {
+  const d = when(p)
+  return d.getMonth() === now.getMonth() && d.getDate() === now.getDate() && d.getFullYear() < now.getFullYear() ? now.getFullYear() - d.getFullYear() : 0
+}
+
+/** What the screen plays, in order (design/tv-moments/, decided 20 November: A and B, chosen per screen). Photos taken
+    on this date in an earlier year come first, saying so. Then, one after another (A), every photo with its own move;
+    or day by day (B), a day with three or more photos opens on its title and three of them together, then each in turn. */
+export function beats(photos: Photo[], play: Play, now: Date): Beat[] {
+  const photo = (p: Photo): Beat => ({ kind: 'photo', photo: p, move: moveOf(p.id) })
+  const ago = photos.filter(p => yearsAgo(p, now)).map(p => ({ ...photo(p), ago: yearsAgo(p, now) }) as Beat)
+  const rest = photos.filter(p => !yearsAgo(p, now))
+  if (play === 'each') return [...ago, ...rest.map(photo)]
+  const days = new Map<string, Photo[]>()
+  for (const p of rest) { const k = when(p).toDateString(); days.set(k, [...(days.get(k) ?? []), p]) }
+  const out: Beat[] = [...ago]
+  for (const day of days.values()) {
+    const inOrder = [...day].sort((a, b) => when(a).getTime() - when(b).getTime())
+    if (inOrder.length >= 3) out.push({ kind: 'title', cover: inOrder[0], count: inOrder.length, by: [...new Set(inOrder.map(p => p.by).filter(Boolean))] as string[] },
+      { kind: 'collage', photos: inOrder.slice(0, 3) })
+    out.push(...inOrder.map(photo))
   }
   return out
 }
 
-export const slideAt = <T>(list: T[], at: number): T | null => list.length ? list[Math.floor(at / PHOTO_FOR) % list.length] : null
+/** The beat showing at a moment, where it started and how long it lasts, going round the list again and again. */
+export function beatAt(list: Beat[], at: number): { beat: Beat; index: number; from: number; lasts: number } | null {
+  if (!list.length) return null
+  const total = list.reduce((t, b) => t + BEAT_FOR[b.kind], 0)
+  let t = at % total, from = at - t
+  for (let index = 0; index < list.length; index++) {
+    const lasts = BEAT_FOR[list[index].kind]
+    if (t < lasts) return { beat: list[index], index, from, lasts }
+    t -= lasts; from += lasts
+  }
+  return null
+}
+
+/** A day's title: "Saturday, August 16, 2025", and "6 photos · from Sam's phone" under it. */
+export function dayTitle(b: Extract<Beat, { kind: 'title' }>, locale?: string): { day: string; sub: string } {
+  const day = when(b.cover).toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+  const from = b.by.length === 1 ? ` · from ${b.by[0]}` : b.by.length > 1 ? ` · from ${b.by.length} phones` : ''
+  return { day, sub: `${b.count} photos${from}` }
+}
+
+export const agoLine = (years: number) => years === 1 ? 'One year ago today' : `${years} years ago today`
 
 /** "August 2025 · from Sam's phone": when it was taken, else when it was sent, and whose phone it came from. */
 export function photoLine(p: Photo, locale?: string): string {
@@ -119,7 +164,7 @@ export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s 
 
 /** What the resting TV is showing, so the remote's OK and Back can do what that face says they do. `notYet` is the night
     Back was pressed on Bedtime, which then leaves the TV to its photos until the next evening. */
-export const rest = reactive({ face: 'window' as Face, notYet: '', photos: [] as Photo[], photosKnown: false, shows: true })
+export const rest = reactive({ face: 'window' as Face, notYet: '', photos: [] as Photo[], photosKnown: false, shows: true, play: 'days' as Play })
 
 /** The household's photos, read when a screen starts and each time it rests. A hub that cannot say leaves it on the sky. */
 export async function loadRestPhotos() {
@@ -135,6 +180,7 @@ export async function reportScreen(nowTv: boolean) {
   try {
     const me = await sayScreen({ id: screenId(), room: screenRoom(), tv: said ? said === 'tv' : tvGuess(), by: said ? 'person' : 'screen' })
     rest.shows = me.photos
+    rest.play = me.play === 'each' ? 'each' : 'days'
     if (me.by === 'person' && !said) { keepScreenKind(me.tv ? 'tv' : 'wall'); if (me.tv !== nowTv) location.reload() }
   } catch { /* an older hub, or none reachable: the screen keeps its own guess and its photos */ }
 }

@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Every direction: leaving a note or a countdown from a phone</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="phone.css">
+<style>.screenrow { padding: 10px 14px; } .group { margin: 18px 2px 8px; }
+  .seg span { cursor: pointer; } body[data-w="note"] .w-count, body[data-w="note"] .w-morning, body[data-w="count"] .w-note, body[data-w="count"] .w-morning, body[data-w="morning"] .w-note, body[data-w="morning"] .w-count { display: none; }
+  .seg .flip.on { background: var(--ink); color: var(--bg); } .seg .flip { border: 0; padding: 8px 0; }</style>
+</head>
+<body data-w="note"><div class="phone"><div class="status-bar"><span>7:40 PM</span><span class="r"><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i></span></div>
+  <div class="col" style="top:62px;"><div class="back"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Your screens</div>
+    <div class="seg"><span class="flip on" data-g="w" data-to="note">A note</span><span class="flip" data-g="w" data-to="count">A countdown</span><span class="flip" data-g="w" data-to="morning">For the morning</span></div>
+    <div class="w-note" style="margin-top:22px;"><h1>Leave a note</h1><div class="flabel" style="margin-top:18px;">What it says</div><div class="input at" style="min-height:110px;">Dinner at 7. Love, Mom</div>
+      <div class="flabel" style="margin-top:14px;">Shown until</div><div class="seg"><span class="on">Tonight</span><span>Tomorrow</span><span>I take it down</span></div>
+      <div class="cta" style="margin-top:22px;">Put it on the screens</div></div>
+    <div class="w-count" style="margin-top:22px;"><h1>Count down to</h1><div class="flabel" style="margin-top:18px;">What</div><div class="input">Sam&rsquo;s birthday</div>
+      <div class="flabel" style="margin-top:14px;">When</div><div class="input at">Monday, November 23</div><div class="foot" style="margin-top:10px;">Every year, since it&rsquo;s a birthday.</div>
+      <div class="cta" style="margin-top:22px;">Add the countdown</div></div>
+    <div class="w-morning" style="margin-top:22px;"><h1>A line for the morning</h1><div class="flabel" style="margin-top:18px;">What it says</div><div class="input at" style="min-height:110px;">Proud of you for yesterday.</div>
+      <div class="flabel" style="margin-top:14px;">Who sees it</div><div class="seg"><span class="on">Everyone</span><span>Sam&rsquo;s phone only</span></div>
+      <div class="foot" style="margin-top:10px;">It greets the first screen that wakes tomorrow, signed by you, then goes.</div>
+      <div class="cta" style="margin-top:22px;">Leave it for the morning</div></div>
+  </div><div class="home-ind"></div></div>
+<script>document.querySelectorAll(".flip").forEach(f => f.addEventListener("click", () => { document.body.dataset[f.dataset.g] = f.dataset.to; document.querySelectorAll(".flip[data-g=\"" + f.dataset.g + "\"]").forEach(g => g.classList.toggle("on", g === f)) }))</script>
+</body>
+</html>

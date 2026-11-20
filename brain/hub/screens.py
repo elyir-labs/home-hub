@@ -22,6 +22,7 @@ from .settings import DATA
 STATE = DATA / "screens-shown.json"
 FORGET_AFTER = 30 * 86400
 ID = re.compile(r"^[a-f0-9]{16,64}$")
+PLAYS = ("each", "days")   # one photo after another, or a day's photos together (design/tv-moments/, A and B)
 
 
 class Screens:
@@ -43,7 +44,8 @@ class Screens:
         return rec["photos"] if rec.get("photos") is not None else bool(rec.get("tv"))
 
     def _public(self, rec: dict) -> dict:
-        return {"id": rec["id"], "room": rec.get("room"), "tv": bool(rec.get("tv")), "by": rec.get("tv_by"), "photos": self.shows_photos(rec)}
+        return {"id": rec["id"], "room": rec.get("room"), "tv": bool(rec.get("tv")), "by": rec.get("tv_by"), "photos": self.shows_photos(rec),
+                "play": rec.get("play") if rec.get("play") in PLAYS else "days"}
 
     def said(self, sid: str, room: str | None = None, tv: bool | None = None, by: str = "screen") -> dict:
         """What a screen says about itself. A person's answer about what it is beats the screen's own guess, always."""
@@ -57,10 +59,12 @@ class Screens:
         self._save()
         return self._public(rec)
 
-    def show(self, sid: str, on: bool) -> dict | None:
+    def show(self, sid: str, on: bool | None = None, play: str | None = None) -> dict | None:
+        """What a screen shows at rest, from its page on the phone: its photos on or off, and how they play."""
         rec = self.items.get(sid)
         if not rec: return None
-        rec["photos"] = bool(on)
+        if isinstance(on, bool): rec["photos"] = on
+        if play in PLAYS: rec["play"] = play
         self._save()
         return self._public(rec)
 

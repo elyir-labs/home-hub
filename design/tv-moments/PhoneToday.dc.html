@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Today: Photos on a phone</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="phone.css">
+<style>.screenrow { padding: 10px 14px; } .group { margin: 18px 2px 8px; }</style>
+</head>
+<body>
+<!-- not drawn: development after #58, ?sheet=photos, at 390 x 844 -->
+<div class="shot"><img src="shipped-photos-page.jpg" alt="Photos on a phone as it ships">
+<div class="why-tag" style="left:18px; top:600px;"><b>Photos, and nothing else.</b> A screen shows them or it doesn't; nothing else can take a turn.</div></div>
+<script>document.querySelectorAll(".flip").forEach(f => f.addEventListener("click", () => { document.body.dataset[f.dataset.g] = f.dataset.to; document.querySelectorAll(".flip[data-g=\"" + f.dataset.g + "\"]").forEach(g => g.classList.toggle("on", g === f)) }))</script>
+</body>
+</html>

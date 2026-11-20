@@ -88,7 +88,7 @@ watch(page, p => { if (p === 'add') { resume.value = store.resume; store.resume 
 const ready = computed(updateReady)
 const locked = computed(() => !!store.status?.locked)
 const title = computed(() => ({
-  house: 'This house', location: 'Where is home?', look: 'How the house looks', screen: 'This screen', routines: 'Routines', signals: 'What the lights tell you', photos: 'Photos', people: 'People', accounts: 'Accounts', things: 'What this house has', printers: 'Printers',
+  house: 'This house', location: 'Where is home?', look: 'How the house looks', screen: 'This screen', routines: 'Routines', signals: 'What the lights tell you', photos: 'Your screens', people: 'People', accounts: 'Accounts', things: 'What this house has', printers: 'Printers',
   add: resume.value ? 'Sign in again' : 'Add to the house', share: 'Share this house', hub: 'The hub', code: 'Passcode',
   notes: 'Needs a look', happened: 'What happened', changes: 'Who changed what',
   developer: store.devKey ? 'Add an SSH key' : 'For working on the hub',
@@ -180,7 +180,7 @@ const doors = computed(() => [
   { id: 'signals' as const, icon: 'light', name: 'What the lights tell you', hint: doorHint(store.signals) },
   /* The household's photos, which the screens a household chooses show when nobody is watching them (design/tv-photos/,
      A; design/which-tv/, C). Only in a house that has a screen to show them on. */
-  ...(store.status?.screens ? [{ id: 'photos' as const, icon: 'tv', name: 'Photos', hint: 'Shown on your screens when nobody’s watching' }] : []),
+  ...(store.status?.screens ? [{ id: 'photos' as const, icon: 'tv', name: 'Your screens', hint: 'Photos, and what each screen shows at rest' }] : []),
   { id: 'people' as const, icon: 'people', name: 'People and phones', hint: people.value },
   { id: 'accounts' as const, icon: 'lock', name: 'Accounts', hint: accounts.value, attention: store.accounts.some(a => a.state !== 'on') },
   /* The door that answers "what have I actually got, and how do I get rid of one of them". It sits

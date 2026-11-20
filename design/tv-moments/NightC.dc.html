@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Every direction: a kind word on Bedtime, and the last thing on the screen</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="tv.css">
+<style>
+  .ph { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .serif { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; letter-spacing: -.01em; }
+  .cap { font-size: 22px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); font-weight: 500; }
+  [data-n="before"] .n-after, [data-n="after"] .n-before { display: none; }</style>
+</head>
+<body>
+<div class="screen" id="s" data-n="before" style="background:radial-gradient(60% 50% at 30% 100%, #1a1830, transparent 70%), #08090e;">
+  <div class="try" style="top:14px"><span>Show</span><span class="flip on" data-k="n" data-v="before">Bedtime</span><span class="flip" data-k="n" data-v="after">After Bedtime is pressed</span></div>
+  <div class="n-before">
+    <div class="shade" style="position:absolute; left:96px; top:54px; display:flex; align-items:baseline; gap:24px;"><span class="display" style="font-size:80px; color:var(--ink-2);">10:42<span class="period">PM</span></span><span style="font-size:26px; color:var(--ink-2);">Friday, November 20</span></div>
+    <div style="position:absolute; left:96px; top:270px; width:820px;"><div style="font-size:64px; letter-spacing:-.03em;">Still on before bed</div>
+      <div style="margin-top:34px; font-size:30px; line-height:2.2; border-top:1px solid rgba(255,255,255,.08);">Kitchen &middot; 2 lights<br>Office &middot; Desk lamp<br>Back door &middot; Unlocked</div></div>
+    <div style="position:absolute; left:1060px; top:330px; width:760px;">
+      <div style="display:flex; align-items:center; gap:24px; padding:30px 40px; border-radius:28px; background:rgba(26,28,34,.8); box-shadow:0 0 0 3px rgba(233,184,114,.95), 0 0 0 9px rgba(233,184,114,.18);">
+        <div><div style="font-size:48px;">Bedtime</div><div style="font-size:24px; color:var(--ink-2); margin-top:6px;">The lights off, the back door locked</div></div></div>
+      <div class="serif" style="font-size:60px; line-height:1.15; margin-top:70px; color:var(--ink);">Rest well. You did enough today.</div></div>
+    <div class="ok shade"><kbd>OK</kbd>Bedtime</div>
+  </div>
+  <div class="n-after"><div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+    <div class="serif" style="font-size:110px; line-height:1.1;">Rest well.<br>You did enough today.</div>
+    <div style="font-size:26px; color:var(--muted); margin-top:50px;">Good night. The TV turns off in a moment.</div></div></div>
+</div><script>
+  document.querySelectorAll('.flip').forEach(f => f.onclick = () => {
+    document.getElementById('s').dataset[f.dataset.k] = f.dataset.v
+    document.querySelectorAll(`.flip[data-k="${f.dataset.k}"]`).forEach(g => g.classList.toggle('on', g === f))
+  })
+</script>
+</body>
+</html>

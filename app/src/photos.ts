@@ -103,7 +103,8 @@ export function sentLine(p: Photo, now = new Date(), locale?: string): string {
 export function screenLines(s: ShownScreen): { name: string; sub: string } {
   const name = s.room_name ? (s.tv ? `${s.room_name} TV` : s.room_name) : (s.tv ? 'A TV' : 'A screen on the wall')
   const kind = s.tv ? 'A TV' : 'A screen on the wall'
-  return { name, sub: s.photos ? kind : `${kind} · shows ${s.tv ? 'the sky' : 'the clock'}` }
+  const showing = s.photos ? (s.play === 'each' ? 'photos, one after another' : 'photos, day by day') : (s.tv ? 'the sky' : 'the clock')
+  return { name, sub: `${kind} · shows ${showing}` }
 }
 
 /** Where a phone's camera is sent from the TV's code: this page, on the address the phone can reach. */
