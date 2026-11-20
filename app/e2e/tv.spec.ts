@@ -77,7 +77,7 @@ test('a resting TV raises the room as a band on OK; Up and Down are the level, B
   await page.keyboard.press('ArrowUp')
   await expect(lit(page)).toContainText('On, 45%')
   expect(asked.at(-1)).toMatch(/\/on .*"brightness_pct":45/)
-  await page.keyboard.press('3')                                // yellow: Sleep, the same color in every room
+  await page.keyboard.press('F3')                               // yellow: Sleep, the same color in every room
   await expect.poll(() => asked.at(-1)).toMatch(/intent\/asleep$/)
   await page.keyboard.press('Escape')
   await expect(page.locator('.tvb-band')).toHaveCount(0)

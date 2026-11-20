@@ -3,11 +3,12 @@
   SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { addRoom, placeScreen, type Phone, type Room } from './api'
 import { keepScreenRoom, openOn, roomLine } from './screen'
 import Icon from './Icon.vue'
 import TurnPill from './TurnPill.vue'
+import { hintParts, light, lit, onTV } from './tv'
 
 /* Which room this screen is in (design/companion/, C). Asked once, after it has joined, never before:
    a device on the Wi-Fi without the passcode never sees the house's rooms. */
@@ -24,6 +25,16 @@ async function name() {
   try { const r = await addRoom(n); picked.value = r.id; naming.value = false; fresh.value = '' } catch (e: any) { error.value = e.message }
   busy.value = false
 }
+/* On a TV (design/tv-join/, C) OK on a room is the answer, and there is no naming one: a remote cannot type it. */
+const tv = onTV()
+const plugged = computed(() => props.screens.some(p => p.me && p.how === 'plugged in'))
+const hint = computed(() => hintParts(lit.value?.dataset.hint ?? ''))
+const roomsEl = ref<HTMLElement | null>(null), scale = ref(1)
+const fit = () => (scale.value = Math.min(innerWidth / 1920, innerHeight / 1080))
+onMounted(() => { if (tv) { fit(); window.addEventListener('resize', fit); light(roomsEl.value?.querySelector<HTMLElement>('[data-tv-start]') ?? null) } })
+onUnmounted(() => { if (tv) window.removeEventListener('resize', fit) })
+function place(id: string) { picked.value = id; done() }
+
 async function done() {
   if (!picked.value || busy.value) return
   busy.value = true; error.value = ''
@@ -33,7 +44,24 @@ async function done() {
 </script>
 
 <template>
-  <main class="setup screen-room">
+  <main v-if="tv && choices.length" class="tvr-wrap screen-room">
+    <div class="tvr" :style="{ zoom: scale }">
+      <div class="tvr-ask">
+        <span class="tvr-mark"><Icon name="home" :size="40" /></span>
+        <h1>Which room is this TV in?</h1>
+        <p class="tvr-lede">{{ plugged ? `It's plugged into the hub, so it's already part of ${home}. ` : '' }}It opens on the room you choose.</p>
+        <p class="tvr-error">{{ busy ? 'Opening…' : error }}</p>
+      </div>
+      <div class="tvr-rooms" ref="roomsEl">
+        <button v-for="(r, i) in choices" :key="r.id" class="tvr-room" data-tv :data-tv-start="i === 0 ? '' : undefined"
+                :data-hint="`OK|${openOn(r.name)}`" @click="place(r.id)">
+          <span class="tvr-nm">{{ r.name }}</span><span class="tvr-st">{{ roomLine(r, screens) }}</span>
+        </button>
+      </div>
+      <div class="tvr-hint" aria-live="polite"><span v-for="(h, i) in hint" :key="i">{{ h.before }}<kbd v-for="k in h.keys" :key="k">{{ k }}</kbd>{{ h.words }}</span></div>
+    </div>
+  </main>
+  <main v-else class="setup screen-room">
     <section class="setup-page">
       <p class="screen-trail">
         <span class="screen-trail-ok"><Icon name="check" :size="13" /></span><b>{{ home }}</b>
@@ -63,3 +91,24 @@ async function done() {
     <TurnPill />
   </main>
 </template>
+
+<style scoped>
+/* Drawn at the TV's 1920x1080 and scaled to it, read from the sofa (design/tv-join/OwnC). */
+.tvr-wrap { position: fixed; inset: 0; z-index: 1; overflow: hidden; }
+.tvr { position: relative; width: 1920px; height: 1080px; color: var(--ink); --safe-x: 96px; --safe-y: 54px; }
+.tvr-ask { position: absolute; left: 300px; top: 110px; width: 1200px; }
+.tvr-mark { width: 88px; height: 88px; border-radius: var(--r-lg); display: grid; place-items: center; color: var(--lamp);
+            background: rgba(255, 255, 255, 0.06); border: 1px solid var(--edge); }
+.tvr h1 { margin: 36px 0 0; font-size: 80px; font-weight: 400; letter-spacing: -0.03em; line-height: 1.02; }
+.tvr-lede { margin: 26px 0 0; font-size: 30px; line-height: 1.35; color: var(--ink-2); max-width: 1000px; }
+.tvr-error { margin: 14px 0 0; font-size: 26px; color: var(--ink-2); min-height: 34px; }
+.tvr-rooms { position: absolute; left: 300px; right: var(--safe-x); top: 560px; display: flex; flex-wrap: wrap; gap: 28px; }
+.tvr-room { width: 250px; height: 170px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; text-align: left;
+            font: inherit; color: inherit; cursor: pointer; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--edge); }
+.tvr-nm { font-size: 28px; font-weight: 500; }
+.tvr-st { font-size: 22px; color: var(--ink-2); }
+.tvr-hint { position: absolute; left: var(--safe-x); bottom: var(--safe-y); display: flex; gap: 28px; align-items: center; font-size: 22px; color: var(--ink-2); white-space: nowrap; }
+.tvr-hint span { display: inline-flex; gap: 10px; align-items: center; }
+.tvr-hint kbd { font-family: inherit; font-size: 17px; font-weight: 600; line-height: 1; letter-spacing: 0.04em; color: var(--ink); min-width: 40px; height: 36px; padding: 0 10px; display: inline-grid; place-items: center;
+                border-radius: 18px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--edge-hi); }
+</style>

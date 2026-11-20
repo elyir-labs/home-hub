@@ -391,6 +391,13 @@ Do not reopen these, and do not propose around them.
   none (`startup/cec.sh`, `cec-keys.toml`). `app/src/tv.ts`, `levels.ts`, `views/TvView.vue`, `TvBand.vue`; pinned by
   `app/tests/tv.test.ts`, `app/e2e/tv.spec.ts` and the `becoming`, `speaking` and `remote` groups in
   `driver-layer/host/tests.sh`.
+- **The screen plugged into the hub is already in the house; a TV on another box asks the phones and takes the
+  passcode from its remote** (20 November, `design/tv-join/`, C with A's numbers and B's pad). The hub knows its own
+  screen (`from_screen`), so it joins without the passcode, holds no keys, and is asked only its room; on a TV, OK on a
+  room is the answer. A TV on another box asks every phone as it comes up, and meanwhile the passcode goes in with the
+  remote's numbers or a pad the arrows move on. The digits are never a press anywhere else, so the colors are F1 to F4
+  over CEC. A TV never shows the upside-down pill. `Join.vue`, `ScreenRoom.vue`, `/phones/plugged-in`; pinned by
+  `app/e2e/tv-join.spec.ts`, `app/tests/tv.test.ts` and `brain/tests/test_api_screens.py`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
   B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
   development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this

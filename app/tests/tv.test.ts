@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
-import { hintFor, nearest, okOf, onTV, pressOf, sceneFor, stateOf, thingsIn } from '../src/tv'
+import { digitOf, hintFor, nearest, okOf, onTV, pressOf, sceneFor, stateOf, thingsIn } from '../src/tv'
 import { stepOf } from '../src/levels'
 import { SCENES, store } from '../src/store'
 
@@ -32,7 +32,10 @@ describe('the keys every remote sends', () => {
   it('reads the TV remote over HDMI, a USB remote and a keyboard alike', () => {
     expect(['Enter', 'Select'].map(pressOf)).toEqual(['ok', 'ok'])
     expect(['Escape', 'Backspace', 'BrowserBack', 'GoBack'].map(pressOf)).toEqual(['back', 'back', 'back', 'back'])
-    expect(['ColorF0Red', '1', 'ColorF3Blue', '4'].map(pressOf)).toEqual(['red', 'red', 'blue', 'blue'])
+    expect(['ColorF0Red', 'F1', 'ColorF3Blue', 'F4'].map(pressOf)).toEqual(['red', 'red', 'blue', 'blue'])
+    // the digits only type, where a screen asks for a number, so 1 never starts a scene
+    expect(['1', '4', '0'].map(pressOf)).toEqual([null, null, null])
+    expect(['1', '0', 'F1', 'a'].map(digitOf)).toEqual(['1', '0', null, null])
     expect(pressOf('a')).toBeNull()
   })
   it('gives each color the same scene in every room', () => {
@@ -45,9 +48,10 @@ describe('the keys every remote sends', () => {
 describe("the TV's own remote, over HDMI-CEC", () => {
   // startup/cec-keys.toml turns each CEC code into a Linux key; Chromium hands the panel these names for them.
   const DOM: Record<string, string> = { KEY_ENTER: 'Enter', KEY_ESC: 'Escape', KEY_HOME: 'Home', KEY_UP: 'ArrowUp',
-    KEY_DOWN: 'ArrowDown', KEY_LEFT: 'ArrowLeft', KEY_RIGHT: 'ArrowRight', KEY_1: '1', KEY_2: '2', KEY_3: '3', KEY_4: '4' }
+    KEY_DOWN: 'ArrowDown', KEY_LEFT: 'ArrowLeft', KEY_RIGHT: 'ArrowRight', KEY_F1: 'F1', KEY_F2: 'F2', KEY_F3: 'F3', KEY_F4: 'F4',
+    ...Object.fromEntries([...'0123456789'].map(d => [`KEY_${d}`, d])) }
   const keys = Object.fromEntries([...readFileSync('../startup/cec-keys.toml', 'utf8')
-    .matchAll(/^(0x[0-9a-f]{2}) = "(\w+)"/gm)].map(([, code, key]) => [code, pressOf(DOM[key] ?? '')]))
+    .matchAll(/^(0x[0-9a-f]{2}) = "(\w+)"/gm)].map(([, code, key]) => [code, pressOf(DOM[key] ?? '') ?? digitOf(DOM[key] ?? '')]))
   it('moves, chooses, goes back and goes home', () => {
     expect([keys['0x01'], keys['0x02'], keys['0x03'], keys['0x04']]).toEqual(['up', 'down', 'left', 'right'])
     expect([keys['0x00'], keys['0x0d'], keys['0x09']]).toEqual(['ok', 'back', 'home'])
@@ -55,8 +59,8 @@ describe("the TV's own remote, over HDMI-CEC", () => {
   it("gives each colored button its own color's scene: CEC numbers them blue, red, green, yellow", () => {
     expect([keys['0x71'], keys['0x72'], keys['0x73'], keys['0x74']]).toEqual(['blue', 'red', 'green', 'yellow'])
   })
-  it('leaves the digits alone, so 1 to 4 on the remote never start a scene', () => {
-    expect(Object.keys(keys).filter(k => k >= '0x20' && k <= '0x29')).toEqual([])
+  it('keeps the number buttons as digits, which type the passcode and never start a scene', () => {
+    expect([...Array(10)].map((_, i) => keys[`0x${(0x20 + i).toString(16)}`])).toEqual([...'0123456789'])
     expect(Object.values(keys)).not.toContain(null)
   })
 })

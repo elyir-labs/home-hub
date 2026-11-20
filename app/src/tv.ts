@@ -28,17 +28,20 @@ export function onTV(search = location.search, ua = navigator.userAgent, screen 
 export type Press = 'up' | 'down' | 'left' | 'right' | 'ok' | 'back' | 'home' | Color
 export type Color = 'red' | 'green' | 'yellow' | 'blue'
 
-/* What a key is, from whichever remote sent it. The TV's own remote over CEC arrives as Select, BrowserBack
-   and the Color keys; a USB remote and a keyboard as Enter, Escape or Backspace, and 1 to 4 for the colors. */
+/* What a key is, from whichever remote sent it. The TV's own remote over CEC arrives as Enter, Escape and F1 to F4
+   for the colors (startup/cec-keys.toml); a USB remote and a keyboard as Enter, Escape or Backspace. The digits
+   are never a press: they only type, where a screen asks for a number (design/tv-join/), so a remote's 1 never
+   starts a scene. */
 const PRESSES: Record<string, Press> = {
   ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
   Enter: 'ok', Select: 'ok', ' ': 'ok',
   Escape: 'back', Backspace: 'back', BrowserBack: 'back', GoBack: 'back', Exit: 'back',
   Home: 'home', BrowserHome: 'home', GoHome: 'home', ContextMenu: 'home',
   ColorF0Red: 'red', ColorF1Green: 'green', ColorF2Yellow: 'yellow', ColorF3Blue: 'blue',
-  1: 'red', 2: 'green', 3: 'yellow', 4: 'blue',
+  F1: 'red', F2: 'green', F3: 'yellow', F4: 'blue',
 }
 export const pressOf = (key: string): Press | null => PRESSES[key] ?? null
+export const digitOf = (key: string): string | null => /^[0-9]$/.test(key) ? key : null
 
 /* The colored buttons are always the same scene, in every room, so a hand learns them once. */
 export const SCENE_COLOR: Record<Color, string> = { red: 'movie', green: 'guests', yellow: 'asleep', blue: 'empty' }
@@ -193,6 +196,9 @@ export function light(e: HTMLElement | null) {
   if (!e.closest('[data-tv-own-scroll]')) e.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 }
 
+/* A screen that asks for a number takes the digits, and Back while there is one to take off. */
+export const typing = shallowRef<{ digit: (d: string) => void; back: () => boolean } | null>(null)
+
 export type RemoteHooks = {
   /* Takes a press before anything else: the resting TV raising its band. True when it took it. */
   first?: (p: Press) => boolean
@@ -222,12 +228,15 @@ export function installRemote(hooks: RemoteHooks): () => void {
   }
 
   function down(e: KeyboardEvent) {
-    const p = pressOf(e.key)
-    if (!p) return
     if (typable(e.target as Element)) {
       if (e.key === 'Escape') { (e.target as HTMLElement).blur(); e.preventDefault() }
       return
     }
+    const d = digitOf(e.key), taker = typing.value
+    if (d && taker) { e.preventDefault(); e.stopImmediatePropagation(); taker.digit(d); return }
+    const p = pressOf(e.key)
+    if (!p) return
+    if (p === 'back' && taker?.back()) { e.preventDefault(); e.stopImmediatePropagation(); return }
     if (hooks.first?.(p)) { e.preventDefault(); e.stopImmediatePropagation(); return }
     if (p === 'ok') {
       e.preventDefault(); e.stopImmediatePropagation()

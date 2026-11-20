@@ -133,6 +133,11 @@ class Phones:
         """The screen that set the code during setup is paired without asking; it is the wall."""
         return self._admit("Wall screen" if kind == "wall" else "The phone that set up the house", kind, "setup")
 
+    def plugged_in(self) -> tuple[dict, str]:
+        """The screen plugged into the hub itself, which needs no passcode (design/tv-join/, C). It holds its own key
+        and no others: reaching the HDMI port is proof enough to use the house, not to let other phones into it."""
+        return self._admit("A screen", "screen", "plugged in")
+
     def ask(self, name: str, kind: str = "phone") -> dict:
         """A phone on the Wi‑Fi asks to join. Nothing is issued until a paired screen allows it."""
         self._sweep()
@@ -287,7 +292,7 @@ class Phones:
 # carries no secret -- the shipped image is blank until the cable writes to it -- and the only name
 # that answers is the hash the hub is offering today (hub/bridge_updates.py).
 OPEN_PREFIXES = ("/phones/claim/", "/assets/", "/sounds/", "/icons/", "/bridge/firmware/")
-OPEN_PATHS = {"/", "/alive", "/phones/me", "/phones/ask", "/phones/code", "/phones/move/claim", "/qr.svg", "/phone", "/index.html", "/manifest.webmanifest", "/sw.js", "/favicon.ico", "/favicon.svg", "/robots.txt",
+OPEN_PATHS = {"/", "/alive", "/phones/me", "/phones/ask", "/phones/code", "/phones/plugged-in", "/phones/move/claim", "/qr.svg", "/phone", "/index.html", "/manifest.webmanifest", "/sw.js", "/favicon.ico", "/favicon.svg", "/robots.txt",
               "/screens/report"}   # a screen's own unit, which has no cookie: hub/developer.py names it by a key of its own
 OPEN_SUFFIXES = (".js", ".css", ".svg", ".png", ".ico", ".woff2", ".webmanifest", ".json", ".html", ".txt", ".map")
 NOT_THE_APP = {"/openapi.json"}
@@ -338,7 +343,7 @@ SETUP_OPEN = {("GET", "/network"), ("POST", "/network/scan"), ("POST", "/network
 
 
 # ---- and what may pass from outside it ----
-JOIN_AT_HOME = ("/phones/ask", "/phones/code", "/phones/claim/")
+JOIN_AT_HOME = ("/phones/ask", "/phones/code", "/phones/plugged-in", "/phones/claim/")
 HOME_ONLY = "This phone works on your home Wi\u2011Fi. Someone with the passcode can set it to Anywhere, in People."
 NOT_YOURS = "This house isn\u2019t open to this phone."
 

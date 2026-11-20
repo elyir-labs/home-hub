@@ -27,7 +27,7 @@ const people = computed(() => store.presence?.people ?? [])
 const state = (home: boolean | null) => home === true ? 'Home' : home === false ? 'Away' : 'Not sure'
 
 /* the phones that belong to the house: who, since when, for how long, and one way out each */
-const HOW: Record<string, string> = { code: 'joined with the passcode', wall: 'allowed from the wall screen', setup: 'set up the house' }
+const HOW: Record<string, string> = { code: 'joined with the passcode', wall: 'allowed from the wall screen', setup: 'set up the house', 'plugged in': 'plugged into the hub' }
 /* the wall was named "This wall" when the house was set up; to anyone else it is the screen on the wall */
 const phoneName = (p: Phone) => p.kind === 'wall' && p.name === 'This wall' ? 'Wall screen' : p.name
 const day = (ts: number) => new Date(ts * 1000).toLocaleDateString(locale(), { weekday: 'short', month: 'short', day: 'numeric' })

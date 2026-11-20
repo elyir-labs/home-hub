@@ -2585,7 +2585,7 @@ def phones_me(request: Request):
     me = hub.phones._public(phone) if phone else None
     if me and ((phone.get("push") or {}).get("apns")) and not hub.address.secret(): me["push_note"] = PUSH_NEEDS_ADDRESS
     return {"locked": hub.lock.locked, "paired": paired, "home": hub.settings.get("home_name") or "Home",
-            "phone": me, "away": request.state.away,
+            "phone": me, "away": request.state.away, "plugged_in": request.state.screen,
             "lan": hub.address.lan_name() if paired else None, "address": hub.address.public_origin() if paired else None}
 
 
@@ -2689,6 +2689,15 @@ def phones_code(body: dict, request: Request):
     if wait > 0: raise HTTPException(429, f"Too many tries. Wait {int(wait) + 1} seconds.")
     if not hub.lock.check(str(body.get("code") or ""), who): raise HTTPException(401, "That wasn't it.")
     phone, token = hub.phones.with_code(str(body.get("name") or ""), _device_kind(request, body))
+    return _with_cookie({"ok": True, "phone": hub.phones._public(phone)}, request, phone, token)
+
+
+@app.post("/phones/plugged-in")
+def phones_plugged_in(request: Request):
+    """The screen plugged into the hub joins without the passcode, and is asked only its room (design/tv-join/, C)."""
+    if not hub.lock.locked: raise HTTPException(409, "The house has no passcode.")
+    if not request.state.screen: raise HTTPException(403, "Only the screen plugged into the hub joins without the passcode.")
+    phone, token = hub.phones.plugged_in()
     return _with_cookie({"ok": True, "phone": hub.phones._public(phone)}, request, phone, token)
 
 
