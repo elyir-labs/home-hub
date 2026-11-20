@@ -15,7 +15,16 @@
   },
   {
    "id": "remote-top",
-   "name": "Where the ring meets the top of the stone"
+   "name": "Where the ring meets the top of the stone",
+   "decided": {
+    "on": "2026-11-20",
+    "chose": "H with a 42 mm ring: the ring sits in a shallow dish",
+    "board": "RingDishH.dc.html"
+   }
+  },
+  {
+   "id": "remote-top-rejected",
+   "name": "Where the ring meets the top of the stone: not chosen"
   },
   {
    "id": "remote-rejected",
@@ -115,18 +124,18 @@
   },
   {
    "file": "RingFlatI.dc.html",
-   "page": "remote-top",
+   "page": "remote-top-rejected",
    "x": 0,
-   "y": 2200,
+   "y": 0,
    "w": 1440,
    "h": 900,
    "title": "I / The top flattens around the ring"
   },
   {
    "file": "RingCrownJ.dc.html",
-   "page": "remote-top",
+   "page": "remote-top-rejected",
    "x": 0,
-   "y": 3300,
+   "y": 1100,
    "w": 1440,
    "h": 900,
    "title": "J / The ring's top follows the dome"
@@ -139,7 +148,7 @@
    "x": -620,
    "y": -760,
    "w": 520,
-   "text": "DECIDED 20 NOVEMBER 2026 — G, THE STONE ON ITS DISH\n\nA pebble, 96 x 66 x 24 mm, lying on a charging dish. On top: the light, a key to talk, a 46 mm ring that turns around a 30 mm pad that tilts to move and presses for OK, and Home. On each side, one Favorite key, mirrored for either hand. No keys for the sound: the ring is the volume while something plays and the lights otherwise; holding Favorite while turning is always the lights.\n\nB was picked first the same day and replaced by G after a second look: the stone is the one that feels like ours, and its gaps (scenes without talking, the sound, the lights during music) closed with one key on each side.\n\nThe ring and pad are two stock parts: an Alps EC21A1520401 ring encoder with an Alps SKRHABE010 five-way switch in its hollow middle. Backup: the all-in-one Alps RKJXT1F42001.\n\nNext: try the parts by hand, holding a side key while turning included (if that is awkward, E's rocker is the fallback); a devkit prototype as an ordinary Bluetooth remote; then the board, case and dish in home-hub-hardware. The bought remote's key count says whether Back earns a key."
+   "text": "DECIDED 20 NOVEMBER 2026 — G, THE STONE ON ITS DISH\n\nA pebble, 96 x 66 x 24 mm, lying on a charging dish. On top: the light, a key to talk, a 42 mm ring (46 when first drawn; see the next page) that turns around a 30 mm pad that tilts to move and presses for OK, and Home. On each side, one Favorite key, mirrored for either hand. No keys for the sound: the ring is the volume while something plays and the lights otherwise; holding Favorite while turning is always the lights.\n\nB was picked first the same day and replaced by G after a second look: the stone is the one that feels like ours, and its gaps (scenes without talking, the sound, the lights during music) closed with one key on each side.\n\nThe ring and pad are two stock parts: an Alps EC21A1520401 ring encoder with an Alps SKRHABE010 five-way switch in its hollow middle. Backup: the all-in-one Alps RKJXT1F42001.\n\nNext: try the parts by hand, holding a side key while turning included (if that is awkward, E's rocker is the fallback); a devkit prototype as an ordinary Bluetooth remote; then the board, case and dish in home-hub-hardware. The bought remote's key count says whether Back earns a key."
   },
   {
    "id": "why",
@@ -238,6 +247,14 @@
    "text": "G — THE RING FOLLOWS WHAT IS PLAYING (chosen 20 November)\n\nDrawn 20 November, after asking whether the stone needs sound keys at all, given the ring. It does not, if the ring keeps one rule: the volume while a film or music plays, the lights otherwise, and whatever is lit once Home brings the room up. E's rocker is gone, and Favorite is mirrored, one on each side, for either hand.\n\nThe lights while something plays: hold Favorite and turn the ring. It has to be a side key, because the ring and the pad are under the same thumb; a finger holds the side key while the thumb turns. Favorite then decides on release: turned while held is the lights, a short press is the favorite scene, a long hold with no turn opens the choice of scene on the TV.\n\nWhat it gives up: what the ring turns depends on whether something plays, and holding Favorite for the lights has to be told once. The side keys may be pressed when the stone is picked up, which the motion sensor is there to ignore."
   },
   {
+   "id": "top-decided",
+   "page": "remote-top",
+   "x": -620,
+   "y": -760,
+   "w": 520,
+   "text": "DECIDED 20 NOVEMBER 2026 — H, WITH A 42 MM RING\n\nThe ring sits in a shallow dish in the stone's top, on caps 2.7 mm shorter, and is 42 mm across round the 30 mm pad. Flush at the ends, 0.5 mm proud at the sides, the stone about 22 mm at the dish's rim. Nothing on the board moves.\n\nNext: print the 42 mm cap for the ring rig and check a 5.5 mm ring turns easily under a thumb; the shorter caps and the dish come with the case (remote/stone-board/ in the hardware repository)."
+  },
+  {
    "id": "top-why",
    "page": "remote-top",
    "x": -620,
@@ -259,39 +276,31 @@
    "x": 1560,
    "y": 1100,
    "w": 520,
-   "text": "H — THE RING SITS IN A SHALLOW DISH (recommended)\n\nThe case for it: the ring comes down 2.7 mm on shorter caps, and the top dips into a gentle bowl around it: a place for the thumb, flush (0.3 mm under the rim) at the ends, 1.3 mm proud at the sides against 4.0 today, and the stone 2 mm slimmer at about 22 mm. Nothing on the board moves.\n\nWhat it gives up: the dome's peak; from the side the middle sits a little below the shoulders. 2.7 mm is as low as it goes: the ring's web under the pad thins to 0.8 mm and the pad's tilt keeps 1.3 mm under its edge.\n\nA 42 mm ring instead of 46 would bring the sides to about 0.5 mm."
+   "text": "H — THE RING SITS IN A SHALLOW DISH, AND IS 42 MM ACROSS (chosen 20 November)\n\nThe case for it: the ring comes down 2.7 mm on shorter caps, and the top dips into a gentle bowl around it: a place for the thumb, flush (0.3 mm under the rim) at the ends, and with the ring at 42 mm instead of 46, only 0.5 mm proud at the sides, against 4.0 today and 1.3 with the 46 mm ring. The stone is 2 mm slimmer, at about 22 mm. Nothing on the board moves.\n\nWhat it gives up: the dome's peak; from the side the middle sits a little below the shoulders. 2.7 mm is as low as it goes: the ring's web under the pad thins to 0.8 mm and the pad's tilt keeps 1.3 mm under its edge. Round the same 30 mm pad, the ring is 5.5 mm wide to grip instead of 7.5.\n\nDrawn first at 46 mm; the 42 mm ring was the recommendation alongside it, and the one picked."
   },
   {
    "id": "i",
-   "page": "remote-top",
+   "page": "remote-top-rejected",
    "x": 1560,
-   "y": 2200,
+   "y": 0,
    "w": 520,
    "text": "I — THE TOP FLATTENS AROUND THE RING\n\nThe case for it: flush all round, the caps unchanged, the simplest to model and mold.\n\nWhat it gives up: across the stone the plateau has to fall from 24 mm to the side within a few millimeters, a shoulder; with a flat top it reads as a puck or a mouse rather than a pebble, and the plateau's edge is a new line on a top that was meant to have none."
   },
   {
    "id": "j",
-   "page": "remote-top",
+   "page": "remote-top-rejected",
    "x": 1560,
-   "y": 3300,
+   "y": 1100,
    "w": 520,
    "text": "J — THE RING'S TOP FOLLOWS THE DOME\n\nThe case for it: the shell and the silhouette do not change; the ring's top slopes 2.5 mm from its inner edge to its outer and the pad is crowned.\n\nWhat it gives up: the dome is not round, so the step changes round the ring, 1.0 and 0.4 mm under at the ends and 1.5 mm proud at the sides, and a turning ring makes that visible. A sloped ring is a little harder to turn with a flat thumb."
   },
   {
-   "id": "top-pick",
-   "page": "remote-top",
+   "id": "top-lost",
+   "page": "remote-top-rejected",
    "x": -620,
-   "y": 1100,
+   "y": 0,
    "w": 520,
-   "text": "PICK ONE\n\nH, the dish. I, a flat top. J, the ring follows the dome. Or H with a 42 mm ring, or something else."
-  },
-  {
-   "id": "top-recommended",
-   "page": "remote-top",
-   "x": -620,
-   "y": 1400,
-   "w": 520,
-   "text": "RECOMMENDED: H, AND TRY IT WITH A 42 MM RING\n\nIt keeps the stone a pebble (unlike I) and gives the thumb a seat; the remaining step is at the sides only, where a smaller ring all but removes it. J keeps the outline but leaves a step that changes as the ring turns. The cost of H is the peak and 2.7 mm of cap height, and no board change."
+   "text": "NOT CHOSEN\n\nI kept the ring flush by flattening the top, and stopped being a pebble. J kept the outline but left a step that changes as the ring turns. H's dish keeps the shape and gives the thumb a seat, and the smaller ring took away most of what was left of its step."
   }
  ],
  "reading": [
@@ -303,17 +312,12 @@
   "stone-why",
   "StoneQuietG.dc.html",
   "g",
+  "top-decided",
   "top-why",
   "RingToday.dc.html",
   "top-today",
   "RingDishH.dc.html",
   "h",
-  "RingFlatI.dc.html",
-  "i",
-  "RingCrownJ.dc.html",
-  "j",
-  "top-pick",
-  "top-recommended",
   "lost",
   "StoneA.dc.html",
   "a",
@@ -326,6 +330,11 @@
   "StoneSoundE.dc.html",
   "e",
   "StoneAllF.dc.html",
-  "f"
+  "f",
+  "top-lost",
+  "RingFlatI.dc.html",
+  "i",
+  "RingCrownJ.dc.html",
+  "j"
  ]
 }
