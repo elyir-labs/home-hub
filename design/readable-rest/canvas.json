@@ -16,6 +16,10 @@
     {
       "id": "record",
       "name": "The record at rest, on its own cover"
+    },
+    {
+      "id": "record-rejected",
+      "name": "The record at rest, on its own cover: not chosen"
     }
   ],
   "artboards": [
@@ -75,7 +79,7 @@
     },
     {
       "file": "GlowE.dc.html",
-      "page": "record",
+      "page": "record-rejected",
       "x": 4200,
       "y": 0,
       "w": 1920,
@@ -142,19 +146,19 @@
     },
     {
       "id": "rec-e",
-      "page": "record",
+      "page": "record-rejected",
       "x": 4200,
       "y": 1140,
       "w": 1920,
       "text": "E: THE COVER GLOWS AROUND THE RECORD. The sky and hills stay at the edges and the cover is a light behind the record. Prettier with a dark cover, but the key hint along the foot sits on bright sky and fails; it would need the wash back along the foot."
     },
     {
-      "id": "rec-pick",
+      "id": "rec-decided",
       "page": "record",
       "x": -620,
       "y": 1200,
       "w": 500,
-      "text": "PICK ONE\n\nD (recommended), E, or something else -- describe it."
+      "text": "DECIDED 20 NOVEMBER 2026\n\nD: the cover, blurred and dimmed, fills the screen while the record shows, and the wash steps aside. The clock at rest keeps the wash. Held by e2e/readable.spec.ts with a bright cover and a dark one."
     }
   ]
 }
