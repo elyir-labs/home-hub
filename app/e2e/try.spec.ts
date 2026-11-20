@@ -171,7 +171,9 @@ test('set up from the box: a pretend hub walks first run, and its bar says what 
   await page.waitForTimeout(6000)
   await expect(page.getByText('Looking for it…'), 'a bulb in a browser waits for a hand, as a real one does').toBeVisible()
   await switchOn.click()
-  await expect(page.getByRole('heading', { name: 'Added.' })).toBeVisible({ timeout: 8000 })
+  // Joining shows for 2.5 s, the screen looks every 1.5 s, and the house waits for two looks 2 s apart to agree
+  // (whatArrived): about 7.5 s at best, so a slower machine needs the room.
+  await expect(page.getByRole('heading', { name: 'Added.' })).toBeVisible({ timeout: 15_000 })
   await expect(switchOn).toHaveCount(0, { timeout: 3000 })
   await page.screenshot({ path: test.info().outputPath('joined.png') })
 })

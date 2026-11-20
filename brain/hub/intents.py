@@ -81,6 +81,7 @@ SERVICE = {
     ("media", "pause"): ("media_player", "media_pause"), ("media", "play"): ("media_player", "media_play"),
     ("media", "next"): ("media_player", "media_next_track"), ("media", "previous"): ("media_player", "media_previous_track"),
     ("media", "volume"): ("media_player", "volume_set"),
+    ("media", "app"): ("media_player", "select_source"),     # a streaming box opening one of its apps (hub/boxes.py)
     ("fan", "on"): ("fan", "turn_on"), ("fan", "off"): ("fan", "turn_off"), ("fan", "set"): ("fan", "set_percentage"),
     ("cover", "open"): ("cover", "open_cover"), ("cover", "close"): ("cover", "close_cover"),
     ("cover", "set"): ("cover", "set_cover_position"), ("cover", "stop"): ("cover", "stop_cover"),

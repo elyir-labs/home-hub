@@ -1,0 +1,74 @@
+/* A streaming box beside the hub on the living room TV (design/tv-box/). The box plays the services; the hub
+   chooses, switches the TV over and takes it back. Apps are drawn as their names on a plain tint: no logos. */
+.top { position: absolute; left: var(--safe-x); right: var(--safe-x); top: var(--safe-y); display: flex; justify-content: space-between; align-items: baseline; z-index: 2; }
+.clock { font-size: 40px; font-weight: 300; }
+.clock small { font-size: 22px; color: var(--ink-2); margin-left: 14px; }
+.who { font-size: 22px; color: var(--ink-2); display: flex; gap: 14px; align-items: center; }
+.who .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--live); }
+.title { position: absolute; left: var(--safe-x); top: 140px; z-index: 2; }
+.title h1 { margin: 0; font-size: 76px; font-weight: 400; letter-spacing: -.03em; line-height: 1; }
+.title p { margin: 12px 0 0; font-size: 26px; color: var(--ink-2); }
+.view { position: absolute; left: 0; right: 0; top: 300px; bottom: 120px; overflow: hidden;
+        -webkit-mask: linear-gradient(transparent, #000 34px, #000 calc(100% - 60px), transparent); mask: linear-gradient(transparent, #000 34px, #000 calc(100% - 60px), transparent); }
+.rows { padding: 34px var(--safe-x) 0; transition: transform .28s cubic-bezier(.2,.7,.2,1); }
+.row { margin-bottom: 46px; transition: opacity .28s; }
+.row.gone { opacity: 0; }
+.row h2 { margin: 0 0 18px; font-size: 20px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.row.here h2 { color: var(--lamp); }
+.cards { display: flex; gap: 28px; }
+.thing { width: 260px; height: 230px; padding: 24px 24px 44px; display: flex; flex-direction: column; justify-content: space-between; flex: none; }
+.scene { width: 400px; height: 112px; padding: 0 28px; display: flex; gap: 20px; align-items: center; flex: none; }
+.scene .nm { font-size: 28px; } .scene .st { font-size: 20px; }
+.scene .cb { position: absolute; top: 16px; right: 18px; width: 14px; height: 14px; border-radius: 50%; }
+.room { width: 260px; height: 190px; padding: 24px; flex: none; }
+.room.lit { background: linear-gradient(170deg, rgba(var(--lamp-rgb), .2), rgba(20,22,28,.75) 70%); }
+#hint { position: absolute; left: 0; right: 0; bottom: var(--safe-y); justify-content: center; z-index: 3; }
+
+/* an app on the box: its name on a plain tint, and what the house last saw it do */
+.app { width: 240px; height: 230px; padding: 24px; display: flex; flex-direction: column; justify-content: flex-end; flex: none;
+       background: linear-gradient(160deg, rgba(var(--t), .55), rgba(var(--t), .16) 70%, rgba(20,22,28,.8)); border-color: rgba(var(--t), .4); }
+.app .nm { font-size: 30px; }
+.app .st { font-size: 20px; }
+.app.was .st { color: var(--lamp); }
+.app.all { background: var(--surface); border-color: var(--edge); }
+
+/* what the box last played: a still, because the box's own picture never reaches the hub's screen */
+.still { position: relative; overflow: hidden;
+         background: radial-gradient(70% 90% at 25% 30%, #c98a52, transparent 70%), radial-gradient(60% 80% at 85% 80%, #2f4a6e, transparent 70%), #1a1f2b; }
+.still::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 55%; background: linear-gradient(transparent, rgba(0,0,0,.55)); }
+.last { width: 580px; height: 230px; display: flex; flex: none; }
+.last .still { width: 300px; height: 100%; flex: none; }
+.last .body { padding: 24px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+.last .lbl { font-size: 18px; letter-spacing: .14em; text-transform: uppercase; color: var(--lamp); }
+.last .nm { font-size: 32px; }
+.last .where { font-size: 20px; color: var(--muted); }
+
+/* the box's own screen: on a board only, standing in for the other input. The hub draws nothing here */
+.box { position: absolute; inset: 0; z-index: 10; display: none; place-items: center; text-align: center;
+       background: radial-gradient(80% 70% at 30% 30%, #4a2d22, transparent 70%), radial-gradient(70% 70% at 80% 80%, #1c2a44, transparent 70%), #0d0f14; }
+.box.open { display: grid; }
+.box .is { font-size: 22px; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.55); }
+.box .app-nm { font-size: 96px; font-weight: 300; letter-spacing: -.03em; margin: 18px 0; }
+.box .note { font-size: 24px; color: rgba(255,255,255,.7); max-width: 900px; line-height: 1.4; margin: 0 auto; }
+.box .back { position: absolute; left: 0; right: 0; bottom: var(--safe-y); display: flex; justify-content: center; }
+.box .back span { padding: 14px 26px; border-radius: 16px; border: 2px dashed rgba(255,255,255,.3); font-size: 22px; color: rgba(255,255,255,.8); }
+.box .back kbd { font: 600 17px/1 "Instrument Sans", system-ui, sans-serif; padding: 6px 10px; border-radius: 14px; background: rgba(255,255,255,.12); margin: 0 6px; }
+
+.try { position: absolute; right: var(--safe-x); top: calc(var(--safe-y) + 60px); z-index: 4; font-size: 18px; color: var(--muted); text-align: right; line-height: 1.6; }
+.try kbd { font: 600 14px/1 "Instrument Sans", system-ui, sans-serif; padding: 4px 8px; border-radius: 10px; background: rgba(255,255,255,.08); border: 1px solid var(--edge); }
+
+/* the handover (page 2, the way back): for two seconds before the TV switches, the foot says where you are going and
+   how you come back, because once the box is on the screen the hub can't say anything */
+.handover { position: absolute; left: var(--safe-x); right: var(--safe-x); bottom: 40px; z-index: 8; display: flex; gap: 28px; align-items: center;
+            padding: 26px 32px; border-radius: 28px; background: rgba(12,14,19,.94); border: 1px solid rgba(var(--lamp-rgb), .45);
+            box-shadow: 0 30px 80px rgba(0,0,0,.6); opacity: 0; transform: translateY(20px); transition: opacity .25s, transform .25s; pointer-events: none; }
+.handover.on { opacity: 1; transform: none; }
+.handover .tile { width: 96px; height: 96px; border-radius: 20px; flex: none; display: grid; place-items: end start; padding: 12px; font-size: 18px; font-weight: 500;
+                  background: linear-gradient(160deg, rgba(var(--t), .7), rgba(var(--t), .25)); }
+.handover b { display: block; font-size: 34px; font-weight: 500; letter-spacing: -.01em; }
+.handover p { margin: 8px 0 0; font-size: 26px; color: var(--ink-2); line-height: 1.35; }
+.handover p kbd, .box .way kbd.dot { display: inline-block; width: 22px; height: 22px; border-radius: 50%; vertical-align: -3px; margin: 0 3px; padding: 0; }
+.box .way kbd.dot { width: 18px; height: 18px; }
+.handover .bar { position: absolute; left: 32px; right: 32px; bottom: 12px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.1); overflow: hidden; }
+.handover .bar i { display: block; height: 100%; width: 0; background: var(--lamp); }
+.handover.on .bar i { width: 100%; transition: width 2.2s linear; }

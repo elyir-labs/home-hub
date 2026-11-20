@@ -17,7 +17,8 @@ until the product is ready, when it opens onto the product. Chosen 7 October 202
 | `look.sh` | Runs the splash in real Plymouth, in Docker, through every moment, and reads the Ready codes back off the screen |
 | `elyir-splash.service` | On a hub with no screen at its first start: the splash held until the hub answers, then its ending |
 | `install.sh` | Sets all of it up on a unit with its own screen; first boot runs it when any screen is connected |
-| `cec.sh`, `cec-keys.toml`, `70-elyir-cec.rules`, `elyir-cec*.service` | The TV's own remote as the panel's keys, and the TV's power and input, over HDMI-CEC; a Pulse-Eight USB adapter where the HDMI has none (`design/living-room/`) |
+| `cec.sh`, `cec-watch.py`, `cec-keys.toml`, `70-elyir-cec.rules`, `elyir-cec*.service` | The TV's own remote as the panel's keys, and the TV's power and input, over HDMI-CEC; a Pulse-Eight USB adapter where the HDMI has none (`design/living-room/`). A colored button pressed while a streaming box is on the TV brings the house back (`design/tv-box/`) |
+| `glow.py`, `glow_test.py`, `elyir-glow.service` | The light behind the TV following the picture: a camera across the room reads the screen's edges and the strip controller behind it follows (`strip/firmware` follow mode) |
 | `screen-helper.py` | Beside the browser on every unit with a screen: which way up it is drawn, its restart, and a change of what the unit is, for the panel's This screen page |
 | `turn.sh`, `elyir-screen-turn.*` | Turns the startup the way This screen turned the panel, on a Pi's boot line, from the next start |
 | `role.sh`, `elyir-screen-role.*` | Makes this unit the hub or another hub's screen when This screen asks, by running first boot again |

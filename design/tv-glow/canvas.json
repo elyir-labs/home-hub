@@ -1,0 +1,86 @@
+{
+  "name": "Setting up the light behind the TV",
+  "areas": [
+    "Light strips",
+    "Wall screens"
+  ],
+  "pages": [
+    {
+      "id": "setup",
+      "name": "Telling the hub where the screen is and which way the strip runs"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "setup",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: the light behind the TV has no way to be set up"
+    },
+    {
+      "file": "FindA.dc.html",
+      "page": "setup",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: the TV finds itself"
+    },
+    {
+      "file": "WayA.dc.html",
+      "page": "setup",
+      "x": 2100,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A, then: which way the strip runs",
+      "is_interactive": true
+    },
+    {
+      "file": "PhoneB.dc.html",
+      "page": "setup",
+      "x": 0,
+      "y": 3000,
+      "w": 390,
+      "h": 844,
+      "title": "B: mark the screen on a phone"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "setup",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\nStep 5 of the living room, the camera way (20 November 2026): a camera across the room reads the TV's picture and the strip behind the TV follows its edges. The strip and the hub can do that now (strip/firmware follow mode, startup/glow.py). Two things only the household can tell it: where the TV is in the camera's view, and which way the strip runs around the TV."
+    },
+    {
+      "id": "a",
+      "page": "setup",
+      "x": 2100,
+      "y": 2620,
+      "w": 1920,
+      "text": "A: THE TV FINDS ITSELF. The hub draws the TV, so it can put four white corners on it and find them in the camera's view itself; nobody marks anything. Then the strip lights a moving light from its start and the TV asks, with the remote, which corner it started from and which way it went. FOR: done from the sofa in under a minute, and redone the same way after the camera is moved. AGAINST: a bright room or a camera that sees only part of the screen needs B as the way out."
+    },
+    {
+      "id": "b",
+      "page": "setup",
+      "x": 600,
+      "y": 3000,
+      "w": 560,
+      "text": "B: MARK IT ON A PHONE\n\nThe camera's picture on a phone, with four dots to drag to the TV's corners. FOR: works whatever the room, and the household sees exactly what the camera sees. AGAINST: fiddly on a small screen, and it means the camera's picture is shown on a phone, which a household should be asked about first."
+    },
+    {
+      "id": "decided",
+      "page": "setup",
+      "x": -620,
+      "y": 1500,
+      "w": 500,
+      "text": "DECIDED 20 NOVEMBER 2026\n\nA, with B as the fallback: the TV finds itself with four white corners and asks which way the strip runs; when it cannot find the screen (a bright room, a camera that sees only part of it), the phone marks it."
+    }
+  ]
+}

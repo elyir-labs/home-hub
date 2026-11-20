@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C: the box keeps the TV, the phone is the remote</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="box.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #0c0d10; }
+  body { font-family: "Instrument Sans", -apple-system, system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+    --surface: rgba(26,28,34,.68); --edge: rgba(255,255,255,.1); --edge-hi: rgba(255,255,255,.18);
+    --ink: #f1eee8; --ink-2: #b9b5ad; --muted: #7f7d77;
+    --lamp-rgb: 233, 184, 114; --lamp: rgb(var(--lamp-rgb)); --lamp-ink: #2a1c07; --r-lg: 22px; }
+  .phone { position: relative; width: 390px; height: 844px; overflow: hidden; color: var(--ink); font-size: 16px; line-height: 1.4;
+           background: radial-gradient(120% 50% at 70% 0%, #141a27, transparent 70%), #0c0d10; }
+  .bar-top { position: absolute; left: 20px; right: 20px; top: 58px; display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--ink-2); }
+  .wrap { position: absolute; left: 20px; right: 20px; top: 96px; }
+  h2 { margin: 0 0 14px; font-size: 30px; font-weight: 400; letter-spacing: -.02em; }
+  .label { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .card { border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--edge); overflow: hidden; }
+  .now .still { height: 84px; }
+  .now .in { padding: 12px 16px 14px; }
+  .now .t { font-size: 22px; margin: 2px 0 10px; }
+  .ctl { display: flex; align-items: center; justify-content: space-between; }
+  .ctl button { width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,.08); color: var(--ink); display: grid; place-items: center; }
+  .ctl button.big { width: 54px; height: 54px; background: var(--ink); color: #0c0d10; }
+  .ctl svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .vol { flex: 1; margin: 0 4px 0 14px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.15); }
+  .vol i { display: block; height: 100%; width: 40%; border-radius: 3px; background: var(--ink); }
+  .pad { margin-top: 10px; height: 136px; border-radius: 26px; background: rgba(255,255,255,.04); border: 1px solid var(--edge); position: relative; display: grid; place-items: center; }
+  .pad .ok { width: 62px; height: 62px; border-radius: 50%; border: 1px solid var(--edge-hi); display: grid; place-items: center; font-size: 15px; color: var(--ink-2); }
+  .pad .k { position: absolute; bottom: 12px; font-size: 13px; padding: 6px 12px; border-radius: 12px; background: rgba(255,255,255,.07); color: var(--ink-2); }
+  .pad .sw { position: absolute; top: 12px; font-size: 12px; color: var(--muted); }
+  .chips { display: flex; gap: 8px; overflow: hidden; margin: 10px -20px 0 0; }
+  .chip { flex: none; padding: 10px 14px; border-radius: 14px; font-size: 15px; border: 1px solid rgba(var(--t), .45);
+          background: linear-gradient(160deg, rgba(var(--t), .5), rgba(var(--t), .15)); cursor: pointer; }
+  .chip.sent { border-color: var(--lamp); }
+  .lamps { display: flex; gap: 8px; margin-top: 10px; }
+  .lamp { flex: 1; padding: 12px 14px; border-radius: 16px; background: linear-gradient(160deg, rgba(var(--lamp-rgb), .35), rgba(var(--lamp-rgb), .08)); border: 1px solid rgba(var(--lamp-rgb), .35); }
+  .lamp b { display: block; font-weight: 500; font-size: 15px; } .lamp small { color: var(--lamp); font-size: 13px; }
+  .lamp.off { background: var(--surface); border-color: var(--edge); } .lamp.off small { color: var(--muted); }
+  .house { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border-radius: 999px; font-size: 15px;
+           background: rgba(255,255,255,.08); color: var(--ink); }
+  .toast { position: absolute; left: 20px; right: 20px; bottom: 26px; padding: 12px 16px; border-radius: 16px; font-size: 14px; background: rgba(20,22,28,.95);
+           border: 1px solid var(--edge-hi); color: var(--ink); opacity: 0; transition: opacity .2s; }
+  .toast.on { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="bar-top"><span style="font-size: 22px;">&lsaquo;</span><span>Rooms</span></div>
+  <div class="wrap">
+    <h2>Living room</h2>
+    <div class="card now">
+      <div class="still"></div>
+      <div class="in">
+        <div class="label">Playing on the Apple TV · in Apple TV</div>
+        <div class="t">Harbor Lights</div>
+        <div class="ctl">
+          <button><svg viewBox="0 0 24 24"><path d="M11 7L6 12l5 5M18 7l-5 5 5 5"/></svg></button>
+          <button class="big"><svg viewBox="0 0 24 24"><path d="M9 6v12M15 6v12"/></svg></button>
+          <button><svg viewBox="0 0 24 24"><path d="M13 7l5 5-5 5M6 7l5 5-5 5"/></svg></button>
+          <span class="vol"><i></i></span>
+        </div>
+      </div>
+    </div>
+    <div class="pad"><span class="sw">Swipe to move on the TV</span><div class="ok">OK</div>
+      <span class="k" style="left: 14px;">Back</span><span class="k" style="right: 14px;">Home</span></div>
+    <div class="label" style="margin-top: 16px;">Open on the TV</div>
+    <div class="chips" id="chips"></div>
+    <div class="label" style="margin-top: 16px;">Lights here</div>
+    <div class="lamps">
+      <div class="lamp"><b>Ceiling light</b><small>On, 35%</small></div>
+      <div class="lamp"><b>Floor lamp</b><small>On, 24%</small></div>
+      <div class="lamp off"><b>Reading lamp</b><small>Off</small></div>
+    </div>
+    <div class="house">Show the house on the TV</div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+  const apps = [['Netflix', '150, 45, 50'], ['YouTube', '160, 75, 60'], ['Disney+', '45, 75, 150'], ['Prime Video', '40, 115, 150'], ['Max', '85, 60, 160']]
+  const chips = document.getElementById('chips'), toast = document.getElementById('toast')
+  chips.innerHTML = apps.map(([n, t]) => `<span class="chip" style="--t:${t}">${n}</span>`).join('')
+  let timer
+  const say = (s) => { toast.textContent = s; toast.classList.add('on'); clearTimeout(timer); timer = setTimeout(() => toast.classList.remove('on'), 2400) }
+  chips.addEventListener('click', (ev) => {
+    const c = ev.target.closest('.chip'); if (!c) return
+    chips.querySelectorAll('.chip').forEach((x) => x.classList.toggle('sent', x === c))
+    say(`${c.textContent} is opening on the Apple TV`)
+  })
+  document.querySelector('.house').addEventListener('click', () => say('The TV switches to the house until Home on the Apple TV’s remote'))
+</script>
+</body>
+</html>

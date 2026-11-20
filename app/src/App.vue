@@ -19,10 +19,11 @@ import { lastTurn } from './thisScreen'
 import CodePrompt from './CodePrompt.vue'
 import Keys from './Keys.vue'
 import { onWall } from './keys'
-import { installRemote, musicIn, onTV, sceneFor, type Press } from './tv'
+import { installRemote, musicIn, onTV, RECORD_AFTER, restAfter, sceneFor, type Press } from './tv'
 import TvView from './views/TvView.vue'
 import DoorCorner from './DoorCorner.vue'
 import TvRecord from './TvRecord.vue'
+import TvGlow from './TvGlow.vue'
 import TvBand from './TvBand.vue'
 import TvRest from './TvRest.vue'
 import { bedtime, loadRestPhotos, nightOf, reportScreen, rest, SLEEP_AFTER } from './restTv'
@@ -133,8 +134,24 @@ const tvHome = computed(() => homeRoom(rooms.value) ?? params.get('room')
   ?? rooms.value.find(r => r.devices.some(d => cap(d) === 'light'))?.id ?? rooms.value[0]?.id ?? null)
 const tvRoom = computed(() => room.value ?? rooms.value.find(r => r.id === tvHome.value) ?? null)
 const tvBand = ref(false)
-/* while the TV's room plays music, the resting TV is the record and its band works the music (design/tv-music/, B) */
-const tvMusic = computed(() => tv ? musicIn(tvRoom.value, true) : null)
+const bandOn = ref<'pause' | 'volume'>('pause')   // where the sheet over the record opens: OK on Pause, Up or Down on the volume
+/* while the TV's room plays music, the record is the TV's home and its sheet works the music, the room and the house (design/tv-playing/, A) */
+/* A pause keeps the record up a while, so a song stopped for a phone call is one press from playing again rather than
+   gone from the screen; it goes once it has been paused ten minutes, or something else plays. */
+const PAUSE_HOLD = 10 * 60 * 1000
+const pausedAt = ref<{ id: string; at: number } | null>(null)
+watch(() => { const d = musicIn(tvRoom.value); return d ? `${d.id}|${d.state}` : '' }, (is, was) => {
+  const [id, state] = is.split('|'), [wid, wstate] = (was ?? '').split('|')
+  if (state === 'paused' && wstate === 'playing' && wid === id) pausedAt.value = { id, at: Date.now() }   // a pause seen happening, not one found on loading
+  else if (state !== 'paused') pausedAt.value = null
+})
+const tvMusic = computed(() => {
+  if (!tv) return null
+  const on = musicIn(tvRoom.value, true)
+  if (on) return on
+  const p = pausedAt.value, d = p && tvRoom.value?.devices.find(x => x.id === p.id)
+  return d && d.state === 'paused' && now.value.getTime() - p!.at < PAUSE_HOLD ? d : null
+})
 const toneParam = params.get('tone'), layoutParam = params.get('layout')
 
 /* The house's feel, which is what the Look page actually writes: one of three,
@@ -248,7 +265,8 @@ const wallPhotos = computed(() => !tv && screen && (rest.view === 'board' || (re
 function touched(e?: Event) {
   lastTouch = Date.now()
   if (!idle.value) return
-  if (tv && e?.type === 'keydown') { restSince.value = Date.now(); slept = false; return }   // a resting TV raises its band on OK; Home is what wakes it
+  // a resting TV raises its band on OK, and Home is what wakes it; a mouse in the band is the same as the remote
+  if (tv && (e?.type === 'keydown' || (e?.target as Element | null)?.closest?.('.tvb-wrap'))) { restSince.value = Date.now(); slept = false; return }
   wake()
 }
 function wake() {
@@ -282,6 +300,8 @@ watch(() => store.asks.length, (n, o) => { if (n > o) { store.askAside = false; 
 watch(() => store.bridge?.state, (is, was) => { if (is === 'knocking' && was && was !== 'knocking') touched() })
 /* The band's OK on a thing that opens rather than acts: a pane belongs to the awake panel. */
 function wakeOpen(d: Device) { wake(); store.opened = d }
+function wakeTo(id: string) { wake(); open(id) }
+function wakeToMusic() { const r = tvRoom.value; wake(); if (r) store.musicPane = r.id }
 function remote(p: Press): boolean {
   // somebody at the door: OK makes the door the whole screen, Back lets it go, awake or resting (design/tv-doorbell/, A)
   if (store.ringing && (p === 'ok' || p === 'back')) {
@@ -294,11 +314,12 @@ function remote(p: Press): boolean {
   if (tvBand.value) { if (p === 'home') { wake(); return true } return false }
   if (!tvMusic.value && rest.face === 'bedtime' && p === 'ok') { bedtime(); return true }
   if (!tvMusic.value && rest.face === 'bedtime' && p === 'back') { rest.notYet = nightOf(shown.value); return true }
-  if (p === 'ok' || p === 'up' || p === 'down') tvBand.value = true
+  if (p === 'ok' || p === 'up' || p === 'down') { bandOn.value = p === 'ok' ? 'pause' : 'volume'; tvBand.value = true }
   else if (p === 'home') wake()
   return true   // nothing else does anything to a resting TV
 }
 function remoteBack(): boolean {
+  if (store.glowSetup) { store.glowSetup = false; return true }
   if (tvBand.value) { tvBand.value = false; return true }
   if (store.viewer) { store.viewer = null; return true }
   if (store.opened) { store.opened = null; return true }
@@ -320,7 +341,10 @@ let unremote: (() => void) | undefined
 async function rejoin() { halt(); await start() }                       // this screen just joined: read the house and reconnect
 function checkIdle() {
   // a page that is the whole screen is a question waiting for its answer (joining, which room), so it never rests under the clock
-  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && !shut.value && Date.now() - lastTouch > IDLE_AFTER) idle.value = true
+  const quiet = Date.now() - lastTouch
+  const wait = restAfter(IDLE_AFTER, !!tvMusic.value, !!store.opened || !!store.musicPane || !!store.glowSetup)
+  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && !shut.value && quiet > wait) idle.value = true
+  if (idle.value && tvBand.value && tvMusic.value && quiet > RECORD_AFTER) tvBand.value = false
   forgetDone(idle.value)   // and the stale ones either way, for a screen that never rests
   if (idle.value) lastTurn.value = null   // This screen's Put it back, by the same rule
   if (tv && idle.value && !slept && Date.now() - restSince.value > SLEEP_AFTER) { slept = true; sleepTv() }
@@ -338,11 +362,11 @@ function looked() { if (document.visibilityState === 'hidden') forgetDone(true) 
 let tick: number | undefined, idler: number | undefined
 onMounted(() => {
   start()
+  window.addEventListener('pointerdown', touched, { capture: true })
+  window.addEventListener('keydown', touched, { capture: true })   // before the remote, which stops the keys it takes
   if (tv) unremote = installRemote({ first: remote, back: remoteBack, home: remoteHome, color: remoteColor })
   tick = window.setInterval(() => (now.value = new Date()), 10000)
   idler = window.setInterval(checkIdle, 5000)
-  window.addEventListener('pointerdown', touched, { capture: true })
-  window.addEventListener('keydown', touched, { capture: true })
   document.addEventListener('visibilitychange', looked)
   atTouch.addEventListener('change', measure)
   darkOS.addEventListener('change', onScheme)
@@ -532,7 +556,8 @@ onUnmounted(() => {
         </template>
       </div>
     </Transition>
+    <TvGlow v-if="tv && store.glowSetup && tvRoom" :room="tvRoom" />
     <DoorCorner v-if="tv && store.ringing" />
-    <TvBand v-if="tv && idle && tvBand && tvRoom" :room="tvRoom" :music="tvMusic" @rooms="wake" @open="wakeOpen" />
+    <TvBand v-if="tv && idle && tvBand && tvRoom" :room="tvRoom" :music="tvMusic" :start="bandOn" @rooms="wake" @open="wakeOpen" @room="wakeTo" @music="wakeToMusic" />
   </div>
 </template>

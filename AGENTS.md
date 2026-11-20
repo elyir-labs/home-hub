@@ -406,6 +406,20 @@ Do not reopen these, and do not propose around them.
   (OK plays or pauses, Up and Down are the volume, Hold OK opens the music pane); at rest, a room that plays shows the
   record, and OK raises Pause, Next and the volume. `brain/hub/doorbell.py`, `DoorCorner.vue`, `TvRecord.vue`,
   `musicIn` in `tv.ts`; pinned by `brain/tests/test_doorbell.py`, `app/tests/tv.test.ts` and `app/e2e/tv-door-music.spec.ts`.
+- **The hub drives a streaming box; it never plays the services itself** (20 November, `design/tv-box/`, A). Netflix,
+  Apple TV+, Disney+ and the rest stream in full only on devices they certify, so they stay on an Apple TV, Google TV,
+  Roku or Fire TV beside the hub (or a TV with apps built in). With one in the TV's room, a Watch row comes above the room:
+  what the box last had on, then its apps by name on a quiet tint, never a logo, the ones the house has seen used first.
+  OK opens the app on the box and the TV switches over, after two seconds that say how to come back. **Coming back**
+  (20 November, B falling back to A): an Apple TV doesn't say when Home is pressed, so a colored button on the TV's
+  remote brings the house back where the screen's adapter hears a press meant for the box (`startup/cec-watch.py`),
+  Input on the TV's remote where it can't, and the box going to sleep always; the app is then still lit, saying Just now. Music playing in the room still leads,
+  Watch under it; a TV with no box opens on its room. Which integrations are boxes is the brain's (`BOXES` in
+  `brain/hub/boxes.py`); the panel only sees a player with apps. The input is switched by the screen's helper over CEC
+  (`/tv` in `startup/screen-helper.py`, `cec.sh tv show|box`, `cec-watch.py`). On the wall and the phone (20 November, `design/box-card/`, B) a
+  sleeping box's card says Asleep, what was last on and Watch, in the TV card's own place; Watch opens its pane, the same
+  choice as the TV's row (`panes/BoxWatch.vue`, `app/src/boxes.ts`), and the TV's screen follows an app opened there. Pinned by `brain/tests/test_boxes.py`,
+  `app/tests/tv.test.ts`, `app/tests/boxes.test.ts`, `app/e2e/tv-box.spec.ts`, `app/e2e/box-card.spec.ts` and the `remote` and `changing` groups in `driver-layer/host/tests.sh`.
 - **A TV at rest shows the household's photos, and the household picks which screens show them** (20 November,
   `design/rest-tv/`, A with C, B and E; `design/tv-photos/`, A with C; `design/which-tv/`, A with B's row, C's screens
   and Wall A). Resting, a TV shows the photos sent from phones on Photos (This house, under Every day), the sky with a

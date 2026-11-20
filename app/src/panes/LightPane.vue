@@ -13,7 +13,8 @@
  */
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import type { Device } from '../api'
-import { keepColor, listStrips, revisitStrip, tuneStrip, tuneStripBy, tuneStripDone, splitStrip, joinStrip, type StripRow } from '../api'
+import { keepColor, listStrips, revisitStrip, tuneStrip, tuneStripBy, tuneStripDone, splitStrip, joinStrip, type StripRow, followTV, getGlow, stopFollowing, type GlowChoice } from '../api'
+import GlowPhone from '../GlowPhone.vue'
 import { previewStripRow } from '../controller'
 import { BEFORE, FIRST, gap, step } from '../walk'
 import { deviceById, guessNow, isDead, notify, perform, roomOf, store } from '../store'
@@ -23,6 +24,33 @@ import Icon from '../Icon.vue'
 import { useNarrow, useSlide } from './slide'
 
 const props = defineProps<{ device: Device }>()
+
+/* A strip that could be the light behind the TV says so here, with the switch that has it follow the picture
+   (design/tv-glow/). Setting it up is the TV's (A), or a phone's when the TV cannot find itself (B): Where the TV is. */
+const behind = ref<GlowChoice | null>(null)
+const glowState = ref<{ on?: boolean; set?: boolean; strip?: string; run?: number }>({})
+const marking = ref(false), flipping = ref(false)
+watch(() => props.device.id, async () => {
+  try {
+    const g = await getGlow(props.device.room_id)
+    behind.value = g.choices.find(c => c.light === props.device.id && c.reachable) ?? null
+    glowState.value = g.glow as typeof glowState.value
+  } catch { behind.value = null }
+}, { immediate: true })
+const following = computed(() => !!behind.value && glowState.value.on === true && glowState.value.strip === behind.value.strip && (glowState.value.run ?? 0) === behind.value.run)
+async function flipFollow() {
+  if (!behind.value || flipping.value) return
+  flipping.value = true
+  try {
+    if (following.value) glowState.value = (await stopFollowing()).glow as typeof glowState.value
+    else {
+      glowState.value = (await followTV(behind.value.strip, behind.value.run)).glow as typeof glowState.value
+      if (!glowState.value.set) marking.value = true
+    }
+  } catch (e) { notify((e as Error).message, 'error') }
+  flipping.value = false
+}
+function marked() { marking.value = false; getGlow(props.device.room_id).then(g => (glowState.value = g.glow as typeof glowState.value)).catch(() => {}) }
 const a = computed(() => props.device.attrs)
 const dead = computed(() => isDead(props.device))
 const on = computed(() => props.device.state === 'on')
@@ -502,8 +530,22 @@ async function level(l: typeof LEVELS[number]) {
         <Icon name="back" :size="18" class="sd-chev" />
       </button>
     </div>
+    <div class="rig-ask" v-if="behind && !tuning">
+      <span class="rig-lbl">Behind the TV</span>
+      <div class="rig-card glow-row">
+        <span class="glow-text">
+          <span class="rig-card-name">Follows the TV</span>
+          <span class="rig-card-sub">{{ !following ? 'Off' : glowState.set ? 'Colors from the picture' : 'Not set up yet' }}</span>
+        </span>
+        <button class="toggle" role="switch" :aria-checked="following" aria-label="Follows the TV" :class="{ on: following, busy: flipping }" @click="flipFollow"><span class="knob"></span></button>
+      </div>
+      <button class="linkish glow-where" v-if="following" @click="marking = true">Where the TV is</button>
+    </div>
     </div>
   </div>
+
+  <!-- on the page itself, not in the pane: the pane is moved by a transform, which would carry a fixed sheet with it -->
+  <Teleport to="body"><GlowPhone v-if="marking && behind" :name="behind.name" :set="!!glowState.set" @done="marked" /></Teleport>
 
   <!-- WHAT IS BEHIND THE DOOR (design/strip/Behind.dc.html). The setup conversation reopened and
        nothing more: no effects, no segments, no zones. The length is walked here rather than

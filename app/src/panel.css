@@ -16636,3 +16636,20 @@ html[data-wall] [data-moving] *::after {
   font-size: 13.5px;
   color: var(--ink-2);
 }
+
+/* the strip behind the TV, and its switch to follow the picture (design/tv-glow/) */
+.glow-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+.glow-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.glow-where {
+  margin-top: 8px;
+}

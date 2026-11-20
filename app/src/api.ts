@@ -968,6 +968,18 @@ export async function claimJoin(id: string): Promise<{ state: 'waiting' | 'allow
 export const joinPluggedIn = () => post<{ ok: boolean; phone: Phone }>('/phones/plugged-in')
 export const joinWithCode = (code: string, name: string, kind?: 'screen') => post<{ ok: boolean; phone: Phone }>('/phones/code', { code, name, kind })
 /** The household's answer: two speakers playing the same song in a room are one pair, or two (design/speaker-pair/, B). */
+/** The light behind the TV (design/tv-glow/, A): the strips in a room that could follow the picture, and telling one to. */
+export type GlowTarget = { host: string; port: number; key: string; run: number }
+export type GlowChoice = { strip: string; run: number; light: string; name: string; lights: number; reachable: boolean }
+export async function getGlow(room?: string | null): Promise<{ glow: Record<string, unknown>; choices: GlowChoice[]; target: GlowTarget | null }> {
+  const r = await request(`/glow${room ? `?room=${encodeURIComponent(room)}` : ''}`); if (!r.ok) await fail(r); return r.json()
+}
+export const stopFollowing = () => post<{ glow: Record<string, unknown> }>('/glow', { on: false })
+/** Where the TV is in the camera's view, and the way the strip runs when it is said (the TV finding itself, or a phone marking it). */
+export const glowCorners = (body: { corners: number[][]; start?: string; first?: string; bottom?: boolean }) => post<{ path: string[] }>('/glow/corners', body)
+export const glowChase = (stop = false) => post<{ ok: boolean }>('/glow/chase', stop ? { stop: true } : {})
+export const glowStill = () => `/glow/still?t=${Date.now()}`
+export const followTV = (strip: string, run: number) => post<{ glow: Record<string, unknown>; target: GlowTarget | null }>('/glow', { strip, run })
 export const pairSpeakers = (speakers: [string, string], pair: boolean) => post<{ pairs: unknown[] }>('/speakers/pair', { speakers, pair })
 export const placeScreen = (room: string) => post<{ room: string; phone: Phone | null }>('/phones/me/room', { room })
 export const allowPhone = (id: string, span: 'day' | 'weekend' | 'keep') => post<Phone>(`/phones/asks/${encodeURIComponent(id)}/allow`, { span })

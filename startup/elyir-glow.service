@@ -1,0 +1,16 @@
+# The light behind the TV, following the picture through a camera (glow.py): the helper the TV's setup asks, and
+# the following itself once that setup has said where the screen is and which strip (design/tv-glow/, A).
+[Unit]
+Description=The light behind the TV
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/home-hub/startup/glow.py
+StateDirectory=elyir-glow
+Restart=on-failure
+RestartSec=5
+DynamicUser=yes
+SupplementaryGroups=video
+
+[Install]
+WantedBy=multi-user.target

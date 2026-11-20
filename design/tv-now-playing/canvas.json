@@ -1,0 +1,117 @@
+{
+  "name": "The TV while its room plays music",
+  "areas": [
+    "Music",
+    "Wall screens"
+  ],
+  "pages": [
+    {
+      "id": "np",
+      "name": "Music playing in the TV's own room, the TV awake",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A, as design/tv-playing/ A",
+        "board": "MenuA.dc.html"
+      }
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "np",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: music plays in the TV's room, the TV awake"
+    },
+    {
+      "file": "MenuA.dc.html",
+      "page": "np",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: the record, and a menu from the foot on OK",
+      "is_interactive": true
+    },
+    {
+      "file": "DownB.dc.html",
+      "page": "np",
+      "x": 0,
+      "y": 3000,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: the record first, the room's rows a press down",
+      "is_interactive": true
+    },
+    {
+      "file": "SideC.dc.html",
+      "page": "np",
+      "x": 0,
+      "y": 4500,
+      "w": 1920,
+      "h": 1080,
+      "title": "C: the record, with the room down the side",
+      "is_interactive": true
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "np",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026: \"when something is playing in the same room on the same device the hub is connected to, I like to be able to focus on what is playing.\" Today the TV awake shows the room with the record as its first row (design/tv-music/, A), and the record fills the screen only after three minutes at rest (B). Here the record is the TV's screen whenever its room plays, awake or not, and everything else is a press away."
+    },
+    {
+      "id": "same",
+      "page": "np",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "THE SAME IN EVERY DIRECTION\n\nOnly while music plays (or was paused in the last ten minutes) in the TV's own room; music in the kitchen is the kitchen's, and a film or a show on the box keeps the TV's home as it is (design/tv-box/). When the music stops, the TV's home comes back on its own room. The doorbell's corner still comes over all of it. Resting, the record is what it is today."
+    },
+    {
+      "id": "a",
+      "page": "np",
+      "x": 2040,
+      "y": 1500,
+      "w": 560,
+      "text": "A: A MENU FROM THE FOOT ON OK\n\nThe record fills the TV. OK raises a sheet from the foot -- the record steps up and back -- with the music's own keys (Pause, Next, Something else, the volume) and the room under them: its lights, its scenes, Watch on the box, Other rooms and the house. Back puts it away.\n\nFOR: what you asked for; one press to everything, and the record never leaves.\n\nAGAINST: a second way round the house on the TV, beside the rows.\n\nTry it: Enter, the arrows, Escape."
+    },
+    {
+      "id": "b",
+      "page": "np",
+      "x": 2040,
+      "y": 3000,
+      "w": 560,
+      "text": "B: THE ROOM'S ROWS A PRESS DOWN\n\nThe record is the top of the TV's home, the size of the screen; Down slides the room's rows up under it, as the home already moves, and Up brings the record back. OK pauses.\n\nFOR: the same rows as today, so nothing new to learn below the record.\n\nAGAINST: the music's own keys are only OK; Next and the volume are a row down.\n\nTry it: Down and Up."
+    },
+    {
+      "id": "c",
+      "page": "np",
+      "x": 2040,
+      "y": 4500,
+      "w": 560,
+      "text": "C: THE ROOM DOWN THE SIDE\n\nThe record on the left, smaller, and a column of the room's things on the right, always there.\n\nFOR: no press to see the lights.\n\nAGAINST: the record is no longer the screen; it shares it, which is what was asked against."
+    },
+    {
+      "id": "pick",
+      "page": "np",
+      "x": -620,
+      "y": 1500,
+      "w": 500,
+      "text": "PICK ONE\n\nA (what was asked for), B, C, a mix, or something else -- describe it."
+    },
+    {
+      "id": "decided",
+      "page": "np",
+      "x": -620,
+      "y": 900,
+      "w": 500,
+      "text": "DECIDED 20 NOVEMBER 2026\n\nThe same question was drawn at the same time as design/tv-playing/, whose A is this A. A was picked there and built from that board."
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+/* The streaming box on the wall and the phone (design/box-card/). Each board is today's room with the TV card drawn
+   again in exactly its place and size, so a direction changes the card and nothing around it. The values are the
+   shipped .tile's: the wall's dark glass and Plus Jakarta Sans, the phone's light glass and Instrument Sans. */
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #07090d; }
+.shot { position: relative; overflow: hidden; }
+.shot > img { display: block; width: 100%; height: 100%; }
+.wall { width: 1440px; height: 900px; font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  --ink: #f1eee8; --ink-2: #b9b5ad; --muted: #7f7d77; --glass: #16181e; --edge: rgba(255,255,255,.1); --chip: rgba(255,255,255,.08); }
+.phone { width: 390px; height: 844px; font-family: "Instrument Sans", system-ui, sans-serif;
+  --ink: #1e1b24; --ink-2: #57546a; --muted: #74707e; --glass: #f1f0f5; --edge: rgba(30,27,36,.1); --chip: rgba(30,27,36,.06); }
+.shot { --lamp-rgb: 233, 184, 114; --lamp: rgb(var(--lamp-rgb)); --lamp-ink: #2a1c07; color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+.why-tag { position: absolute; z-index: 9; padding: 9px 13px; border-radius: 11px; font: 15px/1.35 "Instrument Sans", system-ui, sans-serif; color: #f1eee8;
+  background: rgba(10,12,16,.9); border: 1px solid rgba(var(--lamp-rgb), .6); max-width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,.45); }
+.why-tag b { color: var(--lamp); font-weight: 600; }
+.phone .why-tag { font-size: 12.5px; max-width: 200px; padding: 7px 10px; }
+
+/* the card, in the TV card's own place */
+.box { position: absolute; border-radius: 24px; background: var(--glass); border: 1px solid var(--edge); overflow: hidden; z-index: 2;
+  padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; user-select: none; }
+.wall .box { left: 40px; top: 623px; width: 317px; height: 159px; }
+.phone .box { left: 200px; top: 388px; width: 174px; height: 150px; padding: 14px 14px; }
+.box .kick { font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); }
+.box .nm { font-size: 17px; font-weight: 500; margin-top: 4px; }
+.box .sub { font-size: 14px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.box .act { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); }
+.round { width: 38px; height: 38px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--chip); color: var(--ink); }
+.round.lamp { background: var(--lamp); color: var(--lamp-ink); }
+.round svg { width: 16px; height: 16px; fill: currentColor; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { padding: 7px 11px; border-radius: 12px; font-size: 13px; font-weight: 500; white-space: nowrap; color: var(--ink);
+  background: linear-gradient(160deg, rgba(var(--t), .55), rgba(var(--t), .2)); border: 1px solid rgba(var(--t), .4); }
+.phone .chip { background: linear-gradient(160deg, rgba(var(--t), .28), rgba(var(--t), .1)); padding: 6px 9px; font-size: 12.5px; }
+.chip.more { background: var(--chip); border-color: var(--edge); }
+.chip.sent, .app.sent { box-shadow: 0 0 0 2px var(--lamp); }
+
+/* C: the card is the last thing on, the way a speaker's card is its song */
+.box.show { color: #f6f2ea; border-color: rgba(255,255,255,.14);
+  background: linear-gradient(transparent 20%, rgba(0,0,0,.65)), radial-gradient(70% 90% at 25% 30%, #c98a52, transparent 70%), radial-gradient(60% 80% at 85% 80%, #2f4a6e, transparent 70%), #1a1f2b; }
+.box.show .kick, .box.show .sub, .box.show .act { color: rgba(246,242,234,.78); }
+
+/* the pane the card opens: the wall's sheet, the phone's page */
+.pane { position: absolute; z-index: 6; display: none; background: #101116; color: #f1eee8; }
+.phone .pane { background: #f7f5fa; color: #1e1b24; }
+.phone .pane h2 { color: #9a6b22; }
+.pane.open { display: block; }
+.wall .pane { left: 0; right: 0; top: 228px; bottom: 0; border-radius: 40px 40px 0 0; border-top: 1px solid rgba(255,255,255,.12); padding: 44px 49px; }
+.phone .pane { inset: 0; padding: 60px 20px 20px; }
+.pane .x { position: absolute; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.08); font-size: 20px; cursor: pointer; }
+.wall .pane .x { right: 32px; top: 32px; } .phone .pane .x { right: 16px; top: 52px; background: rgba(30,27,36,.06); }
+.pane .where { font-size: 15px; color: #b9b5ad; } .phone .pane .where { color: #57546a; }
+.pane h1 { margin: 6px 0 0; font-size: 56px; font-weight: 400; letter-spacing: -.03em; line-height: 1.05; }
+.phone .pane h1 { font-size: 34px; }
+.pane .state { margin-top: 8px; font-size: 17px; color: #7f7d77; }
+.wall .pane .left { position: absolute; left: 49px; top: 44px; width: 540px; }
+.wall .pane .right { position: absolute; left: 643px; right: 49px; top: 70px; bottom: 40px; border-radius: 28px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); padding: 28px; }
+.phone .pane .right { margin-top: 22px; }
+.pane h2 { margin: 0 0 14px; font-size: 13px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--lamp); }
+.pane .last { display: flex; height: 132px; border-radius: 20px; overflow: hidden; margin-bottom: 16px; cursor: pointer;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }
+.phone .pane .last { height: 96px; background: #fff; border-color: rgba(30,27,36,.1); }
+.pane .last .still { width: 42%; flex: none; background: radial-gradient(70% 90% at 25% 30%, #c98a52, transparent 70%), radial-gradient(60% 80% at 85% 80%, #2f4a6e, transparent 70%), #1a1f2b; }
+.pane .last .t { padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; }
+.pane .last .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--lamp); }
+.pane .last b { font-size: 22px; font-weight: 500; } .phone .pane .last b { font-size: 17px; }
+.pane .last small { font-size: 14px; color: #7f7d77; }
+.pane .apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.phone .pane .apps { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.pane .app { height: 104px; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; justify-content: flex-end; cursor: pointer;
+  background: linear-gradient(160deg, rgba(var(--t), .55), rgba(var(--t), .16) 75%, rgba(255,255,255,.03)); border: 1px solid rgba(var(--t), .35); }
+.phone .pane .app { height: 76px; background: linear-gradient(160deg, rgba(var(--t), .3), rgba(var(--t), .08)); }
+.pane .app b { font-size: 17px; font-weight: 500; } .pane .app small { font-size: 13px; color: var(--lamp); min-height: 1em; }
+.phone .pane .app small { color: #9a6b22; }
+.pane .foot { margin-top: 16px; font-size: 14px; color: #7f7d77; }
+.toast { position: absolute; z-index: 8; left: 50%; transform: translateX(-50%); padding: 10px 16px; border-radius: 14px; font: 14px "Instrument Sans", system-ui, sans-serif;
+  background: rgba(10,12,16,.92); color: #f1eee8; border: 1px solid rgba(255,255,255,.15); opacity: 0; transition: opacity .2s; white-space: nowrap; pointer-events: none; }
+.wall .toast { bottom: 110px; } .phone .toast { bottom: 96px; }
+.toast.on { opacity: 1; }
+.try { position: absolute; z-index: 9; right: 12px; top: 8px; font: 12px "Instrument Sans", system-ui, sans-serif; color: #9a978f; }

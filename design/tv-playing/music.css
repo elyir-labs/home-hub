@@ -1,0 +1,18 @@
+/* Music on the TV's room's own speakers (design/tv-music/). The TV plays nothing itself: the HomePods, a Sonos or
+   any speaker in the room does, and the TV is the screen for it. The record's art is drawn: no real cover on a board. */
+.art { border-radius: 18px; flex: none; position: relative; overflow: hidden;
+       background: radial-gradient(60% 60% at 30% 30%, #e8a46a, transparent 70%), radial-gradient(70% 70% at 80% 75%, #3c5a8c, transparent 70%), #1d2433; }
+.art::after { content: ""; position: absolute; inset: 22%; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); }
+.top { position: absolute; left: var(--safe-x); right: var(--safe-x); top: var(--safe-y); display: flex; justify-content: space-between; align-items: baseline; z-index: 2; }
+.clock { font-size: 40px; font-weight: 300; }
+.clock small { font-size: 22px; color: var(--ink-2); margin-left: 14px; }
+.title { position: absolute; left: var(--safe-x); top: 140px; z-index: 2; }
+.title h1 { margin: 0; font-size: 76px; font-weight: 400; letter-spacing: -.03em; line-height: 1; }
+.title p { margin: 12px 0 0; font-size: 26px; color: var(--ink-2); }
+.row { position: absolute; left: var(--safe-x); right: 0; z-index: 2; }
+.row h2 { margin: 0 0 18px; font-size: 20px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.cards { display: flex; gap: 28px; }
+.thing { width: 260px; height: 230px; padding: 24px 24px 44px; display: flex; flex-direction: column; justify-content: space-between; flex: none; }
+#hint { position: absolute; left: 0; right: 0; bottom: var(--safe-y); justify-content: center; z-index: 3; }
+.pbar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.14); }
+.pbar i { display: block; height: 100%; width: 38%; border-radius: 3px; background: var(--ink); }
