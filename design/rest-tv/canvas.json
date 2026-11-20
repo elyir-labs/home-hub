@@ -119,7 +119,7 @@
       "x": 2040,
       "y": 0,
       "w": 560,
-      "text": "UNDER EVERY DIRECTION, WHICHEVER IS PICKED\n\nNOTHING STAYS PUT. On an OLED TV, a shape held in one place for weeks leaves a ghost. Every type on a resting TV drifts a few pixels each minute and swaps sides each hour. A, C and H move by nature. B, D, E, F and G need the drift.\n\nTHE TV GOES TO SLEEP. After about 20 minutes at rest with no key pressed (and right after Goodnight in E), the hub tells the TV to go to standby over HDMI, the same cable that brings the remote's keys in today (startup/cec-keys.toml). Turning the TV back on brings the hub up where it rested. A hub on a TV must never be the reason the TV was on all night.\n\nOK STILL DOES WHAT IT DOES. On every board, OK raises this room's band and Home wakes the TV, as decided in design/living-room. The line in the corner says what OK does, which changes only in B, E and G."
+      "text": "UNDER EVERY DIRECTION, WHICHEVER IS PICKED\n\nNOTHING STAYS PUT. On an OLED TV, a shape held in one place for weeks leaves a ghost. Every type on a resting TV drifts a few pixels each minute and swaps sides each hour. A, C and H move by nature. B, D, E, F and G need the drift.\n\nTHE TV GOES TO SLEEP. After about 20 minutes at rest with no key pressed (and right after Bedtime in E), the hub tells the TV to go to standby over HDMI, the same cable that brings the remote's keys in today (startup/cec-keys.toml). Turning the TV back on brings the hub up where it rested. A hub on a TV must never be the reason the TV was on all night.\n\nOK STILL DOES WHAT IT DOES. On every board, OK raises this room's band and Home wakes the TV, as decided in design/living-room. The line in the corner says what OK does, which changes only in B, E and G."
     },
     {
       "id": "today",
@@ -167,7 +167,7 @@
       "x": 0,
       "y": 7120,
       "w": 1920,
-      "text": "E: WINDING DOWN AT NIGHT. After a time the house chooses (about 10:30 PM), rest turns into the end of the day: what is still on before bed, in a short list, and one button, Goodnight, lit and ready for OK. It turns everything off, locks what is unlocked and stops the music, then the TV turns itself off with the lights. Left alone, the TV still goes off by itself after a few minutes, without touching the house.\n\nFOR: It is the one moment the TV is genuinely useful at rest: the last person up is sitting in front of it with the remote in their hand. Everything off already exists (it is a scene), so the button is not new.\n\nAGAINST: It only covers the end of the evening, so it goes on top of another direction rather than replacing one. A house that never asked for a bedtime needs a sensible default."
+      "text": "E: WINDING DOWN AT NIGHT. After a time the house chooses (about 10:30 PM), rest turns into the end of the day: what is still on before bed, in a short list, and one button, Bedtime, lit and ready for OK. It is the house's own Bedtime: the lights off, what is unlocked locked, the music stopped, then the TV turns itself off with the lights. Left alone, the TV still goes off by itself after a few minutes, without touching the house.\n\nFOR: It is the one moment the TV is genuinely useful at rest: the last person up is sitting in front of it with the remote in their hand. Bedtime already exists (it is the house's scene for the night), so the button is not new, and it keeps its name: the same thing is called the same everywhere (renamed from Goodnight on 20 November).\n\nAGAINST: It only covers the end of the evening, so it goes on top of another direction rather than replacing one. A house that never asked for a bedtime needs a sensible default."
     },
     {
       "id": "f",
@@ -199,7 +199,7 @@
       "x": 2040,
       "y": 1500,
       "w": 560,
-      "text": "DECIDED 20 NOVEMBER 2026 -- A, WITH C UNTIL THERE ARE PHOTOS, B WHILE MUSIC PLAYS, E AT BEDTIME\n\nA resting TV shows the household's own photos (A). Until anybody has sent one, it shows the sky as a window (C). While music plays anywhere in the house, the music takes the screen (B). From bedtime on, it asks Goodnight (E). Under all of them, nothing holds still, and the TV is sent to standby after 20 minutes at rest."
+      "text": "DECIDED 20 NOVEMBER 2026 -- A, WITH C UNTIL THERE ARE PHOTOS, B WHILE MUSIC PLAYS, E AT BEDTIME\n\nA resting TV shows the household's own photos (A). Until anybody has sent one, it shows the sky as a window (C). While music plays anywhere in the house, the music takes the screen (B). From bedtime on, it offers Bedtime (E). Under all of them, nothing holds still, and the TV is sent to standby after 20 minutes at rest."
     },
     {
       "id": "lost",
