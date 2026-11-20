@@ -53,6 +53,7 @@ class BoxTests(ApiTest):
         self.assertEqual([c[1] for c in self.ha.called("media_player", entity_id="media_player.apple_tv")], ["turn_on", "select_source"])
         self.assertEqual(self.ha.called("media_player", "select_source")[0][3], {"source": "Netflix"})
         self.assertEqual(self.box().attrs["used_apps"], ["Netflix"])
+        self.assertEqual(self.box().attrs["opened"]["app"], "Netflix")      # every screen hears it, the TV's included
 
     def test_an_app_the_box_does_not_have_is_refused(self):
         self.assertEqual(self.client.post("/devices/media_player.apple_tv/app", json={"source": "Settings"}).status_code, 400)

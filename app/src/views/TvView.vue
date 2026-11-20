@@ -98,6 +98,14 @@ watch(() => box.value?.state, () => {
   if (!boxAsleep(b)) sent.awake = true
   else if (sent.awake) cameBack(true)
 })
+/* An app opened from the wall or a phone (design/box-card/, B): the box switches the TV over as it wakes, and where it
+   was already awake this screen does, and then brings the house back the same way as from its own Watch row. */
+watch(() => [box.value?.id, box.value?.attrs.opened?.at] as const, ([id, at], [wasId]) => {
+  const b = box.value
+  if (!at || id !== wasId || !b || sent) return
+  sent = { id: b.id, app: b.attrs.opened.app ?? null, awake: !boxAsleep(b), away: false }
+  showOnTv('box')
+})
 onUnmounted(() => clearInterval(asking))
 const scenes = computed(() => props.here ? scenesFor(props.here) : [])
 const others = computed(() => props.rooms.filter(r => r.id !== props.here?.id && r.id !== 'unassigned' && r.devices.length))

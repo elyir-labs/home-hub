@@ -416,8 +416,10 @@ Do not reopen these, and do not propose around them.
   Input on the TV's remote where it can't, and the box going to sleep always; the app is then still lit, saying Just now. Music playing in the room still leads,
   Watch under it; a TV with no box opens on its room. Which integrations are boxes is the brain's (`BOXES` in
   `brain/hub/boxes.py`); the panel only sees a player with apps. The input is switched by the screen's helper over CEC
-  (`/tv` in `startup/screen-helper.py`, `cec.sh tv show|box`, `cec-watch.py`). Pinned by `brain/tests/test_boxes.py`,
-  `app/tests/tv.test.ts`, `app/e2e/tv-box.spec.ts` and the `remote` and `changing` groups in `driver-layer/host/tests.sh`.
+  (`/tv` in `startup/screen-helper.py`, `cec.sh tv show|box`, `cec-watch.py`). On the wall and the phone (20 November, `design/box-card/`, B) a
+  sleeping box's card says Asleep, what was last on and Watch, in the TV card's own place; Watch opens its pane, the same
+  choice as the TV's row (`panes/BoxWatch.vue`, `app/src/boxes.ts`), and the TV's screen follows an app opened there. Pinned by `brain/tests/test_boxes.py`,
+  `app/tests/tv.test.ts`, `app/tests/boxes.test.ts`, `app/e2e/tv-box.spec.ts`, `app/e2e/box-card.spec.ts` and the `remote` and `changing` groups in `driver-layer/host/tests.sh`.
 - **A hub on a cable into the modem answers nobody on the internet, and its Ready offers two ways in** (19 November,
   `design/modem-cable/`, C). A link with a public address takes no new connections (`driver-layer/host/public.sh`), and
   counts as online but never as the house's network, so the hub still makes its own Wi-Fi. Ready puts that Wi-Fi's code

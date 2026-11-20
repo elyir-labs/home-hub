@@ -16,6 +16,7 @@ import { dimmable, lightPct, step, tempUnit } from './levels'
 import { isScreen } from './screen'
 import { typable } from './keys'
 import { canStart, groupOf } from './music'
+import { isBox } from './boxes'
 
 /* Worked out, not told: a screen for the hub, in Chromium on Linux, that nobody can touch -- a mini PC on a
    TV. A wall screen has a touchscreen and keeps the wall. ?tv=1 forces it for previews, ?tv=0 turns it off. */
@@ -68,8 +69,7 @@ export function speakersOf(d: Device, room: Room): Device[] {
 
 /* A streaming box beside the TV (design/tv-box/, A): the hub opens an app on it and switches the TV over, and the box's
    own remote's Home brings the house back. The brain says which players are boxes; the panel only sees one with apps. */
-export const boxIn = (room: Room | null): Device | null =>
-  room?.devices.find(d => d.attrs?.box && ((d.attrs.apps as string[] | undefined)?.length ?? 0) > 0) ?? null
+export const boxIn = (room: Room | null): Device | null => room?.devices.find(isBox) ?? null
 
 /* The rows above the room's own, in order: what plays here, then Watch. A TV with no box has no Watch row, so it opens
    on its room as it did before. */
@@ -78,35 +78,7 @@ export function leadsOf(room: Room | null): Lead[] {
   return [...(musicIn(room) ? ['music' as const] : []), ...(boxIn(room) ? ['watch' as const] : [])]
 }
 
-/* The apps in the Watch row: those the house has seen used, newest first, then the rest as the box lists them. Seven
-   are shown; All apps lays out the rest in the same row. */
-export const APPS_SHOWN = 7
-export function appsOf(d: Device): { shown: string[]; more: string[] } {
-  const apps = (d.attrs.apps as string[] | undefined) ?? []
-  const used = ((d.attrs.used_apps as string[] | undefined) ?? []).filter(a => apps.includes(a))
-  const order = [...used, ...apps.filter(a => !used.includes(a))]
-  return { shown: order.slice(0, APPS_SHOWN), more: order.slice(APPS_SHOWN) }
-}
-
-/* An app's card is its name on a quiet tint, never its logo, and the same app always gets the same tint. */
-const TINTS = ['150, 45, 50', '105, 110, 125', '160, 75, 60', '45, 75, 150', '40, 115, 150', '85, 60, 160', '170, 60, 95', '60, 120, 90']
-export function appTint(app: string): string {
-  let h = 0
-  for (const c of app) h = (h * 31 + c.charCodeAt(0)) >>> 0
-  return TINTS[h % TINTS.length]
-}
-
-/* What the box last had on, as the row's first card says it, or null when it has never been seen playing. */
-export function lastOn(d: Device): { label: string; title: string; where: string; app: string | null } | null {
-  const l = d.attrs.last_on as { title: string | null; app: string | null } | null | undefined
-  if (!l || (!l.title && !l.app)) return null
-  return { label: d.state === 'playing' ? 'On now' : 'Last on', title: l.title || l.app!, where: l.title && l.app ? `In ${l.app}` : '', app: l.app }
-}
-
-/* The box gone to sleep: time for the TV to show the house again. Sleeping is the one thing every box reports; an
-   Apple TV doesn't say when Home is pressed (tried on the living room TV, 20 November). Only acted on once the box has
-   been seen awake since the hub sent the TV over, so the sleep it is woken from is not mistaken for it. */
-export const boxAsleep = (d: Device) => ['off', 'standby', 'unavailable'].includes(d.state)
+export { appsOf, appTint, APPS_SHOWN, boxAsleep, isBox, lastOn } from './boxes'
 
 /* What the handover says for the two seconds before the TV switches (design/tv-box/, coming back: B, falling back to A).
    A colored button is the way back only where this screen has said it can hear one meant for the box. */

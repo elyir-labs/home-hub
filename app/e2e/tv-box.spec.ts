@@ -85,6 +85,19 @@ test('where a colored button is heard, the handover shows the four colors, and t
   expect(shown).toEqual(['box'])                                    // the screen didn't need to switch it again
 })
 
+test('an app opened from the wall or a phone switches the TV over, and comes back the same way', async ({ page }) => {
+  await tv(page)
+  await page.waitForTimeout(300)
+  boxSays('standby', null)
+  speak({ type: 'device', device: { ...box, state: 'standby', attrs: { ...box.attrs, opened: { app: 'Netflix', at: Date.now() / 1000 } } } })
+  await expect.poll(() => shown).toEqual(['box'])
+  boxSays('on', 'Netflix')
+  await page.waitForTimeout(300)
+  boxSays('standby', null)
+  await expect.poll(() => shown).toEqual(['box', 'house'])
+  await expect(lit(page)).toContainText('Just now')
+})
+
 test('All apps lays the rest out in the same row', async ({ page }) => {
   await tv(page)
   for (let i = 0; i < 8; i++) await page.keyboard.press('ArrowRight')

@@ -710,7 +710,10 @@ class Hub:
             if dev.state in ("off", "standby"): await self.ha.call("media_player", "turn_on", dev.id)
             await self.ha.call("media_player", "select_source", dev.id, source=app)
             self.home.watched.opened(dev.id, app)
-            dev.attrs.update(self.home.watched.attrs(dev.id))
+            # Said to every screen at once, so the TV's own switches over to a box that was already awake when the app
+            # was opened from the wall or a phone (design/box-card/, B).
+            dev.attrs.update(self.home.watched.attrs(dev.id), opened={"app": app, "at": time.time()})
+            self._broadcast(json.dumps({"type": "device", "device": dev.__dict__}))
             self.log.add("action", dev.id, None, action, source=source, detail={"source": app})
         elif action in ("sound", "sound_off"):
             if action == "sound": await self.sounds.play(dev, str(data.get("sound", "")), data.get("minutes"), data.get("volume"), source=source)
