@@ -934,6 +934,11 @@ export type GlowChoice = { strip: string; run: number; light: string; name: stri
 export async function getGlow(room?: string | null): Promise<{ glow: Record<string, unknown>; choices: GlowChoice[]; target: GlowTarget | null }> {
   const r = await request(`/glow${room ? `?room=${encodeURIComponent(room)}` : ''}`); if (!r.ok) await fail(r); return r.json()
 }
+export const stopFollowing = () => post<{ glow: Record<string, unknown> }>('/glow', { on: false })
+/** Where the TV is in the camera's view, and the way the strip runs when it is said (the TV finding itself, or a phone marking it). */
+export const glowCorners = (body: { corners: number[][]; start?: string; first?: string; bottom?: boolean }) => post<{ path: string[] }>('/glow/corners', body)
+export const glowChase = (stop = false) => post<{ ok: boolean }>('/glow/chase', stop ? { stop: true } : {})
+export const glowStill = () => `/glow/still?t=${Date.now()}`
 export const followTV = (strip: string, run: number) => post<{ glow: Record<string, unknown>; target: GlowTarget | null }>('/glow', { strip, run })
 export const pairSpeakers = (speakers: [string, string], pair: boolean) => post<{ pairs: unknown[] }>('/speakers/pair', { speakers, pair })
 export const placeScreen = (room: string) => post<{ room: string; phone: Phone | null }>('/phones/me/room', { room })

@@ -8,7 +8,7 @@
    the screen helper is asked); then the strip runs a light from its first light and the TV asks, with the remote,
    which corner it started from and which way it went. When the camera cannot find the screen, it says what to try. */
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { followTV, getGlow, type GlowChoice, type GlowTarget, type Room } from './api'
+import { followTV, getGlow, glowCorners, type GlowChoice, type GlowTarget, type Room } from './api'
 import { store } from './store'
 import { hintParts, light, lit } from './tv'
 
@@ -69,7 +69,7 @@ async function choose(kind: 'start' | 'first' | 'bottom', v: string) {
   else bottom.value = v === 'yes'
   if (!start.value || !first.value || (needsBottom.value && bottom.value === null)) return
   try {
-    await ask('/save', { corners: found.value, start: start.value, first: first.value, bottom: !!bottom.value, lights: chosen.value!.lights, target: target.value })
+    await glowCorners({ corners: found.value!, start: start.value, first: first.value, bottom: !!bottom.value })
     step.value = 'done'; lightFirst()
   } catch (e) { why.value = (e as Error).message; step.value = 'missed'; lightFirst() }
 }
@@ -112,7 +112,7 @@ const quad = computed(() => found.value ? found.value.map(([x, y]) => `${x * 620
         </div>
       </template>
       <template v-else-if="step === 'missed'">
-        <div class="tvg-ask"><h1>Not this time</h1><p>{{ why }}</p></div>
+        <div class="tvg-ask"><h1>Not this time</h1><p>{{ why }}</p><p v-if="chosen">Or mark where the TV is on a phone: open the {{ chosen.name.toLowerCase() }} and choose Where the TV is.</p></div>
         <div class="tvg-opts" style="bottom:150px">
           <button class="tvg-opt" data-tv data-tv-start data-hint="OK|Try again" @click="retry">Try again</button>
           <button class="tvg-opt" data-tv data-hint="OK|Leave it for now" @click="close">Not now</button>

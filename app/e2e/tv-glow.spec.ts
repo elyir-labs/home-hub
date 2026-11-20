@@ -12,9 +12,12 @@ const TARGET = { host: '192.168.1.57', port: 21325, key: '0011223344556677', run
 
 async function house(page: Page, corners: number[][] | null) {
   const asked: { path: string; body: any }[] = []
-  await page.route('**/glow**', r => r.request().method() === 'POST'
-    ? r.fulfill({ json: { glow: { strip: 'ab12', run: 0, on: true }, target: TARGET } })
-    : r.fulfill({ json: { glow: {}, choices: [STRIP], target: null } }))
+  await page.route('**/glow**', r => {
+    const u = new URL(r.request().url())
+    if (u.pathname === '/glow/corners') { asked.push({ path: '/glow/corners', body: r.request().postDataJSON() }); return r.fulfill({ json: { path: ['left-up', 'top-right', 'right-down'] } }) }
+    return r.request().method() === 'POST' ? r.fulfill({ json: { glow: { strip: 'ab12', run: 0, on: true }, target: TARGET } })
+      : r.fulfill({ json: { glow: {}, choices: [STRIP], target: null } })
+  })
   await page.route('http://127.0.0.1:8397/**', async r => {
     const u = new URL(r.request().url()), body = r.request().postDataJSON()
     asked.push({ path: u.pathname + u.search, body })
@@ -44,7 +47,8 @@ test('the TV finds itself, asks which way the strip runs, and keeps the answers'
   await expect(page.locator('.tvg-q')).toHaveText('Along the bottom too?')
   await page.getByRole('button', { name: 'No', exact: true }).click()
   await expect(page.locator('.tvg h1')).toHaveText('The light behind the TV follows the picture')
-  expect(asked.find(a => a.path === '/save')?.body).toEqual({ corners: SQUARE, start: 'bottom-left', first: 'up', bottom: false, lights: 60, target: TARGET })
+  // kept through the house, which hands them to the camera's helper with the strip's key and count (hub/glow.py)
+  expect(asked.find(a => a.path === '/glow/corners')?.body).toEqual({ corners: SQUARE, start: 'bottom-left', first: 'up', bottom: false })
   await page.keyboard.press('Escape')
   await expect(page.locator('.tvg')).toHaveCount(0)
 })
@@ -53,7 +57,8 @@ test('a camera that cannot find the screen says what to try, and Try again looks
   const asked = await house(page, null)
   await page.goto('/?tv=1&room=living&at=21:10&glow=1', { waitUntil: 'networkidle' })
   await expect(page.locator('.tvg h1')).toHaveText('Not this time', { timeout: 10000 })
-  await expect(page.locator('.tvg-ask p')).toContainText("couldn't find the screen")
+  await expect(page.locator('.tvg-ask p').first()).toContainText("couldn't find the screen")
+  await expect(page.locator('.tvg-ask')).toContainText('Where the TV is')        // the phone is the way out (B)
   const before = asked.filter(a => a.path.startsWith('/find')).length
   await page.getByRole('button', { name: 'Try again' }).click()
   await expect.poll(() => asked.filter(a => a.path.startsWith('/find')).length, { timeout: 10000 }).toBeGreaterThan(before)
