@@ -406,6 +406,16 @@ Do not reopen these, and do not propose around them.
   (OK plays or pauses, Up and Down are the volume, Hold OK opens the music pane); at rest, a room that plays shows the
   record, and OK raises Pause, Next and the volume. `brain/hub/doorbell.py`, `DoorCorner.vue`, `TvRecord.vue`,
   `musicIn` in `tv.ts`; pinned by `brain/tests/test_doorbell.py`, `app/tests/tv.test.ts` and `app/e2e/tv-door-music.spec.ts`.
+- **The hub drives a streaming box; it never plays the services itself** (20 November, `design/tv-box/`, A). Netflix,
+  Apple TV+, Disney+ and the rest stream in full only on devices they certify, so they stay on an Apple TV, Google TV,
+  Roku or Fire TV beside the hub (or a TV with apps built in). With one in the TV's room, a Watch row comes above the room:
+  what the box last had on, then its apps by name on a quiet tint, never a logo, the ones the house has seen used first.
+  OK opens the app on the box and the TV switches over by itself; when the box is back on its own home screen or
+  asleep, the TV shows the house again with that app still lit, saying Just now. Music playing in the room still leads,
+  Watch under it; a TV with no box opens on its room. Which integrations are boxes is the brain's (`BOXES` in
+  `brain/hub/boxes.py`); the panel only sees a player with apps. The input is switched by the screen's helper over CEC
+  (`/tv` in `startup/screen-helper.py`, `cec.sh tv show|box`). Pinned by `brain/tests/test_boxes.py`,
+  `app/tests/tv.test.ts`, `app/e2e/tv-box.spec.ts` and the `remote` and `changing` groups in `driver-layer/host/tests.sh`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
   B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
   development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this

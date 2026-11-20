@@ -15,10 +15,14 @@ async function tv(page: Page, rest = false) {
     ? (asked.push(new URL(r.request().url()).pathname + ' ' + (r.request().postData() ?? '')), r.fulfill({ status: 200, body: '{}' }))
     : r.fallback())
   await page.route('**/rooms/*/intent/*', r => (asked.push(new URL(r.request().url()).pathname), r.fulfill({ status: 200, body: '{}' })))
-  // nothing playing on the room's speaker, so the room opens on its own things (music leads it: tv-door-music.spec.ts)
+  // nothing playing on the room's speaker and no streaming box beside the TV, so the room opens on its own things
+  // (music leads it: tv-door-music.spec.ts; a box's Watch row does: tv-box.spec.ts)
   await page.route('**/home', async r => {
     const res = await r.fetch(), home = await res.json()
-    for (const room of home.rooms) for (const d of room.devices) if (d.id === 's1') d.state = 'idle'
+    for (const room of home.rooms) for (const d of room.devices) {
+      if (d.id === 's1') d.state = 'idle'
+      if (d.id === 'm1') delete d.attrs.box
+    }
     await r.fulfill({ response: res, json: home })
   })
   await page.goto(`/?tv=1&room=living&at=19:40${rest ? '&rest=1' : ''}`, { waitUntil: 'networkidle' })

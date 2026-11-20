@@ -64,6 +64,48 @@ export function speakersOf(d: Device, room: Room): Device[] {
   return [d, ...room.devices.filter(x => x.id !== d.id && mates.has(x.id))]
 }
 
+/* A streaming box beside the TV (design/tv-box/, A): the hub opens an app on it and switches the TV over, and the box's
+   own remote's Home brings the house back. The brain says which players are boxes; the panel only sees one with apps. */
+export const boxIn = (room: Room | null): Device | null =>
+  room?.devices.find(d => d.attrs?.box && ((d.attrs.apps as string[] | undefined)?.length ?? 0) > 0) ?? null
+
+/* The rows above the room's own, in order: what plays here, then Watch. A TV with no box has no Watch row, so it opens
+   on its room as it did before. */
+export type Lead = 'music' | 'watch'
+export function leadsOf(room: Room | null): Lead[] {
+  return [...(musicIn(room) ? ['music' as const] : []), ...(boxIn(room) ? ['watch' as const] : [])]
+}
+
+/* The apps in the Watch row: those the house has seen used, newest first, then the rest as the box lists them. Seven
+   are shown; All apps lays out the rest in the same row. */
+export const APPS_SHOWN = 7
+export function appsOf(d: Device): { shown: string[]; more: string[] } {
+  const apps = (d.attrs.apps as string[] | undefined) ?? []
+  const used = ((d.attrs.used_apps as string[] | undefined) ?? []).filter(a => apps.includes(a))
+  const order = [...used, ...apps.filter(a => !used.includes(a))]
+  return { shown: order.slice(0, APPS_SHOWN), more: order.slice(APPS_SHOWN) }
+}
+
+/* An app's card is its name on a quiet tint, never its logo, and the same app always gets the same tint. */
+const TINTS = ['150, 45, 50', '105, 110, 125', '160, 75, 60', '45, 75, 150', '40, 115, 150', '85, 60, 160', '170, 60, 95', '60, 120, 90']
+export function appTint(app: string): string {
+  let h = 0
+  for (const c of app) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  return TINTS[h % TINTS.length]
+}
+
+/* What the box last had on, as the row's first card says it, or null when it has never been seen playing. */
+export function lastOn(d: Device): { label: string; title: string; where: string; app: string | null } | null {
+  const l = d.attrs.last_on as { title: string | null; app: string | null } | null | undefined
+  if (!l || (!l.title && !l.app)) return null
+  return { label: d.state === 'playing' ? 'On now' : 'Last on', title: l.title || l.app!, where: l.title && l.app ? `In ${l.app}` : '', app: l.app }
+}
+
+/* The box is back on its own home screen, or asleep: time for the TV to show the house again. Only acted on once the
+   box has been seen away from home since the hub sent the TV over, so the press that wakes it is not mistaken for it. */
+export const boxAtHome = (d: Device) =>
+  ['off', 'standby', 'unavailable'].includes(d.state) || (['on', 'idle'].includes(d.state) && !d.attrs.app_name)
+
 const ORDER = ['light', 'cover', 'climate', 'media', 'fan', 'switch', 'lock']
 /* Everything in the room a person can do something to, in an order that never changes with its state:
    a light turned off from the sofa stays exactly where it was. Cameras have a row of their own. */

@@ -597,8 +597,12 @@ remote() {
   cat > "$bin/cec-ctl" <<'FAKE'
 #!/usr/bin/env bash
 echo "cec-ctl $*" >> "$ASKED"
-if [ $# -eq 2 ]; then printf '\tDriver                   : %s\n\tPhysical Address         : 2.0.0.0\n' "$DRIVER"; fi
-case "$*" in *give-device-power-status*) echo "    pwr-state: standby (0x01)" ;; esac
+if [ $# -eq 2 ]; then printf '\tDriver                   : %s\n\tPhysical Address         : 2.0.0.0\n\tLogical Address          : 4 (Playback Device 1)\n' "$DRIVER"; fi
+case "$*" in
+  *give-device-power-status*) echo "    pwr-state: standby (0x01)" ;;
+  *"--to 8 --give-physical-addr"*) echo "    Received from Playback Device 2 (8): REPORT_PHYSICAL_ADDR (0x84): phys-addr: 3.0.0.0 prim-devtype: playback (0x04)" ;;
+  *give-physical-addr*) exit 1 ;;
+esac
 FAKE
   printf '#!/usr/bin/env bash\necho "ir-keytable $*" >> "$ASKED"\n' > "$bin/ir-keytable"; chmod +x "$bin"/*
   cec() { rm -f "$root/asked"; PATH="$bin:$PATH" ASKED="$root/asked" HUB_DRM="$root/drm" HUB_CEC_SYS="$root/cec" HUB_RC_SYS="$root/rc" \
@@ -616,6 +620,9 @@ FAKE
   is "showing the house wakes the TV, then switches it to this box" "$(grep -c -- '--image-view-on' "$root/asked") $(asked --active-source)" \
     "1 cec-ctl -d /dev/cec0 --to 15 --active-source phys-addr=2.0.0.0"
   is "...and the TV can be asked whether it is on" "$(DRIVER=x cec tv status)" "standby"
+  DRIVER=x cec tv box
+  is "switching to the streaming box asks the other player where it is, never this one, and shows that" \
+    "$(grep -c -- '--to 4 --give-physical-addr' "$root/asked") $(asked --set-stream-path)" "0 cec-ctl -d /dev/cec0 --to 15 --set-stream-path phys-addr=3.0.0.0"
   rm -rf "$root"
 }
 
@@ -1520,6 +1527,9 @@ changing() {
   is "a quarter turn is done and kept" "$(call /turn '{"turn": 90}') $(cat "$root/turn") $(cat "$root/randr")" "200 90 wlr-randr --output DSI-1 --transform 90"
   is "...and left for turn.sh, so the startup turns too" "$(cat "$root/ask/turn.request")" "90"
   is "...an eighth is not" "$(call /turn '{"turn": 45}')" "400"
+  printf '#!/usr/bin/env bash\necho "cec-ctl $*" >> "%s/cec"\n[ $# -eq 2 ] && printf "\\tPhysical Address : 2.0.0.0\\n"\nexit 0\n' "$root" > "$bin/cec-ctl"; chmod +x "$bin/cec-ctl"
+  is "the TV is switched back to the house over HDMI" "$(call /tv '{"show": "house"}') $(grep -c -- '--active-source phys-addr=2.0.0.0' "$root/cec")" "200 1"
+  is "...and the TV is never sent anywhere but the house or the box" "$(call /tv '{"show": "HDMI 3"}')" "400"
   is "a screen asked to show another hub, which it already does, is refused" "$(call /role '{"to": "screen"}')" "400"
   is "a screen asked to run a house leaves the one word for role.sh" "$(call /role '{"to": "hub"}') $(cat "$root/ask/role.request")" "200 hub"
   kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null

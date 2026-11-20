@@ -9,7 +9,7 @@ import re, time
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 
-from . import doorbell
+from . import boxes, doorbell
 
 # Things we make answer to the maker's name, whatever older firmware still calls itself. A bridge
 # puck flashed before September announces its maker as the project's working name; the house should
@@ -266,6 +266,8 @@ class Home:
         # timer's: device id -> {"strip": {...}}. Written by hub/strip.py.
         self.reports: dict[str, dict] = {}
         self.companions: dict[str, tuple[str, str]] = {}   # entity id -> (thermostat id, "comfort" | "air")
+        self.boxes: set[str] = set()       # media players that are a streaming box, with apps to open (hub/boxes.py)
+        self.watched: boxes.Watched | None = None   # what each box last had on; the hub gives it settings
         self.told: dict[str, dict] = {}                    # thermostat id -> what its companions and room sensors say
         # LIGHTS FOLDED INTO ANOTHER LIGHT'S TILE: a roofline of several boxes is ONE light on the wall
         # (design/roofline/OneLight.dc.html). Hardware id of a box -> hardware id of the box whose light is
@@ -296,6 +298,8 @@ class Home:
         if extra.get("fan_until", 0) > time.time(): out["fan_mode"] = "on"
         if cap.split(".")[0] == "light" and eid in self.color_pinned: out["color_pinned"] = True
         if eid in self.off_home: out["off_home"] = True
+        if eid in self.boxes:
+            out.update(box=True, apps=boxes.apps_of(a), **(self.watched.attrs(eid) if self.watched else {}))
         return out
 
     @staticmethod
@@ -348,6 +352,7 @@ class Home:
         self.hardware = {d["id"]: {"name": d.get("name_by_user") or d.get("name") or "", "manufacturer": OUR_OLD_NAMES.get(d.get("manufacturer") or "", d.get("manufacturer") or ""), "model": d.get("model") or ""} for d in ha_devices}
         reg = {e["entity_id"]: e for e in entities}
         st = {s["entity_id"]: s for s in states}
+        self.boxes = {eid for eid, e in reg.items() if boxes.is_box(e)}
         camera_devices = {e["device_id"] for e in entities if e["entity_id"].startswith("camera.") and e.get("device_id")}
         self.devices = {}
         self.twins = {e: own for e, own in self.engine_players(entities).items() if own != e}

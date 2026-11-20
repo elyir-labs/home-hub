@@ -11,7 +11,7 @@ from fastapi.responses import Response, JSONResponse, FileResponse, StreamingRes
 from starlette.background import BackgroundTask
 from fastapi import Request
 from . import ha_setup
-from . import doorbell
+from . import boxes, doorbell
 from .ha_adapter import HAAdapter, AuthError
 from . import forecast as forecast_of
 from .model import CONTROLS, Home, kinds_for, kind_of, default_kind
@@ -113,6 +113,7 @@ class Hub:
         self.home = Home()
         self.home.kinds = dict(self.settings.get("kinds") or {})   # what the owner said things are; kept in settings so a restore brings it back with the rest of the house
         self.home.color_pinned = set(self.settings.get("color_pinned") or [])   # and which lights somebody chose a color for, rather than leaving to the house
+        self.home.watched = boxes.Watched(self.settings)
         self.home.room_colors = {k: list(v) for k, v in (self.settings.get("room_colors") or {}).items()}
         self.home.off_home = set(self.settings.get("off_home") or [])   # what is never on Home, on any screen (design/home-keep/)
         self.home.leads = dict(self.settings.get("leads") or {})   # which part of a fan-with-a-light is the tile, where the owner has said (docs/units.md)
@@ -566,6 +567,8 @@ class Hub:
         if part and before: old_attrs, old = dict(before.attrs), before.state
         else: old_attrs, old = (self.home._keep_attrs(before.capability, old_state.get("attributes", {})) if before else None), old_state.get("state")
         dev = self.home.apply_state(d["entity_id"], d.get("new_state"))
+        if dev and dev.id in self.home.boxes and self.home.watched.seen(dev.id, dev.state, dev.attrs, dev.attrs.get("apps") or []):
+            dev.attrs.update(self.home.watched.attrs(dev.id))
         if not dev:
             # A thing's first reading. The registry's own event set off a rebuild a second ago, and when the
             # reading lands after it the thing was not in the house yet and this state had nowhere to go: a
@@ -699,6 +702,15 @@ class Hub:
         data = dict(data or {})
         if action == "set" and dev.capability == "climate" and self.comfort.sensing(dev.id) and data.get("temperature") is not None:
             await self.comfort.want(dev, float(data["temperature"]))     # while sensing from elsewhere, the number is what the other room should reach
+        elif action == "app":
+            # A box opening one of its apps: woken first, because a sleeping box does not take a source.
+            app = str(data.get("source") or "")
+            if dev.id not in self.home.boxes or app not in (dev.attrs.get("apps") or []): raise ValueError(f"{dev.name} has no app called {app}.")
+            if dev.state in ("off", "standby"): await self.ha.call("media_player", "turn_on", dev.id)
+            await self.ha.call("media_player", "select_source", dev.id, source=app)
+            self.home.watched.opened(dev.id, app)
+            dev.attrs.update(self.home.watched.attrs(dev.id))
+            self.log.add("action", dev.id, None, action, source=source, detail={"source": app})
         elif action in ("sound", "sound_off"):
             if action == "sound": await self.sounds.play(dev, str(data.get("sound", "")), data.get("minutes"), data.get("volume"), source=source)
             else: await self.sounds.stop(dev, source=source)

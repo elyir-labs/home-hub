@@ -26,6 +26,12 @@ async function call<T>(path: string, body?: unknown): Promise<T> {
   return out as T
 }
 
+/* Which input the TV shows, over HDMI (design/tv-box/, A): this screen, or the streaming box beside it. Nothing
+   answers on a screen without the helper, and then the box switches the TV itself when it wakes. */
+export async function showOnTv(show: 'house' | 'box'): Promise<boolean> {
+  try { await call('/tv', { show }); return true } catch { return false }
+}
+
 export async function ask(): Promise<Here | null> {
   try { here.value = await call<Here>('/this') } catch { here.value = null }
   return here.value

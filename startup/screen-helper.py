@@ -8,16 +8,18 @@ restart this browser or change what this unit is. This can. wall.sh starts it in
 session, beside the browser, so it runs as the screen's user, lives exactly as long as the wall does,
 and can reach the display. It listens on this unit alone and answers only the panel it was opened on.
 
-Three things, and no more:
+Four things, and no more:
 
   turn      which way up the display is drawn: 0, 90, 180 or 270, kept for the next start, and left
             for turn.sh, which turns the startup the same way
   restart   the browser, which brings the screen back in a few seconds; the house is not touched
   role      whether this unit runs the house or shows another hub's. It cannot do that itself: it
             leaves one word in a file and role.sh, as root, decides what to do with it
+  tv        which input the TV shows, over HDMI-CEC (cec.sh): this unit, or the streaming box beside
+            it (design/tv-box/, A), so nobody reaches for the TV's Input button
 
-Nothing here takes a command from the panel. A turn is checked against four numbers and a role
-against two words, the way restart.sh checks its rungs.
+Nothing here takes a command from the panel. A turn is checked against four numbers, and a role and
+what the TV shows against two words each, the way restart.sh checks its rungs.
 """
 import json
 import os
@@ -181,6 +183,16 @@ class Answer(BaseHTTPRequestHandler):
             # The browser is the process that started this one; when it goes, the wall's service brings it back.
             threading.Timer(0.3, os.kill, (os.getppid(), signal.SIGTERM)).start()
             return None
+        if self.path == "/tv":
+            show = b.get("show")
+            if show not in ("house", "box"):
+                return self.reply(400, {"error": "The TV shows the house or the box."})
+            try:
+                ok = subprocess.run([os.path.join(HERE, "cec.sh"), "tv", "show" if show == "house" else "box"],
+                                    capture_output=True, timeout=10).returncode == 0
+            except (OSError, subprocess.SubprocessError):
+                ok = False
+            return self.reply(200, {"show": show}) if ok else self.reply(500, {"error": "The TV didn't answer."})
         if self.path == "/role":
             to = b.get("to")
             if to not in ("hub", "screen") or to == ROLE:
