@@ -276,8 +276,11 @@ export function activityParts(r: Room, withMedia = true): string[] {
   for (const p of printersIn(r)) parts.push(printerPart(p))
   const lights = r.devices.filter(d => cap(d) === 'light' && d.state === 'on').length
   if (lights) parts.push(lights === 1 ? '1 light on' : `${lights} lights on`)
-  if (withMedia) for (const d of r.devices.filter(d => cap(d) === 'media' && d.state === 'playing'))
-    parts.push(d.attrs.media_title ? `${d.attrs.media_title}` : `${shortName(d, r)} playing`)
+  // a song on two speakers at once (a pair of HomePods) is said once
+  if (withMedia) for (const d of r.devices.filter(d => cap(d) === 'media' && d.state === 'playing')) {
+    const said = d.attrs.media_title ? `${d.attrs.media_title}` : `${shortName(d, r)} playing`
+    if (!parts.includes(said)) parts.push(said)
+  }
   const open = r.devices.filter(d => cap(d) === 'cover' && d.state === 'open').length
   if (open) parts.push(open === 1 ? 'Blind open' : `${open} blinds open`)
   if (r.devices.some(d => cap(d) === 'lock' && d.state === 'unlocked')) parts.push('Unlocked')

@@ -15,10 +15,9 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { Device, Room } from '../api'
 import { activity, capsOf, done, iconFor, keepDone, shortName, perform, roomActive, runScene, scenesFor, store, type Scene } from '../store'
 import { levelOf } from '../levels'
-import { appsOf, appTint, boxAtHome, boxIn, camerasIn, COLOR_OF, hintFor, hintParts, lastOn, leadsOf, light, lit, musicIn, okOf, speakersOf, stateOf, thingsIn } from '../tv'
+import { appsOf, appTint, boxAtHome, boxIn, camerasIn, COLOR_OF, hintFor, hintParts, lastOn, leadsOf, light, lit, louder, musicIn, okOf, playPause, speakersOf, stateOf, thingsIn } from '../tv'
 import { showOnTv } from '../thisScreen'
 import { imageUrl } from '../api'
-import { step } from '../levels'
 import { locale } from '../lang'
 import Icon from '../Icon.vue'
 
@@ -45,7 +44,7 @@ const elsewhere = computed(() => {
   const names = [...new Set(mates.map(r => r!.name))]
   return names.length ? `Also in ${names.join(', ')}` : 'Only here now'
 })
-function volume(e: Event) { if (music.value && step(music.value, (e as CustomEvent<1 | -1>).detail)) e.preventDefault() }
+function volume(e: Event) { if (music.value && props.here && louder(music.value, props.here, (e as CustomEvent<1 | -1>).detail)) e.preventDefault() }
 const pickMusic = () => { if (props.here) store.musicPane = props.here.id }
 
 const apps = computed(() => box.value ? appsOf(box.value) : { shown: [], more: [] })
@@ -144,7 +143,7 @@ onUnmounted(() => window.removeEventListener('resize', fit))
             <h2>Playing here</h2>
             <div class="tv-cards">
               <button class="tv-card tv-now" data-tv data-tv-start :data-hint="`OK|${music.state === 'playing' ? 'Pause' : 'Play'};▲ ▼|Louder or quieter;~Hold OK|Something else`"
-                      :data-thing="music.id" @click="ok(music)" @tv-level="volume" @tv-hold="pickMusic">
+                      :data-thing="music.id" @click="playPause(music, here!)" @tv-level="volume" @tv-hold="pickMusic">
                 <span class="tv-art"><img v-if="music.attrs.entity_picture" :src="imageUrl(music.id)" alt="" /></span>
                 <span class="tv-now-body">
                   <span><span class="tv-nm">{{ music.attrs.media_title || 'Music' }}</span><span class="tv-st">{{ music.state === 'paused' ? 'Paused' : music.attrs.media_artist || '' }}</span></span>

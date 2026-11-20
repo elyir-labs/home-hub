@@ -11,8 +11,8 @@
 
 import { shallowRef } from 'vue'
 import type { Device, Room } from './api'
-import { cap, doneLine, done, isActive, isDead, PASSIVE, SCENES, type Scene } from './store'
-import { dimmable, lightPct, tempUnit } from './levels'
+import { cap, doneLine, done, isActive, isDead, PASSIVE, perform, SCENES, type Scene } from './store'
+import { dimmable, lightPct, step, tempUnit } from './levels'
 import { isScreen } from './screen'
 import { typable } from './keys'
 import { canStart } from './music'
@@ -61,7 +61,9 @@ export function musicIn(room: Room | null, playingOnly = false): Device | null {
 }
 export function speakersOf(d: Device, room: Room): Device[] {
   const mates = new Set((d.attrs.together as string[] | undefined) ?? [])
-  return [d, ...room.devices.filter(x => x.id !== d.id && mates.has(x.id))]
+  // a pair fed the same song from elsewhere (an Apple TV playing to both HomePods) is in step without being grouped
+  const same = (x: Device) => canStart(x) && x.state === d.state && !!d.attrs.media_title && x.attrs.media_title === d.attrs.media_title
+  return [d, ...room.devices.filter(x => x.id !== d.id && (mates.has(x.id) || same(x)))]
 }
 
 /* A streaming box beside the TV (design/tv-box/, A): the hub opens an app on it and switches the TV over, and the box's
@@ -171,6 +173,18 @@ export function hintParts(hint: string): { keys: string[]; before: string; words
     const before = k.startsWith('~') ? k.slice(1).replace(/\s*OK$/, '') : ''
     return { keys: k.startsWith('~') ? ['OK'] : k.split(' '), before, words }
   })
+}
+
+/* Pause, play and the volume work every speaker the record is on, so a pair of HomePods moves as one. Next is asked
+   of the first only: the others follow the same source, and asking each would skip as many songs. */
+export function playPause(d: Device, room: Room) {
+  const o = okOf(d)
+  if (!('open' in o)) for (const x of speakersOf(d, room)) perform(x, o.action, undefined, o.guess)
+}
+export function louder(d: Device, room: Room, dir: 1 | -1): boolean {
+  let moved = false
+  for (const x of speakersOf(d, room)) moved = !!step(x, dir) || moved
+  return moved
 }
 
 /* ---------- moving the highlight ---------- */

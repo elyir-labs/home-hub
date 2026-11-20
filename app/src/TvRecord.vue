@@ -49,7 +49,7 @@ const pos = computed(() => {
 .rec-corner { position: absolute; right: 96px; top: 54px; text-align: right; }
 .rec-time { font-size: 56px; font-weight: 300; }
 .rec-time small { font-size: 0.6em; }
-.rec-day { font-size: 22px; color: var(--ink-2); }
+.rec-day { font-size: 22px; color: var(--ink); }
 .rec-main { position: absolute; left: 240px; top: 240px; display: flex; gap: 70px; align-items: center; }
 
 .rec-art { width: 560px; height: 560px; flex: none; border-radius: var(--r-lg); overflow: hidden; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
@@ -57,11 +57,11 @@ const pos = computed(() => {
 .rec-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .rec-words { max-width: 900px; }
 .rec-t { font-size: 84px; font-weight: 400; letter-spacing: -0.03em; line-height: 1.02; }
-.rec-a { font-size: 34px; color: var(--ink-2); margin-top: 18px; }
-.rec-w { font-size: 26px; color: var(--muted); margin-top: 40px; }
+.rec-a { font-size: 34px; color: var(--ink); margin-top: 18px; }
+.rec-w { font-size: 26px; color: var(--ink); margin-top: 40px; }
 .rec-bar { width: 560px; height: 5px; margin-top: 40px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); }
 .rec-bar i { display: block; height: 100%; border-radius: 3px; background: var(--ink); }
-.rec-keys { position: absolute; right: 96px; bottom: 54px; display: inline-flex; gap: 10px; align-items: center; font-size: 22px; color: var(--ink-2); }
+.rec-keys { position: absolute; right: 96px; bottom: 54px; display: inline-flex; gap: 10px; align-items: center; font-size: 22px; color: var(--ink); }
 .rec-keys kbd { font-family: inherit; font-size: 17px; font-weight: 600; line-height: 1; min-width: 40px; height: 36px; padding: 0 10px; display: inline-grid; place-items: center;
   border-radius: 18px; color: var(--ink); background: rgba(255, 255, 255, 0.1); border: 1px solid var(--edge-hi); }
 </style>
