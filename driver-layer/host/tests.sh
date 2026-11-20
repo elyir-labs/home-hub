@@ -1703,9 +1703,29 @@ SH
   rm -rf "$root"
 }
 
+zigbee_kept() {
+  group "an update never costs the house its Zigbee network"
+  local root up dir; root=$(mktemp -d); up="$root/up"; dir="$root/hub"
+  mkdir -p "$up/driver-layer/zigbee2mqtt"; git init -q "$up"; git -C "$up" config user.email t@t; git -C "$up" config user.name t
+  printf 'advanced:\n  network_key: GENERATE\n' > "$up/driver-layer/zigbee2mqtt/configuration.yaml"; echo one > "$up/f"
+  git -C "$up" add -A; git -C "$up" commit -qm one; git clone -q "$up" "$dir"
+  printf 'advanced:\n  network_key:\n    - 7\n' > "$dir/driver-layer/zigbee2mqtt/configuration.yaml"   # Zigbee2MQTT made the network
+  echo two > "$up/f"; git -C "$up" commit -qam two; git -C "$dir" fetch -q origin
+  # shellcheck disable=SC2034  # DIR and CHANNEL are read by the go_to_ref pulled in by eval
+  ( DIR="$dir" CHANNEL=branch; want_ref() { echo origin/HEAD; }
+    eval "$(sed -n '/^go_to_ref() {/,/^}/p' "$HERE/../../install.sh")"; go_to_ref >/dev/null )
+  is "the code moves on" "$(cat "$dir/f")" "two"
+  is "...and the house's network key is still in its file" "$(grep -c -- '- 7' "$dir/driver-layer/zigbee2mqtt/configuration.yaml")" "1"
+  if command -v node >/dev/null 2>&1; then
+    # its exit status, not its summary: node's test output reads differently from one version to the next
+    is "...and Zigbee2MQTT puts a reset one back before it starts" "$(node --test "$HERE/../zigbee2mqtt-keep.test.mjs" >/dev/null 2>&1 && echo ok || echo failed)" "ok"
+  fi
+  rm -rf "$root"
+}
+
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; remote; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; describing; starting_over; shutting
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; remote; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; describing; starting_over; shutting; zigbee_kept
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]
