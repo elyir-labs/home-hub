@@ -1,0 +1,290 @@
+{
+  "name": "What the TV shows between photos",
+  "areas": [
+    "Wall screens",
+    "Watching and listening"
+  ],
+  "pages": [
+    {
+      "id": "moving",
+      "name": "Photos that move"
+    },
+    {
+      "id": "cards",
+      "name": "Cards between the photos"
+    },
+    {
+      "id": "morning",
+      "name": "Morning and night"
+    },
+    {
+      "id": "choosing",
+      "name": "Choosing it on the phone"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "moving",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: the photos at rest"
+    },
+    {
+      "file": "MotionA.dc.html",
+      "page": "moving",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: every photo moves its own way",
+      "is_interactive": true
+    },
+    {
+      "file": "DaysB.dc.html",
+      "page": "moving",
+      "x": 0,
+      "y": 3000,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: a day of photos plays as a little story, and a year ago comes first",
+      "is_interactive": true
+    },
+    {
+      "file": "FrameC.dc.html",
+      "page": "moving",
+      "x": 0,
+      "y": 4500,
+      "w": 1920,
+      "h": 1080,
+      "title": "C: one photo at a time, framed on the wall like a print"
+    },
+    {
+      "file": "CardsA.dc.html",
+      "page": "cards",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: a card takes a turn between the photos",
+      "is_interactive": true
+    },
+    {
+      "file": "CornerB.dc.html",
+      "page": "cards",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: a today card in the corner, beside the photo",
+      "is_interactive": true
+    },
+    {
+      "file": "BoardC.dc.html",
+      "page": "cards",
+      "x": 0,
+      "y": 3000,
+      "w": 1920,
+      "h": 1080,
+      "title": "C: the family board, a channel a screen can show instead"
+    },
+    {
+      "file": "MorningA.dc.html",
+      "page": "morning",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: the morning card, the first time a screen wakes after sunrise",
+      "is_interactive": true
+    },
+    {
+      "file": "MorningB.dc.html",
+      "page": "morning",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: the morning line, laid over the first photo of the day"
+    },
+    {
+      "file": "NightC.dc.html",
+      "page": "morning",
+      "x": 0,
+      "y": 3000,
+      "w": 1920,
+      "h": 1080,
+      "title": "Every direction: a kind word on Bedtime, and the last thing on the screen",
+      "is_interactive": true
+    },
+    {
+      "file": "PhoneToday.dc.html",
+      "page": "choosing",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Today: Photos on a phone"
+    },
+    {
+      "file": "ScreenA.dc.html",
+      "page": "choosing",
+      "x": 520,
+      "y": 0,
+      "w": 390,
+      "h": 1130,
+      "title": "A: each screen has its own list"
+    },
+    {
+      "file": "HouseB.dc.html",
+      "page": "choosing",
+      "x": 1040,
+      "y": 0,
+      "w": 390,
+      "h": 960,
+      "title": "B: one list for the house"
+    },
+    {
+      "file": "WriteEvery.dc.html",
+      "page": "choosing",
+      "x": 1560,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Every direction: a note, a countdown, a line for the morning",
+      "is_interactive": true
+    }
+  ],
+  "annotations": [
+    {
+      "id": "today",
+      "page": "moving",
+      "x": 0,
+      "y": 1120,
+      "w": 1920,
+      "text": "TODAY. The resting TV's photos as they ship (development after #58), at 2:40 PM. A photo stays a minute and its only move is a 6% zoom over that minute, so from the sofa it reads as still. The line about the photo runs over the left photo of a pair, a bug that is fixed whichever is chosen."
+    },
+    {
+      "id": "motiona",
+      "page": "moving",
+      "x": 0,
+      "y": 2620,
+      "w": 1920,
+      "text": "A: EVERY PHOTO MOVES ITS OWN WAY. A photo every 18 seconds, each with its own slow move: in toward one side, a pan across, out from close, a lift. They dissolve through a soft blur. A photo taken upright shows alone, over a blurred, enlarged copy of itself. The board plays three times faster than the TV would.\n\nFOR: The biggest change in feel for the least new: it is the same screen, alive. AGAINST: Nothing about the photos themselves; a folder played well."
+    },
+    {
+      "id": "daysb",
+      "page": "moving",
+      "x": 0,
+      "y": 4120,
+      "w": 1920,
+      "text": "B: A DAY OF PHOTOS PLAYS AS A LITTLE STORY. A's motion, and the photos taken on the same day play together: a title card first (\"A day at the beach\", the date, how many), three from the day as a collage, then each in turn. A photo taken on this date in an earlier year comes first that day, with \"One year ago today\" in lamp color. Flip between the three.\n\nFOR: It feels like the household's own album, not a folder. AGAINST: A day's title has to come from somewhere: the date always, a place only if the phone kept one (which today's photos deliberately don't), so \"A day at the beach\" would usually be the date alone unless somebody names the day."
+    },
+    {
+      "id": "framec",
+      "page": "moving",
+      "x": 0,
+      "y": 5620,
+      "w": 1920,
+      "text": "C: ONE PHOTO AT A TIME, FRAMED LIKE A PRINT. A white mat and a matte in the photo's own color, the clock small beside it, the facts as one line along the foot. Nearly still: it drifts against burn-in and changes every few minutes.\n\nFOR: The calmest; looks like art on the wall, not a screensaver. AGAINST: The opposite of what was asked for: it makes the screen quieter, not livelier."
+    },
+    {
+      "id": "cardsa",
+      "page": "cards",
+      "x": 0,
+      "y": 1120,
+      "w": 1920,
+      "text": "A: A CARD TAKES A TURN BETWEEN THE PHOTOS. About one card for every five photos, held about a minute: a note from a phone, a countdown, the house today (sunset, frost, the moon, the porch light), a fact, a trivia question (OK for the answer), a joke, a quote, or a public-domain painting. The clock goes small in the corner. Flip through them.\n\nFOR: Each gets the whole screen, so each reads from the sofa. AGAINST: A card nobody wanted interrupts the photos; so each kind is a switch per screen (last page).\n\nThe words, facts and paintings would be curated sets that come with hub updates, checked before they ship: no outside service is called, and nothing is written by a model."
+    },
+    {
+      "id": "cornerb",
+      "page": "cards",
+      "x": 0,
+      "y": 2620,
+      "w": 1920,
+      "text": "B: A TODAY CARD IN THE CORNER. The photos never stop; one glass card in the top corner turns over between a note, a countdown and a fact. Flip it.\n\nFOR: Photos and news at once; nothing interrupts. AGAINST: A small card is a lot to read from three meters, a trivia question or a painting doesn't fit, and the card sits over every photo."
+    },
+    {
+      "id": "boardc",
+      "page": "cards",
+      "x": 0,
+      "y": 4120,
+      "w": 1920,
+      "text": "C: THE FAMILY BOARD. A screen can show this instead of photos: the notes as paper on a board, what's coming up, and one photo at a time in a frame beside them. It suits a kitchen or hallway screen more than the TV.\n\nFOR: Everything the family left in one glance, like a fridge door. AGAINST: A different screen to keep, and it takes the photos off the big picture. Could sit beside A as a choice per screen rather than instead of it."
+    },
+    {
+      "id": "morninga",
+      "page": "morning",
+      "x": 0,
+      "y": 1120,
+      "w": 1920,
+      "text": "A: THE MORNING CARD. The first time a screen wakes after sunrise, or when a morning routine runs, it opens on Good morning: the line for the day, the weather in words, and what is waiting. A line somebody left last night takes the line's place, signed (flip it). After a few minutes, or a press, it goes back to the photos.\n\nFOR: A real moment, once a day, and the family's own words when there are some. AGAINST: A whole screen for one line. The lines are curated sets: encouragement in the morning, rest at night, never preachy, not repeated for months; a verse of the day is an optional set."
+    },
+    {
+      "id": "morningb",
+      "page": "morning",
+      "x": 0,
+      "y": 2620,
+      "w": 1920,
+      "text": "B: THE MORNING LINE OVER THE FIRST PHOTO. The same line, laid large over the first photo of the morning, which then carries on as usual.\n\nFOR: Lighter: the morning starts with a photo and a word, not a card. AGAINST: The line competes with the photo, and there is no room for the weather in words or a note."
+    },
+    {
+      "id": "nightc",
+      "page": "morning",
+      "x": 0,
+      "y": 4120,
+      "w": 1920,
+      "text": "EVERY DIRECTION: NIGHT. Bedtime (built) gains the evening line under its button. When Bedtime is pressed, the screen shows only that line for a few seconds, then the TV turns off, so the last thing seen is a kind word, not a list of lights. Flip to see after the press.\n\nSAID ALOUD, in either morning direction: the morning line on the room's speaker, quietly, off unless a household turns it on, and only once somebody is up (a morning routine ran, or a tap). The hub never starts talking on its own."
+    },
+    {
+      "id": "phonetoday",
+      "page": "choosing",
+      "x": 0,
+      "y": 884,
+      "w": 390,
+      "text": "TODAY. Photos as it ships (#58): a switch per screen for photos, and nothing else can take a turn."
+    },
+    {
+      "id": "screena",
+      "page": "choosing",
+      "x": 520,
+      "y": 1170,
+      "w": 390,
+      "text": "A: EACH SCREEN HAS ITS OWN LIST. Photos becomes Your screens; tapping a screen opens its list: photos, notes and countdowns, the house today, a fact or trivia, jokes, quotes, art; a line for the day and saying it aloud; a verse and horoscopes, off to start.\n\nFOR: The kitchen can be the family board and the TV the photos. AGAINST: Two levels where today there is one."
+    },
+    {
+      "id": "houseb",
+      "page": "choosing",
+      "x": 1040,
+      "y": 1000,
+      "w": 390,
+      "text": "B: ONE LIST FOR THE HOUSE. Which screens show photos, as today; what comes between them is one list for every screen.\n\nFOR: One page, the same everywhere. AGAINST: Every screen shows the same things, so a kitchen board (cards C) has nowhere to be chosen."
+    },
+    {
+      "id": "writeevery",
+      "page": "choosing",
+      "x": 1560,
+      "y": 884,
+      "w": 390,
+      "text": "EVERY DIRECTION: WRITING THEM. From Your screens on a phone: a note (until tonight, tomorrow, or until somebody takes it down), a countdown (a birthday comes round every year), and a line for the morning, for everyone or one person's phone, which greets the first screen to wake tomorrow, signed, then goes."
+    },
+    {
+      "id": "why",
+      "page": "moving",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026, after #58: the photos on the TV look still from the sofa, and a resting screen could carry more than photos: fun cards, the family's own notes and countdowns, and a word in the morning and at night. Four questions, a page each: how the photos move, what takes a turn between them, the morning and night, and choosing it all on the phone.\n\nUnder all of them, as before: nothing holds still (burn-in), every word passes the readability check, the default suits kids, and every kind of card is a switch."
+    },
+    {
+      "id": "pick",
+      "page": "moving",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "TO PICK\n\nOne direction per page, or something else: photos (A, B, C), cards (A, B, C, or A with C as a per-screen channel), morning (A or B, with the night line either way), and the phone (A or B).\n\nMy suggestion: B's photos (A's motion with days and a year ago), cards A with the family board as a channel, the morning card A, and the phone A, since it is the only one where a kitchen can be a board and the TV the photos."
+    }
+  ]
+}

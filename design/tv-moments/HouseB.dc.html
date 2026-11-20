@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B: one list for the whole house, and each screen only says photos or not</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="phone.css">
+<style>.screenrow { padding: 10px 14px; } .group { margin: 18px 2px 8px; } .phone { height: 960px; } h1 { font-size: 30px; }</style>
+</head>
+<body>
+<div class="phone"><div class="status-bar"><span>7:40 PM</span><span class="r"><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i></span></div>
+  <div class="col" style="top:62px;"><div class="back"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>This house</div><h1>Your screens</h1>
+    <p class="lede" style="margin-bottom:6px;">What every screen shows when nobody is watching, and which screens show photos.</p>
+    <div class="group">Shown on</div>
+    <div class="screenrow"><div class="t"><b>Living room TV</b><span>A TV</span></div><span class="switch on"></span></div><div class="screenrow"><div class="t"><b>Kitchen</b><span>A screen on the wall &middot; shows the clock</span></div><span class="switch"></span></div>
+    <div class="group">Between the photos, on every screen</div>
+    <div class="screenrow"><div class="t"><b>Notes and countdowns</b><span></span></div><span class="switch on"></span></div><div class="screenrow"><div class="t"><b>The house today</b><span></span></div><span class="switch on"></span></div><div class="screenrow"><div class="t"><b>A fact or a trivia question</b><span></span></div><span class="switch on"></span></div><div class="screenrow"><div class="t"><b>Jokes</b><span></span></div><span class="switch"></span></div><div class="screenrow"><div class="t"><b>Quotes</b><span></span></div><span class="switch"></span></div><div class="screenrow"><div class="t"><b>Art</b><span></span></div><span class="switch"></span></div>
+    <div class="group">Morning and night</div>
+    <div class="screenrow"><div class="t"><b>A line for the day</b><span></span></div><span class="switch on"></span></div><div class="screenrow"><div class="t"><b>A verse of the day</b><span></span></div><span class="switch"></span></div>
+  </div><div class="home-ind"></div></div>
+<script>document.querySelectorAll(".flip").forEach(f => f.addEventListener("click", () => { document.body.dataset[f.dataset.g] = f.dataset.to; document.querySelectorAll(".flip[data-g=\"" + f.dataset.g + "\"]").forEach(g => g.classList.toggle("on", g === f)) }))</script>
+</body>
+</html>
