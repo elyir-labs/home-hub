@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C: the TV asks, with a code to scan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="photos.css">
+<style>
+  .tv { position: relative; width: 1920px; height: 1080px; overflow: hidden; color: var(--ink); }
+  .tv > img { display: block; width: 1920px; height: 1080px; }
+  .ask { position: absolute; right: 96px; top: 50%; transform: translateY(-50%); width: 620px; padding: 40px 44px; border-radius: 28px;
+         background: rgba(18,19,24,.62); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(18px); display: grid; grid-template-columns: 1fr 220px; gap: 32px; align-items: center; }
+  .ask h2 { margin: 0; font-size: 44px; font-weight: 400; letter-spacing: -.02em; line-height: 1.1; }
+  .ask p { margin: 16px 0 0; font-size: 24px; line-height: 1.35; color: var(--ink-2); }
+  .qr { width: 220px; height: 220px; padding: 14px; border-radius: 18px; background: #fff; }
+</style>
+</head>
+<body>
+<div class="tv">
+  <!-- the shipped resting TV with no photos yet (C, the sky), from this branch's build -->
+  <img src="shipped-tv-sky.jpg" alt="">
+  <div class="ask">
+    <div><h2>Put your photos on this TV</h2><p>Point your phone&rsquo;s camera at the code. The photos stay on the hub, in this house.</p></div>
+    <svg class="qr" viewBox="0 0 29 29" id="qr" shape-rendering="crispEdges"></svg>
+  </div>
+</div>
+<script>
+  // a pattern shaped like a code, not a working one: three corner squares and noise
+  const q = document.getElementById('qr'), ns = 'http://www.w3.org/2000/svg'
+  const box = (x, y, w, f) => { const r = document.createElementNS(ns, 'rect'); r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', w); r.setAttribute('fill', f); q.appendChild(r) }
+  for (const [x, y] of [[0, 0], [22, 0], [0, 22]]) { box(x, y, 7, '#111'); box(x + 1, y + 1, 5, '#fff'); box(x + 2, y + 2, 3, '#111') }
+  let s = 7
+  for (let y = 0; y < 29; y++) for (let x = 0; x < 29; x++) {
+    if ((x < 8 && y < 8) || (x > 20 && y < 8) || (x < 8 && y > 20)) continue
+    s = (s * 1103515245 + 12345) & 0x7fffffff
+    if (s % 5 < 2) box(x, y, 1, '#111')
+  }
+</script>
+</body>
+</html>

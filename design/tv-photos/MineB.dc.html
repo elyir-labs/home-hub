@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B: each phone's own photos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="photos.css">
+<style>
+  body[data-at="page"] [data-if]:not([data-if~="page"]), body[data-at="theirs"] [data-if]:not([data-if~="theirs"]) { display: none !important; }
+  .grid.small { grid-template-columns: repeat(4, 1fr); }
+  .row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--edge); }
+  .row + .row { margin-top: 6px; }
+  .row .stack { display: flex; }
+  .row .stack i { width: 34px; height: 34px; border-radius: 8px; border: 2px solid #18202c; margin-left: -10px; }
+  .row .stack i:first-child { margin-left: 0; }
+</style>
+</head>
+<body data-at="page">
+<div class="phone">
+  <div class="status-bar"><span>7:40 PM</span><span class="r"><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i></span></div>
+  <div class="col" style="top: 62px;">
+    <div class="back"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>This house</div>
+    <h1>Photos on the TV</h1>
+    <p class="lede">The living room TV shows these when nobody is watching it. Each phone looks after the photos it sent.</p>
+    <div class="cta"><svg class="i" width="20" height="20" viewBox="0 0 24 24" style="margin-right:8px"><path d="M12 5v14M5 12h14"/></svg>Add photos</div>
+    <div class="who"><b>From this phone</b><span>5 photos &middot; tap one to take it off</span></div>
+    <div class="grid small"><i class="p1"></i><i class="p5"></i><i class="p7"></i><i class="p9"></i><i class="p4"></i></div>
+    <div class="who"><b>From other phones</b><span>7 photos</span></div>
+    <div class="row"><span class="stack"><i class="p2"></i><i class="p3"></i><i class="p6"></i></span><span style="flex:1">Jordan&rsquo;s iPhone</span><span style="color:var(--muted); font-size:14px;">4</span></div>
+    <div class="row"><span class="stack"><i class="p8"></i><i class="p4"></i><i class="p2"></i></span><span style="flex:1">Sam&rsquo;s phone</span><span style="color:var(--muted); font-size:14px;">3</span></div>
+    <p class="foot" style="margin-top: 12px;" data-if="theirs">Only Sam&rsquo;s phone can take its photos off the TV.</p>
+  </div>
+  <div class="home-ind"></div>
+  <div class="flips"><div class="flipset"><span>Show</span><span class="flip on" data-g="at" data-to="page">The page</span><span class="flip" data-g="at" data-to="theirs">Somebody else&rsquo;s</span></div></div>
+</div>
+<script>
+  document.querySelectorAll(".flip").forEach(f => f.addEventListener("click", () => {
+    document.body.dataset[f.dataset.g] = f.dataset.to
+    document.querySelectorAll(".flip[data-g=\"" + f.dataset.g + "\"]").forEach(g => g.classList.toggle("on", g === f))
+  }))
+</script>
+</body>
+</html>

@@ -802,6 +802,20 @@ export async function getSounds(): Promise<{ sounds: Sound[]; folder: string }> 
 /* Music in every room (hub/music.py, design/music/). */
 export type MusicRoom = { id: string; name: string; here: boolean; playing: string | null }
 export type MusicCatalog = { ready: boolean; again: MusicItem[]; radio: MusicItem[]; own: MusicItem[]; rooms: MusicRoom[]; again_by_room: Record<string, MusicItem[]> }
+/** The household's photos for a TV at rest, newest first (hub/photos.py, design/rest-tv/, A). */
+export async function getPhotos(): Promise<import('./restTv').Photo[]> {
+  const r = await request('/photos'); if (!r.ok) await fail(r); return (await r.json()).photos
+}
+export const photoUrl = (id: string) => apiUrl(`/photos/${encodeURIComponent(id)}`)
+/** One photo, already redrawn on the phone (photos.ts): its size and when it was taken travel beside it. */
+export async function sendPhoto(p: { blob: Blob; w: number; h: number; taken: number | null }): Promise<import('./restTv').Photo> {
+  const headers: Record<string, string> = { 'Content-Type': 'image/jpeg', 'X-Width': String(p.w), 'X-Height': String(p.h) }
+  if (p.taken) headers['X-Taken'] = String(Math.round(p.taken))
+  const r = await request('/photos', { method: 'POST', headers, body: p.blob }); if (!r.ok) await fail(r); return r.json()
+}
+export async function removePhoto(id: string) {
+  const r = await request(`/photos/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (!r.ok) await fail(r)
+}
 export async function getMusic(room?: string | null): Promise<MusicCatalog> {
   const r = await request(`/music${room ? `?room=${encodeURIComponent(room)}` : ''}`); if (!r.ok) await fail(r); return r.json()
 }

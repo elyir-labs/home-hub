@@ -1,0 +1,120 @@
+{
+  "name": "Sending photos to the TV",
+  "areas": [
+    "Watching and listening",
+    "Phones and away"
+  ],
+  "pages": [
+    {
+      "id": "tv-photos",
+      "name": "How a photo gets from a phone to the TV",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A, with C",
+        "board": "PageA.dc.html"
+      }
+    },
+    {
+      "id": "tv-photos-rejected",
+      "name": "How a photo gets from a phone to the TV: not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "tv-photos",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Today: This house on a phone, with nowhere to send a photo"
+    },
+    {
+      "file": "PageA.dc.html",
+      "page": "tv-photos",
+      "x": 520,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "A: a page of photos on This house",
+      "is_interactive": true
+    },
+    {
+      "file": "MineB.dc.html",
+      "page": "tv-photos-rejected",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "B: each phone looks after its own photos",
+      "is_interactive": true
+    },
+    {
+      "file": "AskC.dc.html",
+      "page": "tv-photos",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "C: A or B, and a TV with no photos asks for some with a code"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "tv-photos",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026: a resting TV now shows the household's photos (design/rest-tv/, A), and the hub keeps them (hub/photos.py: on its own drive, never a cloud album, gone with Moving out). Nothing on a phone sends one yet. These boards ask where that lives and who may take a photo off again.\n\nIn every direction the phone redraws each photo to the TV's size before sending it, which also leaves behind where it was taken. When it was taken and the phone's name go with it, for the TV's line (\"August 2025 · from Sam's phone\")."
+    },
+    {
+      "id": "today",
+      "page": "tv-photos",
+      "x": 0,
+      "y": 880,
+      "w": 390,
+      "text": "TODAY. This house on a phone at 7:40 PM, from this branch's build. The TV half is built; there is no door for photos."
+    },
+    {
+      "id": "a",
+      "page": "tv-photos",
+      "x": 520,
+      "y": 880,
+      "w": 390,
+      "text": "A: A PAGE OF PHOTOS ON THIS HOUSE. A row, Photos on the TV, under Every day, opens one page: Add photos (the phone's own picker, as many as you like), and every photo the TV has as a grid, newest first. Tap one to see when it was taken and whose phone it came from, and to take it off the TV.\n\nFOR: One place, the simplest to explain. Anyone in the house tidies the TV.\n\nAGAINST: Anyone can take anyone's photo off, and every photo is on every phone's page."
+    },
+    {
+      "id": "b",
+      "page": "tv-photos-rejected",
+      "x": 0,
+      "y": 880,
+      "w": 390,
+      "text": "B: EACH PHONE LOOKS AFTER ITS OWN PHOTOS. The same page, split: this phone's photos first, which it can take off, then the other phones as one row each, with how many. Somebody else's photos are counted, not shown.\n\nFOR: A photo is the person's who sent it. Nobody browses a teenager's photos on a parent's phone, or takes them off.\n\nAGAINST: A photo nobody should have sent can only come off from the phone that sent it, or by Moving out. One more rule to explain."
+    },
+    {
+      "id": "c",
+      "page": "tv-photos",
+      "x": 0,
+      "y": 2620,
+      "w": 1920,
+      "text": "C: A OR B, AND THE TV ASKS. While a TV has no photos, its sky carries one card: Put your photos on this TV, with a code. A phone's camera opens the page from A or B, Add photos first. (A browser opens its photo picker only from a tap on the phone itself, so the page cannot open with the picker already up.) Once the first photo lands the card goes, for good, and the page on This house is the way back. It is the wall's code-opens-the-phone pattern (design/developer/, KeyPhone).\n\nFOR: The people in front of the TV learn it exists without opening anything. AGAINST: It puts a card on the calmest screen, until somebody answers it.\n\nPick A or B, and say whether C goes with it."
+    },
+    {
+      "id": "decided",
+      "page": "tv-photos",
+      "x": 1040,
+      "y": 0,
+      "w": 420,
+      "text": "DECIDED 20 NOVEMBER 2026 -- A, WITH C\n\nPhotos on the TV is a page on This house, under Every day: Add photos, the grid, and any photo taken off from the phone it is tapped on. While the TV has no photos, its sky carries C's card with the code that opens this page.\n\nThe page says \"the TV\", not \"the living room TV\": the hub does not yet know which of its screens is a TV."
+    },
+    {
+      "id": "lost",
+      "page": "tv-photos-rejected",
+      "x": 520,
+      "y": 0,
+      "w": 420,
+      "text": "NOT CHOSEN\n\nB keeps each photo to the phone that sent it. A is simpler to explain, and a household tidies its own TV together."
+    }
+  ]
+}

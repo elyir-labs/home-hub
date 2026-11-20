@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>D: the house from above</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="rest-tv.css">
+<style>
+  .plan text { font-family: "Instrument Sans", system-ui, sans-serif; fill: var(--ink); }
+  .plan .n { font-size: 26px; font-weight: 500; }
+  .plan .s { font-size: 22px; fill: var(--ink-3); }
+  .plan .s.lit { fill: var(--lamp); }
+  .wall { fill: none; stroke: rgba(255,255,255,.34); stroke-width: 3; }
+  .dark { fill: #14151c; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="night"></div><div class="stars" style="opacity:.5"></div>
+
+  <div class="shade" style="position:absolute; left:var(--safe-x); top:var(--safe-y);">
+    <div class="display" style="font-size:96px;">7:40<span class="period">PM</span></div>
+    <div style="font-size:26px; color:var(--ink-2); margin-top:10px;">Friday, November 20</div>
+  </div>
+  <div class="shade" style="position:absolute; right:var(--safe-x); top:calc(var(--safe-y) + 8px); text-align:right;">
+    <div class="display" style="font-size:72px;">78&deg;</div>
+    <div style="font-size:24px; color:var(--ink-2); margin-top:8px;">Partly cloudy</div>
+  </div>
+
+  <!-- the house drawn as a plan, each room where it is: lit where a light is on, a lock where a door is -->
+  <svg class="plan" style="position:absolute; left:300px; top:268px;" width="1320" height="700" viewBox="0 0 1320 700">
+    <defs>
+      <radialGradient id="glow" cx=".5" cy=".5" r=".7"><stop offset="0" stop-color="rgb(233,184,114)" stop-opacity=".46"/><stop offset="1" stop-color="rgb(233,184,114)" stop-opacity=".1"/></radialGradient>
+    </defs>
+    <!-- rooms -->
+    <rect class="dark" x="0" y="0" width="280" height="250"/>
+    <rect fill="url(#glow)" x="280" y="0" width="400" height="250"/>
+    <rect class="dark" x="680" y="0" width="320" height="150"/>
+    <rect class="dark" x="680" y="150" width="320" height="410"/>
+    <rect fill="url(#glow)" x="0" y="250" width="480" height="310"/>
+    <rect fill="url(#glow)" x="480" y="250" width="200" height="310"/>
+    <rect fill="url(#glow)" x="150" y="572" width="210" height="96" rx="10"/>
+    <rect x="1040" y="0" width="280" height="560" rx="18" fill="rgba(116,198,157,.06)" stroke="rgba(255,255,255,.22)" stroke-width="2" stroke-dasharray="10 10"/>
+    <rect x="1040" y="0" width="280" height="560" rx="18" fill="url(#glow)" opacity=".55"/>
+    <!-- walls, with gaps for doors -->
+    <path class="wall" d="M0 0 H1000 V560 H360 M150 560 H0 V0"/>
+    <path class="wall" d="M280 0 V180 M280 230 V250 H330 M380 250 H480 V560"/>
+    <path class="wall" d="M680 0 V60 M680 110 V560 M680 150 H1000"/>
+    <path class="wall" d="M0 250 H280"/>
+    <path class="wall" d="M480 250 H560 M610 250 H680"/>
+    <!-- labels -->
+    <text class="n" x="28" y="52">Garage</text><text class="s" x="28" y="86">Closed</text>
+    <text class="n" x="308" y="52">Kitchen</text><text class="s lit" x="308" y="86">2 on &#183; music</text>
+    <text class="n" x="708" y="52">Bathroom</text>
+    <text class="n" x="708" y="202">Bedroom</text><text class="s" x="708" y="236">Asleep</text>
+    <text class="n" x="28" y="302">Living room</text><text class="s lit" x="28" y="336">2 on &#183; 74&#176;</text>
+    <text class="n" x="508" y="302">Office</text><text class="s lit" x="508" y="336">Desk lamp</text>
+    <text class="n" x="176" y="614">Front door</text><text class="s lit" x="176" y="648">Porch light</text>
+    <text class="n" x="1068" y="52">Backyard</text><text class="s lit" x="1068" y="86">String lights</text>
+    <!-- the TV, in the room it is in: you are here -->
+    <rect x="160" y="534" width="160" height="10" rx="5" fill="var(--ink)" opacity=".9"/>
+    <text class="s" x="200" y="520" style="fill:var(--ink-2)">This TV</text>
+    <!-- locks on the outside doors -->
+    <g transform="translate(366 560)" fill="none" stroke="var(--ink)" stroke-width="2.2"><rect x="-1" y="-14" width="26" height="22" rx="4" fill="#14151c"/><path d="M5 -14 v-7 a7 7 0 0 1 14 0 v7"/></g>
+    <g transform="translate(988 470)" fill="none" stroke="var(--ink)" stroke-width="2.2"><rect x="-1" y="-14" width="26" height="22" rx="4" fill="#14151c"/><path d="M5 -14 v-7 a7 7 0 0 1 14 0 v7"/></g>
+    <!-- music in the kitchen -->
+    <g transform="translate(610 190)" fill="none" stroke="var(--lamp)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 30V6l20-4v24"/><circle cx="4.5" cy="30" r="4.5"/><circle cx="24.5" cy="26" r="4.5"/></g>
+  </svg>
+
+  <div class="shade" style="position:absolute; left:var(--safe-x); bottom:var(--safe-y); font-size:24px; color:var(--ink-2); display:flex; gap:28px; align-items:center;">
+    <span><span class="lamp">6 lights on</span> in 5 rooms</span><span>Both doors locked</span>
+  </div>
+  <div class="ok shade"><kbd>OK</kbd>The living room</div>
+</div>
+</body>
+</html>
