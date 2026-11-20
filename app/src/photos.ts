@@ -8,6 +8,7 @@
  * thing kept is when it was taken, read here from the original and sent beside it, because that is the line
  * the TV shows under it.
  */
+import type { ShownScreen } from './api'
 import type { Photo } from './restTv'
 
 export const LONGEST = 2048   // a 1080p TV fills 1920 across; a little more keeps a slow pan sharp
@@ -95,6 +96,14 @@ export function sentLine(p: Photo, now = new Date(), locale?: string): string {
   const when = days <= 0 ? 'today' : days === 1 ? 'yesterday' : days < 7 ? `on ${at.toLocaleDateString(locale, { weekday: 'long' })}`
     : `on ${at.toLocaleDateString(locale, { month: 'long', day: 'numeric' })}`
   return p.by ? `From ${p.by} · sent ${when}` : `Sent ${when}`
+}
+
+/** A screen on Photos: "Living room TV" for a TV, the room's name for a wall screen, and what it shows at rest when
+    its switch is off (design/which-tv/, C). */
+export function screenLines(s: ShownScreen): { name: string; sub: string } {
+  const name = s.room_name ? (s.tv ? `${s.room_name} TV` : s.room_name) : (s.tv ? 'A TV' : 'A screen on the wall')
+  const kind = s.tv ? 'A TV' : 'A screen on the wall'
+  return { name, sub: s.photos ? kind : `${kind} · shows ${s.tv ? 'the sky' : 'the clock'}` }
 }
 
 /** Where a phone's camera is sent from the TV's code: this page, on the address the phone can reach. */

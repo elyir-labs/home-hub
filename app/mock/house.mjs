@@ -150,7 +150,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
     ask: `Remove ${t.name} from the house? ${tail}`, yes: `Yes, remove ${t.name}`, no: 'Keep it' })
   const status = { driver: env.ENGINE === 'down' ? 'down' : 'ready', reason: env.ENGINE === 'down' ? "The hub's engine is not answering yet." : '',
     version: 'v0.3.0',   // the build this mock is: the panel reloads itself when a status answers with another (store.ts, newBuild)
-    setup_done: env.FRESH !== '1', owner: 'Jordan', home: "Jordan's house", location: true, rooms: 8, devices: 30, locked: env.LOCKED === '1',
+    screens: 2, setup_done: env.FRESH !== '1', owner: 'Jordan', home: "Jordan's house", location: true, rooms: 8, devices: 30, locked: env.LOCKED === '1',
     drivers: [
       { id: 'mqtt', name: 'Device messages', state: 'ready', text: 'Working', port: 1883 },
       { id: 'zigbee', name: 'Zigbee radio', state: 'ready', text: 'Plugged in', port: 8080 },

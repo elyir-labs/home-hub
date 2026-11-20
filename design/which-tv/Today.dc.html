@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Today: Photos on the TV, with no TV named</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="which.css">
+<style>body[data-at="photos"] .house, body[data-at="house"] .photos { display: none; }</style>
+</head>
+<body data-at="photos">
+<!-- not drawn: the panel on development after #56, mock brain, ?sheet=photos and ?sheet=house, at 390 x 844 -->
+<div class="shot photos"><img src="shipped-photos.jpg" alt="Photos on the TV as it ships">
+  <div class="why-tag" style="left:18px; top:430px;"><b>"The TV."</b> Which one? The hub doesn't know which of its screens is a TV, so the page can't say the living room's.</div></div>
+<div class="shot house"><img src="shipped-house.jpg" alt="This house as it ships">
+  <div class="why-tag" style="left:110px; top:560px;"><b>Always there.</b> Photos on the TV shows in a house with no TV at all, because nothing tells the hub there isn't one.</div></div>
+<div class="flips" style="position:absolute; right:10px; bottom:22px;"><div class="flipset"><span>Show</span><span class="flip on" data-g="at" data-to="photos">Photos on the TV</span><span class="flip" data-g="at" data-to="house">This house</span></div></div>
+<script>document.querySelectorAll(".flip").forEach(f => f.addEventListener("click", () => { document.body.dataset[f.dataset.g] = f.dataset.to; document.querySelectorAll(".flip[data-g=\"" + f.dataset.g + "\"]").forEach(g => g.classList.toggle("on", g === f)) }))</script>
+</body>
+</html>

@@ -406,6 +406,17 @@ Do not reopen these, and do not propose around them.
   (OK plays or pauses, Up and Down are the volume, Hold OK opens the music pane); at rest, a room that plays shows the
   record, and OK raises Pause, Next and the volume. `brain/hub/doorbell.py`, `DoorCorner.vue`, `TvRecord.vue`,
   `musicIn` in `tv.ts`; pinned by `brain/tests/test_doorbell.py`, `app/tests/tv.test.ts` and `app/e2e/tv-door-music.spec.ts`.
+- **A TV at rest shows the household's photos, and the household picks which screens show them** (20 November,
+  `design/rest-tv/`, A with C, B and E; `design/tv-photos/`, A with C; `design/which-tv/`, A with B's row, C's screens
+  and Wall A). Resting, a TV shows the photos sent from phones on Photos (This house, under Every day), the sky with a
+  code that opens Photos while there are none, the music while a speaker elsewhere plays (music in its own room is
+  the record above), and Bedtime from 10:30 PM while anything is still on. Nothing holds still, and after 20 minutes
+  it goes to standby over HDMI. Photos stay on the hub's drive and go with Moving out. A screen says whether it is a
+  TV, This screen's What it is beats the guess, and each screen has a switch on Photos: a TV starts on, a wall screen
+  off, and a wall switched on rests on the TV's photo face at its own size. `TvRest.vue`, `restTv.ts`, `PhotosPage.vue`,
+  `photos.ts`, `brain/hub/photos.py`, `brain/hub/screens.py`, `screen-helper.py`'s `/sleep`; pinned by
+  `app/tests/restTv.test.ts`, `app/tests/photos.test.ts`, `app/e2e/rest-tv.spec.ts`, `app/e2e/photos.spec.ts`,
+  `app/e2e/which-tv.spec.ts`, `brain/tests/test_photos.py` and `brain/tests/test_screens.py`.
 - **A hub on a cable into the modem answers nobody on the internet, and its Ready offers two ways in** (19 November,
   `design/modem-cable/`, C). A link with a public address takes no new connections (`driver-layer/host/public.sh`), and
   counts as online but never as the house's network, so the hub still makes its own Wi-Fi. Ready puts that Wi-Fi's code

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 // SPDX-License-Identifier: AGPL-3.0-or-later
-/* Photos on the TV, on a phone (design/tv-photos/PageA, decided 20 November 2026 with C): the page lists what the TV
+/* Photos, on a phone (design/tv-photos/PageA, decided 20 November 2026 with C): the page lists what the TV
    has, Add photos sends one redrawn on the phone with its size beside it, and a tapped photo comes off the TV. */
 import { expect, test } from '@playwright/test'
 
@@ -16,8 +16,8 @@ test('a phone adds a photo, sees whose each one is, and takes one off the TV', a
   })
   await page.route('**/photos/*', r => { if (r.request().method() === 'DELETE') { removed.push(r.request().url()); return r.fulfill({ json: { ok: true } }) } return r.fallback() })
   await page.goto('/?sheet=photos&at=19:40', { waitUntil: 'networkidle' })
-  await expect(page.locator('.photos-count')).toContainText('3 photos')
-  await expect(page.locator('.photos-count')).toContainText('from 2 phones')
+  await expect(page.locator('.photos-count:not(.photos-on-head)')).toContainText('3 photos')
+  await expect(page.locator('.photos-count:not(.photos-on-head)')).toContainText('from 2 phones')
 
   const png = await page.evaluate(async () => {
     const c = document.createElement('canvas'); c.width = 64; c.height = 48
@@ -25,7 +25,7 @@ test('a phone adds a photo, sees whose each one is, and takes one off the TV', a
     return [...new Uint8Array(await (await new Promise<Blob>(done => c.toBlob(b => done(b!), 'image/png'))).arrayBuffer())]
   })
   await page.locator('.photos-input').setInputFiles({ name: 'beach.png', mimeType: 'image/png', buffer: Buffer.from(png) })
-  await expect(page.locator('.photos-count')).toContainText('4 photos')
+  await expect(page.locator('.photos-count:not(.photos-on-head)')).toContainText('4 photos')
   expect(sent).toHaveLength(1)
   expect(sent[0].headers['content-type']).toBe('image/jpeg')
   expect([sent[0].headers['x-width'], sent[0].headers['x-height']]).toEqual(['64', '48'])
@@ -34,6 +34,6 @@ test('a phone adds a photo, sees whose each one is, and takes one off the TV', a
   await expect(page.locator('.photos-sheet')).toContainText("From Sam's phone")
   await page.getByRole('button', { name: 'Take off the TV' }).click()
   await expect(page.locator('.photos-sheet')).toHaveCount(0)
-  await expect(page.locator('.photos-count')).toContainText('3 photos')
+  await expect(page.locator('.photos-count:not(.photos-on-head)')).toContainText('3 photos')
   expect(removed[0]).toMatch(/\/photos\/coast$/)
 })

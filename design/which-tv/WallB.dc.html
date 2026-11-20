@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Wall B: the wall's own rest, over the photo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap">
+<style>
+* { box-sizing: border-box; } body { margin: 0; font-family: "Plus Jakarta Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: #f1eee8; }
+.wall { position: relative; width: 1440px; height: 900px; overflow: hidden; background: #000; }
+.ph { position: absolute; inset: 0; width: 100%; height: 100%; transform: scale(1.04); }
+.t { font-weight: 300; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.t i { font-style: normal; font-size: .3em; font-weight: 400; letter-spacing: 0; margin-left: .08em; }
+.sh { text-shadow: 0 2px 22px rgba(0,0,0,.55); }
+.facts { display: flex; align-items: flex-start; }
+.f { display: flex; flex-direction: column; align-items: center; padding: 0 30px; }
+.f + .f { border-left: 1px solid rgba(255,255,255,.24); }
+.f .v { display: flex; align-items: center; gap: 12px; letter-spacing: -.02em; }
+.f .w { color: #f1eee8; margin-top: 4px; }
+.lamp { color: #e9b872; }
+svg.i { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+<div class="wall">
+  <svg xmlns='http://www.w3.org/2000/svg' class='ph' preserveAspectRatio='xMidYMid slice' viewBox='0 0 1920 1080'><defs><linearGradient id='s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#5d5a8e'/><stop offset='.38' stop-color='#d98a72'/><stop offset='.6' stop-color='#f4c58b'/></linearGradient><linearGradient id='w' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#c98a6e'/><stop offset='.5' stop-color='#5f5574'/><stop offset='1' stop-color='#2e2c44'/></linearGradient></defs><rect width='1920' height='660' fill='url(#s)'/><circle cx='1190' cy='600' r='46' fill='#fff1cf'/><rect y='620' width='1920' height='460' fill='url(#w)'/><path d='M0 600 C 180 520 330 540 470 590 S 700 640 760 640 L0 660z' fill='#3b3047'/><path d='M1500 640 C 1600 560 1760 520 1920 545 V660 H1500z' fill='#342b40'/><path d='M0 880 C 400 840 900 860 1920 900 V1080 H0z' fill='#c9a68a'/><path d='M0 930 C 500 905 1100 920 1920 960 V1080 H0z' fill='#a98a74'/></svg>
+  <div style="position:absolute; inset:0; background:radial-gradient(70% 60% at 50% 55%, rgba(8,10,16,.55), rgba(8,10,16,.2) 80%), linear-gradient(transparent 70%, rgba(8,10,16,.5));"></div>
+  <div class="sh" style="position:absolute; left:64px; top:auto; bottom:40px; font-size:20px;">August 2025 &middot; from Sam&rsquo;s phone</div>
+  <div class="sh" style="position:absolute; right:64px; top:56px; text-align:right;"><div class="t" style="font-size:84px;">78&deg;</div><div style="font-size:22px; margin-top:6px;">Partly cloudy</div></div>
+  <div class="sh" style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <div class="t" style="font-size:170px;">7:40<i>PM</i></div>
+    <div style="font-size:26px; margin-top:12px;">Friday, November 20</div>
+    <div style="margin-top:60px;"><div class="facts"><div class="f"><span class="v " style="font-size:48px"><svg class="i" width="33" height="33" viewBox="0 0 24 24"><path d="M4 11.2L12 4.5l8 6.7"/><path d="M6.2 12.6V19h11.6v-6.4"/></svg>Calm</span><span class="w" style="font-size:21px">Doors locked</span></div><div class="f"><span class="v lamp" style="font-size:48px"><svg class="i" width="33" height="33" viewBox="0 0 24 24"><circle cx="12" cy="9.5" r="5"/><path d="M9.5 16h5M10.5 19h3"/></svg>6 on</span><span class="w" style="font-size:21px">in 5 rooms</span></div><div class="f"><span class="v " style="font-size:48px"><svg class="i" width="33" height="33" viewBox="0 0 24 24"><path d="M10 4.5a2 2 0 0 1 4 0v9.3a4 4 0 1 1-4 0z"/><path d="M12 11v5"/></svg>74°</span><span class="w" style="font-size:21px">Living room</span></div><div class="f"><span class="v " style="font-size:48px"><svg class="i" width="33" height="33" viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>Playing</span><span class="w" style="font-size:21px">The Bear</span></div></div></div>
+  </div>
+</div>
+</body>
+</html>
