@@ -23,7 +23,7 @@ import { installRemote, onTV, sceneFor, type Press } from './tv'
 import TvView from './views/TvView.vue'
 import TvBand from './TvBand.vue'
 import TvRest from './TvRest.vue'
-import { goodnight, nightOf, rest, SLEEP_AFTER } from './restTv'
+import { bedtime, nightOf, rest, SLEEP_AFTER } from './restTv'
 import { sleepTv } from './thisScreen'
 import type { Device } from './api'
 import { lock } from './code'
@@ -277,8 +277,8 @@ function wakeOpen(d: Device) { wake(); store.opened = d }
 function remote(p: Press): boolean {
   if (!idle.value) return false
   if (tvBand.value) { if (p === 'home') { wake(); return true } return false }
-  if (rest.face === 'goodnight' && p === 'ok') { goodnight(); return true }
-  if (rest.face === 'goodnight' && p === 'back') { rest.notYet = nightOf(shown.value); return true }
+  if (rest.face === 'bedtime' && p === 'ok') { bedtime(); return true }
+  if (rest.face === 'bedtime' && p === 'back') { rest.notYet = nightOf(shown.value); return true }
   if (p === 'ok' || p === 'up' || p === 'down') tvBand.value = true
   else if (p === 'home') wake()
   return true   // nothing else does anything to a resting TV

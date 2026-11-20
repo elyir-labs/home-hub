@@ -3140,6 +3140,141 @@ input:focus-visible {
   opacity: 0.25;
   transition: opacity 0.3s ease;
 }
+/* ---------- Photos on the TV, on This house (design/tv-photos/PageA, PhotosPage.vue) ---------- */
+.photos-input {
+  display: none;
+}
+.photos-add {
+  width: 100%;
+  justify-content: center;
+  gap: 8px;
+}
+.photos-count {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 20px 2px 8px;
+}
+.photos-count b {
+  font-weight: 500;
+}
+.photos-count span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 4px;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.photos-cell {
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+.photos-cell img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photos-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(5, 6, 8, 0.55);
+}
+.photos-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 81;
+  width: min(480px, 100%);
+  translate: -50% 0;
+  padding: 18px 18px calc(30px + env(safe-area-inset-bottom));
+  border-radius: 26px 26px 0 0;
+  background: var(--bg-2);
+  border-top: 1px solid var(--edge-hi);
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.5);
+}
+.photos-sheet-head {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+.photos-sheet-head img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+}
+.photos-sheet-head b {
+  display: block;
+  font-size: 17px;
+  font-weight: 500;
+}
+.photos-sheet-head span {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.photos-off {
+  width: 100%;
+  margin-top: 20px;
+  justify-content: center;
+}
+.photos-foot {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+/* C: a TV with no photos asks for some, with a code that opens Photos on the TV on a phone */
+.tvrest-ask {
+  position: absolute;
+  right: 96px;
+  top: 50%;
+  translate: 0 -50%;
+  width: 620px;
+  padding: 40px 44px;
+  border-radius: 28px;
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 32px;
+  align-items: center;
+  text-shadow: none;
+  background: rgba(18, 19, 24, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+}
+.tvrest-ask h2 {
+  margin: 0;
+  font-size: 44px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.tvrest-ask p {
+  margin: 16px 0 0;
+  font-size: 24px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+.tvrest-ask img {
+  width: 220px;
+  height: 220px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #fff;
+}
+
 /* ---------- a TV at rest (design/rest-tv/, TvRest.vue): drawn at 1920x1080 as the boards are, and scaled ---------- */
 .tvrest-fit {
   position: absolute;

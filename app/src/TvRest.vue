@@ -4,13 +4,14 @@
 -->
 <script setup lang="ts">
 /* A TV at rest (design/rest-tv/): the household's photos, the sky when there are none, the music while it
-   plays, and Goodnight at bedtime. Drawn at the TV's own 1920x1080, as the boards are, and scaled to the
+   plays, and Bedtime late in the evening. Drawn at the TV's own 1920x1080, as the boards are, and scaled to the
    screen it is on; restTv.ts decides which face and where everything sits this minute. */
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { Room } from './api'
-import { getPhotos, imageUrl, photoUrl } from './api'
+import { getPhotos, imageUrl, photoUrl, qrUrl } from './api'
+import { photosPageUrl } from './photos'
 import { clockParts, restingFacts, restWeather } from './resting'
-import { drift, faceFor, goodnightLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
+import { drift, faceFor, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
   SLEEP_AFTER, slideAt, slides, stillOn, type Photo, type Shape } from './restTv'
 import { locale } from './lang'
 import { roomOf } from './store'
@@ -23,7 +24,9 @@ const fit = () => (scale.value = Math.min(innerWidth / 1920, innerHeight / 1080)
 
 const photos = ref<Photo[]>([])
 const learned = ref<Record<string, Shape>>({})
-async function load() { try { photos.value = await getPhotos() } catch { /* a hub without photos rests on the sky */ } }
+const known = ref(false)   // the hub answered, so an empty list really is no photos yet, and the TV may ask for some (C)
+const qrOk = ref(true)
+async function load() { try { photos.value = await getPhotos(); known.value = true } catch { /* a hub without photos rests on the sky */ } }
 
 const tick = ref(Date.now())
 let timer: number | undefined, reload: number | undefined
@@ -61,7 +64,7 @@ const art = computed(() => (music.value?.attrs.entity_picture ? imageUrl(music.v
 const sleepsIn = computed(() => Math.max(1, Math.ceil((props.since + SLEEP_AFTER - tick.value) / 60000)))
 
 const ok = computed(() => {
-  if (face.value === 'goodnight') return 'Goodnight'
+  if (face.value === 'bedtime') return 'Bedtime'
   if (face.value === 'playing' && music.value && props.room && roomOf(music.value)?.id === props.room.id) return 'Pause, louder or quieter'
   return props.room ? `The ${props.room.name.toLowerCase()}` : ''
 })
@@ -89,7 +92,7 @@ const ok = computed(() => {
         <div class="tvrest-dim"></div>
       </template>
 
-      <template v-else-if="face === 'goodnight'">
+      <template v-else-if="face === 'bedtime'">
         <div class="tvrest-night"></div>
       </template>
 
@@ -111,6 +114,10 @@ const ok = computed(() => {
 
         <template v-else-if="face === 'window'">
           <div class="tvrest-alert" v-if="unlocked"><Icon name="lock" :size="32" />{{ unlocked }}</div>
+          <div class="tvrest-ask" v-if="known && qrOk">
+            <div><h2>Put your photos on this TV</h2><p>Point your phone’s camera at the code. The photos stay on the hub, in this house.</p></div>
+            <img :src="qrUrl(photosPageUrl())" alt="A code that opens Photos on the TV on a phone" @error="qrOk = false" />
+          </div>
           <div class="tvrest-caption">
             <div class="tvrest-time display">{{ time.time }}<span class="tvrest-period" v-if="time.period">{{ time.period }}</span></div>
             <div class="tvrest-day" v-if="wx">{{ wx.temp }} and {{ wx.label.toLowerCase() }}</div>
@@ -141,7 +148,7 @@ const ok = computed(() => {
           </div>
         </template>
 
-        <template v-else-if="face === 'goodnight'">
+        <template v-else-if="face === 'bedtime'">
           <div class="tvrest-clock-top tvrest-clock-left">
             <span class="tvrest-time display">{{ time.time }}<span class="tvrest-period" v-if="time.period">{{ time.period }}</span></span>
             <span class="tvrest-day">{{ day }}<template v-if="wx"> · {{ wx.temp }} outside</template></span>
@@ -154,9 +161,9 @@ const ok = computed(() => {
             </ul>
           </div>
           <div class="tvrest-bed">
-            <div class="tvrest-go"><Icon name="moon" :size="64" /><div><b>Goodnight</b><small>{{ goodnightLine(left) }}</small></div></div>
+            <div class="tvrest-go"><Icon name="moon" :size="64" /><div><b>Bedtime</b><small>{{ bedtimeLine(left) }}</small></div></div>
             <div class="tvrest-sleeps">This TV turns itself off in {{ sleepsIn }} {{ sleepsIn === 1 ? 'minute' : 'minutes' }}. The house stays as it is.</div>
-            <div class="tvrest-sleeps">After Goodnight, the TV turns off with the lights.</div>
+            <div class="tvrest-sleeps">After Bedtime, the TV turns off with the lights.</div>
           </div>
           <div class="tvrest-back"><kbd>Back</kbd>Not yet</div>
         </template>

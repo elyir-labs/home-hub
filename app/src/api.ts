@@ -806,7 +806,16 @@ export type MusicCatalog = { ready: boolean; again: MusicItem[]; radio: MusicIte
 export async function getPhotos(): Promise<import('./restTv').Photo[]> {
   const r = await request('/photos'); if (!r.ok) await fail(r); return (await r.json()).photos
 }
-export const photoUrl = (id: string) => `/photos/${encodeURIComponent(id)}`
+export const photoUrl = (id: string) => apiUrl(`/photos/${encodeURIComponent(id)}`)
+/** One photo, already redrawn on the phone (photos.ts): its size and when it was taken travel beside it. */
+export async function sendPhoto(p: { blob: Blob; w: number; h: number; taken: number | null }): Promise<import('./restTv').Photo> {
+  const headers: Record<string, string> = { 'Content-Type': 'image/jpeg', 'X-Width': String(p.w), 'X-Height': String(p.h) }
+  if (p.taken) headers['X-Taken'] = String(Math.round(p.taken))
+  const r = await request('/photos', { method: 'POST', headers, body: p.blob }); if (!r.ok) await fail(r); return r.json()
+}
+export async function removePhoto(id: string) {
+  const r = await request(`/photos/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (!r.ok) await fail(r)
+}
 export async function getMusic(room?: string | null): Promise<MusicCatalog> {
   const r = await request(`/music${room ? `?room=${encodeURIComponent(room)}` : ''}`); if (!r.ok) await fail(r); return r.json()
 }

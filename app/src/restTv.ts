@@ -7,7 +7,7 @@
  * The wall's resting screen was drawn for a hallway glance; a TV is the biggest picture in the house and
  * spends most of its time on and unwatched. So a resting TV is the household's own photos (A), or the sky
  * as a window when nobody has sent one yet (C). Music playing anywhere takes the screen while it plays (B),
- * and from bedtime on, if anything is still on, it asks Goodnight (E).
+ * and from bedtime on, if anything is still on, it offers Bedtime (E).
  *
  * Under all four, nothing holds still -- an OLED TV keeps the ghost of anything held in one place for
  * weeks -- and after a long rest the TV is sent to standby, so a hub is never the reason it was on all night.
@@ -17,7 +17,7 @@ import type { Device } from './api'
 import { cap, HOUSE_SCENES, isDead, roomOf, runScene, store } from './store'
 import { sleepTv } from './thisScreen'
 
-export type Face = 'photos' | 'window' | 'playing' | 'goodnight'
+export type Face = 'photos' | 'window' | 'playing' | 'bedtime'
 export type Photo = { id: string; taken: number | null; added: number; by: string | null; w?: number | null; h?: number | null }
 export type Shape = 'wide' | 'tall'
 export type StillOn = { name: string; what: string; kind: 'light' | 'music' | 'door' }
@@ -35,7 +35,7 @@ export function atBedtime(now: Date): boolean {
 /** Which face, in the board's order of who wins: music, then bedtime, then photos, then the sky. */
 export function faceFor(o: { playing: boolean; stillOn: number; photos: number; now: Date; notYet: boolean }): Face {
   if (o.playing) return 'playing'
-  if (o.stillOn && atBedtime(o.now) && !o.notYet) return 'goodnight'
+  if (o.stillOn && atBedtime(o.now) && !o.notYet) return 'bedtime'
   return o.photos ? 'photos' : 'window'
 }
 
@@ -65,8 +65,8 @@ export function stillOn(): StillOn[] {
   return out
 }
 
-/** What Goodnight does, in the order it matters: the lights, the doors, the music. Bedtime is lights and media off and locks locked. */
-export function goodnightLine(left: StillOn[]): string {
+/** What Bedtime does, in the order it matters: the lights, the doors, the music. Bedtime is lights and media off and locks locked. */
+export function bedtimeLine(left: StillOn[]): string {
   const doors = left.filter(s => s.kind === 'door')
   const parts = ['The lights off']
   if (doors.length) parts.push(doors.length === 1 ? `the ${doors[0].name.toLowerCase()} locked` : 'the doors locked')
@@ -116,13 +116,13 @@ export function position(d: Device, now: number): { at: number; of: number } | n
 export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
 /** What the resting TV is showing, so the remote's OK and Back can do what that face says they do. `notYet` is the night
-    Back was pressed on Goodnight, which then leaves the TV to its photos until the next evening. */
+    Back was pressed on Bedtime, which then leaves the TV to its photos until the next evening. */
 export const rest = reactive({ face: 'window' as Face, notYet: '' })
 
 export const nightOf = (now: Date) => new Date(now.getTime() - BEDTIME_TO * 60000).toDateString()
 
-/** Goodnight: the house's own Bedtime, then the TV to standby with the lights. */
-export async function goodnight() {
-  const bedtime = HOUSE_SCENES.find(s => s.id === 'asleep')
-  if (bedtime && await runScene(null, bedtime)) await sleepTv()
+/** Bedtime: the house's own Bedtime, then the TV to standby with the lights. */
+export async function bedtime() {
+  const scene = HOUSE_SCENES.find(s => s.id === 'asleep')
+  if (scene && await runScene(null, scene)) await sleepTv()
 }

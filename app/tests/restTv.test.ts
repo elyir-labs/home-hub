@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /* A TV at rest, as design/rest-tv/ decided on 20 November 2026: A (the household's photos), with C (the sky) until
-   there are photos, B (what's playing) while music plays, and E (Goodnight) at bedtime. These fail on purpose if
-   which face wins, or what Goodnight lists and says, drifts from the boards. */
+   there are photos, B (what's playing) while music plays, and E (Bedtime) at bedtime. These fail on purpose if
+   which face wins, or what Bedtime lists and says, drifts from the boards. */
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
-import { atBedtime, drift, faceFor, goodnightLine, photoLine, playingNow, playingRooms, position, slideAt, slides, stillOn,
+import { atBedtime, drift, faceFor, bedtimeLine, photoLine, playingNow, playingRooms, position, slideAt, slides, stillOn,
   type Photo } from '../src/restTv'
 import { store } from '../src/store'
 
@@ -28,10 +28,10 @@ describe('which face a resting TV shows', () => {
     expect(faceFor({ ...base, playing: true, stillOn: 4, now: at(23, 0) })).toBe('playing')
   })
 
-  it('is Goodnight from 10:30 PM to 4 AM, only while something is still on, and not after Not yet', () => {
+  it('is Bedtime from 10:30 PM to 4 AM, only while something is still on, and not after Not yet', () => {
     expect(faceFor({ ...base, stillOn: 2, now: at(22, 29) })).toBe('photos')
-    expect(faceFor({ ...base, stillOn: 2, now: at(22, 30) })).toBe('goodnight')
-    expect(faceFor({ ...base, stillOn: 2, now: at(3, 59) })).toBe('goodnight')
+    expect(faceFor({ ...base, stillOn: 2, now: at(22, 30) })).toBe('bedtime')
+    expect(faceFor({ ...base, stillOn: 2, now: at(3, 59) })).toBe('bedtime')
     expect(faceFor({ ...base, stillOn: 2, now: at(4, 0) })).toBe('photos')
     expect(faceFor({ ...base, stillOn: 0, now: at(23, 0) })).toBe('photos')
     expect(faceFor({ ...base, stillOn: 2, now: at(23, 0), notYet: true })).toBe('photos')
@@ -92,7 +92,7 @@ describe('what is playing', () => {
   })
 })
 
-describe('Goodnight', () => {
+describe('Bedtime', () => {
   it('lists the lights by room, then the music, then the doors left unlocked', () => {
     store.rooms = [
       room('kitchen', 'Kitchen', [dev('l1', 'kitchen', 'light', 'on'), dev('l2', 'kitchen', 'light', 'on'), dev('s', 'kitchen', 'media', 'playing', { music: true }, 'Kitchen speaker')]),
@@ -101,10 +101,10 @@ describe('Goodnight', () => {
     ]
     const left = stillOn()
     expect(left.map(s => [s.name, s.what])).toEqual([['Kitchen', '2 lights'], ['Office', 'Desk lamp'], ['Kitchen speaker', 'Playing'], ['Back door', 'Unlocked']])
-    expect(goodnightLine(left)).toBe('The lights off, the back door locked, the music stopped')
+    expect(bedtimeLine(left)).toBe('The lights off, the back door locked, the music stopped')
   })
 
   it('says only what it will do', () => {
-    expect(goodnightLine([{ name: 'Office', what: 'Desk lamp', kind: 'light' }])).toBe('The lights off')
+    expect(bedtimeLine([{ name: 'Office', what: 'Desk lamp', kind: 'light' }])).toBe('The lights off')
   })
 })
