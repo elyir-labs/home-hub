@@ -60,3 +60,34 @@ export function sections(c: Catalog): { title: string; items: MusicItem[]; key: 
     .map(([key, title]) => ({ key, title, items: c[key] ?? [] }))
     .filter(s => s.items.length)
 }
+
+/* Two speakers in one room playing one song (design/speaker-pair/, B with C, decided 20 November 2026). A pair the
+   household said yes to is one card for good, playing or quiet (`attrs.pair`, the brain's). Two playing the same song
+   that nobody has answered for are shown as one leading and the other a line under it, and the room asks once; two
+   the household called two speakers (`attrs.apart`) stay two cards. Pause, play and the volume work the whole group. */
+const SOUNDING = new Set(['playing', 'paused'])
+export const pairOf = (d: Device, room: Room) => d.attrs.pair ? room.devices.find(x => x.id === d.attrs.pair) ?? null : null
+export function inStep(a: Device, b: Device): boolean {
+  if (a.id === b.id || !canStart(a) || !canStart(b) || a.room_id !== b.room_id) return false
+  if (((a.attrs.apart as string[] | undefined) ?? []).includes(b.id)) return false
+  const t = a.attrs.media_title
+  return !!t && t === b.attrs.media_title && SOUNDING.has(a.state) && SOUNDING.has(b.state)
+}
+/* The speakers that go with this one: its pair, and any playing the same song in step. */
+export function groupOf(d: Device, room: Room): Device[] {
+  const pair = pairOf(d, room)
+  const mates = room.devices.filter(x => x.id !== d.id && (x.id === pair?.id || inStep(d, x)))
+  return [d, ...mates]
+}
+/* Which one carries the card: the one playing, then the first by name, so the same speaker leads on every screen. */
+export function leadOf(d: Device, room: Room): Device {
+  const g = groupOf(d, room)
+  return [...g].sort((a, b) => Number(b.state === 'playing') - Number(a.state === 'playing') || a.name.localeCompare(b.name))[0]
+}
+export const follows = (d: Device, room: Room) => leadOf(d, room).id !== d.id
+/* The ones under a leader that nobody has answered for yet: C's line, and the question. */
+export const unanswered = (lead: Device, room: Room) => groupOf(lead, room).filter(x => x.id !== lead.id && pairOf(lead, room)?.id !== x.id)
+export const namesOf = (ds: Device[], short: (d: Device) => string) => {
+  const n = ds.map(short)
+  return n.length > 1 ? `${n.slice(0, -1).join(', ')} and ${n[n.length - 1]}` : n[0] ?? ''
+}

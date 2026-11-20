@@ -250,6 +250,7 @@ class Home:
         # What the household said never to show on Home (design/home-keep/, B). The house's answer rather than
         # a screen's, because a plug that is noise on the wall is noise on every phone. Kept in settings.
         self.off_home: set[str] = set()
+        self.speaker_pairs: list[dict] = []    # {"speakers": [a, b], "pair": bool}: the household's answer (design/speaker-pair/, B)
         self.room_colors: dict[str, list] = {}   # kept per room, from settings, so a restore brings them back
         self.bells: dict[str, str] = {}    # a doorbell's button entity -> the camera in the same unit (doorbell.py)
         self.lamps: dict[str, str] = {}    # camera id -> the light built into the same unit (Ring floodlight and spotlight cams)
@@ -294,6 +295,12 @@ class Home:
         if eid in self.eyes: out["motion"] = self.eyes[eid]
         out.update(self.fixtures.get(eid, {}))
         out.update(self.reports.get(eid, {}))
+        if cap == "media":
+            for p in self.speaker_pairs:
+                if eid in p["speakers"]:
+                    other = next(x for x in p["speakers"] if x != eid)
+                    if p["pair"]: out["pair"] = other
+                    else: out.setdefault("apart", []).append(other)
         out.update(self.told.get(eid, {}))
         if extra.get("fan_until", 0) > time.time(): out["fan_mode"] = "on"
         if cap.split(".")[0] == "light" and eid in self.color_pinned: out["color_pinned"] = True
@@ -520,6 +527,18 @@ class Home:
             d.attrs["together"] = [m for m in mates if m != d.id]
         else:
             self.together.pop(d.id, None)
+
+    def set_pair(self, a: str, b: str, pair: bool) -> list[Device]:
+        """Two speakers in one room are one pair, or two speakers: asked once, the first time they play the same song."""
+        da, db = self.devices.get(a), self.devices.get(b)
+        if not da or not db or a == b or da.capability != "media" or db.capability != "media": raise KeyError("No such speakers.")
+        if da.room_id != db.room_id: raise ValueError("Only two speakers in the same room can be a pair.")
+        both = sorted((a, b))
+        self.speaker_pairs = [p for p in self.speaker_pairs if not ({a, b} & set(p["speakers"]))] + [{"speakers": both, "pair": pair}]
+        for d in (da, db):
+            d.attrs.pop("pair", None); d.attrs.pop("apart", None)
+            d.attrs.update({k: v for k, v in self.attrs_for(d.id, d.capability, {}).items() if k in ("pair", "apart")})
+        return [da, db]
 
     def apply_state(self, entity_id, new_state) -> Device | None:
         if entity_id in self._engine or entity_id in self.twins:

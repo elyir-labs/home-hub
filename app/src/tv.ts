@@ -15,7 +15,7 @@ import { cap, doneLine, done, isActive, isDead, PASSIVE, perform, SCENES, type S
 import { dimmable, lightPct, step, tempUnit } from './levels'
 import { isScreen } from './screen'
 import { typable } from './keys'
-import { canStart } from './music'
+import { canStart, groupOf } from './music'
 
 /* Worked out, not told: a screen for the hub, in Chromium on Linux, that nobody can touch -- a mini PC on a
    TV. A wall screen has a touchscreen and keeps the wall. ?tv=1 forces it for previews, ?tv=0 turns it off. */
@@ -61,9 +61,9 @@ export function musicIn(room: Room | null, playingOnly = false): Device | null {
 }
 export function speakersOf(d: Device, room: Room): Device[] {
   const mates = new Set((d.attrs.together as string[] | undefined) ?? [])
-  // a pair fed the same song from elsewhere (an Apple TV playing to both HomePods) is in step without being grouped
-  const same = (x: Device) => canStart(x) && x.state === d.state && !!d.attrs.media_title && x.attrs.media_title === d.attrs.media_title
-  return [d, ...room.devices.filter(x => x.id !== d.id && (mates.has(x.id) || same(x)))]
+  // its pair, and a speaker playing the same song in step (an Apple TV playing to both HomePods): music.ts groupOf
+  const group = groupOf(d, room)
+  return [...group, ...room.devices.filter(x => mates.has(x.id) && !group.includes(x))]
 }
 
 /* A streaming box beside the TV (design/tv-box/, A): the hub opens an app on it and switches the TV over, and the box's

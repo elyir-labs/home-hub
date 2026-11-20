@@ -423,6 +423,17 @@ Do not reopen these, and do not propose around them.
   counts as online but never as the house's network, so the hub still makes its own Wi-Fi. Ready puts that Wi-Fi's code
   beside a picture of moving the cable to the router; whichever happens first wins. Pinned by `startup/startup.test.mjs`,
   `startup/look.sh` and the `shutting` and `setting_up` groups in `driver-layer/host/tests.sh`.
+- **Words on the sky are measured, not judged, and a song is shown on its own cover** (20 November, `design/readable-rest/`,
+  C and D; `design/speaker-card/`, A). At rest, words stand on a soft wash in the dark look, and the TV's record stands
+  on its own cover, blurred and dimmed; a room's playing speaker is its cover beside the words on the same cover blurred,
+  with the transport and the volume, and the sounds only on a quiet speaker. `app/e2e/readable.ts` reads every word
+  against the pixels behind it (WCAG: 4.5, or 3 for large text) and `readable.spec.ts` holds the resting screens at four
+  hours, both looks and a bright and a dark cover; use it for any screen whose words sit on a picture or the sky.
+- **Two speakers in a room playing one song are asked once whether they are a pair** (20 November,
+  `design/speaker-pair/`, B with C). Until answered, the first leads and the other is a line under it; One pair is one
+  card for good whose buttons work both, Two speakers keeps two cards. Home says the song once. The answer is the
+  brain's (`speaker_pairs`, `/speakers/pair`), the grouping `groupOf` in `app/src/music.ts`; pinned by
+  `app/e2e/speaker-pair.spec.ts` and `brain/tests/test_music.py`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
   B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
   development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this

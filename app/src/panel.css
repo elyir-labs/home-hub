@@ -15682,3 +15682,40 @@ html[data-wall] [data-moving] *::after {
 .media-blur {
   display: none;
 }
+
+/* a speaker playing in step with the one leading, before the household has said whether they are a pair
+   (design/speaker-pair/, C): a line under the lead rather than a second card with the same song on it */
+.tile.with-tile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.with-tile-ic {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: rgba(var(--lamp-rgb), 0.85);
+  color: var(--lamp-ink);
+}
+.with-tile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.with-tile-name {
+  font-size: 16px;
+  font-weight: 500;
+}
+.with-tile-sub {
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
