@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C: the record folds into a header and the house comes up under it</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css"><link rel="stylesheet" href="music.css"><link rel="stylesheet" href="rec.css">
+<style>
+  /* up: the record folds into one line along the top, the TV's whole home under it */
+  .screen.up .cover-bg { filter: blur(90px) saturate(1.1) brightness(.3); }
+  .screen.up .rec { left: var(--safe-x); top: var(--safe-y); gap: 30px; }
+  .screen.up .rec .art { width: 150px; height: 150px; border-radius: 18px; }
+  .screen.up .rec .t { font-size: 48px; }
+  .screen.up .rec .a { font-size: 26px; margin-top: 8px; }
+  .screen.up .rec .w, .screen.up .rec .pbar, .screen.up .hintrest { display: none; }
+  .ctl { position: absolute; right: var(--safe-x); top: 80px; display: none; gap: 18px; align-items: center; z-index: 3; }
+  .screen.up .ctl { display: flex; }
+  .ctl .key { height: 84px; padding: 0 30px; display: inline-flex; align-items: center; font-size: 26px; }
+  .ctl .vol { display: flex; align-items: center; gap: 14px; font-size: 22px; color: var(--ink-2); margin-left: 16px; }
+  .ctl .vol .pbar { width: 200px; } .ctl .vol .pbar i { width: 20%; }
+  .house { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: none; }
+  .screen.up .house { display: block; }
+  .screen.up .corner { opacity: 0; }
+  .house .row { top: 270px; } #hint[hidden] { display: none; }
+  .house .thing { width: 252px; height: 210px; }
+  .scenes { position: absolute; left: var(--safe-x); top: 590px; display: flex; gap: 18px; }
+  .rooms { position: absolute; left: var(--safe-x); right: 0; top: 720px; }
+  .rooms h2 { margin: 0 0 18px; font-size: 20px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .rooms .r { width: 252px; height: 150px; padding: 24px; flex: none; display: flex; flex-direction: column; justify-content: space-between; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="cover-bg"></div>
+  <div class="corner"><div class="c">9:10<small>PM</small></div><div class="d">Friday, November 20 · 78°</div></div>
+  <div class="rec"><div class="art"></div>
+    <div><div class="t">Late Light</div><div class="a">The Quiet Hours</div><div class="w">On the Speaker</div><div class="pbar"><i></i></div></div></div>
+  <div class="keys hintrest"><span><kbd>OK</kbd>Pause, next, the room, the house</span></div>
+  <div class="ctl">
+    <span class="card key" data-f data-hint="OK|Pause;▲ ▼|Louder or quieter;~Hold OK|Something else;Back|Just the music">Pause</span>
+    <span class="card key" data-f data-hint="OK|Skip this one;Back|Just the music">Next</span>
+    <span class="vol">Volume<span class="pbar"><i></i></span>20%</span>
+  </div>
+  <div class="house">
+    <div class="row"><h2>In the living room</h2><div class="cards">
+      <div class="card thing light on" style="--c-rgb:233,184,114;--v:35%" data-f data-f-start data-hint="OK|Turn off;▲ ▼|Brighter or dimmer;Back|Just the music"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg></div><div><div class="nm">Ceiling light</div><div class="st">On, 35%</div></div><div class="bar"><i></i></div></div>
+      <div class="card thing light on" style="--c-rgb:233,184,114;--v:24%" data-f data-hint="OK|Turn off;▲ ▼|Brighter or dimmer;Back|Just the music"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg></div><div><div class="nm">Floor lamp</div><div class="st">On, 24%</div></div><div class="bar"><i></i></div></div>
+      <div class="card thing" data-f data-hint="OK|Turn on;Back|Just the music"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg></div><div><div class="nm">Reading lamp</div><div class="st">Off</div></div></div>
+      <div class="card thing" data-f data-hint="OK|Close;Back|Just the music"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16"/></svg></div><div><div class="nm">Blinds</div><div class="st">70% open</div></div></div>
+      <div class="card thing" data-f data-hint="OK|Open it;Back|Just the music"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 7l14 10M19 7L5 17"/></svg></div><div><div class="nm">Thermostat</div><div class="st">71° · cooling</div></div></div>
+      <div class="card thing" data-f data-hint="OK|Open it;Back|Just the music"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 20h8"/></svg></div><div><div class="nm">TV</div><div class="st">On</div></div></div>
+    </div></div>
+    <div class="scenes">
+      <span class="card chip" data-f data-hint="●#e5484d|Or the red button;OK|Movie;Back|Just the music"><span class="dot" style="background:#e5484d"></span>Movie</span>
+      <span class="card chip" data-f data-hint="●#30a46c|Or the green button;OK|Guests;Back|Just the music"><span class="dot" style="background:#30a46c"></span>Guests</span>
+      <span class="card chip" data-f data-hint="●#f5d90a|Or the yellow button;OK|Sleep;Back|Just the music"><span class="dot" style="background:#f5d90a"></span>Sleep</span>
+      <span class="card chip" data-f data-hint="●#3e63dd|Or the blue button;OK|All off;Back|Just the music"><span class="dot" style="background:#3e63dd"></span>All off</span>
+    </div>
+    <div class="rooms"><h2>Other rooms</h2><div class="cards" style="display:flex;gap:28px">
+      <div class="card r" data-f data-hint="OK|The kitchen;Back|Just the music"><div class="nm">Kitchen</div><div class="st">2 lights on</div></div>
+      <div class="card r" data-f data-hint="OK|The bedroom;Back|Just the music"><div class="nm">Bedroom</div><div class="st">Off</div></div>
+      <div class="card r" data-f data-hint="OK|The office;Back|Just the music"><div class="nm">Office</div><div class="st">1 light on</div></div>
+      <div class="card r" data-f data-hint="OK|The front door;Back|Just the music"><div class="nm">Front door</div><div class="st">Locked</div></div>
+      <div class="card r" data-f data-hint="OK|The garage;Back|Just the music"><div class="nm">Garage</div><div class="st">Closed</div></div>
+      <div class="card r" data-f data-hint="OK|The backyard;Back|Just the music"><div class="nm">Backyard</div><div class="st">Off</div></div>
+    </div></div>
+  </div>
+  <div class="keys" id="hint" hidden></div>
+</div>
+<script>
+  // OK folds the record into the header and the house comes up; Back (or 20 seconds with no key, not drawn) unfolds it
+  const scr = document.querySelector('.screen'), hint = document.getElementById('hint')
+  window.tvKeys = (key, cur, light) => {
+    const up = scr.classList.contains('up')
+    if (!up && key === 'Enter') { scr.classList.add('up'); hint.hidden = false; light(document.querySelector('[data-f-start]')); return true }
+    if (up && (key === 'Escape' || key === 'Backspace')) { scr.classList.remove('up'); hint.hidden = true; return true }
+    return !up
+  }
+</script>
+<script src="tv.js"></script>
+</body>
+</html>
