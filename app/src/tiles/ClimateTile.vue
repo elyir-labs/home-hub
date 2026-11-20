@@ -11,6 +11,7 @@ import { perform, shortName, roomOf, store, isDead, notify, cap, fanFor } from '
 import { actingOf } from '../tone'
 import Icon from '../Icon.vue'
 import DeviceArt from '../DeviceArt.vue'
+import { climateStep } from '../levels'
 
 /* A thermostat, laid out like the dial on the wall: the number you set large in the middle with a
    step either way, what the room is actually doing beneath it, then the modes, then the fan with
@@ -79,23 +80,10 @@ const short = computed(() => {
   const moving = a.value.hvac_action === 'heating' || a.value.hvac_action === 'cooling'
   return cur === '–' ? `${unit.value} · ${act}` : moving ? `${unit.value} · ${act}, ${cur} now` : `${unit.value} · now ${cur}`
 })
-/* What the thermostat will take, in the house's unit. A thermostat that doesn't say gets the
-   pane's fallback, not a bare 5 and 35: those are Celsius, and against a house reading in
-   Fahrenheit one tap on + asked a 71° room for 35° -- the ceiling, not a degree warmer. */
-const clamp = (t: number) => Math.min(a.value.max_temp ?? (unit.value.includes('F') ? 90 : 32), Math.max(a.value.min_temp ?? (unit.value.includes('F') ? 50 : 10), t))
 function nudge(dir: 1 | -1) {
   if (dead.value || off.value) return
-  const s = step.value * dir
-  if (range.value) {
-    const lo = clamp(a.value.target_temp_low + s), hi = clamp(a.value.target_temp_high + s)
-    perform(props.device, 'set', { target_temp_low: lo, target_temp_high: hi }, { attrs: { target_temp_low: lo, target_temp_high: hi } })
-  } else if (sensing.value) {
-    const t = clamp((a.value.wanted ?? a.value.sense_temp ?? 20) + s)
-    perform(props.device, 'set', { temperature: t }, { attrs: { wanted: t } })
-  } else {
-    const t = clamp((a.value.temperature ?? a.value.current_temperature ?? 20) + s)
-    perform(props.device, 'set', { temperature: t }, { attrs: { temperature: t } })
-  }
+  const s = climateStep(props.device, dir)
+  if (s) perform(props.device, s.action, s.data, s.guess)
 }
 function setMode(m: string) { if (!dead.value && m !== mode.value) perform(props.device, 'mode', { hvac_mode: m }, { state: m }) }
 
