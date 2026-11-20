@@ -8,8 +8,13 @@ screen, that the room lands on its own record and names it, and that nothing abo
 
 Run from brain/: .venv/bin/python -m unittest -v tests.test_api_screens
 """
+from fastapi.testclient import TestClient
+
+from hub import api
 from hub.phones import COOKIE, holds_keys
 from tests.apptest import ApiTest
+
+SCREEN = {"X-Hub-Via": "screen"}
 
 
 class ScreenJoinsALockedHouse(ApiTest):
@@ -61,6 +66,36 @@ class ScreenJoinsALockedHouse(ApiTest):
     def test_a_screen_that_asked_is_a_screen_too(self):
         a = self.client.post("/phones/ask", json={"name": "A screen", "kind": "screen"}).json()
         self.assertEqual(a["kind"], "screen")
+
+
+class TheHubsOwnScreen(ApiTest):
+    """The screen plugged into the hub joins without the passcode and is asked only its room (design/tv-join/, C)."""
+    def setUp(self):
+        super().setUp()
+        self.lock_the_house("4821")
+        self.own = TestClient(api.app, client=("127.0.0.1", 50000))
+        self.addCleanup(self.own.close)
+
+    def test_it_is_told_it_is_the_hubs_own_and_joins_as_a_screen_without_keys(self):
+        self.assertTrue(self.own.get("/phones/me", headers=SCREEN).json()["plugged_in"])
+        r = self.own.post("/phones/plugged-in", headers=SCREEN)
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(COOKIE, r.cookies)
+        phone = r.json()["phone"]
+        self.assertEqual((phone["kind"], phone["how"]), ("screen", "plugged in"))
+        # the HDMI port is proof enough to use the house, not to let other phones into it
+        self.assertFalse(holds_keys(self.hub.phones.get(phone["id"])))
+
+    def test_the_stamp_counts_only_from_the_hub_itself(self):
+        # the brain also listens where anything on the Wi-Fi can reach it and send whatever header it likes
+        self.assertFalse(self.client.get("/phones/me", headers=SCREEN).json()["plugged_in"])
+        self.assertEqual(self.client.post("/phones/plugged-in", headers=SCREEN).status_code, 403)
+        self.assertEqual(self.own.post("/phones/plugged-in").status_code, 403)
+        self.assertEqual(self.hub.phones.data, [])
+
+    def test_never_from_away(self):
+        r = self.own.post("/phones/plugged-in", headers={"X-Hub-Via": "relay"})
+        self.assertEqual(r.status_code, 403)
 
 
 class ScreenInAnOpenHouse(ApiTest):

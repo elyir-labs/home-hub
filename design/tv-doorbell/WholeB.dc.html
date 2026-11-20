@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B: the door takes the whole screen</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css"><link rel="stylesheet" href="door.css">
+<style>
+  .pic.full { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+  .shade { position: absolute; inset: 0; background: linear-gradient(transparent 55%, rgba(0,0,0,.75)); }
+  .head { position: absolute; left: var(--safe-x); bottom: 230px; z-index: 3; }
+  .head .door-t { font-size: 64px; }
+  .live { left: var(--safe-x); top: var(--safe-y); z-index: 3; }
+  .acts { position: absolute; left: var(--safe-x); bottom: 120px; display: flex; gap: 22px; z-index: 3; }
+  .btn { height: 84px; padding: 0 36px; border-radius: 42px; display: inline-flex; align-items: center; font-size: 28px; font-weight: 500;
+         background: rgba(20,22,27,.75); border: 1px solid var(--edge-hi); backdrop-filter: blur(20px); }
+</style>
+</head>
+<body>
+<div class="screen">
+  <img class="pic full" src="porch.svg" alt="The front door"><div class="shade"></div>
+  <span class="live">Live</span>
+  <div class="head"><div class="door-t">Someone's at the front door</div><div class="door-s">Just now · back to the living room in a minute</div></div>
+  <div class="acts">
+    <span class="btn" data-f data-f-start data-hint="OK|Turn on the porch light;Back|Back to the living room">Turn on the porch light</span>
+    <span class="btn" data-f data-hint="OK|Back to the living room">Back to the living room</span>
+  </div>
+  <div class="foot"><div class="keys" id="hint"></div><span class="where">The TV, while the doorbell rings</span></div>
+</div>
+<script src="tv.js"></script>
+</body>
+</html>

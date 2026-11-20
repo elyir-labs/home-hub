@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C: a line along the foot, the picture a press away</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css"><link rel="stylesheet" href="door.css">
+<style>
+  .band { position: absolute; left: var(--safe-x); right: var(--safe-x); bottom: 130px; height: 150px; z-index: 5; display: flex; align-items: center; gap: 28px;
+          padding: 0 28px 0 15px; border-radius: var(--r-lg); background: rgba(14,16,20,.92); border: 1px solid var(--edge-hi); box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+  .band .thumb { position: relative; width: 213px; height: 120px; border-radius: 16px; overflow: hidden; flex: none; }
+  .band .grow { flex: 1; }
+  .band .ok { font-size: 24px; color: var(--ink-2); display: inline-flex; gap: 10px; align-items: center; }
+  .band .ok kbd { font: 600 17px/1 "Instrument Sans", system-ui, sans-serif; min-width: 40px; height: 36px; padding: 0 10px; display: inline-grid; place-items: center;
+                  border-radius: 18px; background: rgba(255,255,255,.1); border: 1px solid var(--edge-hi); color: var(--ink); }
+  .big { position: absolute; inset: 0; z-index: 7; display: none; background: #000; }
+  .big .live { left: var(--safe-x); top: var(--safe-y); }
+  .screen.full .big { display: block; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <img class="under" src="shipped-tv.jpg" alt=""><div class="under-hush"></div>
+  <div class="band" data-f data-f-start data-hint="OK|Watch;Back|Not now">
+    <div class="thumb"><img class="pic" src="porch.svg" alt=""></div>
+    <div class="grow"><div class="door-t">Someone's at the front door</div><div class="door-s">Just now</div></div>
+    <span class="ok"><kbd>OK</kbd>Watch</span>
+  </div>
+  <div class="big"><img class="pic" src="porch.svg" alt="The front door"><span class="live">Live</span></div>
+  <div class="foot"><div class="keys" id="hint"></div><span class="where">The TV, while the doorbell rings</span></div>
+</div>
+<script>
+  const scr = document.querySelector('.screen')
+  document.querySelector('.band').addEventListener('click', () => { scr.classList.add('full'); document.getElementById('hint').innerHTML = '<span><kbd>Back</kbd>Back to the living room</span>' })
+  window.tvKeys = (key) => {
+    if (key !== 'Escape' && key !== 'Backspace') return false
+    if (scr.classList.contains('full')) scr.classList.remove('full'); else document.querySelector('.band').style.display = 'none'
+    return true
+  }
+</script>
+<script src="tv.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B: the rooms with things first, the empty ones as names</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css">
+<link rel="stylesheet" href="join.css">
+<style>
+  .rooms { top: 540px; }
+  .empty { position: absolute; left: 300px; right: var(--safe-x); top: 770px; z-index: 2; }
+  .empty h2 { margin: 0 0 16px; font-size: 20px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 16px; }
+  .chip { height: 64px; padding: 0 28px; border-radius: 32px; display: inline-flex; align-items: center; font-size: 24px;
+          background: rgba(255,255,255,.06); border: 1px solid var(--edge); color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="join" style="width:1200px">
+    <span class="mark"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span>
+    <h1>Which room is this TV in?</h1>
+    <p class="lede" style="max-width:1000px">It's plugged into the hub, so it's already part of Maple Court. It opens on the room you choose.</p>
+  </div>
+  <div class="rooms" id="rooms"></div>
+  <div class="empty"><h2>The other rooms</h2><div class="chips" id="chips"></div></div>
+  <div class="foot"><div class="keys" id="hint"></div><span class="where">The TV plugged into the hub</span></div>
+</div>
+<script src="rooms.js"></script>
+<script>
+  // ranked by how much is in them, the way the Rooms tab ranks its bento; the empty ones keep setup's order
+  const full = ROOMS.filter(r => r.n).sort((a, b) => b.n - a.n), empty = ROOMS.filter(r => !r.n)
+  document.getElementById('rooms').innerHTML = full.slice(0, 5).map((r, i) => roomCard(r, i)).join('')
+  document.getElementById('chips').innerHTML = [...full.slice(5), ...empty]
+    .map(r => `<span class="chip" data-f data-hint="OK|${openOn(r.name)}">${r.name}</span>`).join('')
+</script>
+<script src="tv.js"></script>
+</body>
+</html>

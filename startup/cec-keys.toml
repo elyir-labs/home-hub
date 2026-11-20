@@ -1,0 +1,28 @@
+# The TV's remote over HDMI-CEC, as the keys the panel reads (pressOf and digitOf in app/src/tv.ts), loaded by
+# startup/cec.sh. Each line is a CEC user control code. The colors become F1 to F4, the same four scenes in every
+# room; the digits stay digits, which only type where a screen asks for a number (the passcode, design/tv-join/).
+[[protocols]]
+name = "elyir"
+protocol = "cec"
+[protocols.scancodes]
+0x00 = "KEY_ENTER"
+0x01 = "KEY_UP"
+0x02 = "KEY_DOWN"
+0x03 = "KEY_LEFT"
+0x04 = "KEY_RIGHT"
+0x09 = "KEY_HOME"
+0x0d = "KEY_ESC"
+0x20 = "KEY_0"
+0x21 = "KEY_1"
+0x22 = "KEY_2"
+0x23 = "KEY_3"
+0x24 = "KEY_4"
+0x25 = "KEY_5"
+0x26 = "KEY_6"
+0x27 = "KEY_7"
+0x28 = "KEY_8"
+0x29 = "KEY_9"
+0x72 = "KEY_F1"
+0x73 = "KEY_F2"
+0x74 = "KEY_F3"
+0x71 = "KEY_F4"

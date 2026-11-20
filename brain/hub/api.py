@@ -11,6 +11,7 @@ from fastapi.responses import Response, JSONResponse, FileResponse, StreamingRes
 from starlette.background import BackgroundTask
 from fastapi import Request
 from . import ha_setup
+from . import doorbell
 from .ha_adapter import HAAdapter, AuthError
 from . import forecast as forecast_of
 from .model import CONTROLS, Home, kinds_for, kind_of, default_kind
@@ -113,6 +114,7 @@ class Hub:
         self.home.kinds = dict(self.settings.get("kinds") or {})   # what the owner said things are; kept in settings so a restore brings it back with the rest of the house
         self.home.color_pinned = set(self.settings.get("color_pinned") or [])   # and which lights somebody chose a color for, rather than leaving to the house
         self.home.room_colors = {k: list(v) for k, v in (self.settings.get("room_colors") or {}).items()}
+        self.home.speaker_pairs = list(self.settings.get("speaker_pairs") or [])
         self.home.off_home = set(self.settings.get("off_home") or [])   # what is never on Home, on any screen (design/home-keep/)
         self.home.leads = dict(self.settings.get("leads") or {})   # which part of a fan-with-a-light is the tile, where the owner has said (docs/units.md)
         self.log = EventLog(DATA / "events.db")
@@ -518,6 +520,11 @@ class Hub:
         self._broadcast(json.dumps({"type": "home", "home": self.home_dict()}))
         log.info("home rebuilt: %d rooms, %d devices", len(self.home.rooms), len(self.home.devices))
 
+    def ring(self, camera: str):
+        """Somebody pressed a doorbell: every screen shows that door (design/tv-doorbell/, A)."""
+        self.log.add("camera", camera, None, "rang", source="device")
+        self._broadcast(json.dumps({"type": "ring", "ring": {"camera": camera, "at": time.time()}}))
+
     POWER_EVERY = 10.0   # the gateway reports every few seconds; the panel is told at most this often unless the band changes
 
     def power_changed(self, force=False):
@@ -543,6 +550,10 @@ class Hub:
                 self.log.add("presence", "home", presence_word(was), presence_word(self.presence.somebody), source="device", detail=self.presence.as_dict())
                 self._broadcast(json.dumps({"type": "presence", "presence": self.presence.as_dict()}))
                 self.engine.on_presence()
+            return
+        if d["entity_id"] in self.home.bells:
+            # The doorbell's button is not a thing of its own: a press brings its camera up on the screens.
+            if doorbell.rang(d["entity_id"], d.get("old_state"), d.get("new_state")): self.ring(self.home.bells[d["entity_id"]])
             return
         if d["entity_id"] in self.home.companions:
             # Away, Sleep or the air, said beside a thermostat: news for the pane, and not a change in the
@@ -2585,7 +2596,7 @@ def phones_me(request: Request):
     me = hub.phones._public(phone) if phone else None
     if me and ((phone.get("push") or {}).get("apns")) and not hub.address.secret(): me["push_note"] = PUSH_NEEDS_ADDRESS
     return {"locked": hub.lock.locked, "paired": paired, "home": hub.settings.get("home_name") or "Home",
-            "phone": me, "away": request.state.away,
+            "phone": me, "away": request.state.away, "plugged_in": request.state.screen,
             "lan": hub.address.lan_name() if paired else None, "address": hub.address.public_origin() if paired else None}
 
 
@@ -2689,6 +2700,30 @@ def phones_code(body: dict, request: Request):
     if wait > 0: raise HTTPException(429, f"Too many tries. Wait {int(wait) + 1} seconds.")
     if not hub.lock.check(str(body.get("code") or ""), who): raise HTTPException(401, "That wasn't it.")
     phone, token = hub.phones.with_code(str(body.get("name") or ""), _device_kind(request, body))
+    return _with_cookie({"ok": True, "phone": hub.phones._public(phone)}, request, phone, token)
+
+
+@app.post("/speakers/pair")
+def speakers_pair(body: dict):
+    """{"speakers": [a, b], "pair": true | false}: the household's answer, once, to whether two speakers playing the same
+    song in a room are one pair (design/speaker-pair/, B). A pair is one card that plays, pauses and turns up together."""
+    hub.ready()
+    ids = [str(x) for x in (body.get("speakers") or [])]
+    if len(ids) != 2: raise HTTPException(400, "Two speakers.")
+    try: changed = hub.home.set_pair(ids[0], ids[1], bool(body.get("pair")))
+    except KeyError as e: raise HTTPException(404, str(e.args[0]))
+    except ValueError as e: raise HTTPException(400, str(e))
+    hub.settings.set(speaker_pairs=hub.home.speaker_pairs)
+    for d in changed: hub._broadcast(json.dumps({"type": "device", "device": d.__dict__}))
+    return {"pairs": hub.home.speaker_pairs}
+
+
+@app.post("/phones/plugged-in")
+def phones_plugged_in(request: Request):
+    """The screen plugged into the hub joins without the passcode, and is asked only its room (design/tv-join/, C)."""
+    if not hub.lock.locked: raise HTTPException(409, "The house has no passcode.")
+    if not request.state.screen: raise HTTPException(403, "Only the screen plugged into the hub joins without the passcode.")
+    phone, token = hub.phones.plugged_in()
     return _with_cookie({"ok": True, "phone": hub.phones._public(phone)}, request, phone, token)
 
 

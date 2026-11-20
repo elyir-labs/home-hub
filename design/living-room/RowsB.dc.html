@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B: rows, from the sofa</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css">
+<style>
+  .top { position: absolute; left: var(--safe-x); right: var(--safe-x); top: var(--safe-y); display: flex; justify-content: space-between; align-items: baseline; z-index: 2; }
+  .clock { font-size: 40px; font-weight: 300; }
+  .clock small { font-size: 22px; color: var(--ink-2); margin-left: 14px; }
+  .who { font-size: 22px; color: var(--ink-2); display: flex; gap: 14px; align-items: center; }
+  .who .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--live); }
+  .title { position: absolute; left: var(--safe-x); top: 140px; z-index: 2; }
+  .title h1 { margin: 0; font-size: 76px; font-weight: 400; letter-spacing: -.03em; line-height: 1; }
+  .title p { margin: 12px 0 0; font-size: 26px; color: var(--ink-2); }
+  .view { position: absolute; left: 0; right: 0; top: 300px; bottom: 120px; overflow: hidden;
+          -webkit-mask: linear-gradient(transparent, #000 34px, #000 calc(100% - 60px), transparent); mask: linear-gradient(transparent, #000 34px, #000 calc(100% - 60px), transparent); }
+  .rows { padding: 34px var(--safe-x) 0; transition: transform .28s cubic-bezier(.2,.7,.2,1); }
+  .row { margin-bottom: 46px; transition: opacity .28s; }
+  .row.gone { opacity: 0; }
+  .row h2 { margin: 0 0 18px; font-size: 20px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+  .row.here h2 { color: var(--lamp); }
+  .cards { display: flex; gap: 28px; }
+  .thing { width: 260px; height: 230px; padding: 24px 24px 44px; display: flex; flex-direction: column; justify-content: space-between; }
+  .scene { width: 400px; height: 112px; padding: 0 28px; display: flex; gap: 20px; align-items: center; }
+  .scene .nm { font-size: 28px; } .scene .st { font-size: 20px; }
+  .room { width: 260px; height: 190px; padding: 24px; display: flex; flex-direction: column; justify-content: flex-start; }
+  .room.lit { background: linear-gradient(170deg, rgba(var(--lamp-rgb), .2), rgba(20,22,28,.75) 70%); }
+  .cam { width: 400px; height: 225px; padding: 22px; display: flex; flex-direction: column; justify-content: flex-end;
+         background: linear-gradient(#2b3444, #11151c); }
+  .cam.yard { background: linear-gradient(#26342a, #0f1410); }
+  .cam .tag { position: absolute; top: 18px; right: 18px; font-size: 16px; letter-spacing: .12em; padding: 6px 12px; border-radius: 14px; background: rgba(0,0,0,.4); color: var(--ink-2); }
+  #hint { position: absolute; left: 0; right: 0; bottom: var(--safe-y); justify-content: center; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="top"><div class="clock">7:40 PM<small>Thursday, November 19</small></div>
+    <div class="who"><span class="dot"></span>Jordan and Alex are home</div></div>
+  <div class="title"><h1>Living room</h1><p id="sum">2 lights on · Harbor Lights is paused · Blinds 70% open</p></div>
+  <div class="view"><div class="rows" id="rows"></div></div>
+  <div id="hint" class="keys"></div>
+</div>
+<script>
+  const I = {
+    bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',
+    blind: '<path d="M4 4h16M5 4v11h14V4M5 8h14M5 12h14M12 15v4"/>',
+    speaker: '<rect x="6" y="3" width="12" height="18" rx="3"/><circle cx="12" cy="14" r="3"/><circle cx="12" cy="7" r="1"/>',
+    temp: '<path d="M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0z"/>',
+    film: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 9h4M17 9h4M3 15h4M17 15h4"/>',
+    spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
+    moon: '<path d="M20 14A8 8 0 1 1 10 4a6.5 6.5 0 0 0 10 10z"/>',
+    power: '<path d="M12 3v8M6.3 7.3a8 8 0 1 0 11.4 0"/>',
+  }
+  const svg = (k) => `<span class="ic"><svg viewBox="0 0 24 24">${I[k]}</svg></span>`
+  const here = [
+    { nm: 'Ceiling light', ic: 'bulb', v: 35, c: '214, 92, 170', light: 1 },
+    { nm: 'Floor lamp', ic: 'bulb', v: 24, c: '233, 184, 114', light: 1 },
+    { nm: 'Reading lamp', ic: 'bulb', v: 0, c: '233, 184, 114', light: 1, was: 60 },
+    { nm: 'Blinds', ic: 'blind', st: '70% open', v: 70, c: '185, 181, 173' },
+    { nm: 'Speaker', ic: 'speaker', st: 'Late Light · Paused' },
+    { nm: 'Thermostat', ic: 'temp', st: '71° · cooling, 74 now' },
+  ]
+  const scenes = [['Movie', 'film', 'Lights low, screen on'], ['Guests', 'spark', 'Lights up bright'], ['Sleep', 'moon', 'Lights and screens off'], ['All off', 'power', 'Lights and music off']]
+  const rooms = [['Kitchen', '1 light on', 1], ['Bedroom', '1 light on · Fan on', 1], ['Office', '1 light on · Plug on', 1], ['Backyard', '1 light on · Recording', 1], ['Front door', 'Locked', 0], ['Garage', 'Car plugged in', 0]]
+  const lightHint = (t) => `OK|${t.v ? 'Turn off' : 'Turn on'};~Hold OK|Brightness and color`
+  let h = '<section class="row here"><h2>In the living room</h2><div class="cards">'
+  here.forEach((t, i) => {
+    const on = t.light && t.v > 0
+    h += `<div class="card thing ${t.light ? 'light' : ''} ${on ? 'on' : ''}" data-f ${i === 0 ? 'data-f-start' : ''} data-i="${i}"
+      style="--c-rgb:${t.c || '233,184,114'};--c:rgb(${t.c || '233,184,114'});--v:${t.v || 0}%;--g:${on ? t.v / 100 + .3 : 0}"
+      data-hint="${t.light ? lightHint(t) : t.ic === 'speaker' ? 'OK|Play;~Hold OK|Choose what plays' : t.ic === 'blind' ? 'OK|Close;~Hold OK|How far' : 'OK|Warmer or cooler'}">
+      <div class="glow"></div>${svg(t.ic)}<div><div class="nm">${t.nm}</div><div class="st">${t.light ? (on ? `On, ${t.v}%` : 'Off') : t.st}</div></div>
+      ${t.v != null && t.ic !== 'speaker' ? '<div class="bar"><i></i></div>' : ''}</div>`
+  })
+  h += '</div></section><section class="row"><h2>Scenes here</h2><div class="cards">'
+  for (const [n, ic, s] of scenes) h += `<div class="card scene" data-f data-hint="OK|Start ${n}">${svg(ic)}<div><div class="nm">${n}</div><div class="st">${s}</div></div></div>`
+  h += '</div></section><section class="row"><h2>Other rooms</h2><div class="cards">'
+  for (const [n, s, lit] of rooms) h += `<div class="card room ${lit ? 'lit' : ''}" data-f data-hint="OK|Go to the ${n.toLowerCase()};~Hold OK|Turn the room off"><div class="nm">${n}</div><div class="st">${s}</div></div>`
+  h += '</div></section><section class="row"><h2>Cameras</h2><div class="cards">'
+  h += '<div class="card cam" data-f data-hint="OK|Watch the doorbell"><span class="tag">JUST NOW</span><div class="nm">Doorbell</div></div>'
+  h += '<div class="card cam yard" data-f data-hint="OK|Watch the backyard"><span class="tag">RECORDING</span><div class="nm">Backyard</div></div>'
+  h += '</div></section>'
+  const rowsEl = document.getElementById('rows'); rowsEl.innerHTML = h
+
+  // the lit row rides at the top of the view; the ones above it slide away
+  window.tvLit = (e) => {
+    const rows = [...rowsEl.querySelectorAll('.row')], r = e.closest('.row'), n = rows.indexOf(r)
+    rows.forEach((x, i) => x.classList.toggle('gone', i < n))
+    rowsEl.style.transform = `translateY(${-r.offsetTop + 34}px)`
+  }
+  rowsEl.addEventListener('click', (ev) => {
+    const e = ev.target.closest('.thing.light'); if (!e || !e.classList.contains('f')) return
+    const t = here[+e.dataset.i]
+    if (t.v) { t.was = t.v; t.v = 0 } else t.v = t.was || 50
+    const on = t.v > 0
+    e.classList.toggle('on', on); e.style.setProperty('--v', t.v + '%'); e.style.setProperty('--g', on ? t.v / 100 + .3 : 0)
+    e.querySelector('.st').textContent = on ? `On, ${t.v}%` : 'Off'
+    e.dataset.hint = lightHint(t)
+    const lit = here.filter((x) => x.light && x.v > 0).length
+    document.getElementById('sum').textContent = `${lit ? lit + (lit === 1 ? ' light on' : ' lights on') : 'Lights off'} · Harbor Lights is paused · Blinds 70% open`
+  })
+</script>
+<script src="tv.js"></script>
+</body>
+</html>

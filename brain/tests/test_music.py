@@ -92,6 +92,13 @@ class Folding(unittest.TestCase):
         es = [ent("media_player.den", "cast", "cast-x", area_id="living"), ent("media_player.den_2", "music_assistant", "media_player.den")]
         self.assertEqual(Home.engine_players(es), {"media_player.den_2": "media_player.den"})
 
+    def test_an_airplay_speaker_the_driver_layer_also_has_is_one_speaker(self):
+        # a HomePod: the Apple TV integration names it by its address, the engine by "ap" and the same address bare
+        es = [ent("media_player.left_left", "apple_tv", "92:20:1C:13:8D:59", area_id="living"),
+              ent("media_player.left", "music_assistant", "ap92201c138d59"),
+              ent("media_player.loft", "music_assistant", "ap0a0b0c0d0e0f")]
+        self.assertEqual(Home.engine_players(es), {"media_player.left": "media_player.left_left", "media_player.loft": "media_player.loft"})
+
     def test_a_screen_the_engine_does_not_reach_cannot_start_music(self):
         h = house().home
         self.assertNotIn("media_player.living_tv", h.players)
@@ -370,3 +377,36 @@ class Hidden(unittest.IsolatedAsyncioTestCase):
         on.strings = mock.AsyncMock(return_value={})
         self.assertEqual([r["handler"] for r in await on.discovered()], ["sonos"])
         self.assertEqual(await on.sign_ins(), [])
+
+
+class SpeakerPairs(unittest.TestCase):
+    """Two speakers in a room playing the same song are asked once whether they are one pair (design/speaker-pair/, B)."""
+    AREAS = [{"area_id": "living", "name": "Living room"}, {"area_id": "kitchen", "name": "Kitchen"}]
+    ENTS = [ent("media_player.left", "apple_tv", "L", area_id="living"), ent("media_player.right", "apple_tv", "R", area_id="living"),
+            ent("media_player.kitchen", "sonos", "K", area_id="kitchen")]
+    STATES = [st("media_player.left", "playing", media_title="Drowning"), st("media_player.right", "playing", media_title="Drowning"),
+              st("media_player.kitchen", "idle")]
+
+    def home(self, pairs=()):
+        h = Home(); h.speaker_pairs = list(pairs)
+        return h.build(self.AREAS, [], self.ENTS, self.STATES)
+
+    def test_a_pair_is_told_to_both_and_kept_through_a_rebuild(self):
+        h = self.home()
+        h.set_pair("media_player.right", "media_player.left", True)
+        self.assertEqual((h.devices["media_player.left"].attrs["pair"], h.devices["media_player.right"].attrs["pair"]), ("media_player.right", "media_player.left"))
+        again = self.home(h.speaker_pairs)
+        self.assertEqual(again.devices["media_player.left"].attrs["pair"], "media_player.right")
+
+    def test_two_speakers_is_an_answer_too_and_replaces_the_first(self):
+        h = self.home()
+        h.set_pair("media_player.left", "media_player.right", True)
+        h.set_pair("media_player.left", "media_player.right", False)
+        self.assertNotIn("pair", h.devices["media_player.left"].attrs)
+        self.assertEqual(h.devices["media_player.left"].attrs["apart"], ["media_player.right"])
+        self.assertEqual(len(h.speaker_pairs), 1)
+
+    def test_only_two_speakers_in_one_room(self):
+        h = self.home()
+        with self.assertRaises(ValueError): h.set_pair("media_player.left", "media_player.kitchen", True)
+        with self.assertRaises(KeyError): h.set_pair("media_player.left", "media_player.nope", True)

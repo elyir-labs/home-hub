@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C: the TV plugged into the hub is already in</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css">
+<link rel="stylesheet" href="join.css">
+</head>
+<body>
+<div class="screen">
+  <div class="join" style="top:150px;width:1200px">
+    <span class="mark"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span>
+    <h1>Which room is this TV in?</h1>
+    <p class="lede" style="max-width:1000px">It's plugged into the hub, so it's already part of Maple Court. It opens on the room you choose.</p>
+  </div>
+  <div class="rooms">
+    <div class="card room" data-f data-f-start data-hint="OK|This is the living room"><div class="nm">Living room</div><div class="st">3 lights on</div></div>
+    <div class="card room" data-f data-hint="OK|This is the kitchen"><div class="nm">Kitchen</div><div class="st">Off</div></div>
+    <div class="card room" data-f data-hint="OK|This is the bedroom"><div class="nm">Bedroom</div><div class="st">Off</div></div>
+    <div class="card room" data-f data-hint="OK|This is the office"><div class="nm">Office</div><div class="st">1 light on</div></div>
+    <div class="card room" data-f data-hint="OK|This is the den"><div class="nm">Den</div><div class="st">Off</div></div>
+  </div>
+  <div class="foot"><div class="keys" id="hint"></div><span class="where">The TV plugged into the hub</span></div>
+</div>
+<script src="tv.js"></script>
+</body>
+</html>

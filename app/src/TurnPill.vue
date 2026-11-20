@@ -6,10 +6,13 @@
 import { onMounted, ref } from 'vue'
 import { ask, here, putBack, turn } from './thisScreen'
 import Icon from './Icon.vue'
+import { onTV } from './tv'
 
 /* On the first thing a new screen shows: one pill drawn the other way up, so a screen hung upside down
    reads it the right way on the day it goes up (design/this-screen/, C's pill on A). Once tapped it turns
-   upright, because the screen now is, and stays as the way back. Any other turn is on This screen. */
+   upright, because the screen now is, and stays as the way back. Any other turn is on This screen. A TV has no
+   glass to tap and is never hung upside down, so it never shows the pill (design/tv-join/). */
+const tv = onTV()
 onMounted(() => { if (!here.value) ask() })
 const turned = ref(false), busy = ref(false)
 async function go(fn: () => Promise<void>, now: boolean) {
@@ -19,10 +22,10 @@ async function go(fn: () => Promise<void>, now: boolean) {
 </script>
 
 <template>
-  <button v-if="here?.turns && !turned" class="turn-pill upside" :class="{ busy }" @click="go(() => turn(180), true)">
+  <button v-if="!tv && here?.turns && !turned" class="turn-pill upside" :class="{ busy }" @click="go(() => turn(180), true)">
     <span class="turn-pill-ic"><Icon name="turn" :size="15" /></span>Upside down? Tap to turn it
   </button>
-  <button v-else-if="here?.turns" class="turn-pill" :class="{ busy }" @click="go(putBack, false)">
+  <button v-else-if="!tv && here?.turns" class="turn-pill" :class="{ busy }" @click="go(putBack, false)">
     <span class="turn-pill-ic"><Icon name="turn" :size="15" /></span>Turned over. Put it back
   </button>
 </template>

@@ -351,6 +351,7 @@ input:focus-visible {
    the fault twice over: the clock landed on live text, AND the sheet's own veil blacked out the sky
    the resting screen is mostly made of, so the weather went with it. */
 .shell.resting .opened,
+.shell.resting .music-pane-wrap,
 .shell.resting .sheet-back {
   opacity: 0;
   transition: opacity 0.9s var(--ease);
@@ -358,6 +359,7 @@ input:focus-visible {
 /* and takes no touches while it is invisible: the first press on a resting screen is the one that
    wakes it, and it must not also land on the veil of a pane nobody can see */
 .shell.resting .opened,
+.shell.resting .music-pane-wrap,
 .shell.resting .sheet-back {
   pointer-events: none;
 }
@@ -1650,6 +1652,62 @@ input:focus-visible {
   }
   .tiles > .tile.media[data-size='full'] .media-bar {
     display: block;
+  }
+  /* A song with a cover (design/speaker-card/, A, 20 November): the cover a square beside the words, on the same
+     cover blurred and dimmed -- the resting TV's record, small -- and the transport and the volume below. */
+  .tiles > .tile.media[data-size='full'].record {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 18px;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .tiles > .tile.media[data-size='full'].record .media-art {
+    position: relative;
+    inset: auto;
+    grid-column: 1;
+    grid-row: 1;
+    width: 92px;
+    height: 92px;
+    border-radius: var(--r-sm);
+    z-index: 0;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  }
+  .tiles > .tile.media[data-size='full'].record .media-blur {
+    display: block;
+    position: absolute;
+    inset: -30px;
+    z-index: -2;
+    background-size: cover;
+    background-position: center;
+    filter: blur(28px) saturate(1.3) brightness(0.42);
+  }
+  .tiles > .tile.media[data-size='full'].record .media-veil {
+    display: none;
+  }
+  .tiles > .tile.media[data-size='full'].record .media-text {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .tiles > .tile.media[data-size='full'].record .media-text .tile-name {
+    position: static;
+    color: var(--ink);
+  }
+  .tiles > .tile.media[data-size='full'].record :is(.media-title, .media-sub) {
+    color: var(--ink);
+    opacity: 1;
+  }
+  .tiles > .tile.media[data-size='full'].record .media-controls {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-top: 0;
+    flex-wrap: wrap;
+  }
+  .tiles > .tile.media[data-size='full'].record .vol {
+    display: flex;
+    flex-basis: 100%;
   }
   /* paused, and a third: the artwork it is still holding, what is on it, and one
      button with the word for what it is doing beside it. The board draws this one
@@ -3012,6 +3070,7 @@ input:focus-visible {
   position: absolute;
   inset: 0;
   z-index: 50;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3045,7 +3104,6 @@ input:focus-visible {
   margin-top: 4px;
   font-size: 26px;
   color: var(--ink);
-  opacity: 0.85;
   letter-spacing: 0.01em;
 }
 .idle-facts {
@@ -3092,7 +3150,6 @@ input:focus-visible {
   line-height: 1.3;
   text-align: center;
   color: var(--ink);
-  opacity: 0.85;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
 }
 .idle-fact-where span {
@@ -3126,12 +3183,70 @@ input:focus-visible {
 .idle-wx-label {
   margin-top: 6px;
   font-size: 22px;
-  opacity: 0.85;
 }
 .idle-line {
   margin-top: 14px;
   font-size: 16px;
-  color: var(--ink-2);
+  color: var(--ink);
+}
+/* A resting TV says what its remote's OK does (design/living-room/OverC) */
+/* Words on the sky at rest stand on a soft wash, darkest where they are and along the foot, so a bright day sky
+   cannot take them (design/readable-rest/, C, 20 November). Only in the dark look: the light look's ink is dark. Every
+   word is held to it by e2e/readable.spec.ts at dawn, noon, dusk and night. */
+:root:not([data-shade='light']) .idle::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 60% at 50% 50%, rgba(8, 10, 16, 0.42), rgba(8, 10, 16, 0.12) 75%),
+    linear-gradient(transparent 75%, rgba(8, 10, 16, 0.45));
+}
+/* the record at rest stands on its own cover instead (design/readable-rest/, D) */
+.idle.on-cover::before {
+  display: none;
+}
+.idle.under-band {
+  opacity: 0.25;
+  transition: opacity 0.3s ease;
+}
+.idle-remote {
+  position: absolute;
+  right: 5%;
+  bottom: 5%;
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 22px;
+  color: var(--ink);
+}
+.idle-remote kbd {
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1;
+  min-width: 40px;
+  height: 36px;
+  padding: 0 10px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 18px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--edge-hi);
+}
+
+/* Where the TV's remote is: light, not a line -- a lamp-colored rim and a small lift (design/living-room/) */
+[data-on-tv] [data-lit] {
+  outline: none;
+  transform: scale(1.045);
+  z-index: 3;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 0 0 3px rgba(var(--lamp-rgb), 0.95), 0 0 0 9px rgba(var(--lamp-rgb), 0.18), 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+[data-on-tv] [role="slider"][data-lit] {
+  transform: none;
 }
 .idle-enter-active {
   transition: opacity 1.6s ease;
@@ -15555,4 +15670,52 @@ html[data-wall] [data-moving] *::after {
   .dev-cards {
     grid-template-columns: 1fr;
   }
+}
+
+/* Somebody at the door on a TV: the door's own keys are the ones said along the foot (design/tv-doorbell/, A) */
+.shell[data-ringing] .tv-hint,
+.shell[data-ringing] .idle-remote {
+  visibility: hidden;
+}
+
+/* a song's blurred cover is drawn only where the card is laid out for it: the room's full-size card */
+.media-blur {
+  display: none;
+}
+
+/* a speaker playing in step with the one leading, before the household has said whether they are a pair
+   (design/speaker-pair/, C): a line under the lead rather than a second card with the same song on it */
+.tile.with-tile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.with-tile-ic {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: rgba(var(--lamp-rgb), 0.85);
+  color: var(--lamp-ink);
+}
+.with-tile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.with-tile-name {
+  font-size: 16px;
+  font-weight: 500;
+}
+.with-tile-sub {
+  font-size: 13.5px;
+  color: var(--ink-2);
 }

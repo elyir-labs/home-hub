@@ -839,12 +839,15 @@ export async function setHomeIntent(state: string) {
 }
 export const imageUrl = (id: string) => `/devices/${encodeURIComponent(id)}/image?t=${Date.now()}`
 
+/** A doorbell pressed: the camera in the same unit, and when, in the hub's seconds. */
+export type Ring = { camera: string; at: number }
+
 let live: WebSocket | null = null
 /** Drop the live link so it reconnects through whichever door is right now (door.ts): home, or the relay. */
 export function kickStream() { live?.close() }
 
 /** Live updates from the brain. Reconnects with backoff; reports link state. */
-export function connect(on: { device: (d: Device) => void; home: (h: Home) => void; ambient: (a: Ambient) => void; status: (s: Status) => void; intent: (i: Intent) => void; drafts: (d: Routine[]) => void; presence: (p: Presence) => void; phones: () => void; share: () => void; signals: (t: TryBrief | null) => void; roofline?: (r: Roofline) => void; printers?: (p: Printers) => void; power?: (p: Power | null) => void; note?: (m: Message) => void; link: (up: boolean) => void }) {
+export function connect(on: { device: (d: Device) => void; home: (h: Home) => void; ambient: (a: Ambient) => void; status: (s: Status) => void; intent: (i: Intent) => void; drafts: (d: Routine[]) => void; presence: (p: Presence) => void; phones: () => void; share: () => void; signals: (t: TryBrief | null) => void; roofline?: (r: Roofline) => void; printers?: (p: Printers) => void; power?: (p: Power | null) => void; note?: (m: Message) => void; ring?: (r: Ring) => void; link: (up: boolean) => void }) {
   let delay = 1000, ws: WebSocket | null = null, closed = false
   const open = () => {
     ws = live = new WebSocket(wsUrl('/stream'), wsProtocols())   // the token rides as a subprotocol, never in the URL (door.ts)
@@ -863,6 +866,7 @@ export function connect(on: { device: (d: Device) => void; home: (h: Home) => vo
       else if (m.type === 'signals') on.signals(m.trying ?? null)   // a try moved on, or a row was switched; the brief is for the band
       else if (m.type === 'roofline') on.roofline?.(m.roofline)   // its evenings, its look, the way round, a box gone dark
       else if (m.type === 'printers') on.printers?.(m.printers)   // the whole printer status: what each is doing, found, asking
+      else if (m.type === 'ring') on.ring?.(m.ring)   // somebody pressed a doorbell: its camera, and when (design/tv-doorbell/, A)
       else if (m.type === 'power') on.power?.(m.power)   // the sun, the battery and the grid: at once when the band changes, else every ten seconds
       else if (m.type === 'message' && m.class === 'house') on.note?.(m)   // a rule's note, for now; the band's classes come with docs/messages.md step 3
     }
@@ -905,9 +909,10 @@ export const qrUrl = (text: string) => `/qr.svg?text=${encodeURIComponent(text)}
 
 /* The phones that belong to the house, once it has a code. A phone gets in by typing the code, or by asking and being
    allowed from a screen that is already in; the hub keeps a hash and the phone a cookie, so removing one is instant. */
-export type Phone = { id: string; name: string; kind: 'wall' | 'phone' | 'screen' | null; joined: number; expires: number | null; remote: boolean; last_seen: number | null; how: 'code' | 'wall' | 'setup'; me: boolean; moved?: boolean; in_app?: boolean; room?: string | null; push?: boolean }
+export type Phone = { id: string; name: string; kind: 'wall' | 'phone' | 'screen' | null; joined: number; expires: number | null; remote: boolean; last_seen: number | null; how: 'code' | 'wall' | 'setup' | 'plugged in'; me: boolean; moved?: boolean; in_app?: boolean; room?: string | null; push?: boolean }
 export type Ask = { id: string; name: string; kind: string | null; asked: number }
-export type Me = { locked: boolean; paired: boolean; home: string; phone: Phone | null; away?: boolean; lan?: string | null; address?: string | null }
+export type Me = { locked: boolean; paired: boolean; home: string; phone: Phone | null; away?: boolean; lan?: string | null; address?: string | null
+  plugged_in?: boolean }   // this is the screen plugged into the hub itself
 export async function getMe(): Promise<Me> { const r = await fetch(apiUrl('/phones/me'), { headers: withToken(new Headers()) }); if (!r.ok) await fail(r); return r.json() }
 /** Moving this phone to the house's own name (design/away/, C): a one-time code minted here, at home. */
 export const startMove = () => post<{ code: string; url: string; ttl: number }>('/phones/move')
@@ -919,7 +924,11 @@ export const letOut = (id: string, remote: boolean) => post<Phone>(`/phones/${en
 export async function getPhones(): Promise<{ phones: Phone[]; asks: Ask[] }> { const r = await request('/phones'); if (!r.ok) await fail(r); return r.json() }
 export const askToJoin = (name: string, kind?: 'screen') => post<Ask>('/phones/ask', { name, kind })
 export async function claimJoin(id: string): Promise<{ state: 'waiting' | 'allowed' | 'gone'; phone?: Phone }> { const r = await fetch(`/phones/claim/${encodeURIComponent(id)}`); if (!r.ok) await fail(r); return r.json() }
+/** The screen plugged into the hub joins without the passcode (design/tv-join/, C). */
+export const joinPluggedIn = () => post<{ ok: boolean; phone: Phone }>('/phones/plugged-in')
 export const joinWithCode = (code: string, name: string, kind?: 'screen') => post<{ ok: boolean; phone: Phone }>('/phones/code', { code, name, kind })
+/** The household's answer: two speakers playing the same song in a room are one pair, or two (design/speaker-pair/, B). */
+export const pairSpeakers = (speakers: [string, string], pair: boolean) => post<{ pairs: unknown[] }>('/speakers/pair', { speakers, pair })
 export const placeScreen = (room: string) => post<{ room: string; phone: Phone | null }>('/phones/me/room', { room })
 export const allowPhone = (id: string, span: 'day' | 'weekend' | 'keep') => post<Phone>(`/phones/asks/${encodeURIComponent(id)}/allow`, { span })
 export async function denyPhone(id: string) { const r = await request(`/phones/asks/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (!r.ok) await fail(r) }

@@ -27,6 +27,9 @@ TTYPath=/dev/tty1
 TTYVHangup=yes
 TTYVTDisallocate=yes
 StandardInput=tty-fail
+# What cage and the browser say goes to the journal, where it can be read, rather than onto the glass under the splash.
+StandardOutput=journal
+StandardError=journal
 UtmpIdentifier=tty1
 UtmpMode=user
 

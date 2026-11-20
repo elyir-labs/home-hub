@@ -15,8 +15,9 @@ until the product is ready, when it opens onto the product. Chosen 7 October 202
 | `splash.sh` | The splash and a quiet boot around it, on a Pi's boot settings or a PC's GRUB |
 | `say.sh`, `elyir-first-start.service` | A first start says which step it is on, and ends on Ready with a code to scan (`design/first-start/`) |
 | `look.sh` | Runs the splash in real Plymouth, in Docker, through every moment, and reads the Ready codes back off the screen |
-| `elyir-splash.service` | On a hub with no wall (a NUC's monitor): the splash held until the hub answers, then its ending |
-| `install.sh` | Sets all of it up on a unit with its own screen; first boot runs it when a DSI screen is connected, or on a Pi any screen |
+| `elyir-splash.service` | On a hub with no screen at its first start: the splash held until the hub answers, then its ending |
+| `install.sh` | Sets all of it up on a unit with its own screen; first boot runs it when any screen is connected |
+| `cec.sh`, `cec-keys.toml`, `70-elyir-cec.rules`, `elyir-cec*.service` | The TV's own remote as the panel's keys, and the TV's power and input, over HDMI-CEC; a Pulse-Eight USB adapter where the HDMI has none (`design/living-room/`) |
 | `screen-helper.py` | Beside the browser on every unit with a screen: which way up it is drawn, its restart, and a change of what the unit is, for the panel's This screen page |
 | `turn.sh`, `elyir-screen-turn.*` | Turns the startup the way This screen turned the panel, on a Pi's boot line, from the next start |
 | `role.sh`, `elyir-screen-role.*` | Makes this unit the hub or another hub's screen when This screen asks, by running first boot again |

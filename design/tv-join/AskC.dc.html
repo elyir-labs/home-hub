@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C: a TV on another box asks a phone</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css">
+<link rel="stylesheet" href="join.css">
+</head>
+<body>
+<div class="screen">
+  <div class="join">
+    <span class="mark"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span>
+    <h1>This TV is for Maple&nbsp;Court.</h1>
+    <p class="lede">Say yes on a phone that already uses the house, and this TV opens by itself.</p>
+    <p class="waiting"><span class="pulse"></span>Asked every phone in the house</p>
+    <div class="actions"><span class="btn" data-f data-f-start data-hint="OK|Type the passcode instead">Type the passcode instead</span></div>
+  </div>
+  <div class="phone">
+    <div class="sheet">
+      <div class="t">A TV wants to join Maple Court</div>
+      <div class="s">It's on your Wi-Fi now. Let it show the house and work the lights?</div>
+      <div class="row"><span>Not now</span><span class="yes">Allow</span></div>
+    </div>
+    <div class="cap">Any phone that uses the house</div>
+  </div>
+  <div class="foot"><div class="keys" id="hint"></div><span class="where">A TV on another box, in the bedroom</span></div>
+</div>
+<script src="tv.js"></script>
+</body>
+</html>

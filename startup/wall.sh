@@ -89,7 +89,7 @@ transform() {
 settle() {
   local ask="${ELYIR_SCREEN_ASK:-/var/lib/elyir-screen}" rules="${ELYIR_TOUCH_RULES:-/etc/udev/rules.d/90-elyir-touch.rules}"
   local file="${ELYIR_TURN_FILE:-$(getent passwd elyir-wall 2>/dev/null | cut -d: -f6)/.config/elyir/turn}" t
-  t=$(tr -cd '0-9' < "$file" 2>/dev/null) || return 0
+  t=$(tr -cd '0-9' 2>/dev/null < "$file") || return 0
   [ -n "$t" ] || return 0
   if [ ! -e "$ask/turn.request" ]; then
     if [ "$t" = 0 ]; then [ -e "$rules" ] || return 0; else grep -qs "touch follows a turn of $t," "$rules" && return 0; fi
@@ -121,17 +121,30 @@ guess() {
 # screen's own speakers. Its HDMI card takes only IEC958 frames, so a browser left on ALSA's plain default is
 # silent; the hdmi: device converts to them. The card is the one on the port that is connected, worked out each
 # time the wall starts, since a screen can move ports. A DSI screen, or a box with no such card, is left alone.
+# A mini PC has one card for all its HDMI ports, and ALSA's default there is often a USB dongle instead; the
+# card's HDMI outputs each have a jack saying whether a screen listens on it.
 speaker() {
-  local rc="$HOME/.asoundrc" s port card
+  local rc="$HOME/.asoundrc" asound="${HUB_ASOUND:-/proc/asound}" s port card dev=0 info c n
   for s in "${HUB_DRM:-/sys/class/drm}"/card*-HDMI-A-*/status; do
     [ "$(cat "$s" 2>/dev/null)" = connected ] || continue
     port=${s%/status}; port=${port##*-}
-    [ -e "${HUB_ASOUND:-/proc/asound}/vc4hdmi$((port - 1))" ] && { card=vc4hdmi$((port - 1)); break; }
+    [ -e "$asound/vc4hdmi$((port - 1))" ] && { card=vc4hdmi$((port - 1)); break; }
   done
+  if [ -z "${card:-}" ] && grep -qsx connected "${HUB_DRM:-/sys/class/drm}"/card*-*/status; then
+    for info in "$asound"/card*/pcm*p/info; do
+      dev=$(sed -n 's/^id: HDMI \([0-9][0-9]*\)$/\1/p' "$info" 2>/dev/null); [ -n "$dev" ] || continue
+      c=${info%/pcm*}; n=${info#"$c"/pcm}; n=${n%p/info}
+      amixer -c "${c##*card}" cget "iface=CARD,name='HDMI/DP,pcm=$n Jack'" 2>/dev/null | grep -q ': values=on' || continue
+      card=$(cat "$c/id"); break
+    done
+  fi
   if [ -z "${card:-}" ]; then rm -f "$rc"; return; fi
-  printf '# Written by startup/wall.sh each time the wall starts.\npcm.!default { type plug; slave.pcm "hdmi:CARD=%s,DEV=0" }\nctl.!default { type hw; card %s }\n' \
-    "$card" "$card" > "$rc"
+  printf '# Written by startup/wall.sh each time the wall starts.\npcm.!default { type plug; slave.pcm "hdmi:CARD=%s,DEV=%s" }\nctl.!default { type hw; card %s }\n' \
+    "$card" "$dev" "$card" > "$rc"
 }
+
+# Ubuntu 24.04's cage (0.1, so the x86 image's) is older than the one the wall was built on, and has two faults.
+old_cage() { cage -v 2>&1 | grep -q 'version 0\.1\.'; }
 
 browser() {
   local b
@@ -161,15 +174,27 @@ case "${1:-}" in
     hidden_cursor
     speaker || true
     # cage runs this script again inside itself, so the display can be scaled before the browser starts.
+    # An old cage crashes on its way out, whenever the screen is stopped; as the service's main process that crash
+    # is a failure, whose splash handling (OnFailure) cancels a restart. There it runs under this script, which a
+    # stop ends cleanly.
+    if old_cage; then cage -- "$0" browse "${ELYIR_SCALE:-}"; exit; fi
     exec cage -- "$0" browse "${ELYIR_SCALE:-}" ;;
   browse)
     # The scale is set on the display, not in the browser: Chromium on Wayland draws a forced scale under 1 into a
     # corner of the screen, while a scaled output is simply a bigger screen to it.
     # It is worked out here, inside cage, because only the compositor knows how big the glass is.
-    wlr-randr 2>/dev/null | outputs | while read -r out m mm; do
+    # An old cage aborts the moment an output is changed while it runs, a wlroots assertion in
+    # wlr_scene_output_layout_add_output. There the browser scales itself instead, through
+    # Xwayland, since a forced scale on Wayland draws into a corner at any size; and the glass is not turned: a TV
+    # hangs the right way up.
+    scale=""
+    while read -r out m mm; do
       [ "$m" = - ] && m=$(mode)
-      wlr-randr --output "$out" --scale "${2:-$(fit "$m" "$mm")}" --transform "$(transform)" || true
-    done
+      s=${2:-$(fit "$m" "$mm")}
+      if old_cage; then scale=$s
+      else wlr-randr --output "$out" --scale "$s" --transform "$(transform)" || true; fi
+    done < <(wlr-randr 2>/dev/null | outputs)
+    awk -v s="${scale:-0}" 'BEGIN { exit !(s + 0 > 1) }' && set -- "$1" "" "--force-device-scale-factor=$scale" x11
     ELYIR_PANEL_URL="$PANEL_URL" python3 "$HERE/screen-helper.py" &
     # Chromium locks its profile under this machine's name and refuses to start, exit 21, when the name has changed
     # since -- which first boot does, to hub or to screen. Only this service runs a browser as this user, one at a
@@ -179,8 +204,8 @@ case "${1:-}" in
     # the wall and a sideways swipe would go back a page; both are switched off here instead. Nobody may be standing
     # at the wall when it is asked to speak, so a sound plays without a tap first, as the Android kiosk's does.
     exec "$(browser)" --kiosk --noerrdialogs --disable-infobars --no-first-run \
-      --ozone-platform=wayland --disable-session-crashed-bubble --check-for-update-interval=31536000 \
+      --ozone-platform="${4:-wayland}" --disable-session-crashed-bubble --check-for-update-interval=31536000 \
       --disable-pinch --overscroll-history-navigation=0 --autoplay-policy=no-user-gesture-required \
-      "$PANEL_URL" ;;
+      ${3:+"$3"} "$PANEL_URL" ;;
   *) echo "usage: $0 wait|run|speaker|settle|guess|fit <mode> [<mm>]|outputs|browse [<scale>]" >&2; exit 2 ;;
 esac

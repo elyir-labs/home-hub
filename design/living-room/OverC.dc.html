@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C: the room, over the picture</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css">
+<style>
+  /* what the hub is already showing: a film, or the TV at rest. Painted, so no show's frame is ever in the repository. */
+  .picture { position: absolute; inset: 0;
+    background:
+      radial-gradient(180px 180px at 64% 50%, #ffd9a0, #f3a35f 40%, transparent 70%),
+      linear-gradient(transparent 56%, #0d1a24 56.2%, #13283a 70%, #0a141c),
+      linear-gradient(#1c2a4a, #6a4a6e 30%, #d9805a 50%, #f0b07a 56%); }
+  .picture::after { content: ""; position: absolute; left: 0; right: 0; top: 56%; height: 44%;
+    background: repeating-linear-gradient(transparent 0 14px, rgba(255,210,160,.07) 14px 16px); -webkit-mask: radial-gradient(40% 60% at 64% 0, #000, transparent); mask: radial-gradient(40% 60% at 64% 0, #000, transparent); }
+  .scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 62%; background: linear-gradient(transparent, rgba(5,7,10,.78) 45%, rgba(5,7,10,.9));
+           transition: opacity .3s; }
+  .band { position: absolute; left: var(--safe-x); right: var(--safe-x); bottom: var(--safe-y); transition: transform .32s cubic-bezier(.2,.7,.2,1), opacity .25s; }
+  .rest .band { transform: translateY(40px); opacity: 0; pointer-events: none; }
+  .rest .scrim { opacity: 0; }
+  .hd { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 26px; }
+  .hd h1 { margin: 0; font-size: 52px; font-weight: 400; letter-spacing: -.02em; }
+  .hd h1 small { font-size: 26px; color: var(--ink-2); margin-left: 18px; letter-spacing: 0; }
+  .scenes { display: flex; gap: 14px; }
+  .scenes span { display: inline-flex; gap: 12px; align-items: center; height: 54px; padding: 0 22px 0 16px; border-radius: 27px;
+                 font-size: 22px; background: rgba(20,22,28,.6); border: 1px solid var(--edge); backdrop-filter: blur(20px); }
+  .scenes span.go { border-color: rgba(var(--lamp-rgb), .8); color: var(--lamp); }
+  .scenes i { width: 20px; height: 20px; border-radius: 50%; }
+  .row { display: flex; gap: 20px; }
+  .thing { width: 229px; height: 250px; padding: 22px 32px 22px 22px; white-space: nowrap; display: flex; flex-direction: column; justify-content: space-between; background: rgba(22,24,30,.62); }
+  .thing .val { font-size: 46px; font-weight: 300; letter-spacing: -.02em; line-height: 1; }
+  .thing .val small { font-size: 22px; color: var(--ink-2); margin-left: 4px; }
+  .thing .meter { position: absolute; right: 20px; top: 22px; bottom: 22px; width: 8px; border-radius: 4px; background: rgba(255,255,255,.12);
+                  opacity: 0; transition: opacity .2s; }
+  .thing .meter i { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 4px; height: var(--v, 0%); background: var(--c, var(--lamp)); transition: height .15s; }
+  .thing.f .meter { opacity: 1; }
+  .thing.more { justify-content: center; align-items: center; text-align: center; gap: 10px; }
+  .thing .nm { font-size: 26px; }
+  .thing.more { padding: 22px; white-space: normal; }
+  #hint { margin-top: 26px; }
+  .call { position: absolute; right: var(--safe-x); bottom: var(--safe-y); opacity: 0; transition: opacity .3s; }
+  .rest .call { opacity: .85; }
+  .now { position: absolute; left: var(--safe-x); top: var(--safe-y); font-size: 22px; color: rgba(255,255,255,.75); display: flex; gap: 12px; align-items: center; transition: opacity .3s; }
+  .rest .now { opacity: 0; }
+</style>
+</head>
+<body>
+<div class="screen" id="tv">
+  <div class="picture"></div>
+  <div class="scrim"></div>
+  <div class="now">7:40 PM · Harbor Lights keeps playing behind this</div>
+  <div class="band">
+    <div class="hd"><h1>Living room<small id="sum">2 lights on · 73°</small></h1>
+      <div class="scenes" id="scenes"></div></div>
+    <div class="row" id="row"></div>
+    <div id="hint" class="keys"></div>
+  </div>
+  <div class="call keys"><span><kbd>OK</kbd>The living room</span></div>
+</div>
+<script>
+  const COLORS = [['#e5484d', 'Movie'], ['#46a758', 'Guests'], ['#f5d90a', 'Sleep'], ['#3e63dd', 'All off']]
+  document.getElementById('scenes').innerHTML = COLORS.map(([c, n]) => `<span><i style="background:${c}"></i>${n}</span>`).join('')
+  const things = [
+    { nm: 'Ceiling light', v: 35, c: '214, 92, 170', kind: 'light' },
+    { nm: 'Floor lamp', v: 24, c: '233, 184, 114', kind: 'light' },
+    { nm: 'Reading lamp', v: 0, was: 60, c: '233, 184, 114', kind: 'light' },
+    { nm: 'Blinds', v: 70, c: '185, 181, 173', kind: 'blind' },
+    { nm: 'Thermostat', v: 71, kind: 'temp' },
+    { nm: 'Speaker', kind: 'speaker' },
+  ]
+  const val = (t) => t.kind === 'light' ? (t.v ? `${t.v}<small>%</small>` : 'Off') : t.kind === 'blind' ? `${t.v}<small>% open</small>`
+    : t.kind === 'temp' ? `${t.v}<small>° cooling</small>` : '<small>Paused</small>'
+  const hintOf = (t) => t.kind === 'light' ? `▲ ▼|${t.v ? 'Brighter or dimmer' : 'Turn on'};OK|${t.v ? 'Turn off' : 'Turn on'};Back|Close`
+    : t.kind === 'blind' ? '▲ ▼|Open or close;OK|Close all the way;Back|Close'
+    : t.kind === 'temp' ? '▲ ▼|Warmer or cooler;Back|Close' : 'OK|Play;Back|Close'
+  const row = document.getElementById('row')
+  function draw(e, t) {
+    const on = t.kind === 'light' && t.v > 0
+    e.className = `card thing ${t.kind === 'light' ? 'light' : ''} ${on ? 'on' : ''} ${e.classList.contains('f') ? 'f' : ''}`
+    e.style.cssText = `--c-rgb:${t.c || '233,184,114'};--c:rgb(${t.c || '233,184,114'});--v:${t.kind === 'temp' ? (t.v - 60) * 5 : t.v || 0}%;--g:${on ? t.v / 100 + .3 : 0}`
+    e.querySelector('.val').innerHTML = val(t)
+    e.dataset.hint = hintOf(t)
+    const lit = things.filter((x) => x.kind === 'light' && x.v > 0).length
+    document.getElementById('sum').textContent = `${lit ? lit + (lit === 1 ? ' light on' : ' lights on') : 'Lights off'} · 73°`
+  }
+  things.forEach((t, i) => {
+    const e = document.createElement('div')
+    e.dataset.f = ''; e.dataset.i = i; if (i === 0) e.dataset.fStart = ''
+    e.innerHTML = `<div class="glow"></div><div class="nm">${t.nm}</div><div class="val"></div>${t.kind !== 'speaker' ? '<div class="meter"><i></i></div>' : ''}`
+    row.appendChild(e); draw(e, t)
+  })
+  row.insertAdjacentHTML('beforeend', '<div class="card thing more" data-f data-hint="OK|Another room;Back|Close"><div class="nm">Other rooms</div><div class="st">Kitchen, Bedroom and 4 more</div></div>')
+
+  const tv = document.getElementById('tv')
+  // Up and down are the level: the one thing a lamp has that a remote's two other directions are free for
+  window.tvKeys = (key, cur, light) => {
+    if (tv.classList.contains('rest')) { if (key === 'Enter') { tv.classList.remove('rest'); return true } return key.startsWith('Arrow') }
+    if (key === 'Escape' || key === 'Backspace') { tv.classList.add('rest'); return true }
+    const s = { 1: 0, 2: 1, 3: 2, 4: 3 }[key]
+    if (s != null) { const b = document.querySelectorAll('.scenes span')[s]; b.classList.add('go'); setTimeout(() => b.classList.remove('go'), 900); return true }
+    const t = things[cur?.dataset.i]
+    if (!t) return false
+    if ((key === 'ArrowUp' || key === 'ArrowDown') && t.kind !== 'speaker') {
+      const d = key === 'ArrowUp' ? 1 : -1
+      if (t.kind === 'temp') t.v = Math.max(60, Math.min(80, t.v + d))
+      else t.v = Math.max(0, Math.min(100, (t.v || 0) + d * 10))
+      draw(cur, t); return true
+    }
+    if (key === 'Enter' && t.kind === 'light') { if (t.v) { t.was = t.v; t.v = 0 } else t.v = t.was || 50; draw(cur, t); return true }
+    if (key === 'Enter' && t.kind === 'blind') { t.v = t.v ? 0 : 70; draw(cur, t); return true }
+    return false
+  }
+</script>
+<script src="tv.js"></script>
+</body>
+</html>

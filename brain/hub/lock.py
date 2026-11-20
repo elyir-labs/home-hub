@@ -88,7 +88,7 @@ def needs_code(method: str, path: str) -> bool:
     # hangs in changes only itself (design/companion/, C), and one let in from another screen has no code to send.
     # Nor is a phone asking to be told things, or to stop: it changes only how that one phone hears about the house.
     if path.startswith("/phones") and m != "GET":
-        return path not in ("/phones/ask", "/phones/code", "/phones/move", "/phones/move/claim", "/phones/me/room", "/phones/me/push")
+        return path not in ("/phones/ask", "/phones/code", "/phones/plugged-in", "/phones/move", "/phones/move/claim", "/phones/me/room", "/phones/me/push")
     return False
 
 

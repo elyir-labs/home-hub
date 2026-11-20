@@ -6,7 +6,7 @@
 import { inApp } from './inapp'
 import { narrow } from './band'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { store, start, halt, load, foundCount, visibleRooms, activity, roomActive, houseLine, weatherLine, needsSetup, dismissToast, updateReady, forgetDone, cap, linkNow, clockNow } from './store'
+import { store, start, halt, deviceById, load, foundCount, visibleRooms, activity, roomActive, houseLine, weatherLine, needsSetup, dismissToast, updateReady, forgetDone, cap, linkNow, clockNow, runScene, scenesFor } from './store'
 import { bandFor, probe, reach } from './reach'
 import { door } from './door'
 import Setup from './Setup.vue'
@@ -19,6 +19,12 @@ import { lastTurn } from './thisScreen'
 import CodePrompt from './CodePrompt.vue'
 import Keys from './Keys.vue'
 import { onWall } from './keys'
+import { installRemote, musicIn, onTV, sceneFor, type Press } from './tv'
+import TvView from './views/TvView.vue'
+import DoorCorner from './DoorCorner.vue'
+import TvRecord from './TvRecord.vue'
+import TvBand from './TvBand.vue'
+import type { Device } from './api'
 import { lock } from './code'
 import Sky from './Sky.vue'
 import ArtDefs from './ArtDefs.vue'
@@ -80,6 +86,7 @@ const panel = computed(() => isPage(store.sheet))   // This house is open, on on
    outside the guards below, so it is this computed that has to know the house is not showing. */
 const asking = computed(() => !shut.value && store.asks.length > 0 && !store.askAside)
 const room = computed(() => rooms.value.find(r => r.id === selected.value) ?? null)
+const offline = computed(() => !store.loaded || !!store.restarting || !!store.updating?.lost || store.status?.driver !== 'ready')
 
 const ambient = computed(() => store.sky.elevation < -8 ? 'night' : store.sky.elevation < 6 ? (store.sky.azimuth < 180 ? 'dawn' : 'dusk') : 'day')
 
@@ -115,6 +122,16 @@ if (wall) {
   }, { capture: true, passive: true })
   document.addEventListener('scrollend', (e) => { if (e.target instanceof HTMLElement) delete e.target.dataset.moving }, { capture: true, passive: true })
 }
+/* On a TV the house is worked from the sofa with a remote (design/living-room/, B with C's band): rows that open on
+   the TV's own room, and while it rests, that room as a band over the picture. */
+const tv = onTV()
+if (tv) document.documentElement.dataset.onTv = ''
+const tvHome = computed(() => homeRoom(rooms.value) ?? params.get('room')
+  ?? rooms.value.find(r => r.devices.some(d => cap(d) === 'light'))?.id ?? rooms.value[0]?.id ?? null)
+const tvRoom = computed(() => room.value ?? rooms.value.find(r => r.id === tvHome.value) ?? null)
+const tvBand = ref(false)
+/* while the TV's room plays music, the resting TV is the record and its band works the music (design/tv-music/, B) */
+const tvMusic = computed(() => tv ? musicIn(tvRoom.value, true) : null)
 const toneParam = params.get('tone'), layoutParam = params.get('layout')
 
 /* The house's feel, which is what the Look page actually writes: one of three,
@@ -216,10 +233,15 @@ const idle = ref(new URLSearchParams(location.search).get('rest') === '1')   // 
 let lastTouch = Date.now()
 const kiosk = window.matchMedia('(min-width: 861px)')
 const woke = ref(0)   // counted so Home can arrive again on every wake, not only on the first load
-function touched() {
+function touched(e?: Event) {
   lastTouch = Date.now()
   if (!idle.value) return
+  if (tv && e?.type === 'keydown') return   // a resting TV raises its band on OK; Home is what wakes it
+  wake()
+}
+function wake() {
   idle.value = false
+  tvBand.value = false
   /* Waking goes home (a screen with a room goes to its room), so what somebody left open before the panel rested goes with it. A phone
      asking to join is the exception and stays: that one is a question still waiting for an answer,
      not something left lying around. */
@@ -246,9 +268,45 @@ watch(() => store.asks.length, (n, o) => { if (n > o) { store.askAside = false; 
  * anyway, and a hub that knows nothing about bridges stays null forever and never gets here.
  */
 watch(() => store.bridge?.state, (is, was) => { if (is === 'knocking' && was && was !== 'knocking') touched() })
+/* The band's OK on a thing that opens rather than acts: a pane belongs to the awake panel. */
+function wakeOpen(d: Device) { wake(); store.opened = d }
+function remote(p: Press): boolean {
+  // somebody at the door: OK makes the door the whole screen, Back lets it go, awake or resting (design/tv-doorbell/, A)
+  if (store.ringing && (p === 'ok' || p === 'back')) {
+    const cam = deviceById(store.ringing.camera)
+    store.ringing = null
+    if (p === 'ok' && cam) { if (idle.value) wake(); store.viewer = cam }
+    return true
+  }
+  if (!idle.value) return false
+  if (tvBand.value) { if (p === 'home') { wake(); return true } return false }
+  if (p === 'ok' || p === 'up' || p === 'down') tvBand.value = true
+  else if (p === 'home') wake()
+  return true   // nothing else does anything to a resting TV
+}
+function remoteBack(): boolean {
+  if (tvBand.value) { tvBand.value = false; return true }
+  if (store.viewer) { store.viewer = null; return true }
+  if (store.opened) { store.opened = null; return true }
+  if (store.musicPane) { store.musicPane = null; return true }
+  if (store.sheet) { store.sheet = null; return true }
+  if (room.value && room.value.id !== tvHome.value) { open(tvHome.value); return true }
+  return false
+}
+function remoteHome() {
+  if (idle.value) { wake(); return }
+  store.viewer = null; store.opened = null; store.musicPane = null; store.sheet = null
+  open(tvHome.value)
+}
+function remoteColor(c: 'red' | 'green' | 'yellow' | 'blue') {
+  const r = tvRoom.value; if (!r) return
+  const s = sceneFor(c, scenesFor(r)); if (s) runScene(r, s)
+}
+let unremote: (() => void) | undefined
 async function rejoin() { halt(); await start() }                       // this screen just joined: read the house and reconnect
 function checkIdle() {
-  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && Date.now() - lastTouch > IDLE_AFTER) idle.value = true
+  // a page that is the whole screen is a question waiting for its answer (joining, which room), so it never rests under the clock
+  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && !shut.value && Date.now() - lastTouch > IDLE_AFTER) idle.value = true
   forgetDone(idle.value)   // and the stale ones either way, for a screen that never rests
   if (idle.value) lastTurn.value = null   // This screen's Put it back, by the same rule
 }
@@ -265,6 +323,7 @@ function looked() { if (document.visibilityState === 'hidden') forgetDone(true) 
 let tick: number | undefined, idler: number | undefined
 onMounted(() => {
   start()
+  if (tv) unremote = installRemote({ first: remote, back: remoteBack, home: remoteHome, color: remoteColor })
   tick = window.setInterval(() => (now.value = new Date()), 10000)
   idler = window.setInterval(checkIdle, 5000)
   window.addEventListener('pointerdown', touched, { capture: true })
@@ -276,7 +335,7 @@ onMounted(() => {
   atTall.addEventListener('change', measure)
 })
 onUnmounted(() => {
-  halt(); clearInterval(tick); clearInterval(idler)
+  halt(); clearInterval(tick); clearInterval(idler); unremote?.()
   window.removeEventListener('pointerdown', touched, { capture: true })
   window.removeEventListener('keydown', touched, { capture: true })
   document.removeEventListener('visibilitychange', looked)
@@ -288,7 +347,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="shell" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking, 'house-open': panel && docked, 'pane-open': !!store.opened && docked }">
+  <div class="shell" :data-ringing="tv && store.ringing ? '' : null" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking, 'house-open': panel && docked, 'pane-open': !!store.opened && docked }">
     <Sky :quiet="!idle && !setup" :held="wall && !idle" />
     <!-- glass lays its blooms on the sky the canvas just painted, under the veil -->
     <div class="sky-bloom" v-if="face === 'glass'"></div>
@@ -299,8 +358,8 @@ onUnmounted(() => {
     <MovePage v-else-if="store.moving" />
     <Setup v-else-if="setup" />
     <ScreenRoom v-else-if="placing" :home="store.status?.home || 'the house'" :locked="!!store.status?.locked" :rooms="rooms" :screens="store.phones" @placed="open" />
-    <TopBar v-if="!setup && !shut && nav === 'top'" :clock="clock" :day="day" :now="shown" :tab="tab" :in-room="!!room" :docked="docked" @go="go" />
-    <aside class="rail" v-if="!setup && !shut && nav === 'side'">
+    <TopBar v-if="!setup && !shut && !tv && nav === 'top'" :clock="clock" :day="day" :now="shown" :tab="tab" :in-room="!!room" :docked="docked" @go="go" />
+    <aside class="rail" v-if="!setup && !shut && !tv && nav === 'side'">
       <div class="rail-clock">
         <div class="rail-time">{{ clock }}</div>
         <div class="rail-day">{{ day }}</div>
@@ -332,9 +391,9 @@ onUnmounted(() => {
       </div>
     </aside>
 
-    <main class="stage" :class="{ hushed: band?.hushed }" v-if="!setup && !shut">
+    <main class="stage" :class="{ hushed: band?.hushed }" v-if="!setup && !shut && (!tv || offline)">
 
-      <div class="offline" v-if="!store.loaded || store.restarting || store.updating?.lost || store.status?.driver !== 'ready'">
+      <div class="offline" v-if="offline">
         <!-- A restart is the one thing this panel does that destroys the thing doing it, and it is
              short enough to count. So it gets the overlay from the moment it is asked for rather than
              when the hub next answers, and a number that runs out rather than a spinner: a spinner
@@ -384,8 +443,9 @@ onUnmounted(() => {
         <HomeView v-else key="home-stack" :rooms="rooms" :now="shown" :top-nav="nav === 'top'" @open="open" />
       </Transition>
     </main>
+    <TvView v-if="tv && !setup && !shut && !offline && !idle" :rooms="rooms" :here="tvRoom" :home="tvHome" :now="shown" @open="open" />
 
-    <Household v-if="!setup && !shut && nav === 'top'" :room="room?.id ?? null" :docked="docked" :tab="tab" :in-room="!!room" :now="shown" @go="go" />
+    <Household v-if="!setup && !shut && !tv && nav === 'top'" :room="room?.id ?? null" :docked="docked" :tab="tab" :in-room="!!room" :now="shown" @go="go" />
 
     <Viewer />
     <Opened v-if="store.opened" :class="{ docked }" />
@@ -435,7 +495,10 @@ onUnmounted(() => {
     </Transition>
 
     <Transition name="idle">
-      <div class="idle" v-if="idle" aria-label="Tap to wake">
+      <div class="idle" v-if="idle && tvMusic && tvRoom" aria-label="Tap to wake" :class="{ 'on-cover': !!tvMusic.attrs.entity_picture }">
+        <TvRecord :d="tvMusic" :room="tvRoom" :time="restTime.time" :period="restTime.period ?? ''" :day="day" :temp="restWx?.temp ?? null" :under="tvBand" />
+      </div>
+      <div class="idle" v-else-if="idle" aria-label="Tap to wake" :class="{ 'under-band': tvBand }">
         <div class="idle-wx" v-if="restWx">
           <WeatherArt />
           <div><div class="idle-wx-temp display">{{ restWx.temp }}</div><div class="idle-wx-label">{{ restWx.label }}</div></div>
@@ -449,7 +512,10 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="idle-line" v-else>{{ houseLine() }}</div>
+        <div class="idle-remote" v-if="tv && tvRoom && !tvBand"><kbd>OK</kbd>The {{ tvRoom.name.toLowerCase() }}</div>
       </div>
     </Transition>
+    <DoorCorner v-if="tv && store.ringing" />
+    <TvBand v-if="tv && idle && tvBand && tvRoom" :room="tvRoom" :music="tvMusic" @rooms="wake" @open="wakeOpen" />
   </div>
 </template>

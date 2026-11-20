@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Today: a TV in a house with fifteen rooms</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css">
+<link rel="stylesheet" href="join.css">
+</head>
+<body>
+<!-- drawn from ScreenRoom.vue as built on 20 November: the rooms wrap five to a row from 560px down, and on the
+     NUC's living room TV the third row ran off the foot and under the hint. -->
+<div class="screen">
+  <div class="join" style="width:1200px">
+    <span class="mark"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span>
+    <h1>Which room is this TV in?</h1>
+    <p class="lede" style="max-width:1000px">It's plugged into the hub, so it's already part of Maple Court. It opens on the room you choose.</p>
+  </div>
+  <div class="rooms" id="rooms" style="top:560px;flex-wrap:wrap"></div>
+  <div class="foot" style="z-index:1"><div class="keys" id="hint"></div><span class="where">The TV plugged into the hub</span></div>
+  <div class="why-tag" style="left:1310px;top:100px;width:500px"><b>Fifteen rooms don't fit.</b> The third row runs off the foot of the TV and under the hint, and two more rows are below that.</div>
+  <div class="why-tag" style="left:1310px;top:260px;width:500px"><b>The order is setup's,</b> so the rooms with things in them are mixed in with the ones that are still empty.</div>
+</div>
+<script src="rooms.js"></script>
+<script>document.getElementById('rooms').innerHTML = ROOMS.map((r, i) => roomCard(r, i)).join('')</script>
+<script src="tv.js"></script>
+</body>
+</html>
