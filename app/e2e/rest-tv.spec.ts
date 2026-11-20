@@ -29,7 +29,7 @@ test('at bedtime it lists what is still on, Bedtime runs Bedtime and puts the TV
   await expect(page.locator('.tvrest-left li').first()).toContainText('Living room')
   await page.keyboard.press('Enter')
   await expect.poll(() => asked.some(u => /home\/intent\/asleep$/.test(u))).toBe(true)
-  await expect.poll(() => asked.some(u => u.endsWith('/sleep'))).toBe(true)
+  await expect.poll(() => asked.some(u => u.endsWith('/sleep')), { timeout: 12_000 }).toBe(true)   // after the evening's line has had its few seconds
   await expect(page.locator('.tvb-band')).toHaveCount(0)
 })
 

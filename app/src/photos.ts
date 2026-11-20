@@ -119,6 +119,12 @@ export function untilFor(u: Until, now = new Date()): number | null {
 /** A countdown named for a birthday or an anniversary comes round every year; the hub reads the name the same way. */
 export const yearly = (what: string) => /\b(birthday|anniversary)\b/i.test(what)
 
+/** The morning a line left now greets: tomorrow's, or this morning's when it is still the small hours. */
+export function morningFor(now = new Date()): string {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (now.getHours() < 4 ? 0 : 1))
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 /** A note's line on the phone: until when, and whose. */
 export function noteLine(until: number | null, by: string | null, now = new Date()): string {
   const when = until === null ? 'until somebody takes it down' : new Date(until * 1000).getDate() === new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getDate() ? 'until tonight' : 'until tomorrow night'

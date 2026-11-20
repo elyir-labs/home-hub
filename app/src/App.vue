@@ -26,7 +26,7 @@ import TvRecord from './TvRecord.vue'
 import TvGlow from './TvGlow.vue'
 import TvBand from './TvBand.vue'
 import TvRest from './TvRest.vue'
-import { bedtime, loadRestPhotos, nightOf, reportScreen, rest, SLEEP_AFTER } from './restTv'
+import { bedtime, loadRestPhotos, localDay, nightOf, reportScreen, rest, SLEEP_AFTER } from './restTv'
 import { sleepTv } from './thisScreen'
 import type { Device } from './api'
 import { lock } from './code'
@@ -312,6 +312,7 @@ function remote(p: Press): boolean {
   }
   if (!idle.value) return false
   if (tvBand.value) { if (p === 'home') { wake(); return true } return false }
+  if (rest.face === 'morning') rest.morningSeen = localDay(shown.value)   // a key on the morning card is somebody up; it goes back to the photos
   if (!tvMusic.value && rest.face === 'bedtime' && p === 'ok') { bedtime(); return true }
   if (!tvMusic.value && rest.face === 'bedtime' && p === 'back') { rest.notYet = nightOf(shown.value); return true }
   if (p === 'ok' || p === 'up' || p === 'down') { bandOn.value = p === 'ok' ? 'pause' : 'volume'; tvBand.value = true }

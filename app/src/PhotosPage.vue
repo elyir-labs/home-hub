@@ -10,8 +10,8 @@
  * Above the grid, every screen the house has and a switch for whether it shows them at rest: a TV starts on.
  */
 import { computed, onMounted, ref } from 'vue'
-import { addCountdown, getBoard, getPhotosPage, leaveNote, photoUrl, removePhoto, sendPhoto, showOnScreen, takeDown, type BoardNote, type Countdown, type ShownScreen } from './api'
-import { countLine, noteLine, prepare, screenLines, sentLine, untilFor, yearly, type Until } from './photos'
+import { addCountdown, getBoard, getPhotosPage, leaveMorning, leaveNote, photoUrl, removePhoto, sendPhoto, showOnScreen, takeDown, type BoardNote, type Countdown, type MorningLine, type ShownScreen } from './api'
+import { countLine, morningFor, noteLine, prepare, screenLines, sentLine, untilFor, yearly, type Until } from './photos'
 import { countWords } from './restTv'
 import { photoLine, type Photo } from './restTv'
 import { locale } from './lang'
@@ -26,34 +26,38 @@ const screen = ref<ShownScreen | null>(null)   // the screen whose own page is o
    the page is left: nothing vanishes under the finger that touched it. */
 const notes = ref<BoardNote[]>([])
 const counts = ref<Countdown[]>([])
-const gone = ref<Record<string, BoardNote | Countdown>>({})
-const writing = ref<'note' | 'count' | null>(null)
-const text = ref(''), until = ref<Until>('tonight'), what = ref(''), day = ref('')
+const gone = ref<Record<string, BoardNote | Countdown | MorningLine>>({})
+const writing = ref<'note' | 'count' | 'morning' | null>(null)
+const text = ref(''), until = ref<Until>('tonight'), what = ref(''), day = ref(''), dawn = ref('')
+const mornings = ref<MorningLine[]>([])
 const saving = ref(false)
-async function loadBoard() { try { const b = await getBoard(); notes.value = b.notes; counts.value = b.countdowns } catch { /* an older hub */ } }
+async function loadBoard() { try { const b = await getBoard(); notes.value = b.notes; counts.value = b.countdowns; mornings.value = b.mornings ?? [] } catch { /* an older hub */ } }
 async function write() {
   if (saving.value) return
   saving.value = true
   try {
     if (writing.value === 'note') { await leaveNote(text.value, untilFor(until.value)); notify('The note is on your screens.'); text.value = '' }
-    else { await addCountdown(what.value, day.value); notify('The countdown is on your screens.'); what.value = ''; day.value = '' }
+    else if (writing.value === 'count') { await addCountdown(what.value, day.value); notify('The countdown is on your screens.'); what.value = ''; day.value = '' }
+    else { await leaveMorning(dawn.value, morningFor()); notify('It will greet the first screen to wake in the morning.'); dawn.value = '' }
     writing.value = null
     await loadBoard()
   } catch (e: any) { notify(e.message, 'error') }
   saving.value = false
 }
-async function down(item: BoardNote | Countdown) {
+async function down(item: BoardNote | Countdown | MorningLine) {
   try { await takeDown(item.id); gone.value = { ...gone.value, [item.id]: item } } catch (e: any) { notify(e.message, 'error') }
 }
-async function putBack(item: BoardNote | Countdown) {
+async function putBack(item: BoardNote | Countdown | MorningLine) {
   try {
-    if ('text' in item) await leaveNote(item.text, item.until && item.until > Date.now() / 1000 ? item.until : null)
+    if ('day' in item) await leaveMorning(item.text, item.day)
+    else if ('text' in item) await leaveNote(item.text, item.until && item.until > Date.now() / 1000 ? item.until : null)
     else await addCountdown(item.what, item.date)
     const { [item.id]: _, ...rest } = gone.value; gone.value = rest
     await loadBoard()
   } catch (e: any) { notify(e.message, 'error') }
 }
-const shownNotes = computed(() => [...notes.value.filter(n => !gone.value[n.id]), ...Object.values(gone.value).filter((x): x is BoardNote => 'text' in x)])
+const shownNotes = computed(() => [...notes.value.filter(n => !gone.value[n.id]), ...Object.values(gone.value).filter((x): x is BoardNote => 'until' in x)])
+const shownMornings = computed(() => [...mornings.value.filter(m => !gone.value[m.id]), ...Object.values(gone.value).filter((x): x is MorningLine => 'day' in x)])
 const shownCounts = computed(() => [...counts.value.filter(c => !gone.value[c.id]), ...Object.values(gone.value).filter((x): x is Countdown => 'what' in x)])
 const loaded = ref(false)
 const sending = ref<{ done: number; of: number } | null>(null)
@@ -85,12 +89,12 @@ async function picked(e: Event) {
   if (!failed) notify(files.length === 1 ? 'The photo is on the TV.' : `${files.length} photos are on the TV.`)
 }
 
-async function setScreen(s: ShownScreen, set: { on?: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board'; notes?: boolean }) {
+async function setScreen(s: ShownScreen, set: { on?: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board'; notes?: boolean; lines?: boolean }) {
   if (switching.value) return
   switching.value = s.id
   try {
     const now = await showOnScreen(s.id, set)
-    screens.value = screens.value.map(x => x.id === s.id ? { ...x, photos: now.photos, play: now.play, shows: now.shows, notes: now.notes } : x)
+    screens.value = screens.value.map(x => x.id === s.id ? { ...x, photos: now.photos, play: now.play, shows: now.shows, notes: now.notes, lines: now.lines } : x)
     if (screen.value?.id === s.id) screen.value = screens.value.find(x => x.id === s.id) ?? null
   } catch (e: any) { notify(e.message, 'error') }
   switching.value = ''
@@ -133,6 +137,10 @@ async function takeOff(p: Photo) {
         <span class="photos-screen-text"><b>Notes and countdowns</b><span>Left from your phones, between the photos</span></span>
         <button class="photos-switch" role="switch" :aria-checked="screen.notes !== false" aria-label="Notes and countdowns" :class="{ on: screen.notes !== false, busy: switching === screen.id }" @click="setScreen(screen, { notes: screen.notes === false })"></button>
       </li>
+      <li>
+        <span class="photos-screen-text"><b>A line for the day</b><span>Encouragement in the morning, rest at night</span></span>
+        <button class="photos-switch" role="switch" :aria-checked="screen.lines !== false" aria-label="A line for the day" :class="{ on: screen.lines !== false, busy: switching === screen.id }" @click="setScreen(screen, { lines: screen.lines === false })"></button>
+      </li>
     </ul>
   </div>
   <div class="page photos-page" v-else-if="writing">
@@ -140,6 +148,7 @@ async function takeOff(p: Photo) {
     <span class="photos-play photos-tabs">
       <button class="button small" :class="{ ghost: writing !== 'note' }" @click="writing = 'note'">A note</button>
       <button class="button small" :class="{ ghost: writing !== 'count' }" @click="writing = 'count'">A countdown</button>
+      <button class="button small" :class="{ ghost: writing !== 'morning' }" @click="writing = 'morning'">For the morning</button>
     </span>
     <template v-if="writing === 'note'">
       <h2 class="photos-screen-title">Leave a note</h2>
@@ -152,6 +161,13 @@ async function takeOff(p: Photo) {
         <button class="button small" :class="{ ghost: until !== 'down' }" @click="until = 'down'">I take it down</button>
       </span>
       <button class="button photos-add photos-go" :class="{ busy: saving }" :disabled="!text.trim()" @click="write">Put it on the screens</button>
+    </template>
+    <template v-else-if="writing === 'morning'">
+      <h2 class="photos-screen-title">A line for the morning</h2>
+      <label class="photos-label" for="morning-text">What it says</label>
+      <textarea id="morning-text" v-model="dawn" class="photos-field" maxlength="90" rows="3" placeholder="Proud of you for today."></textarea>
+      <p class="photos-foot photos-left">It greets the first screen that wakes in the morning, signed by you, then goes.</p>
+      <button class="button photos-add photos-go" :class="{ busy: saving }" :disabled="!dawn.trim()" @click="write">Leave it for the morning</button>
     </template>
     <template v-else>
       <h2 class="photos-screen-title">Count down to</h2>
@@ -183,10 +199,14 @@ async function takeOff(p: Photo) {
       </ul>
     </template>
     <div class="photos-count photos-on-head"><b>Notes and countdowns</b><span>between the photos, or on the family board</span></div>
-    <ul class="photos-screens" v-if="shownNotes.length || shownCounts.length">
+    <ul class="photos-screens" v-if="shownNotes.length || shownCounts.length || shownMornings.length">
       <li v-for="n in shownNotes" :key="n.id" :class="{ 'photos-gone': !!gone[n.id] }">
         <span class="photos-screen-text"><b>{{ n.text }}</b><span>{{ gone[n.id] ? 'Taken down' : noteLine(n.until, n.by) }}</span></span>
         <button class="button small ghost" @click="gone[n.id] ? putBack(n) : down(n)">{{ gone[n.id] ? 'Put it back' : 'Take down' }}</button>
+      </li>
+      <li v-for="m in shownMornings" :key="m.id" :class="{ 'photos-gone': !!gone[m.id] }">
+        <span class="photos-screen-text"><b>{{ m.text }}</b><span>{{ gone[m.id] ? 'Taken down' : `For the morning${m.by ? ` · from ${m.by}` : ''}` }}</span></span>
+        <button class="button small ghost" @click="gone[m.id] ? putBack(m) : down(m)">{{ gone[m.id] ? 'Put it back' : 'Take down' }}</button>
       </li>
       <li v-for="c in shownCounts" :key="c.id" :class="{ 'photos-gone': !!gone[c.id] }">
         <span class="photos-screen-text"><b>{{ c.what }}</b><span>{{ gone[c.id] ? 'Removed' : (countWords(c, new Date()).big === 'Today' ? 'Today' : `In ${countWords(c, new Date()).big} ${countWords(c, new Date()).big === '1' ? 'day' : 'days'}`) + (c.yearly && !gone[c.id] ? ' · every year' : '') }}</span></span>
@@ -197,6 +217,7 @@ async function takeOff(p: Photo) {
       <button class="button small" @click="writing = 'note'"><Icon name="edit" :size="16" />Leave a note</button>
       <button class="button small" @click="writing = 'count'"><Icon name="clock" :size="16" />Add a countdown</button>
     </span>
+    <button class="linkish photos-morning-link" @click="writing = 'morning'"><Icon name="moon" :size="16" />Leave a line for the morning</button>
     <template v-if="photos.length">
       <div class="photos-count"><b>{{ counted.count }}</b><span>{{ counted.from }}</span></div>
       <div class="photos-grid">

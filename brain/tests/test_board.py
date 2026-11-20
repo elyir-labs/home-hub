@@ -79,3 +79,54 @@ class Routes(ApiTest):
         r = self.client.post(f"/photos/screens/{sid}", json={"shows": "board", "notes": False}).json()
         self.assertEqual((r["shows"], r["notes"]), ("board", False))
         self.assertEqual(self.client.post(f"/photos/screens/{sid}", json={"shows": "sideways"}).json()["shows"], "board")
+
+
+class Mornings(unittest.TestCase):
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory(); self.addCleanup(self.dir.cleanup)
+        p = mock.patch.object(board_mod, "STATE", Path(self.dir.name) / "board.json"); p.start(); self.addCleanup(p.stop)
+        self.d = date(2026, 11, 20)
+        self.b = Board(now=lambda: 1.0, today=lambda: self.d)
+
+    def test_a_line_for_the_morning_is_one_per_day_the_latest_kept_and_gone_after(self):
+        self.b.for_morning("Proud of you", "2026-11-21", by="Dad's phone")
+        self.b.for_morning("Proud of you for yesterday.", "2026-11-21", by="Dad's phone")
+        self.assertEqual([m["text"] for m in self.b.current()["mornings"]], ["Proud of you for yesterday."])
+        self.d = date(2026, 11, 23)
+        self.assertEqual(self.b.current()["mornings"], [])
+
+    def test_a_line_for_a_morning_far_off_or_empty_is_refused(self):
+        for text, day in (("Hi", "2026-12-25"), ("", "2026-11-21"), ("x" * 91, "2026-11-21"), ("Hi", "tomorrow")):
+            with self.assertRaises(ValueError): self.b.for_morning(text, day, by=None)
+
+
+class Words(unittest.TestCase):
+    def test_every_word_file_is_there_and_every_line_fits(self):
+        from hub import words
+        limits = {"morning": 70, "evening": 70}
+        for name, most in limits.items():
+            pool = words.lines(name)
+            self.assertGreater(len(pool), 30, name)
+            self.assertEqual([x for x in pool if len(x) > most], [], f"{name}: lines too long for the TV")
+
+    def test_the_line_of_the_day_is_the_same_all_day_and_changes_the_next(self):
+        from hub import words
+        a, b = words.of_the_day("morning", date(2026, 11, 21)), words.of_the_day("morning", date(2026, 11, 22))
+        self.assertEqual(a, words.of_the_day("morning", date(2026, 11, 21)))
+        self.assertNotEqual(a, b)
+        self.assertIsNone(words.of_the_day("nothing-by-this-name", date(2026, 11, 21)))
+
+
+class MorningRoutes(ApiTest):
+    def test_a_phone_leaves_a_line_for_the_morning_and_a_screen_reads_its_day(self):
+        r = self.client.post("/board/mornings", json={"text": "Proud of you", "day": date.today().isoformat()})
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual([m["text"] for m in self.client.get("/board").json()["mornings"]], ["Proud of you"])
+        w = self.client.get("/words/today", params={"day": "2026-11-21"}).json()
+        self.assertTrue(w["morning"] and w["evening"])
+        self.assertEqual(self.client.get("/words/today", params={"day": "soon"}).status_code, 400)
+
+    def test_a_screen_turns_its_lines_off(self):
+        sid = "b" * 16
+        self.client.post("/screens/me", json={"id": sid, "tv": True})
+        self.assertFalse(self.client.post(f"/photos/screens/{sid}", json={"lines": False}).json()["lines"])

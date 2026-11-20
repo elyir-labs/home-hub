@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio, json, logging, re, shutil, time, urllib.parse, urllib.request
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import date, datetime
 from zoneinfo import ZoneInfo
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -53,6 +53,7 @@ from .printers import Printers
 from .photos import Photos
 from .screens import Screens
 from .board import Board
+from . import words
 from .power import Power
 from .signals import Signals
 from . import things
@@ -2948,6 +2949,22 @@ def board_countdown(body: dict, request: Request):
     except ValueError as e: raise HTTPException(400, str(e))
 
 
+@app.post("/board/mornings")
+def board_morning(body: dict, request: Request):
+    """{"text", "day"}: a line left for the morning of `day`, the phone's tomorrow. It greets the first screen to wake."""
+    phone = hub.phones.identify(_phone_token(request))
+    try: return hub.board.for_morning(body.get("text"), body.get("day"), by=(phone or {}).get("name"))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.get("/words/today")
+def words_today(day: str):
+    """The morning's line and the evening's for a screen's own day, "YYYY-MM-DD" (hub/words.py)."""
+    try: d = date.fromisoformat(day)
+    except ValueError: raise HTTPException(400, "That isn't a day.") from None
+    return {"day": d.isoformat(), "morning": words.of_the_day("morning", d), "evening": words.of_the_day("evening", d)}
+
+
 @app.delete("/board/{item_id}")
 def board_remove(item_id: str):
     if not hub.board.remove(item_id): raise HTTPException(404, "Nothing like that is up.")
@@ -2960,7 +2977,8 @@ def photos_screen(screen_id: str, body: dict):
     how they play, one after another or a day at a time (design/tv-moments/). Either may be left out."""
     on = body.get("on") if isinstance(body.get("on"), bool) else None
     notes = body.get("notes") if isinstance(body.get("notes"), bool) else None
-    screen = hub.screens.show(screen_id, on=on, play=body.get("play"), notes=notes, shows=body.get("shows"))
+    said = body.get("lines") if isinstance(body.get("lines"), bool) else None
+    screen = hub.screens.show(screen_id, on=on, play=body.get("play"), notes=notes, shows=body.get("shows"), lines=said)
     if not screen: raise HTTPException(404, "No such screen.")
     return _named(screen)
 

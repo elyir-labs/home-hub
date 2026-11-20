@@ -3,7 +3,7 @@
 /* Photos on the TV from a phone (design/tv-photos/, A with C, decided 20 November 2026): what a photo is redrawn
    to before it leaves, when it says it was taken, and the page's words. */
 import { describe, expect, it } from 'vitest'
-import { countLine, fitted, LONGEST, noteLine, photosPageUrl, screenLines, sentLine, takenAt, untilFor, yearly } from '../src/photos'
+import { countLine, fitted, LONGEST, morningFor, noteLine, photosPageUrl, screenLines, sentLine, takenAt, untilFor, yearly } from '../src/photos'
 import type { Photo } from '../src/restTv'
 
 /** A JPEG's first bytes with one EXIF date in it, big-endian, laid out the way a camera writes it. */
@@ -90,5 +90,13 @@ describe('writing a note or a countdown on a phone (design/tv-moments/WriteEvery
   })
   it('names a screen resting on the family board', () => {
     expect(screenLines({ id: 'a', room: 'kitchen', room_name: 'Kitchen', tv: false, by: 'screen', photos: false, shows: 'board' }).sub).toBe('A screen on the wall · shows the family board')
+  })
+})
+
+describe('a line for the morning', () => {
+  it('is for tomorrow morning, or this one when it is still the small hours', () => {
+    expect(morningFor(new Date(2026, 10, 20, 21, 30))).toBe('2026-11-21')
+    expect(morningFor(new Date(2026, 10, 21, 1, 30))).toBe('2026-11-21')
+    expect(morningFor(new Date(2026, 11, 31, 22, 0))).toBe('2027-01-01')
   })
 })

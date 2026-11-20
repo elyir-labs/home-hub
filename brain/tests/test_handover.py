@@ -86,7 +86,7 @@ class Handing(unittest.TestCase):
         self.assertTrue(self.hub.log.cleared)
         self.assertFalse(handover.PRINTERS.exists())
         self.assertEqual(self.hub.photos.list(), [], "the photos sent to the TV are the people's")
-        self.assertEqual(self.hub.board.current(), {"notes": [], "countdowns": []}, "and so are their notes")
+        self.assertEqual(self.hub.board.current(), {"notes": [], "countdowns": [], "mornings": []}, "and so are their notes")
         self.assertFalse((Path(self.dir.name) / "photos").exists())
         for gone in ("pin", "owner", "home_name", "assistant", "wifi"): self.assertNotIn(gone, self.settings.data, gone)
         for kept in ("location", "kinds", "look"): self.assertIn(kept, self.settings.data, kept)
