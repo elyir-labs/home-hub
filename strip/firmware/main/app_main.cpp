@@ -48,6 +48,10 @@
 #include <esp_wifi.h>
 #include <esp_timer.h>
 #include <mqtt_client.h>
+#include <lwip/sockets.h>
+#include <unistd.h>
+
+#include <new>
 
 #include <esp_heap_caps.h>
 
@@ -57,6 +61,7 @@
 #include <setup_payload/OnboardingCodesUtil.h>
 
 #include "board.h"
+#include "follow.h"
 #include "guard.h"
 #include "hub_uri.h"
 #include "fwupdate.h"
@@ -200,6 +205,14 @@ static uint32_t look_drawn_at = 0;
 // a chase, and a thousand-light run's frame is itself 30 ms on the wire.
 static constexpr uint32_t LOOK_FRAME_MS = 25;
 
+// FOLLOWING A SCREEN (follow.h), per run, while the hub has it armed. Made at the first arming and let
+// go once the light is handed back, so a strip nobody watches a film by spends nothing on it.
+// `fol_own` is the light's own picture, drawn to fade the followed colors against.
+static follow::Run *fol[board::OUTPUTS] = {};
+static px::Pixels *fol_own = nullptr;
+static uint16_t fol_port = 0;
+static uint32_t fol_drawn_at = 0;
+
 // THE LIGHT COMES BACK AS IT WAS LEFT. A power cut, a breaker, a strip unplugged to move it: a lamp
 // that came back on comes back on, in the color somebody chose, the way every bulb in the house
 // does -- and this one came back off, warm white, every time, because nothing was written down
@@ -253,6 +266,9 @@ static void restore_light() {
 static esp_mqtt_client_handle_t mqtt = nullptr;
 static bool broker_up = false;
 static bool g_lit = false;          // the light driver started: part of what a new image has to prove
+// This box's IPv4 address, said retained on `ip` so the hub knows where to send a screen's colors
+// (follow.h). Said again whenever the network hands out an address, since a router may change it.
+static char my_ip[16] = "";
 
 static inline uint32_t now_ms() { return (uint32_t)(esp_timer_get_time() / 1000); }
 
@@ -331,8 +347,7 @@ static int64_t local_ms64() { return esp_timer_get_time() / 1000; }
 
 // One output's light, drawn: dark, the look at shared time `t`, or the plain color -- at that light's
 // brightness, through that run's own color order. Returns whether a look's frame changed.
-static bool draw_lamp(int i, int64_t t) {
-    px::Pixels &o = outs[i];
+static bool draw_lamp(int i, int64_t t, px::Pixels &o) {
     if (!lamp_on(i)) { o.clear(); return false; }
     if (look_here(i)) return look::draw(lk, i, t, lamp_bri(i), o);
     const uint16_t k = lamp_bri(i) ? lamp_bri(i) : 1;
@@ -342,6 +357,26 @@ static bool draw_lamp(int i, int64_t t) {
     return false;
 }
 
+static bool following(int i, uint32_t now) { return fol[i] && fol[i]->owns(now); }
+static bool fol_any() {
+    for (auto *f : fol)
+        if (f) return true;
+    return false;
+}
+
+// The screen's colors faded over the light's own picture, which is only drawn while it still shows.
+static bool draw_followed(int i, int64_t t) {
+    px::Pixels &o = outs[i];
+    const px::Pixels *own = nullptr;
+    if (fol_own && lamp_on(i) && fol[i]->w < follow::FULL) {
+        fol_own->count = o.count;
+        fol_own->order = o.order;
+        draw_lamp(i, t, *fol_own);
+        own = fol_own;
+    }
+    return fol[i]->compose(o, own, lamp_on(i), lamp_bri(i));
+}
+
 static void paint() {
     Hold h;
     if (instrument) return;
@@ -349,7 +384,10 @@ static void paint() {
     // Matter app -- wins over anything the house was saying with it, at once.
     sig.running = false;
     const int64_t t = hub_clock.now(local_ms64());
-    for (int i = 0; i < board::OUTPUTS; i++) draw_lamp(i, t);
+    for (int i = 0; i < board::OUTPUTS; i++) {
+        if (following(i, now_ms())) draw_followed(i, t);
+        else draw_lamp(i, t, outs[i]);
+    }
     show();
 }
 
@@ -503,6 +541,7 @@ static void say_what_we_are() {
     say_run(1, "own", own2 ? "1" : "0", 1);
 #endif
     say("status", "online", 1);
+    if (my_ip[0]) say("ip", my_ip, 1);
     say("fw", STRIP_FW, 1);         // what it runs, so the hub can count who has a fix
 #if defined(STRIP_BOARD_REVA)
     // Which board, because an update for one is not an update for the other (fwupdate.cpp).
@@ -536,7 +575,7 @@ static void forget_the_house(bool tidy_first) {
         char topic[96];
         snprintf(topic, sizeof(topic), "homeassistant/light/%s_%s/config", base, chipHex);
         say_at(topic, "", 1);
-        for (const char *leaf : {"count", "order", "light", "fill", "status"}) say(leaf, "", 1);
+        for (const char *leaf : {"count", "order", "light", "fill", "status", "ip"}) say(leaf, "", 1);
         for (int i = 0; i < board::OUTPUTS; i++) {
             if (i) for (const char *leaf : {"count", "order", "fill"}) say_run(i, leaf, "", 1);
             if (two_wire_possible(i)) say_run(i, "type", "", 1);
@@ -577,6 +616,19 @@ static void hand_over(int run) {
     }
 }
 
+// PSRAM first where the board has some: a run's following is several kilobytes, and below the 16 KB
+// malloc threshold it would otherwise land in the internal memory Matter is short of (heap()).
+template <typename T> static T *make() {
+    void *m = heap_caps_malloc_prefer(sizeof(T), 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT, MALLOC_CAP_DEFAULT);
+    return m ? new (m) T() : nullptr;
+}
+template <typename T> static void unmake(T *&p) {
+    if (!p) return;
+    p->~T();
+    heap_caps_free(p);
+    p = nullptr;
+}
+
 static void on_command(const std::string &full, const std::string &msg, bool retained) {
     Hold h;             // every command that touches the strip, from the MQTT task: see gPx
 
@@ -594,7 +646,7 @@ static void on_command(const std::string &full, const std::string &msg, bool ret
         bool per_run = false;
         // ...and, for the second run alone, the two words that make it a light of its own and switch it.
         for (const char *k : {"show/set", "tune/set", "fill/stop", "count/set", "order/set", "white/set", "type/set",
-                              "own/set", "light/set"})
+                              "own/set", "light/set", "follow/set"})
             if (leaf == k) per_run = true;
         if (!per_run) return;
     }
@@ -817,6 +869,43 @@ static void on_command(const std::string &full, const std::string &msg, bool ret
         // A signal still playing keeps the strip; the look is what comes back when it is over.
         if (!sig.running) paint();
         say("look", said);
+        return;
+    }
+
+    // FOLLOWING A SCREEN (follow.h): `{"follow": true, "port": 21325, "key": "<16 hex digits>"}` arms
+    // this run for the hub's datagrams and `{"follow": false}` hands it back to its own light. Never from
+    // a retained copy and never kept: a strip that restarts shows its own light until the hub arms it again.
+    if (leaf == "follow/set") {
+        if (retained || msg.empty()) return;
+        cJSON *j = cJSON_Parse(msg.c_str());
+        if (!j) return;
+        const cJSON *on = cJSON_GetObjectItemCaseSensitive(j, "follow");
+        const cJSON *port = cJSON_GetObjectItemCaseSensitive(j, "port");
+        const cJSON *key = cJSON_GetObjectItemCaseSensitive(j, "key");
+        const bool said = cJSON_IsBool(on), arm = cJSON_IsTrue(on);
+        const int p = cJSON_IsNumber(port) ? port->valueint : 0;
+        uint8_t k[follow::KEY];
+        const bool keyed = cJSON_IsString(key) && follow::parse_key(key->valuestring, k);
+        cJSON_Delete(j);
+        if (!said) return;
+        if (!arm) {
+            if (fol[run]) fol[run]->disarm();
+            ESP_LOGI(TAG, "run %d: no longer following a screen", run + 1);
+            return;
+        }
+        if (p < 1 || p > 65535 || !keyed) {
+            ESP_LOGW(TAG, "run %d: asked to follow a screen without a usable port and key; not armed", run + 1);
+            return;
+        }
+        if (!fol[run]) fol[run] = make<follow::Run>();
+        if (!fol_own) fol_own = make<px::Pixels>();
+        if (!fol[run]) {
+            ESP_LOGE(TAG, "run %d: no memory to follow a screen", run + 1);
+            return;
+        }
+        fol[run]->arm(k);
+        fol_port = (uint16_t)p;
+        ESP_LOGI(TAG, "run %d: following a screen, frames on UDP %d", run + 1, p);
         return;
     }
 
@@ -1163,6 +1252,73 @@ static void blink_back() {
     show();
 }
 
+// THE SCREEN'S COLORS ARRIVE HERE (follow.h). One socket for both runs, since each frame names its run,
+// bound to the port the last arming named and closed once nothing is armed. Read from the housekeeping
+// loop, which already wakes every 10 ms, rather than from a task of its own whose stack would come out
+// of the internal memory Matter is short of.
+static int fol_sock = -1;
+static uint16_t fol_bound = 0;
+static uint8_t *fol_rx = nullptr;
+static uint32_t fol_tried_at = 0, fol_refused_at = 0;
+
+static void fol_close() {
+    if (fol_sock >= 0) close(fol_sock);
+    fol_sock = -1;
+    fol_bound = 0;
+    free(fol_rx);
+    fol_rx = nullptr;
+}
+
+static void follow_listen() {
+    uint16_t want = 0;
+    {
+        Hold h;
+        for (auto *f : fol)
+            if (f && f->armed) want = fol_port;
+    }
+    if (fol_sock >= 0 && fol_bound != want) {
+        fol_close();
+        if (!want) ESP_LOGI(TAG, "no run is following a screen; stopped listening");
+    }
+    if (fol_sock < 0 && want && now_ms() - fol_tried_at >= 1000) {
+        fol_tried_at = now_ms();
+        // One byte over the biggest frame, so an oversized datagram is seen whole and refused by its
+        // length rather than cut to a size that would pass.
+        fol_rx = (uint8_t *)malloc(follow::BIGGEST + 1);
+        const int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        sockaddr_in at = {};
+        at.sin_family = AF_INET;
+        at.sin_port = htons(want);
+        at.sin_addr.s_addr = htonl(INADDR_ANY);
+        if (!fol_rx || s < 0 || bind(s, (sockaddr *)&at, sizeof(at)) != 0) {
+            ESP_LOGE(TAG, "could not listen on UDP %u for a screen to follow (errno %d)", want, errno);
+            if (s >= 0) close(s);
+            free(fol_rx);
+            fol_rx = nullptr;
+            return;
+        }
+        fol_sock = s;
+        fol_bound = want;
+        ESP_LOGI(TAG, "listening on UDP %u for a screen to follow", want);
+    }
+    if (fol_sock < 0) return;
+    for (int k = 0; k < 16; k++) {
+        const int n = recv(fol_sock, fol_rx, follow::BIGGEST + 1, MSG_DONTWAIT);
+        if (n <= 0) break;
+        follow::Packet p;
+        follow::Verdict v = follow::parse(fol_rx, (size_t)n, p);
+        if (v == follow::TAKEN) {
+            Hold h;
+            v = p.run < board::OUTPUTS && fol[p.run] ? fol[p.run]->take(p, now_ms()) : follow::UNARMED;
+        }
+        // A stream nobody is armed for, or with the wrong key, is otherwise silent: said now and then.
+        if (v != follow::TAKEN && v != follow::STALE && now_ms() - fol_refused_at >= 10000) {
+            fol_refused_at = now_ms();
+            ESP_LOGW(TAG, "refused a screen's frame (%d bytes, reason %d)", n, (int)v);
+        }
+    }
+}
+
 static void housekeeping(void *) {
     // WATCHED, BECAUSE A LOOP THAT STOPS LOOKS EXACTLY LIKE A STRIP THAT IS FINE. Everything a
     // person can do to this thing with their hands is read from here -- the press that lets the hub
@@ -1298,9 +1454,31 @@ static void housekeeping(void *) {
                 const int64_t t = hub_clock.now(local_ms64());
                 unsigned changed = 0;
                 for (int i = 0; i < board::OUTPUTS; i++)
-                    if (look_here(i) && lamp_on(i) && look::draw(lk, i, t, lamp_bri(i), outs[i])) changed |= 1u << i;
+                    if (look_here(i) && lamp_on(i) && !following(i, now_ms()) &&
+                        look::draw(lk, i, t, lamp_bri(i), outs[i]))
+                        changed |= 1u << i;
                 if (changed) show(changed);
             }
+        }
+
+        // A FOLLOWED SCREEN, at a look's frame rate: each run eased a step, written only if its frame came
+        // out different, and let go once it has handed the light back. Like a look, it waits while a
+        // signal or an instrument owns the strip; the easing carries on, so it comes back where it would be.
+        follow_listen();
+        if (fol_any() && now_ms() - fol_drawn_at >= LOOK_FRAME_MS) {
+            Hold h;
+            const uint32_t now = now_ms();
+            fol_drawn_at = now;
+            const int64_t t = hub_clock.now(local_ms64());
+            unsigned changed = 0;
+            for (int i = 0; i < board::OUTPUTS; i++) {
+                if (!fol[i]) continue;
+                fol[i]->step(now, outs[i].count);
+                if (!instrument && !sig.running && fol[i]->owns(now) && draw_followed(i, t)) changed |= 1u << i;
+                if (fol[i]->done(now)) unmake(fol[i]);
+            }
+            if (!fol_any()) unmake(fol_own);
+            if (changed) show(changed);
         }
 
         if (fill.running && now_ms() - fill_began > FILL_MOST_MS) end_fill("nobody stopped it");
@@ -1540,7 +1718,13 @@ extern "C" void app_main() {
     esp_event_loop_create_default();
     const esp_err_t hooked = esp_event_handler_register(
         IP_EVENT, IP_EVENT_STA_GOT_IP,
-        [](void *, esp_event_base_t, int32_t, void *) { gHaveIp = true; find_hub(); }, nullptr);
+        [](void *, esp_event_base_t, int32_t, void *data) {
+            gHaveIp = true;
+            snprintf(my_ip, sizeof(my_ip), IPSTR, IP2STR(&((ip_event_got_ip_t *)data)->ip_info.ip));
+            say("ip", my_ip, 1);
+            find_hub();
+        },
+        nullptr);
     if (hooked != ESP_OK)
         ESP_LOGE(TAG, "no hook on getting an address (%s) -- this strip will only look for the hub "
                       "when it is next powered on", esp_err_to_name(hooked));
