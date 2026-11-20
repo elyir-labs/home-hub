@@ -1,0 +1,93 @@
+{
+  "name": "Words on the sky at rest",
+  "areas": [
+    "Wall screens",
+    "Music"
+  ],
+  "pages": [
+    {
+      "id": "rest",
+      "name": "Readable at any hour"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "rest",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 2160,
+      "title": "Today: the resting TV at 12:30, dark look"
+    },
+    {
+      "file": "InkA.dc.html",
+      "page": "rest",
+      "x": 2100,
+      "y": 0,
+      "w": 1920,
+      "h": 2160,
+      "title": "A: every word at full ink, with a closer shadow"
+    },
+    {
+      "file": "VeilB.dc.html",
+      "page": "rest",
+      "x": 4200,
+      "y": 0,
+      "w": 1920,
+      "h": 2160,
+      "title": "B: the sky keeps its veil while the screen rests"
+    },
+    {
+      "file": "ScrimC.dc.html",
+      "page": "rest",
+      "x": 6300,
+      "y": 0,
+      "w": 1920,
+      "h": 2160,
+      "title": "C: a soft wash behind the words"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "rest",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026: the resting TV showing a record at three in the afternoon, and the line under the artist could not be read. The resting screen takes the veil off the sky so the sky shows, and on a bright day sky in the dark look, light words have nothing to stand on. It was true of the resting wall's captions too; nobody had looked at noon.\n\nFrom now on it is measured, not judged: e2e/readable.ts reads every word against the pixels under it, at dawn, noon, dusk and night, and fails anything under the WCAG ratio."
+    },
+    {
+      "id": "a",
+      "page": "rest",
+      "x": 2100,
+      "y": 2220,
+      "w": 1920,
+      "text": "A: FULL INK, A CLOSER SHADOW. Nothing about the sky changes; every secondary line is written at full ink. It fails: at noon the sky behind the words is too bright for any light ink to reach 3 to 1. Here to show that color alone cannot fix it."
+    },
+    {
+      "id": "b",
+      "page": "rest",
+      "x": 4200,
+      "y": 2220,
+      "w": 1920,
+      "text": "B: THE SKY KEEPS ITS VEIL AT REST. The same darkening the awake screen has stays on while it rests, by day as well as by night. Every word passes. FOR: one rule, the whole sky, nothing new drawn. AGAINST: a resting screen by day is a little less bright and blue than today."
+    },
+    {
+      "id": "c",
+      "page": "rest",
+      "x": 6300,
+      "y": 2220,
+      "w": 1920,
+      "text": "C: A SOFT WASH BEHIND THE WORDS. The sky stays as bright as today at its edges, and darkens gently toward the middle where the words are, and along the foot. Every word passes. FOR: the sky keeps more of its day. AGAINST: a shape of its own on the sky, which a screen with words somewhere else (the TV's record, the corner clock) has to be drawn for."
+    },
+    {
+      "id": "pick",
+      "page": "rest",
+      "x": -620,
+      "y": 1200,
+      "w": 500,
+      "text": "PICK ONE\n\nB or C, or something else -- describe it. Either way the measure joins CI, so a color that cannot be read at some hour fails a test instead of reaching a screen."
+    }
+  ]
+}
