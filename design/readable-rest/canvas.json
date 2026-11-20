@@ -12,6 +12,10 @@
     {
       "id": "rest-rejected",
       "name": "Readable at any hour: not chosen"
+    },
+    {
+      "id": "record",
+      "name": "The record at rest, on its own cover"
     }
   ],
   "artboards": [
@@ -50,6 +54,33 @@
       "w": 1920,
       "h": 2160,
       "title": "C: a soft wash behind the words"
+    },
+    {
+      "file": "RecordToday.dc.html",
+      "page": "record",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: the record at noon on the wash (C, shipped)"
+    },
+    {
+      "file": "BlurD.dc.html",
+      "page": "record",
+      "x": 2100,
+      "y": 0,
+      "w": 1920,
+      "h": 2160,
+      "title": "D: the record on its own cover, blurred and dimmed"
+    },
+    {
+      "file": "GlowE.dc.html",
+      "page": "record",
+      "x": 4200,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "E: the cover glows around the record, the sky at the edges"
     }
   ],
   "annotations": [
@@ -92,6 +123,38 @@
       "y": 1200,
       "w": 500,
       "text": "DECIDED 20 NOVEMBER 2026\n\nC: a soft wash behind the words, in the dark look only, with every word at full ink. The measure (e2e/readable.ts) runs in the tests for the resting TV and the resting wall at four hours and both looks."
+    },
+    {
+      "id": "rec-why",
+      "page": "record",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026, an hour after C shipped: \"instead of the black covering, what if we use the album art as the background -- a blurred version of the artwork behind everything, so that it's seamless.\" The wash is a dark film on the sky; the cover is the record's own color. Only while music plays: the clock at rest keeps the wash, since there is no cover to blur."
+    },
+    {
+      "id": "rec-d",
+      "page": "record",
+      "x": 2100,
+      "y": 2220,
+      "w": 1920,
+      "text": "D: THE COVER FILLS THE SCREEN. Blurred and dimmed to half, the cover is the whole background while the record shows, as Apple Music and the Apple TV do; the sky comes back when the music stops. Passes with a bright cover and a dark one."
+    },
+    {
+      "id": "rec-e",
+      "page": "record",
+      "x": 4200,
+      "y": 1140,
+      "w": 1920,
+      "text": "E: THE COVER GLOWS AROUND THE RECORD. The sky and hills stay at the edges and the cover is a light behind the record. Prettier with a dark cover, but the key hint along the foot sits on bright sky and fails; it would need the wash back along the foot."
+    },
+    {
+      "id": "rec-pick",
+      "page": "record",
+      "x": -620,
+      "y": 1200,
+      "w": 500,
+      "text": "PICK ONE\n\nD (recommended), E, or something else -- describe it."
     }
   ]
 }

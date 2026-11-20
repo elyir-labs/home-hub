@@ -1,0 +1,100 @@
+{
+  "name": "The speaker's card while music plays",
+  "areas": [
+    "Music"
+  ],
+  "pages": [
+    {
+      "id": "card",
+      "name": "A speaker's card with a song on it"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "card",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Today: the speaker's card while music plays, on a phone"
+    },
+    {
+      "file": "CoverA.dc.html",
+      "page": "card",
+      "x": 0,
+      "y": 1100,
+      "w": 820,
+      "h": 844,
+      "title": "A: the cover beside the words, on the cover blurred"
+    },
+    {
+      "file": "BlurB.dc.html",
+      "page": "card",
+      "x": 0,
+      "y": 2200,
+      "w": 820,
+      "h": 844,
+      "title": "B: everything on the cover, blurred"
+    },
+    {
+      "file": "BelowC.dc.html",
+      "page": "card",
+      "x": 0,
+      "y": 3300,
+      "w": 820,
+      "h": 844,
+      "title": "C: the cover stays, the sounds move below it"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "card",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026, a song on the living room's HomePods: the cover is the whole card, sharp, and the words, the controls and eight sounds with a timer sit on top of it. On a bright cover the artist and the sounds wash out; on a portrait the chips sit on a face. And the card's name sits under the song's title."
+    },
+    {
+      "id": "same",
+      "page": "card",
+      "x": -620,
+      "y": 1100,
+      "w": 500,
+      "text": "IN EVERY DIRECTION\n\nThe card's name sits above the title. Every word on the card is held to the readable measure (e2e/readable.ts) with a bright cover and a dark one. A quiet speaker's card -- no song, the sounds offered -- is not changed here."
+    },
+    {
+      "id": "a",
+      "page": "card",
+      "x": 900,
+      "y": 1100,
+      "w": 560,
+      "text": "A: THE COVER BESIDE THE WORDS\n\nThe cover is a square beside the title, and behind the card is the same cover blurred and dimmed -- the resting TV's record (D), small. While music plays the card is the song: back, pause, next, where it is in the song, and the volume. The sounds are a quiet speaker's, and come back when it stops.\n\nFOR: one way to show a record on every screen; the cover is seen whole, never under a chip.\n\nAGAINST: the cover is small."
+    },
+    {
+      "id": "b",
+      "page": "card",
+      "x": 900,
+      "y": 2200,
+      "w": 560,
+      "text": "B: EVERYTHING ON THE COVER, BLURRED\n\nThe card keeps everything it has today, sounds included, on the cover blurred and dimmed.\n\nFOR: the smallest change.\n\nAGAINST: the cover itself is never seen sharp, and the sounds still crowd a song."
+    },
+    {
+      "id": "c",
+      "page": "card",
+      "x": 900,
+      "y": 3300,
+      "w": 560,
+      "text": "C: THE COVER STAYS, THE SOUNDS MOVE BELOW\n\nThe cover stays the card, sharp, with a shade across its top for the words; the sounds leave the card for a row under it.\n\nFOR: the cover is as big as today.\n\nAGAINST: a bright cover still pushes the shade dark, and the sounds are a second thing under every playing speaker."
+    },
+    {
+      "id": "pick",
+      "page": "card",
+      "x": -620,
+      "y": 2200,
+      "w": 500,
+      "text": "PICK ONE\n\nA (recommended), B, C, a mix, or something else -- describe it."
+    }
+  ]
+}

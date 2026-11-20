@@ -7,6 +7,10 @@
     {
       "id": "pair",
       "name": "Two speakers in a room playing the same song"
+    },
+    {
+      "id": "pair-rejected",
+      "name": "Two speakers in a room playing the same song: not chosen"
     }
   ],
   "artboards": [
@@ -21,7 +25,7 @@
     },
     {
       "file": "TogetherA.dc.html",
-      "page": "pair",
+      "page": "pair-rejected",
       "x": 0,
       "y": 1100,
       "w": 390,
@@ -59,7 +63,7 @@
     },
     {
       "id": "a",
-      "page": "pair",
+      "page": "pair-rejected",
       "x": 900,
       "y": 1100,
       "w": 560,
@@ -90,12 +94,12 @@
       "text": "IN EVERY DIRECTION\n\nThe card's name no longer sits under the song's title (a fault of the shipped card, fixed whichever wins). Home's On right now says the song once."
     },
     {
-      "id": "pick",
+      "id": "decided",
       "page": "pair",
       "x": -620,
       "y": 2200,
       "w": 500,
-      "text": "PICK ONE\n\nA, B or C, a mix, or something else -- describe it."
+      "text": "DECIDED 20 NOVEMBER 2026\n\nB, with C until it is answered. Until the household says, the first speaker keeps its card and the other is a line under it (C). The house asks once whether they are one pair: One pair makes them one card for good, Two speakers keeps two whole cards."
     }
   ]
 }
