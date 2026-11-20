@@ -176,7 +176,9 @@ fi
 export HUB_CHANNEL="$CHANNEL"
 
 say "3/5  A name on the network: $HOSTNAME_WANTED.local"
+RENAMED=""
 if [ "$(hostname)" != "$HOSTNAME_WANTED" ]; then
+  RENAMED=1
   hostnamectl set-hostname "$HOSTNAME_WANTED" 2>/dev/null || echo "$HOSTNAME_WANTED" > /etc/hostname
   sed -i "s/127\.0\.1\.1.*/127.0.1.1\t$HOSTNAME_WANTED/" /etc/hosts 2>/dev/null || true
 fi
@@ -196,7 +198,10 @@ mkdir -p /etc/avahi/services 2>/dev/null && cat > /etc/avahi/services/home-hub.s
 </service-group>
 MDNS
 systemctl enable --now avahi-daemon >/dev/null 2>&1 || true
-systemctl reload-or-restart avahi-daemon >/dev/null 2>&1 || true
+# avahi reads the host name only when it starts, and a reload keeps the old one: a flashed NUC went on
+# saying elyir.local after it had become hub (19 November 2026).
+if [ -n "$RENAMED" ]; then systemctl restart avahi-daemon >/dev/null 2>&1 || true
+else systemctl reload-or-restart avahi-daemon >/dev/null 2>&1 || true; fi
 # A Wi-Fi of its own, for a hub with no cable and nobody to type its Wi-Fi in (docs/network.md, piece 5).
 # host/network.sh starts it only while the hub is on nothing. Its name and password are this hub's
 # alone and go on its label; a flashed unit has them written in before it ships, and anything else gets
@@ -295,7 +300,9 @@ udevadm control --reload 2>/dev/null || true
 # updates, restores, starting over and restarts: the panel writes brain-data/<thing>.request; these units see it and act.
 # The watchdog is the one with no request behind it: it runs on its own clock and catches a house that
 # stopped answering when nobody is there to notice (docs/restart.md, piece 5).
-chmod +x host/update.sh host/restore.sh host/reset.sh host/channel.sh host/restart.sh host/watchdog.sh host/network.sh host/away.sh \
+# The units below write into brain-data from their first tick, well before the brain starts and Docker would make it.
+mkdir -p brain-data
+chmod +x host/update.sh host/restore.sh host/reset.sh host/channel.sh host/restart.sh host/watchdog.sh host/network.sh host/public.sh host/away.sh \
          host/drive.sh host/move-early.sh host/move-to-drive.sh host/developer.sh
 for u in home-hub-update.service home-hub-update.path home-hub-restore.service home-hub-restore.path home-hub-reset.service home-hub-reset.path \
          home-hub-restart.service home-hub-restart.path home-hub-watchdog.service home-hub-watchdog.timer \
