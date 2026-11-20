@@ -18,7 +18,8 @@ onMounted(() => { fit(); window.addEventListener('resize', fit) })
 onUnmounted(() => window.removeEventListener('resize', fit))
 const where = computed(() => {
   const n = speakersOf(props.d, props.room).map(x => shortName(x, props.room))
-  return `On the ${n.length > 1 ? `${n.slice(0, -1).join(', ')} and ${n[n.length - 1]}` : n[0]}, in the ${props.room.name.toLowerCase()}`
+  const said = `On the ${n.length > 1 ? `${n.slice(0, -1).join(', ')} and ${n[n.length - 1]}` : n[0]}, in the ${props.room.name.toLowerCase()}`
+  return props.d.state === 'paused' ? `Paused · ${said.charAt(0).toLowerCase()}${said.slice(1)}` : said
 })
 const cover = computed(() => props.d.attrs.entity_picture ? imageUrl(props.d.id) : '')
 const pos = computed(() => {
@@ -41,7 +42,7 @@ const pos = computed(() => {
           <div class="rec-bar" v-if="pos != null"><i :style="{ width: `${pos}%` }"></i></div>
         </div>
       </div>
-      <div class="rec-keys" v-if="!under"><kbd>OK</kbd>Pause, next, louder</div>
+      <div class="rec-keys" v-if="!under"><kbd>OK</kbd>{{ d.state === 'paused' ? 'Play, next, louder' : 'Pause, next, louder' }}</div>
     </div>
   </div>
 </template>
