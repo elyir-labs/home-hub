@@ -13,7 +13,7 @@ import { imageUrl, photoUrl, qrUrl } from './api'
 import { photosPageUrl } from './photos'
 import { clockParts, restingFacts, restWeather } from './resting'
 import { drift, faceFor, loadRestPhotos, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
-  SLEEP_AFTER, slideAt, slides, stillOn, type Photo, type Shape } from './restTv'
+  SLEEP_AFTER, beats, beatAt, dayTitle, agoLine, stillOn, type Photo, type Shape } from './restTv'
 import { locale } from './lang'
 import Icon from './Icon.vue'
 
@@ -43,7 +43,12 @@ const face = computed(() => props.wall ? 'photos' : faceFor({ playing: !!music.v
   now: props.now, notYet: rest.notYet === nightOf(props.now) }))
 watch(face, f => { if (!props.wall) rest.face = f }, { immediate: true })
 
-const shown = computed(() => slideAt(slides(photos.value, learned.value), tick.value) ?? [])
+const current = computed(() => beatAt(beats(photos.value, rest.play, props.now), tick.value))
+const beat = computed(() => current.value?.beat ?? null)
+const beatKey = computed(() => `${current.value?.from}`)
+const isTall = (p: Photo) => shapeOf(p, learned.value) === 'tall'
+const said = computed(() => beat.value?.kind === 'photo' ? beat.value.photo : null)
+const titled = computed(() => beat.value?.kind === 'title' ? dayTitle(beat.value, locale()) : null)
 function opened(p: Photo, e: Event) {
   const img = e.target as HTMLImageElement
   if (!shapeOf(p, learned.value) && img.naturalWidth) learned.value = { ...learned.value, [p.id]: img.naturalHeight > img.naturalWidth ? 'tall' : 'wide' }
@@ -75,11 +80,21 @@ const ok = computed(() => {
 
       <template v-if="face === 'photos'">
         <Transition name="tvrest-fade">
-          <div class="tvrest-slide" :key="shown.map(p => p.id).join()">
-            <img v-if="shown.length === 1" class="tvrest-photo" :src="photoUrl(shown[0].id)" alt="" @load="opened(shown[0], $event)" />
-            <template v-else>
-              <img class="tvrest-pair-wash" :src="photoUrl(shown[0].id)" alt="" />
-              <div class="tvrest-pair"><img v-for="p in shown" :key="p.id" :src="photoUrl(p.id)" alt="" @load="opened(p, $event)" /></div>
+          <div class="tvrest-slide" v-if="beat" :key="beatKey" :style="{ '--beat': `${current?.lasts ?? 18000}ms` }">
+            <template v-if="beat.kind === 'photo'">
+              <template v-if="isTall(beat.photo)">
+                <img class="tvrest-fill" :src="photoUrl(beat.photo.id)" alt="" />
+                <div class="tvrest-tall"><img class="tvrest-move" :class="`m${beat.move}`" :src="photoUrl(beat.photo.id)" alt="" @load="opened(beat.photo, $event)" /></div>
+              </template>
+              <img v-else class="tvrest-photo tvrest-move" :class="`m${beat.move}`" :src="photoUrl(beat.photo.id)" alt="" @load="opened(beat.photo, $event)" />
+            </template>
+            <template v-else-if="beat.kind === 'title' && titled">
+              <img class="tvrest-fill tvrest-fill-dim" :src="photoUrl(beat.cover.id)" alt="" />
+              <div class="tvrest-daytitle"><div class="tvrest-daytitle-day">{{ titled.day }}</div><div class="tvrest-daytitle-sub">{{ titled.sub }}</div></div>
+            </template>
+            <template v-else-if="beat.kind === 'collage'">
+              <img class="tvrest-fill tvrest-fill-dim" :src="photoUrl(beat.photos[0].id)" alt="" />
+              <div class="tvrest-collage"><div v-for="p in beat.photos" :key="p.id"><img class="tvrest-move m1" :src="photoUrl(p.id)" alt="" /></div></div>
             </template>
           </div>
         </Transition>
@@ -98,7 +113,9 @@ const ok = computed(() => {
       <div class="tvrest-moves" :class="{ flip: place.flip }" :style="{ translate: `${place.x}px ${place.y}px` }">
 
         <template v-if="face === 'photos'">
-          <div class="tvrest-said" v-if="shown.length">{{ photoLine(shown[0], locale()) }}</div>
+          <div class="tvrest-said" v-if="said">
+            <span class="tvrest-ago" v-if="beat?.kind === 'photo' && beat.ago"><Icon name="clock" :size="26" />{{ agoLine(beat.ago) }}</span>{{ photoLine(said, locale()) }}
+          </div>
           <div class="tvrest-clock-corner">
             <div class="tvrest-time display">{{ time.time }}<span class="tvrest-period" v-if="time.period">{{ time.period }}</span></div>
             <div class="tvrest-day">{{ day }}<template v-if="wx"> · {{ wx.temp }}, {{ wx.label.toLowerCase() }}</template></div>

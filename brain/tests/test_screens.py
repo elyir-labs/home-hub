@@ -42,6 +42,12 @@ class Saying(unittest.TestCase):
         self.s.said(WALL)
         self.assertEqual([s["id"] for s in self.s.listed()], [WALL])
 
+    def test_photos_play_a_day_at_a_time_until_a_screen_is_set_to_one_after_another(self):
+        self.assertEqual(self.s.said(TV, tv=True)["play"], "days")
+        self.assertEqual(self.s.show(TV, play="each")["play"], "each")
+        self.assertTrue(self.s.show(TV, play="sideways")["photos"], "an unknown way changes nothing, and leaves the switch alone")
+        self.assertEqual(self.s.said(TV)["play"], "each")
+
     def test_a_screen_without_its_own_id_is_refused(self):
         for bad in (None, "", "short", "../../etc", "Z" * 20):
             with self.assertRaises(ValueError): self.s.said(bad)
@@ -61,6 +67,11 @@ class Routes(ApiTest):
         self.assertTrue(self.client.post(f"/photos/screens/{WALL}", json={"on": True}).json()["photos"])
         self.assertTrue(self.client.post("/screens/me", json={"id": WALL}).json()["photos"], "the wall hears it the next time it rests")
         self.assertEqual(self.client.post(f"/photos/screens/{'c' * 16}", json={"on": True}).status_code, 404)
+
+    def test_the_page_sets_how_the_photos_play_without_touching_the_switch(self):
+        self.client.post("/screens/me", json={"id": TV, "tv": True})
+        r = self.client.post(f"/photos/screens/{TV}", json={"play": "each"}).json()
+        self.assertEqual((r["play"], r["photos"]), ("each", True))
 
     def test_only_this_screen_says_by_person(self):
         self.client.post("/screens/me", json={"id": TV, "tv": False, "by": "person"})

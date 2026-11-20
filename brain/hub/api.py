@@ -2862,8 +2862,10 @@ def screens_me(body: dict):
 
 @app.post("/photos/screens/{screen_id}")
 def photos_screen(screen_id: str, body: dict):
-    """{"on": bool}: whether this screen shows the photos at rest, from the switch on Photos (design/which-tv/, C)."""
-    screen = hub.screens.show(screen_id, bool(body.get("on")))
+    """{"on": bool, "play": "each" | "days"}: whether this screen shows the photos at rest (design/which-tv/, C), and
+    how they play, one after another or a day at a time (design/tv-moments/). Either may be left out."""
+    on = body.get("on") if isinstance(body.get("on"), bool) else None
+    screen = hub.screens.show(screen_id, on=on, play=body.get("play"))
     if not screen: raise HTTPException(404, "No such screen.")
     return _named(screen)
 

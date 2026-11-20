@@ -20,6 +20,7 @@ import Icon from './Icon.vue'
 const photos = ref<Photo[]>([])
 const screens = ref<ShownScreen[]>([])
 const switching = ref('')
+const screen = ref<ShownScreen | null>(null)   // the screen whose own page is open (design/tv-moments/ScreenA)
 const loaded = ref(false)
 const sending = ref<{ done: number; of: number } | null>(null)
 const open = ref<Photo | null>(null)
@@ -49,11 +50,14 @@ async function picked(e: Event) {
   if (!failed) notify(files.length === 1 ? 'The photo is on the TV.' : `${files.length} photos are on the TV.`)
 }
 
-async function flip(s: ShownScreen) {
+async function setScreen(s: ShownScreen, set: { on?: boolean; play?: 'each' | 'days' }) {
   if (switching.value) return
   switching.value = s.id
-  try { const now = await showOnScreen(s.id, !s.photos); screens.value = screens.value.map(x => x.id === s.id ? { ...x, photos: now.photos } : x) }
-  catch (e: any) { notify(e.message, 'error') }
+  try {
+    const now = await showOnScreen(s.id, set)
+    screens.value = screens.value.map(x => x.id === s.id ? { ...x, photos: now.photos, play: now.play } : x)
+    if (screen.value?.id === s.id) screen.value = screens.value.find(x => x.id === s.id) ?? null
+  } catch (e: any) { notify(e.message, 'error') }
   switching.value = ''
 }
 
@@ -67,7 +71,25 @@ async function takeOff(p: Photo) {
 </script>
 
 <template>
-  <div class="page photos-page">
+  <div class="page photos-page" v-if="screen">
+    <button class="linkish photos-back" @click="screen = null"><Icon name="back" :size="16" />Your screens</button>
+    <h2 class="photos-screen-title">{{ screenLines(screen).name }}</h2>
+    <p class="page-lede">What it shows when nobody is watching.</p>
+    <ul class="photos-screens">
+      <li>
+        <span class="photos-screen-text"><b>Photos</b><span>{{ counted.count }}, {{ counted.from }}</span></span>
+        <button class="photos-switch" role="switch" :aria-checked="screen.photos" aria-label="Photos" :class="{ on: screen.photos, busy: switching === screen.id }" @click="setScreen(screen, { on: !screen.photos })"></button>
+      </li>
+      <li class="photos-play-row" v-if="screen.photos">
+        <span class="photos-screen-text"><b>How the photos play</b><span>Day by day groups a day’s photos, and starts with one from this day in an earlier year</span></span>
+        <span class="photos-play">
+          <button class="button small" :class="{ ghost: screen.play !== 'each' }" @click="setScreen(screen, { play: 'each' })">One after another</button>
+          <button class="button small" :class="{ ghost: (screen.play ?? 'days') !== 'days' }" @click="setScreen(screen, { play: 'days' })">Day by day</button>
+        </span>
+      </li>
+    </ul>
+  </div>
+  <div class="page photos-page" v-else>
     <p class="page-lede">The screens you choose show these when nobody is watching them. They stay on the hub, in this house, and nowhere else.</p>
     <input ref="picker" class="photos-input" type="file" accept="image/*" multiple @change="picked" />
     <button class="button photos-add" :class="{ ghost: !!sending }" :disabled="!!sending" @click="picker?.click()">
@@ -75,12 +97,14 @@ async function takeOff(p: Photo) {
       <template v-else><Icon name="plus" :size="18" />Add photos</template>
     </button>
     <template v-if="screens.length">
-      <div class="photos-count photos-on-head"><b>Shown on</b><span>a TV starts on</span></div>
+      <div class="photos-count photos-on-head"><b>Your screens</b><span>what each shows at rest</span></div>
       <ul class="photos-screens">
         <li v-for="s in screens" :key="s.id">
-          <Icon :name="s.tv ? 'tv' : 'phone'" :size="20" />
-          <span class="photos-screen-text"><b>{{ screenLines(s).name }}</b><span>{{ screenLines(s).sub }}</span></span>
-          <button class="photos-switch" role="switch" :aria-checked="s.photos" :aria-label="screenLines(s).name" :class="{ on: s.photos, busy: switching === s.id }" @click="flip(s)"></button>
+          <button class="photos-screen-open" @click="screen = s">
+            <Icon :name="s.tv ? 'tv' : 'phone'" :size="20" />
+            <span class="photos-screen-text"><b>{{ screenLines(s).name }}</b><span>{{ screenLines(s).sub }}</span></span>
+            <Icon name="chevron" :size="16" />
+          </button>
         </li>
       </ul>
     </template>

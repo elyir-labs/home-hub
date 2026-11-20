@@ -808,15 +808,15 @@ export async function getPhotos(): Promise<import('./restTv').Photo[]> {
 }
 export const photoUrl = (id: string) => apiUrl(`/photos/${encodeURIComponent(id)}`)
 /** One of the house's screens, as it said what it is (hub/screens.py, design/which-tv/). */
-export type ShownScreen = { id: string; room: string | null; room_name?: string | null; tv: boolean; by: 'screen' | 'person' | null; photos: boolean }
+export type ShownScreen = { id: string; room: string | null; room_name?: string | null; tv: boolean; by: 'screen' | 'person' | null; photos: boolean; play?: 'each' | 'days' }
 export async function getPhotosPage(): Promise<{ photos: import('./restTv').Photo[]; screens: ShownScreen[] }> {
   const r = await request('/photos'); if (!r.ok) await fail(r); return r.json()
 }
 export async function sayScreen(body: { id: string; room: string | null; tv: boolean; by: 'screen' | 'person' }): Promise<ShownScreen> {
   const r = await request('/screens/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!r.ok) await fail(r); return r.json()
 }
-export async function showOnScreen(id: string, on: boolean): Promise<ShownScreen> {
-  const r = await request(`/photos/screens/${encodeURIComponent(id)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ on }) }); if (!r.ok) await fail(r); return r.json()
+export async function showOnScreen(id: string, set: { on?: boolean; play?: 'each' | 'days' }): Promise<ShownScreen> {
+  const r = await request(`/photos/screens/${encodeURIComponent(id)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(set) }); if (!r.ok) await fail(r); return r.json()
 }
 /** One photo, already redrawn on the phone (photos.ts): its size and when it was taken travel beside it. */
 export async function sendPhoto(p: { blob: Blob; w: number; h: number; taken: number | null }): Promise<import('./restTv').Photo> {

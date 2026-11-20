@@ -5,7 +5,7 @@
    which face wins, or what Bedtime lists and says, drifts from the boards. */
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
-import { atBedtime, drift, faceFor, bedtimeLine, photoLine, playingNow, playingRooms, position, slideAt, slides, stillOn,
+import { atBedtime, drift, faceFor, bedtimeLine, photoLine, playingNow, playingRooms, position, beats, beatAt, dayTitle, agoLine, BEAT_FOR, stillOn,
   type Photo } from '../src/restTv'
 import { store } from '../src/store'
 
@@ -40,20 +40,38 @@ describe('which face a resting TV shows', () => {
 })
 
 describe('the photos', () => {
-  it('show a wide one alone and two taken upright side by side', () => {
-    const list = [photo('a', 1080, 1440), photo('b', 1080, 1440), photo('c', 1920, 1080), photo('d', 1080, 1440)]
-    expect(slides(list).map(s => s.map(p => p.id))).toEqual([['a', 'b'], ['c'], ['d']])
+  const on = (y: number, m: number, d: number, h = 12) => new Date(y, m - 1, d, h).getTime() / 1000
+  const day = [photo('a', 1, 1, { taken: on(2025, 8, 16, 9), by: "Sam's phone" }), photo('b', 1, 1, { taken: on(2025, 8, 16, 18), by: "Sam's phone" }),
+    photo('c', 1, 1, { taken: on(2025, 8, 16, 21), by: "Sam's phone" })]
+  const lone = photo('d', 1, 1, { taken: on(2026, 10, 3) })
+  const yearAgo = photo('e', 1, 1, { taken: on(2025, 11, 20, 17), by: "Jordan's iPhone" })
+  const today = at(19, 40)   // November 20, 2026
+  const kinds = (b: ReturnType<typeof beats>) => b.map(x => x.kind === 'photo' ? `photo:${x.photo.id}${x.ago ? `+${x.ago}y` : ''}` : x.kind === 'title' ? `title:${x.count}` : `collage:${x.photos.map(p => p.id).join('')}`)
+
+  it('one after another plays every photo, with a year ago today first', () => {
+    expect(kinds(beats([lone, ...day, yearAgo], 'each', today))).toEqual(['photo:e+1y', 'photo:d', 'photo:a', 'photo:b', 'photo:c'])
   })
 
-  it('learn the shape of a photo whose size was not sent from the TV opening it', () => {
-    const list = [photo('a'), photo('b')]
-    expect(slides(list)).toHaveLength(2)
-    expect(slides(list, { a: 'tall', b: 'tall' })).toHaveLength(1)
+  it('day by day opens a day of three or more on its title and three together, then each in the order taken', () => {
+    expect(kinds(beats([day[2], lone, day[0], day[1], yearAgo], 'days', today))).toEqual(['photo:e+1y', 'title:3', 'collage:abc', 'photo:a', 'photo:b', 'photo:c', 'photo:d'])
+    const t = beats(day, 'days', today)[0]
+    expect(t.kind === 'title' && dayTitle(t, 'en-US')).toEqual({ day: 'Saturday, August 16, 2025', sub: "3 photos · from Sam's phone" })
+    expect([agoLine(1), agoLine(3)]).toEqual(['One year ago today', '3 years ago today'])
   })
 
-  it('change once a minute and come round again', () => {
-    expect([0, 59_999, 60_000, 180_000].map(t => slideAt(['x', 'y', 'z'], t))).toEqual(['x', 'x', 'y', 'x'])
-    expect(slideAt([], 0)).toBeNull()
+  it('moves each photo its own way, the same way every time it comes round', () => {
+    const moves = beats(Array.from({ length: 12 }, (_, i) => photo(`p${i}`)), 'each', today).map(b => b.kind === 'photo' ? b.move : -1)
+    expect(new Set(moves).size).toBeGreaterThan(2)
+    expect(beats([photo('p3')], 'each', today)[0]).toEqual(beats([photo('p3')], 'each', today)[0])
+  })
+
+  it('holds a photo 18 seconds, a title 7 and three together 12, and comes round again', () => {
+    const list = beats(day, 'days', today)
+    expect([BEAT_FOR.photo, BEAT_FOR.title, BEAT_FOR.collage]).toEqual([18_000, 7_000, 12_000])
+    expect([0, 6_999, 7_000, 19_000, 37_000].map(t => beatAt(list, t)?.beat.kind)).toEqual(['title', 'title', 'collage', 'photo', 'photo'])
+    const total = 7_000 + 12_000 + 3 * 18_000
+    expect(beatAt(list, total + 1)?.index).toBe(0)
+    expect(beatAt([], 0)).toBeNull()
   })
 
   it('say when each was taken and whose phone it came from', () => {

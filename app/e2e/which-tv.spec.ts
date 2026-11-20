@@ -5,16 +5,21 @@
    the screens with a switch each; a wall with its photos on rests on them. */
 import { expect, test } from '@playwright/test'
 
-test('Photos lists the house\'s screens, a TV by its room, and a switch puts the kitchen wall on', async ({ page }) => {
+test('Your screens lists the house\'s screens, a TV by its room; the kitchen wall\'s own page turns its photos on and how they play', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/?sheet=photos&at=19:40', { waitUntil: 'networkidle' })
   const rows = page.locator('.photos-screens li')
   await expect(rows.nth(0)).toContainText('Living room TV')
+  await expect(rows.nth(0)).toContainText('shows photos, day by day')
   await expect(rows.nth(1)).toContainText('Kitchen')
   await expect(rows.nth(1)).toContainText('shows the clock')
-  await rows.nth(1).getByRole('switch').click()
-  await expect(rows.nth(1)).not.toContainText('shows the clock')
-  await expect(rows.nth(1).getByRole('switch')).toHaveAttribute('aria-checked', 'true')
+  await rows.nth(1).click()
+  await expect(page.locator('.photos-screen-title')).toHaveText('Kitchen')
+  await page.getByRole('switch', { name: 'Photos' }).click()
+  await expect(page.getByRole('switch', { name: 'Photos' })).toHaveAttribute('aria-checked', 'true')
+  await page.getByRole('button', { name: 'One after another' }).click()
+  await page.getByRole('button', { name: 'Your screens' }).click()
+  await expect(rows.nth(1)).toContainText('shows photos, one after another')
 })
 
 test('This screen says what it is, and an answer there starts the screen again as that', async ({ page }) => {

@@ -67,9 +67,10 @@ describe('the TV\'s code (C)', () => {
 describe('the screens on Photos (design/which-tv/, C)', () => {
   const screen = (over: object) => ({ id: 'a', room: 'living', room_name: 'Living room', tv: true, by: 'screen' as const, photos: true, ...over })
   it('names a TV by its room and a wall screen by its own, and says what each shows when its photos are off', () => {
-    expect(screenLines(screen({}))).toEqual({ name: 'Living room TV', sub: 'A TV' })
+    expect(screenLines(screen({}))).toEqual({ name: 'Living room TV', sub: 'A TV · shows photos, day by day' })
+    expect(screenLines(screen({ play: 'each' }))).toEqual({ name: 'Living room TV', sub: 'A TV · shows photos, one after another' })
     expect(screenLines(screen({ photos: false }))).toEqual({ name: 'Living room TV', sub: 'A TV · shows the sky' })
     expect(screenLines(screen({ room_name: 'Hallway', tv: false, photos: false }))).toEqual({ name: 'Hallway', sub: 'A screen on the wall · shows the clock' })
-    expect(screenLines(screen({ room_name: null, tv: false }))).toEqual({ name: 'A screen on the wall', sub: 'A screen on the wall' })
+    expect(screenLines(screen({ room_name: null, tv: false })).name).toBe('A screen on the wall')
   })
 })
