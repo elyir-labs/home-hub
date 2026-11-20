@@ -3297,6 +3297,12 @@ input:focus-visible {
 .photos-write {
   margin-top: 10px;
 }
+.photos-morning-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
 .photos-tabs {
   margin-bottom: 18px;
 }
@@ -3826,6 +3832,84 @@ input:focus-visible {
   right: 96px;
   top: 884px;
   font-size: 22px;
+}
+/* The morning card (design/tv-moments/MorningA) and the last word after Bedtime (NightC) */
+.tvrest-dawn {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(12, 14, 22, 0.32), rgba(12, 14, 22, 0.32)),
+    linear-gradient(transparent 50%, rgba(10, 12, 20, 0.62) 82%),
+    radial-gradient(50% 40% at 75% 95%, rgba(255, 214, 170, 0.4), transparent 70%),
+    linear-gradient(180deg, #3b4f7d 0%, #7f8fb8 45%, #e3b9a7 80%, #f3cfa3 100%);
+}
+.tvrest-black {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+.tvrest-morning {
+  position: absolute;
+  left: 160px;
+  top: 150px;
+  width: 1200px;
+}
+.tvrest-morning-line {
+  margin-top: 30px;
+  font-family: var(--serif);
+  font-size: 120px;
+  line-height: 1.05;
+}
+.tvrest-morning .tvrest-card-from {
+  margin-top: 24px;
+  font-size: 30px;
+}
+.tvrest-morning-foot {
+  position: absolute;
+  left: 160px;
+  bottom: 150px;
+  display: flex;
+  gap: 80px;
+  font-size: 30px;
+}
+.tvrest-card-cap.small {
+  margin-bottom: 10px;
+  font-size: 22px;
+}
+.tvrest-morning-next {
+  margin-top: 6px;
+  font-size: 24px;
+}
+.tvrest-goodnight {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 200px;
+  text-align: center;
+  animation: tvrest-settle 1.6s ease both;
+}
+.tvrest-goodnight-line {
+  font-family: var(--serif);
+  font-size: 110px;
+  line-height: 1.1;
+}
+.tvrest-goodnight-foot {
+  margin-top: 50px;
+  font-size: 26px;
+  color: var(--ink-2);
+}
+@keyframes tvrest-settle {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.tvrest-evening {
+  margin-top: 70px;
+  font-family: var(--serif);
+  font-size: 60px;
+  line-height: 1.15;
 }
 .tvrest-ago {
   display: flex;

@@ -810,7 +810,7 @@ export const photoUrl = (id: string) => apiUrl(`/photos/${encodeURIComponent(id)
 /** The family board: notes and countdowns left for the screens (hub/board.py, design/tv-moments/). */
 export type BoardNote = { id: string; text: string; by: string | null; added: number; until: number | null }
 export type Countdown = { id: string; what: string; date: string; next: string; yearly: boolean; by: string | null; added: number }
-export async function getBoard(): Promise<{ notes: BoardNote[]; countdowns: Countdown[] }> {
+export async function getBoard(): Promise<{ notes: BoardNote[]; countdowns: Countdown[]; mornings?: MorningLine[] }> {
   const r = await request('/board'); if (!r.ok) await fail(r); return r.json()
 }
 export async function leaveNote(text: string, until: number | null): Promise<BoardNote> {
@@ -819,18 +819,26 @@ export async function leaveNote(text: string, until: number | null): Promise<Boa
 export async function addCountdown(what: string, date: string): Promise<Countdown> {
   const r = await request('/board/countdowns', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ what, date }) }); if (!r.ok) await fail(r); return r.json()
 }
+export type MorningLine = { id: string; text: string; day: string; by: string | null; added: number }
+export async function leaveMorning(text: string, day: string): Promise<MorningLine> {
+  const r = await request('/board/mornings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, day }) }); if (!r.ok) await fail(r); return r.json()
+}
+/** The morning's line and the evening's for a screen's own day (hub/words.py). */
+export async function getWords(day: string): Promise<{ day: string; morning: string | null; evening: string | null }> {
+  const r = await request(`/words/today?day=${encodeURIComponent(day)}`); if (!r.ok) await fail(r); return r.json()
+}
 export async function takeDown(id: string) {
   const r = await request(`/board/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (!r.ok) await fail(r)
 }
 /** One of the house's screens, as it said what it is (hub/screens.py, design/which-tv/). */
-export type ShownScreen = { id: string; room: string | null; room_name?: string | null; tv: boolean; by: 'screen' | 'person' | null; photos: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board'; notes?: boolean }
+export type ShownScreen = { id: string; room: string | null; room_name?: string | null; tv: boolean; by: 'screen' | 'person' | null; photos: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board'; notes?: boolean; lines?: boolean }
 export async function getPhotosPage(): Promise<{ photos: import('./restTv').Photo[]; screens: ShownScreen[] }> {
   const r = await request('/photos'); if (!r.ok) await fail(r); return r.json()
 }
 export async function sayScreen(body: { id: string; room: string | null; tv: boolean; by: 'screen' | 'person' }): Promise<ShownScreen> {
   const r = await request('/screens/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!r.ok) await fail(r); return r.json()
 }
-export async function showOnScreen(id: string, set: { on?: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board'; notes?: boolean }): Promise<ShownScreen> {
+export async function showOnScreen(id: string, set: { on?: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board'; notes?: boolean; lines?: boolean }): Promise<ShownScreen> {
   const r = await request(`/photos/screens/${encodeURIComponent(id)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(set) }); if (!r.ok) await fail(r); return r.json()
 }
 /** One photo, already redrawn on the phone (photos.ts): its size and when it was taken travel beside it. */

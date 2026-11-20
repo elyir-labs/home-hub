@@ -25,8 +25,8 @@ const SHELF = [
 ]
 
 const SCREENS = [
-  { id: 'a1b2c3d4e5f60718a1b2c3d4e5f60718', room: 'living', room_name: 'Living room', tv: true, by: 'screen', photos: true, play: 'days', shows: 'photos', notes: true },
-  { id: 'f0e1d2c3b4a59687f0e1d2c3b4a59687', room: 'kitchen', room_name: 'Kitchen', tv: false, by: 'screen', photos: false, play: 'days', shows: 'photos', notes: true },
+  { id: 'a1b2c3d4e5f60718a1b2c3d4e5f60718', room: 'living', room_name: 'Living room', tv: true, by: 'screen', photos: true, play: 'days', shows: 'photos', notes: true, lines: true },
+  { id: 'f0e1d2c3b4a59687f0e1d2c3b4a59687', room: 'kitchen', room_name: 'Kitchen', tv: false, by: 'screen', photos: false, play: 'days', shows: 'photos', notes: true, lines: true },
 ]
 const body = req => new Promise(done => { let raw = ''; req.on('data', c => (raw += c)); req.on('end', () => { try { done(JSON.parse(raw || '{}')) } catch { done({}) } }) })
 
@@ -39,6 +39,12 @@ const BOARD = {
           { id: 'n2', text: 'Piano at 4 on Saturday', by: "Dad's phone", added: todayAt(20, 1), until: null }],
   countdowns: [{ id: 'c1', what: "Sam's birthday", date: '2014-' + ymd(3).slice(5), next: ymd(3), yearly: true, by: "Dad's phone", added: todayAt(9, 5) },
                { id: 'c2', what: 'The lake trip', date: ymd(6), next: ymd(6), yearly: false, by: "Mom's phone", added: todayAt(9, 2) }],
+  mornings: [],
+}
+/* The day's lines (hub/words.py reads brain/hub/words/), a few of each here, the same all day. */
+const WORDS = {
+  morning: ["You don't have to do it all today. Just the next thing.", 'Start small. Small things add up by evening.', 'If today gets hard, it won\'t stay hard all day.'],
+  evening: ['Rest well. You did enough today.', 'Hang up the day like a coat by the door.', 'The moon has the night shift. You can rest.'],
 }
 
 export function photosRoute(req, res, p, env) {
@@ -50,6 +56,16 @@ export function photosRoute(req, res, p, env) {
       BOARD.notes.unshift(n); send(200, n) })
     return true
   }
+  if (p === '/words/today') {
+    const day = new URL(req.url, 'http://x').searchParams.get('day') || '', n = Math.floor(Date.parse(day) / 86400000) || 0
+    send(200, { day, morning: WORDS.morning[n % 3], evening: WORDS.evening[n % 3] }); return true
+  }
+  if (p === '/board/mornings' && req.method === 'POST') {
+    body(req).then(b => { const m = { id: `m${Date.now()}`, text: String(b.text || '').trim(), day: b.day, by: 'This phone', added: Date.now() / 1000 }
+      if (!m.text) return send(400, { detail: 'A line for the morning needs something written in it.' })
+      BOARD.mornings = [...BOARD.mornings.filter(x => x.day !== m.day), m]; send(200, m) })
+    return true
+  }
   if (p === '/board/countdowns' && req.method === 'POST') {
     body(req).then(b => { const c = { id: `c${Date.now()}`, what: String(b.what || '').trim(), date: b.date, next: b.date, yearly: /\b(birthday|anniversary)\b/i.test(b.what || ''), by: 'This phone', added: Date.now() / 1000 }
       if (!c.what || !/^\d{4}-\d{2}-\d{2}$/.test(c.date || '')) return send(400, { detail: 'A countdown needs a name and a day.' })
@@ -57,9 +73,9 @@ export function photosRoute(req, res, p, env) {
     return true
   }
   if (p.startsWith('/board/') && req.method === 'DELETE') {
-    const id = p.slice('/board/'.length), before = BOARD.notes.length + BOARD.countdowns.length
-    BOARD.notes = BOARD.notes.filter(n => n.id !== id); BOARD.countdowns = BOARD.countdowns.filter(c => c.id !== id)
-    send(before === BOARD.notes.length + BOARD.countdowns.length ? 404 : 200, { ok: true }); return true
+    const id = p.slice('/board/'.length), size = () => BOARD.notes.length + BOARD.countdowns.length + BOARD.mornings.length, before = size()
+    BOARD.notes = BOARD.notes.filter(n => n.id !== id); BOARD.countdowns = BOARD.countdowns.filter(c => c.id !== id); BOARD.mornings = BOARD.mornings.filter(m => m.id !== id)
+    send(before === size() ? 404 : 200, { ok: true }); return true
   }
   if (p === '/screens/me' && req.method === 'POST') {
     body(req).then(b => {
@@ -71,7 +87,7 @@ export function photosRoute(req, res, p, env) {
   }
   if (p.startsWith('/photos/screens/') && req.method === 'POST') {
     const s = SCREENS.find(x => x.id === p.slice('/photos/screens/'.length))
-    body(req).then(b => { if (s && typeof b.on === 'boolean') s.photos = b.on; if (s && (b.play === 'each' || b.play === 'days')) s.play = b.play; if (s && (b.shows === 'photos' || b.shows === 'board')) s.shows = b.shows; if (s && typeof b.notes === 'boolean') s.notes = b.notes; res.writeHead(s ? 200 : 404, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(s ?? { detail: 'No such screen.' })) })
+    body(req).then(b => { if (s && typeof b.on === 'boolean') s.photos = b.on; if (s && (b.play === 'each' || b.play === 'days')) s.play = b.play; if (s && (b.shows === 'photos' || b.shows === 'board')) s.shows = b.shows; if (s && typeof b.notes === 'boolean') s.notes = b.notes; if (s && typeof b.lines === 'boolean') s.lines = b.lines; res.writeHead(s ? 200 : 404, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(s ?? { detail: 'No such screen.' })) })
     return true
   }
   if (p !== '/photos' && !p.startsWith('/photos/')) return false

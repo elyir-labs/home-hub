@@ -13,13 +13,13 @@
  * weeks -- and after a long rest the TV is sent to standby, so a hub is never the reason it was on all night.
  */
 import { reactive } from 'vue'
-import { getBoard, getPhotos, sayScreen, type BoardNote, type Countdown, type Device } from './api'
+import { getBoard, getPhotos, getWords, sayScreen, type BoardNote, type Countdown, type Device, type MorningLine } from './api'
 import { isScreen, keepScreenKind, screenId, screenKind, screenRoom } from './screen'
 import { tvGuess } from './tv'
 import { cap, HOUSE_SCENES, isDead, roomOf, runScene, store } from './store'
 import { sleepTv } from './thisScreen'
 
-export type Face = 'photos' | 'window' | 'playing' | 'bedtime' | 'board'
+export type Face = 'photos' | 'window' | 'playing' | 'bedtime' | 'board' | 'morning' | 'night'
 export type Photo = { id: string; taken: number | null; added: number; by: string | null; w?: number | null; h?: number | null }
 export type Shape = 'wide' | 'tall'
 export type StillOn = { name: string; what: string; kind: 'light' | 'music' | 'door' }
@@ -37,9 +37,11 @@ export function atBedtime(now: Date): boolean {
 }
 
 /** Which face, in the board's order of who wins: music, then bedtime, then photos, then the sky. */
-export function faceFor(o: { playing: boolean; stillOn: number; photos: number; now: Date; notYet: boolean; board?: boolean }): Face {
+export function faceFor(o: { playing: boolean; stillOn: number; photos: number; now: Date; notYet: boolean; board?: boolean; morning?: boolean; night?: boolean }): Face {
+  if (o.night) return 'night'
   if (o.playing) return 'playing'
   if (o.stillOn && atBedtime(o.now) && !o.notYet) return 'bedtime'
+  if (o.morning) return 'morning'
   if (o.board) return 'board'
   return o.photos ? 'photos' : 'window'
 }
@@ -187,6 +189,21 @@ export function noteWhen(added: number, now: Date, locale?: string): string {
 
 export const noteFrom = (n: BoardNote, now: Date, locale?: string) => `${n.by ? `A note from ${n.by}` : 'A note'} · ${noteWhen(n.added, now, locale)}`
 
+export const GOODNIGHT_FOR = 6_000   // the evening's line alone on the screen after Bedtime, before the TV goes off
+export const MORNING_FOR = 5 * 60_000   // the morning card, before the screen goes back to its photos
+
+export const localDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+/** Morning, for the morning card: after first light and before 11, by the house's own sky (design/tv-moments/, morning A). */
+export const isMorning = (now: Date, sunElevation: number) => now.getHours() >= 5 && now.getHours() < 11 && sunElevation > -6
+
+/** The morning's line: one somebody left for today, signed, or the day's own. */
+export function morningLine(now: Date): { text: string; from: string } | null {
+  const left = (rest.board.mornings ?? []).find(m => m.day === localDay(now))
+  if (left) return { text: left.text, from: left.by ? `Left last night, from ${left.by}` : 'Left last night' }
+  return rest.words.morning ? { text: rest.words.morning, from: '' } : null
+}
+
 export const agoLine = (years: number) => years === 1 ? 'One year ago today' : `${years} years ago today`
 
 /** "August 2025 · from Sam's phone": when it was taken, else when it was sent, and whose phone it came from. */
@@ -216,15 +233,24 @@ export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s 
 /** What the resting TV is showing, so the remote's OK and Back can do what that face says they do. `notYet` is the night
     Back was pressed on Bedtime, which then leaves the TV to its photos until the next evening. */
 export const rest = reactive({ face: 'window' as Face, notYet: '', photos: [] as Photo[], photosKnown: false, shows: true, play: 'days' as Play,
-  view: 'photos' as 'photos' | 'board', cards: true, board: { notes: [], countdowns: [] } as { notes: BoardNote[]; countdowns: Countdown[] } })
+  view: 'photos' as 'photos' | 'board', cards: true, board: { notes: [], countdowns: [] } as { notes: BoardNote[]; countdowns: Countdown[]; mornings?: MorningLine[] },
+  lines: true, words: { day: '', morning: null as string | null, evening: null as string | null }, morningSeen: '', goodnight: '' })
 
 /** The household's photos, read when a screen starts and each time it rests. A hub that cannot say leaves it on the sky. */
 export async function loadRestBoard() {
   try { rest.board = await getBoard() } catch { /* an older hub has no board */ }
 }
 
+/** The day's two lines, for this screen's own day; asked again when the day turns over. */
+export async function loadRestWords(now = new Date()) {
+  const day = localDay(now)
+  if (rest.words.day === day) return
+  try { rest.words = await getWords(day) } catch { /* an older hub has no lines */ }
+}
+
 export async function loadRestPhotos() {
   loadRestBoard()
+  loadRestWords()
   try { rest.photos = await getPhotos(); rest.photosKnown = true } catch { /* nothing to show */ }
 }
 
@@ -240,6 +266,7 @@ export async function reportScreen(nowTv: boolean) {
     rest.play = me.play === 'each' ? 'each' : 'days'
     rest.view = me.shows === 'board' ? 'board' : 'photos'
     rest.cards = me.notes !== false
+    rest.lines = me.lines !== false
     if (me.by === 'person' && !said) { keepScreenKind(me.tv ? 'tv' : 'wall'); if (me.tv !== nowTv) location.reload() }
   } catch { /* an older hub, or none reachable: the screen keeps its own guess and its photos */ }
 }
@@ -249,5 +276,12 @@ export const nightOf = (now: Date) => new Date(now.getTime() - BEDTIME_TO * 6000
 /** Bedtime: the house's own Bedtime, then the TV to standby with the lights. */
 export async function bedtime() {
   const scene = HOUSE_SCENES.find(s => s.id === 'asleep')
-  if (scene && await runScene(null, scene)) await sleepTv()
+  if (!scene || !(await runScene(null, scene))) return
+  /* the last thing on the screen is the evening's line, alone, for a few seconds; then the TV goes off with the lights */
+  if (rest.lines && rest.words.evening) {
+    rest.goodnight = rest.words.evening
+    await new Promise(done => setTimeout(done, GOODNIGHT_FOR))
+    rest.goodnight = ''
+  }
+  await sleepTv()
 }

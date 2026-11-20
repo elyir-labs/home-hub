@@ -5,7 +5,7 @@
    which face wins, or what Bedtime lists and says, drifts from the boards. */
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
-import { atBedtime, drift, faceFor, bedtimeLine, photoLine, playingNow, playingRooms, position, beats, beatAt, dayTitle, agoLine, BEAT_FOR, stillOn, withCards, daysTo, countWords, noteWhen, noteFrom, faceFor as face_,
+import { atBedtime, drift, faceFor, bedtimeLine, photoLine, playingNow, playingRooms, position, beats, beatAt, dayTitle, agoLine, BEAT_FOR, stillOn, withCards, daysTo, countWords, noteWhen, noteFrom, faceFor as face_, isMorning, morningLine, rest,
   type Photo } from '../src/restTv'
 import { store } from '../src/store'
 
@@ -173,5 +173,27 @@ describe('notes and countdowns between the photos (design/tv-moments/, cards A)'
     expect(face_(base)).toBe('board')
     expect(face_({ ...base, playing: true })).toBe('playing')
     expect(face_({ ...base, stillOn: 2, now: at(23, 0) })).toBe('bedtime')
+  })
+})
+
+describe('morning and night (design/tv-moments/, morning A and the night line)', () => {
+  it('is morning from first light until 11, by the house\'s own sky', () => {
+    expect([isMorning(at(4, 59), 5), isMorning(at(7, 2), -1), isMorning(at(7, 2), -9), isMorning(at(10, 59), 30), isMorning(at(11, 0), 30)]).toEqual([false, true, false, true, false])
+  })
+
+  it('greets with a line somebody left for this morning, signed, or the day\'s own', () => {
+    rest.board = { notes: [], countdowns: [], mornings: [{ id: 'm', text: 'Proud of you for yesterday.', day: '2026-11-20', by: "Dad's phone", added: 0 }] }
+    rest.words = { day: '2026-11-20', morning: 'Just the next thing.', evening: 'Rest well.' }
+    expect(morningLine(at(7, 2))).toEqual({ text: 'Proud of you for yesterday.', from: "Left last night, from Dad's phone" })
+    rest.board = { notes: [], countdowns: [], mornings: [] }
+    expect(morningLine(at(7, 2))).toEqual({ text: 'Just the next thing.', from: '' })
+  })
+
+  it('puts the last word after Bedtime first, then music, Bedtime, the morning, the board', () => {
+    const base = { playing: false, stillOn: 0, photos: 3, now: at(7, 2), notYet: false, board: true, morning: true }
+    expect(face_(base)).toBe('morning')
+    expect(face_({ ...base, playing: true })).toBe('playing')
+    expect(face_({ ...base, playing: true, night: true })).toBe('night')
+    expect(face_({ ...base, morning: false })).toBe('board')
   })
 })

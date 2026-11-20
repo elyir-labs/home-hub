@@ -12,9 +12,11 @@ import type { Room } from './api'
 import { imageUrl, photoUrl, qrUrl } from './api'
 import { photosPageUrl } from './photos'
 import { clockParts, restingFacts, restWeather } from './resting'
-import { countWords, drift, faceFor, loadRestPhotos, noteFrom, withCards, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
+import { countWords, drift, faceFor, isMorning, localDay, morningLine, MORNING_FOR, loadRestPhotos, noteFrom, withCards, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
   SLEEP_AFTER, BEAT_FOR, beats, beatAt, dayTitle, agoLine, stillOn, type Photo, type Shape } from './restTv'
 import { locale } from './lang'
+import { store } from './store'
+import { changeLine, range } from './weather'
 import Icon from './Icon.vue'
 
 const props = defineProps<{ now: Date; room: Room | null; since: number; wall?: boolean }>()
@@ -40,9 +42,33 @@ const music = computed(() => playingNow())
 const left = computed(() => stillOn())
 const listed = computed(() => (left.value.length > 6 ? left.value.slice(0, 5) : left.value))
 const board = computed(() => rest.view === 'board')
-const face = computed(() => props.wall ? (board.value ? 'board' : 'photos') : faceFor({ playing: !!music.value, stillOn: left.value.length,
-  photos: rest.shows ? photos.value.length : 0, now: props.now, notYet: rest.notYet === nightOf(props.now), board: board.value }))
+/* The morning card (design/tv-moments/MorningA): the first time a screen rests after first light, until a key is
+   pressed or MORNING_FOR has gone by, then not again that day. */
+const greeting = computed(() => morningLine(props.now))
+const morning = computed(() => rest.lines && !!greeting.value && isMorning(props.now, store.sky.elevation) && rest.morningSeen !== localDay(props.now))
+const face = computed(() => props.wall ? (morning.value ? 'morning' : board.value ? 'board' : 'photos') : faceFor({ playing: !!music.value, stillOn: left.value.length,
+  photos: rest.shows ? photos.value.length : 0, now: props.now, notYet: rest.notYet === nightOf(props.now), board: board.value,
+  morning: morning.value, night: !!rest.goodnight }))
 watch(face, f => { if (!props.wall) rest.face = f }, { immediate: true })
+let morningTimer: number | undefined
+watch(face, f => {
+  clearTimeout(morningTimer)
+  if (f === 'morning') morningTimer = window.setTimeout(() => (rest.morningSeen = localDay(new Date())), MORNING_FOR)
+}, { immediate: true })
+onUnmounted(() => clearTimeout(morningTimer))
+/* The weather in words for the morning: what it is now and how warm it gets, then what changes, if anything does. */
+const outside = computed(() => {
+  const w = restWeather(); if (!w) return ''
+  const r = range(props.now)
+  return `${w.label}: ${w.temp} now${r?.high != null ? `, ${Math.round(r.high)}° by the afternoon` : ''}`
+})
+const outsideNext = computed(() => changeLine(props.now))
+const waiting = computed(() => {
+  const soon = rest.board.countdowns.filter(c => countWords(c, props.now).big === 'Today' || Number(countWords(c, props.now).big) <= 7).slice(0, 1)
+    .map(c => { const w = countWords(c, props.now); return w.big === 'Today' ? `${c.what} today` : `${c.what} in ${w.big} ${w.big === '1' ? 'day' : 'days'}` })
+  const note = rest.board.notes[0] ? [rest.board.notes[0].by ? `A note from ${rest.board.notes[0].by}` : 'A note on the board'] : []
+  return [...soon, ...note]
+})
 
 const timeline = computed(() => withCards(beats(photos.value, rest.play, props.now), rest.cards ? rest.board : { notes: [], countdowns: [] }))
 const previewBeat = new URLSearchParams(location.search).get('beat')   // ?beat=note (or count, title, collage) holds the first of that kind, for a preview
@@ -79,7 +105,7 @@ const art = computed(() => (music.value?.attrs.entity_picture ? imageUrl(music.v
 const sleepsIn = computed(() => Math.max(1, Math.ceil((props.since + SLEEP_AFTER - tick.value) / 60000)))
 
 const ok = computed(() => {
-  if (props.wall) return ''
+  if (props.wall || face.value === 'night') return ''
   if (face.value === 'bedtime') return 'Bedtime'
   return props.room ? `The ${props.room.name.toLowerCase()}` : ''
 })
@@ -87,7 +113,7 @@ const ok = computed(() => {
 
 <template>
   <div class="tvrest-fit">
-    <div class="tvrest" :class="`tvrest-${face}`" :style="{ transform: `translate(-50%, -50%) scale(${scale})`, height: `${tall}px` }" :data-face="face" :data-wall="wall ? '' : null">
+    <div class="tvrest" :style="{ transform: `translate(-50%, -50%) scale(${scale})`, height: `${tall}px` }" :data-face="face" :data-wall="wall ? '' : null">
 
       <template v-if="face === 'photos'">
         <Transition name="tvrest-fade">
@@ -140,6 +166,14 @@ const ok = computed(() => {
         <div class="tvrest-boardbg"></div>
       </template>
 
+      <template v-else-if="face === 'morning'">
+        <div class="tvrest-dawn"></div>
+      </template>
+
+      <template v-else-if="face === 'night'">
+        <div class="tvrest-black"></div>
+      </template>
+
       <div class="tvrest-moves" :class="{ flip: place.flip }" :style="{ translate: `${place.x}px ${place.y}px` }">
 
         <template v-if="face === 'photos' && onCard">
@@ -158,6 +192,26 @@ const ok = computed(() => {
               <span class="tvrest-fact-value"><Icon :name="f.icon" :size="30" />{{ f.value }}</span>
               <span class="tvrest-fact-where" v-if="f.key !== 'house'">{{ f.key === 'inside' ? 'inside' : f.where }}</span>
             </div>
+          </div>
+        </template>
+
+        <template v-else-if="face === 'morning' && greeting">
+          <div class="tvrest-morning">
+            <div class="tvrest-card-cap">Good morning</div>
+            <div class="tvrest-morning-line">{{ greeting.text }}</div>
+            <div class="tvrest-card-from" v-if="greeting.from">{{ greeting.from }}</div>
+          </div>
+          <div class="tvrest-morning-foot">
+            <div v-if="outside"><div class="tvrest-card-cap small">Outside</div><div>{{ outside }}</div><div class="tvrest-morning-next" v-if="outsideNext">{{ outsideNext }}</div></div>
+            <div v-if="waiting.length"><div class="tvrest-card-cap small">Waiting</div><div v-for="w in waiting" :key="w">{{ w }}</div></div>
+          </div>
+          <div class="tvrest-clock-top"><span class="tvrest-time display">{{ time.time }}<span class="tvrest-period" v-if="time.period">{{ time.period }}</span></span></div>
+        </template>
+
+        <template v-else-if="face === 'night'">
+          <div class="tvrest-goodnight">
+            <div class="tvrest-goodnight-line">{{ rest.goodnight }}</div>
+            <div class="tvrest-goodnight-foot">Good night. The TV turns off in a moment.</div>
           </div>
         </template>
 
@@ -233,6 +287,7 @@ const ok = computed(() => {
             <div class="tvrest-go"><Icon name="moon" :size="64" /><div><b>Bedtime</b><small>{{ bedtimeLine(left) }}</small></div></div>
             <div class="tvrest-sleeps">This TV turns itself off in {{ sleepsIn }} {{ sleepsIn === 1 ? 'minute' : 'minutes' }}. The house stays as it is.</div>
             <div class="tvrest-sleeps">After Bedtime, the TV turns off with the lights.</div>
+            <div class="tvrest-evening" v-if="rest.lines && rest.words.evening">{{ rest.words.evening }}</div>
           </div>
           <div class="tvrest-back"><kbd>Back</kbd>Not yet</div>
         </template>
