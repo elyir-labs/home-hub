@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>H: the roof lights, indoors</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="rest-tv.css">
+</head>
+<body>
+<div class="screen" style="background: linear-gradient(180deg, #0a0c1a 0%, #141836 60%, #1c1f3c 100%);">
+  <div class="stars"></div>
+
+  <div class="shade" style="position:absolute; left:var(--safe-x); top:var(--safe-y);">
+    <div class="display" style="font-size:96px;">7:40<span class="period">PM</span></div>
+    <div style="font-size:26px; color:var(--ink-2); margin-top:10px;">Friday, November 20 &middot; 78&deg;</div>
+  </div>
+
+  <!-- the front of the house from the street, its roofline drawn bulb by bulb in the occasion's colors, playing as it plays on the roof -->
+  <svg style="position:absolute; left:0; bottom:0;" width="1920" height="760" viewBox="0 0 1920 760">
+    <defs>
+      <filter id="g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter>
+      <radialGradient id="pool" cx=".5" cy="0" r="1"><stop offset="0" stop-color="#e98c3c" stop-opacity=".22"/><stop offset="1" stop-color="#e98c3c" stop-opacity="0"/></radialGradient>
+    </defs>
+    <path d="M0 620 C 400 600 1500 600 1920 620 V760 H0z" fill="#0c0d16"/>
+    <!-- the house -->
+    <path d="M520 640 V360 L960 120 L1400 360 V640z" fill="#11121e"/>
+    <path d="M1400 640 V420 L1560 330 L1720 420 V640z" fill="#0f101b"/>
+    <rect x="600" y="430" width="140" height="120" fill="#2a2030"/><rect x="1180" y="430" width="140" height="120" fill="#3a2a2a"/>
+    <rect x="1190" y="440" width="120" height="100" fill="#f3c27a" opacity=".55"/>
+    <rect x="890" y="470" width="140" height="170" fill="#1d1b26"/>
+    <!-- the roofline: warm amber and orange, a slow chase caught mid-step -->
+    <g id="bulbs"></g>
+  </svg>
+
+  <div class="shade" style="position:absolute; right:var(--safe-x); top:calc(var(--safe-y) + 10px); text-align:right;">
+    <div style="font-size:22px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); font-weight:500;">On the roof tonight</div>
+    <div style="font-size:56px; letter-spacing:-.02em; margin-top:12px;">Thanksgiving</div>
+    <div style="font-size:26px; color:var(--ink-2); margin-top:10px;">Until 11:00 PM</div>
+  </div>
+
+  <div class="ok shade"><kbd>OK</kbd>The living room</div>
+</div>
+<script>
+  // lay bulbs along the two roof slopes and the garage's, coloring them as a chase two steps along
+  const ns = 'http://www.w3.org/2000/svg', g = document.getElementById('bulbs')
+  const runs = [[520, 360, 960, 120], [960, 120, 1400, 360], [1400, 420, 1560, 330], [1560, 330, 1720, 420]]
+  const colors = ['#ffb347', '#ff7a2f', '#ffd27a']
+  let k = 0
+  for (const [x1, y1, x2, y2] of runs) {
+    const n = Math.round(Math.hypot(x2 - x1, y2 - y1) / 34)
+    for (let i = 0; i <= n; i++, k++) {
+      const x = x1 + (x2 - x1) * i / n, y = y1 + (y2 - y1) * i / n - 4
+      const c = colors[(k + 2) % 3], dim = (k % 6) === 0 ? .35 : 1
+      for (const [r, f, o] of [[16, 'url(#g)', .55 * dim], [5.5, '', dim]]) {
+        const e = document.createElementNS(ns, 'circle')
+        e.setAttribute('cx', x); e.setAttribute('cy', y); e.setAttribute('r', r); e.setAttribute('fill', c); e.setAttribute('opacity', o)
+        if (f) e.setAttribute('filter', f)
+        g.appendChild(e)
+      }
+    }
+  }
+</script>
+</body>
+</html>

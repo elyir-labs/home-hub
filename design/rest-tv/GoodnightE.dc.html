@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>E: winding down at night</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="rest-tv.css">
+<style>
+  .left li { display: flex; align-items: center; gap: 18px; font-size: 30px; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .left li small { font-size: 24px; color: var(--ink-3); margin-left: auto; }
+  .left li .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--lamp); box-shadow: 0 0 14px rgba(var(--lamp-rgb), .7); flex: none; }
+  .left li .dot.door { background: var(--danger); box-shadow: 0 0 14px rgba(var(--danger-rgb), .6); }
+  .left li .dot.music { background: var(--ink-2); box-shadow: none; }
+  .go { display: flex; align-items: center; gap: 24px; padding: 30px 40px; border-radius: 28px; background: rgba(26,28,34,.8);
+        box-shadow: 0 0 0 3px rgba(var(--lamp-rgb), .95), 0 0 0 9px rgba(var(--lamp-rgb), .18), 0 24px 60px rgba(0,0,0,.55); }
+</style>
+</head>
+<body>
+<div class="screen" style="background: radial-gradient(60% 50% at 30% 100%, #1a1830, transparent 70%), #08090e;">
+  <div class="stars" style="opacity:.35"></div>
+
+  <div class="shade" style="position:absolute; left:var(--safe-x); top:var(--safe-y); display:flex; align-items:baseline; gap:24px;">
+    <span class="display" style="font-size:80px; color:var(--ink-2);">10:42<span class="period">PM</span></span>
+    <span style="font-size:26px; color:var(--ink-3);">Friday, November 20 &middot; 61&deg; outside</span>
+  </div>
+
+  <div class="left" style="position:absolute; left:var(--safe-x); top:270px; width:820px;">
+    <div style="font-size:64px; font-weight:400; letter-spacing:-.03em;">Still on before bed</div>
+    <ul style="list-style:none; margin:34px 0 0; padding:0;">
+      <li><span class="dot"></span>Kitchen<small>2 lights</small></li>
+      <li><span class="dot"></span>Office<small>Desk lamp</small></li>
+      <li><span class="dot"></span>Front door<small>Porch light</small></li>
+      <li><span class="dot music"></span>Kitchen speaker<small>Playing</small></li>
+      <li><span class="dot door"></span>Back door<small>Unlocked</small></li>
+    </ul>
+  </div>
+
+  <div style="position:absolute; left:1060px; top:330px; width:760px;">
+    <div class="go">
+      <svg class="i" width="64" height="64" viewBox="0 0 24 24" style="color:var(--lamp)"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+      <div><div style="font-size:48px; letter-spacing:-.02em;">Goodnight</div>
+      <div style="font-size:24px; color:var(--ink-2); margin-top:6px;">Everything off, the back door locked, the music stopped</div></div>
+    </div>
+    <div style="display:flex; align-items:center; gap:16px; margin-top:44px; font-size:24px; color:var(--ink-3);">
+      <svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="3"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--ink-2)" stroke-width="3" stroke-dasharray="100.5" stroke-dashoffset="35" transform="rotate(-90 20 20)" stroke-linecap="round"/></svg>
+      This TV turns itself off in 7 minutes. The house stays as it is.
+    </div>
+    <div style="margin-top:20px; font-size:24px; color:var(--ink-3); padding-left:56px;">After Goodnight, the TV turns off with the lights.</div>
+  </div>
+
+  <div class="ok shade"><kbd>OK</kbd>Goodnight</div>
+  <div class="shade" style="position:absolute; left:var(--safe-x); bottom:var(--safe-y); display:flex; align-items:center; gap:12px; font-size:24px; color:var(--ink-3);">
+    <kbd style="font:600 17px/1 'Instrument Sans',system-ui; display:inline-flex; align-items:center; justify-content:center; min-width:60px; height:36px; border-radius:999px; border:1.5px solid rgba(255,255,255,.28);">Back</kbd>Not yet
+  </div>
+</div>
+</body>
+</html>
