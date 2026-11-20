@@ -276,7 +276,17 @@ export function light(e: HTMLElement | null) {
 /* A screen that asks for a number takes the digits, and Back while there is one to take off. */
 export const typing = shallowRef<{ digit: (d: string) => void; back: () => boolean } | null>(null)
 
+/* A key as it is counted: the browser's name for it, with any of Control, Alt or Meta held, since some remotes send a
+   combination for one button. A key the browser cannot name keeps its code, so two such buttons still count apart. */
+export function keyName(e: Pick<KeyboardEvent, 'key' | 'code' | 'ctrlKey' | 'altKey' | 'metaKey'>): string {
+  const key = e.key === 'Unidentified' || !e.key ? `Unidentified:${e.code || '?'}` : e.key
+  const held = [e.ctrlKey && key !== 'Control' && 'Control', e.altKey && key !== 'Alt' && 'Alt', e.metaKey && key !== 'Meta' && 'Meta']
+  return [...held.filter(Boolean), key].join('+')
+}
+
 export type RemoteHooks = {
+  /* Every press, counted, with who had the TV. Never a held key's repeats, and never typing into a field. */
+  pressed?: (key: string, on: 'box' | 'house') => void
   /* Takes a press before anything else: the resting TV raising its band. True when it took it. */
   first?: (p: Press) => boolean
   back: () => boolean
@@ -306,6 +316,7 @@ export function installRemote(hooks: RemoteHooks): () => void {
 
   function down(e: KeyboardEvent) {
     const box = passTo.value
+    if (!e.repeat && (box || !typable(e.target as Element))) hooks.pressed?.(keyName(e), box ? 'box' : 'house')
     if (box) {
       e.preventDefault(); e.stopImmediatePropagation()
       const p = pressOf(e.key)

@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """A streaming box beside the TV (hub/boxes.py, design/tv-box/, A): its apps, what it last had on, opening an app on
-it, woken first when it sleeps, and the keys of a remote plugged into the hub passed on to it.
+it, woken first when it sleeps, the keys of a remote plugged into the hub passed on to it, and how often each of
+those keys is pressed.
 
 Run from brain/: .venv/bin/python -m unittest -v"""
+from hub import boxes
 from tests.apptest import ApiTest, house, hardware, entity, state
 
 
@@ -99,3 +101,29 @@ class BoxTests(ApiTest):
         self.hub.home.build(areas, devices, [e for e in entities if e["entity_id"] != "remote.apple_tv"], states)
         self.assertNotIn("keys", self.box().attrs)
         self.assertEqual(self.client.post("/devices/media_player.apple_tv/key", json={"key": "up"}).status_code, 400)
+
+    def test_every_key_is_counted_by_day_and_by_who_had_the_tv_and_the_count_survives_a_restart(self):
+        for key, on in [("ArrowUp", "house"), ("ArrowUp", "house"), ("5", "house"), ("ArrowUp", "box"), ("Unidentified:142", "box")]:
+            self.assertEqual(self.client.post("/remote/pressed", json={"key": key, "on": on}).status_code, 200)
+        got = self.client.get("/remote/pressed").json()
+        self.assertEqual(got["total"], {"house": {"ArrowUp": 2, "5": 1}, "box": {"ArrowUp": 1, "Unidentified:142": 1}})
+        self.assertEqual(list(got["total"]["house"]), ["ArrowUp", "5"])   # most pressed first
+        self.assertEqual(list(got["days"]), [got["since"]])
+        self.assertEqual(boxes.Pressed(self.hub.settings).summary(), got)
+
+    def test_a_count_is_not_a_change_to_the_house_and_drives_nothing(self):
+        self.client.post("/remote/pressed", json={"key": "Enter", "on": "box"})
+        self.assertEqual(self.ha.called("remote"), [])
+        self.assertEqual(self.hub.log.recent(), [])
+
+    def test_what_is_not_a_key_is_refused(self):
+        for body in ({"key": "", "on": "house"}, {"key": "ArrowUp", "on": "kitchen"}, {"key": "x" * 41, "on": "box"}, {"key": "a\nb", "on": "box"}, None):
+            self.assertEqual(self.client.post("/remote/pressed", json=body).status_code, 400)
+        self.assertEqual(self.client.get("/remote/pressed").json()["total"], {})
+
+    def test_only_the_last_hundred_and_twenty_days_are_kept(self):
+        day = iter(f"2026-{m:02d}-{d:02d}" for m in range(1, 13) for d in range(1, 29))
+        pressed = boxes.Pressed(self.hub.settings, today=lambda: next(day))
+        for _ in range(130): pressed.count("Enter", "house")
+        self.assertEqual(len(pressed.days), boxes.PRESSED_KEEP)
+        self.assertNotIn("2026-01-01", pressed.days)

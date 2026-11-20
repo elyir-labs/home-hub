@@ -821,6 +821,11 @@ export async function act(id: string, action: string, data?: Record<string, unkn
   const r = await request(`/devices/${encodeURIComponent(id)}/${action}`, { method: 'POST', headers: json, body: data ? JSON.stringify(data) : undefined })
   if (!r.ok) await fail(r)
 }
+/** A key pressed on a remote plugged into the hub, counted to learn which keys get used (brain/hub/boxes.py Pressed).
+    A count that does not arrive is not worth anybody's attention. */
+export function countPress(key: string, on: 'box' | 'house') {
+  request('/remote/pressed', { method: 'POST', headers: json, body: JSON.stringify({ key, on }) }).catch(() => {})
+}
 /** A remote's key for the streaming box on the TV (brain/hub/boxes.py KEYS). */
 export async function pressKey(id: string, key: string) {
   const r = await request(`/devices/${encodeURIComponent(id)}/key`, { method: 'POST', headers: json, body: JSON.stringify({ key }) })

@@ -26,6 +26,7 @@ import TvRecord from './TvRecord.vue'
 import TvGlow from './TvGlow.vue'
 import TvBand from './TvBand.vue'
 import type { Device } from './api'
+import { countPress } from './api'
 import { lock } from './code'
 import Sky from './Sky.vue'
 import ArtDefs from './ArtDefs.vue'
@@ -341,7 +342,7 @@ function looked() { if (document.visibilityState === 'hidden') forgetDone(true) 
 let tick: number | undefined, idler: number | undefined
 onMounted(() => {
   start()
-  if (tv) unremote = installRemote({ first: remote, back: remoteBack, home: remoteHome, color: remoteColor })
+  if (tv) unremote = installRemote({ first: remote, back: remoteBack, home: remoteHome, color: remoteColor, pressed: countPress })
   tick = window.setInterval(() => (now.value = new Date()), 10000)
   idler = window.setInterval(checkIdle, 5000)
   window.addEventListener('pointerdown', touched, { capture: true })

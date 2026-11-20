@@ -115,6 +115,7 @@ class Hub:
         self.home.kinds = dict(self.settings.get("kinds") or {})   # what the owner said things are; kept in settings so a restore brings it back with the rest of the house
         self.home.color_pinned = set(self.settings.get("color_pinned") or [])   # and which lights somebody chose a color for, rather than leaving to the house
         self.home.watched = boxes.Watched(self.settings)
+        self.pressed = boxes.Pressed(self.settings)
         self.home.room_colors = {k: list(v) for k, v in (self.settings.get("room_colors") or {}).items()}
         self.home.speaker_pairs = list(self.settings.get("speaker_pairs") or [])
         self.home.off_home = set(self.settings.get("off_home") or [])   # what is never on Home, on any screen (design/home-keep/)
@@ -2530,6 +2531,20 @@ async def device_key(device_id: str, body: dict | None = None):
     try: await hub.press(dev, str((body or {}).get("key") or ""))
     except ValueError as e: raise HTTPException(400, str(e))
     return {"ok": True}
+
+
+@app.post("/remote/pressed")
+async def remote_pressed(body: dict | None = None):
+    """A key pressed on a remote plugged into the hub, counted: {"key": "ArrowUp", "on": "box" | "house"}."""
+    try: hub.pressed.count(str((body or {}).get("key") or ""), str((body or {}).get("on") or ""))
+    except ValueError as e: raise HTTPException(400, str(e))
+    return {"ok": True}
+
+
+@app.get("/remote/pressed")
+async def remote_pressed_counts():
+    """Which keys of a remote plugged into the hub get pressed: totals, most pressed first, and each day's."""
+    return hub.pressed.summary()
 
 
 @app.post("/devices/{device_id}/{action}")

@@ -284,6 +284,21 @@ and Ring's config from it, compose hands it to Zigbee2MQTT, and the brain gives 
   without Long Range
 - ratgdo32 for a garage door (Security+ 2.0 only)
 
+### Which keys of a remote get pressed
+
+A remote plugged into a hub on a TV counts every key it sends, so a few weeks of evenings say which keys a remote
+of our own needs (`design/remote/`). The TV's panel reports each press, once however long it is held and never what
+is typed into a field, and the brain keeps a count per key per day for 120 days, split by whether a streaming box had
+the TV or the house did (`Pressed` in `brain/hub/boxes.py`). Read it on the hub itself:
+
+```sh
+ssh <user>@<hub> 'curl -s localhost:8300/remote/pressed' | python3 -m json.tool
+```
+
+`total` is most pressed first; `days` is each day's. Keys carry the browser's names (`ArrowUp`, `Enter`, `5`,
+`Alt+F4`), and a key the browser cannot name shows up as `Unidentified:` and its code. Only keys that reach the
+screen's browser are counted: a power key the host's own Linux takes for itself never gets there.
+
 ## Tests and CI
 
 Every push, on **every branch**, and every pull request runs `.github/workflows/ci.yml` — a long-lived

@@ -9,6 +9,7 @@ and back is the screen's own job, over HDMI (startup/cec.sh), because only the s
 
 Which integrations are boxes is the brain's to know; the panel only ever sees a player with apps."""
 import time
+from datetime import date
 
 # A TV with apps built in counts too (a Google TV is androidtv_remote). An LG TV's list mixes its HDMI inputs in with
 # its apps, so it waits until there is one to try it on.
@@ -96,3 +97,33 @@ class Watched:
         if app in apps: self._use(eid, app)
         self._keep()
         return True
+
+
+PRESSED_KEEP = 120     # days
+
+class Pressed:
+    """How often each key of a remote plugged into the hub is pressed, a day at a time, and whether the box had the TV
+    or the house did. It is there to learn which keys a remote of our own needs (design/remote/): nothing on the hub
+    acts on it, and it is read by a person deciding that. Keys are named as the screen's browser names them, so one it
+    cannot name still shows up, as Unidentified."""
+
+    def __init__(self, settings, today=lambda: date.today().isoformat()):
+        self.settings = settings
+        self.today = today
+        self.days = {d: {on: dict(keys) for on, keys in by.items()} for d, by in (settings.get("pressed") or {}).items()}
+
+    def count(self, key: str, on: str):
+        if on not in ("box", "house") or not key or len(key) > 40 or not key.isprintable():
+            raise ValueError("That is not a key.")
+        keys = self.days.setdefault(self.today(), {}).setdefault(on, {})
+        keys[key] = keys.get(key, 0) + 1
+        for old in sorted(self.days)[:-PRESSED_KEEP]: del self.days[old]
+        self.settings.set(pressed=self.days)
+
+    def summary(self) -> dict:
+        total: dict[str, dict[str, int]] = {}
+        for by in self.days.values():
+            for on, keys in by.items():
+                for k, n in keys.items(): total.setdefault(on, {})[k] = total.get(on, {}).get(k, 0) + n
+        most = {on: dict(sorted(keys.items(), key=lambda kv: (-kv[1], kv[0]))) for on, keys in total.items()}
+        return {"since": min(self.days, default=None), "total": most, "days": dict(sorted(self.days.items()))}
