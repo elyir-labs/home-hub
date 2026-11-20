@@ -52,6 +52,7 @@ from . import glow as glow_mod
 from .printers import Printers
 from .photos import Photos
 from .screens import Screens
+from .board import Board
 from .power import Power
 from .signals import Signals
 from . import things
@@ -151,6 +152,7 @@ class Hub:
         self.printers = Printers(self)     # 3D printers on the Wi-Fi, let in at the printer and followed: hub/printers.py
         self.photos = Photos()             # the household's own photos, for a TV at rest: design/rest-tv/
         self.screens = Screens()           # the house's screens, which are TVs and which show photos: design/which-tv/
+        self.board = Board()               # notes and countdowns the household leaves for its screens: design/tv-moments/
         self.power = Power()               # the sun on the roof, the battery and the grid: hub/power.py
         self._power_sent: tuple[float, tuple | None] = (0.0, None)
         self.net = Network(self)           # how this hub is connected, and what it hands out: docs/network.md
@@ -2923,10 +2925,42 @@ def screens_me(body: dict):
         raise HTTPException(400, str(e))
 
 
+# ---------- the family board: notes and countdowns (design/tv-moments/, step 2) ----------
+@app.get("/board")
+def board_now():
+    return hub.board.current()
+
+
+@app.post("/board/notes")
+def board_note(body: dict, request: Request):
+    """{"text", "until"}: a note for the screens. `until` is when it comes down, in seconds, worked out by the phone in
+    its own day (tonight, tomorrow), or null to stay until somebody takes it down. Signed with the phone's name."""
+    phone = hub.phones.identify(_phone_token(request))
+    try: return hub.board.leave(body.get("text"), by=(phone or {}).get("name"), until=body.get("until"))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.post("/board/countdowns")
+def board_countdown(body: dict, request: Request):
+    """{"what", "date"}: a countdown to a day, "YYYY-MM-DD". A birthday or an anniversary comes round every year."""
+    phone = hub.phones.identify(_phone_token(request))
+    try: return hub.board.count_to(body.get("what"), body.get("date"), by=(phone or {}).get("name"))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.delete("/board/{item_id}")
+def board_remove(item_id: str):
+    if not hub.board.remove(item_id): raise HTTPException(404, "Nothing like that is up.")
+    return {"ok": True}
+
+
 @app.post("/photos/screens/{screen_id}")
 def photos_screen(screen_id: str, body: dict):
-    """{"on": bool}: whether this screen shows the photos at rest, from the switch on Photos (design/which-tv/, C)."""
-    screen = hub.screens.show(screen_id, bool(body.get("on")))
+    """{"on": bool, "play": "each" | "days"}: whether this screen shows the photos at rest (design/which-tv/, C), and
+    how they play, one after another or a day at a time (design/tv-moments/). Either may be left out."""
+    on = body.get("on") if isinstance(body.get("on"), bool) else None
+    notes = body.get("notes") if isinstance(body.get("notes"), bool) else None
+    screen = hub.screens.show(screen_id, on=on, play=body.get("play"), notes=notes, shows=body.get("shows"))
     if not screen: raise HTTPException(404, "No such screen.")
     return _named(screen)
 

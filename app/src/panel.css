@@ -67,6 +67,7 @@
   --sans:
     'Instrument Sans Variable', 'Instrument Sans', -apple-system, 'SF Pro Text',
     'Segoe UI', system-ui, sans-serif;
+  --serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .shell[data-ambient='dawn'] {
@@ -3250,6 +3251,79 @@ input:focus-visible {
 .photos-screens li + li {
   margin-top: 6px;
 }
+.photos-screens li:has(.photos-screen-open) {
+  padding: 0;
+}
+.photos-screen-open {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.photos-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.photos-screen-title {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+.photos-screens li.photos-play-row {
+  flex-wrap: wrap;
+}
+.photos-play {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.photos-play .button {
+  flex: 1;
+  justify-content: center;
+}
+.photos-gone {
+  opacity: 0.6;
+}
+.photos-write {
+  margin-top: 10px;
+}
+.photos-tabs {
+  margin-bottom: 18px;
+}
+.photos-label {
+  display: block;
+  margin: 16px 2px 8px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.photos-field {
+  display: block;
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--edge-hi);
+  background: var(--surface-hi);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  resize: vertical;
+}
+.photos-go {
+  margin-top: 22px;
+}
+.photos-left {
+  text-align: left;
+}
 .photos-screen-text {
   flex: 1;
   min-width: 0;
@@ -3477,10 +3551,12 @@ input:focus-visible {
   background: rgba(255, 255, 255, 0.06);
 }
 
-/* A: the photos. One fills the screen and drifts slowly; two taken upright stand side by side. */
+/* The photos (design/tv-moments/, A and B): each moves its own way for as long as it is up, an upright one stands
+   alone over a blurred, enlarged copy of itself, and a day of photos opens on its title and three of them together. */
 .tvrest-slide {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   background: #000;
 }
 .tvrest-photo {
@@ -3489,36 +3565,106 @@ input:focus-visible {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  animation: tvrest-pan 60s ease-in-out both;
 }
-@keyframes tvrest-pan {
-  from { transform: scale(1.02) translate(0.6%, -0.4%); }
-  to { transform: scale(1.08) translate(-0.8%, 0.5%); }
+.tvrest-move {
+  animation-duration: var(--beat, 18s);
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
 }
-.tvrest-pair-wash {
+.tvrest-move.m0 {
+  animation-name: tvrest-in;
+  transform-origin: 62% 56%;
+}
+.tvrest-move.m1 {
+  animation-name: tvrest-across;
+}
+.tvrest-move.m2 {
+  animation-name: tvrest-out;
+}
+.tvrest-move.m3 {
+  animation-name: tvrest-up;
+}
+@keyframes tvrest-in {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.16); }
+}
+@keyframes tvrest-across {
+  from { transform: scale(1.14) translateX(3.5%); }
+  to { transform: scale(1.14) translateX(-3.5%); }
+}
+@keyframes tvrest-out {
+  from { transform: scale(1.18); }
+  to { transform: scale(1.03); }
+}
+@keyframes tvrest-up {
+  from { transform: scale(1.12) translateY(2.5%); }
+  to { transform: scale(1.12) translateY(-2.5%); }
+}
+.tvrest-fill {
   position: absolute;
   inset: -80px;
   width: calc(100% + 160px);
   height: calc(100% + 160px);
   object-fit: cover;
-  filter: blur(60px) saturate(1.1);
-  opacity: 0.7;
+  filter: blur(50px) saturate(1.1);
+  opacity: 0.8;
 }
-.tvrest-pair {
+.tvrest-fill-dim {
+  filter: blur(50px) brightness(0.5);
+  opacity: 1;
+}
+.tvrest-tall {
   position: absolute;
+  left: 50%;
   top: 54px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-}
-.tvrest-pair img {
-  height: 720px;
   width: 540px;
-  object-fit: cover;
+  height: 720px;
+  translate: -50% 0;
+  overflow: hidden;
   border-radius: 6px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+.tvrest-tall img,
+.tvrest-collage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tvrest-daytitle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 160px 120px;
+  text-align: center;
+}
+.tvrest-daytitle-day {
+  font-family: var(--serif);
+  font-size: 128px;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+}
+.tvrest-daytitle-sub {
+  margin-top: 26px;
+  font-size: 30px;
+}
+.tvrest-collage {
+  position: absolute;
+  inset: 54px 96px 250px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 14px;
+}
+.tvrest-collage > div {
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.tvrest-collage > div:first-child {
+  grid-row: span 2;
 }
 .tvrest-scrim {
   position: absolute;
@@ -3527,11 +3673,167 @@ input:focus-visible {
 }
 .tvrest-fade-enter-active,
 .tvrest-fade-leave-active {
-  transition: opacity 2s ease;
+  transition: opacity 2s ease, filter 2s ease;
 }
 .tvrest-fade-enter-from,
 .tvrest-fade-leave-to {
   opacity: 0;
+  filter: blur(8px);
+}
+/* A note or a countdown taking its turn (design/tv-moments/CardsA), and the family board (BoardC) */
+.tvrest-card {
+  position: absolute;
+  inset: 0 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.tvrest-paper {
+  max-width: 1100px;
+  padding: 70px 90px;
+  border-radius: 6px;
+  font-family: var(--serif);
+  font-size: 96px;
+  line-height: 1.1;
+  color: #2b2520;
+  background: #f6efe1;
+  rotate: -1.5deg;
+  text-shadow: none;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.5);
+}
+.tvrest-card-from {
+  margin-top: 44px;
+  font-size: 26px;
+}
+.tvrest-card-cap {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.tvrest-count {
+  margin-top: 20px;
+  font-size: 300px;
+  font-weight: 300;
+  line-height: 1;
+}
+.tvrest-count.word {
+  font-family: var(--serif);
+  font-size: 180px;
+  font-weight: 400;
+}
+.tvrest-card-under {
+  font-size: 44px;
+}
+.tvrest-cardclock,
+.tvrest-boardclock {
+  position: absolute;
+  left: 96px;
+  bottom: 54px;
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+}
+.tvrest-cardclock .tvrest-time {
+  font-size: 64px;
+}
+.tvrest-boardbg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #1b2030, #11131b);
+}
+.tvrest-boardclock {
+  top: 54px;
+  bottom: auto;
+  gap: 22px;
+}
+.tvrest-boardclock .tvrest-time {
+  font-size: 96px;
+}
+.tvrest-boardnotes {
+  position: absolute;
+  left: 96px;
+  top: 230px;
+  width: 1060px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+.tvrest-paper.small {
+  max-width: none;
+  padding: 40px;
+  font-size: 54px;
+  rotate: -1.2deg;
+}
+.tvrest-paper.small.tone1 {
+  color: #1f2a2c;
+  background: #e3eef0;
+  rotate: 1deg;
+}
+.tvrest-paper.small small {
+  display: block;
+  margin-top: 20px;
+  font-family: var(--sans);
+  font-size: 20px;
+  opacity: 0.75;
+}
+.tvrest-coming {
+  grid-column: span 2;
+  padding: 34px 40px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.tvrest-coming-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 60px;
+  margin-top: 16px;
+  font-size: 34px;
+}
+.tvrest-coming-row b {
+  font-size: 64px;
+  font-weight: 300;
+}
+.tvrest-boardempty {
+  position: absolute;
+  left: 96px;
+  top: 260px;
+  width: 1000px;
+  font-family: var(--serif);
+  font-size: 64px;
+  line-height: 1.15;
+}
+.tvrest-boardphoto {
+  position: absolute;
+  right: 96px;
+  top: 230px;
+  width: 560px;
+  height: 640px;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+}
+.tvrest-boardphoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tvrest-boardsaid {
+  position: absolute;
+  right: 96px;
+  top: 884px;
+  font-size: 22px;
+}
+.tvrest-ago {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 30px;
+  color: var(--lamp);
 }
 .tvrest-said {
   position: absolute;
@@ -3847,7 +4149,7 @@ input:focus-visible {
   color: var(--ink-2);
 }
 @media (prefers-reduced-motion: reduce) {
-  .tvrest-photo { animation: none; }
+  .tvrest-move { animation: none; }
   .tvrest-moves { transition: none; }
 }
 

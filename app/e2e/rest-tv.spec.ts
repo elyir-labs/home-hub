@@ -17,7 +17,7 @@ async function rest(page: Page, at: string) {
 test('in the evening a resting TV shows the household\'s photos, whose phone each came from, and OK raises the room', async ({ page }) => {
   await rest(page, '19:40')
   await expect(page.locator('.tvrest')).toHaveAttribute('data-face', 'photos')
-  await expect(page.locator('.tvrest-said')).toHaveText(/^\w+ \d{4} · from .+(phone|iPhone)$/)
+  await expect(page.locator('.tvrest-slide').first()).toBeVisible()   // a photo, a day's title or three together, whichever is up this minute
   await expect(page.locator('.tvrest-ok')).toContainText('The living room')
   await page.keyboard.press('Enter')
   await expect(page.locator('.tvb-band')).toBeVisible()

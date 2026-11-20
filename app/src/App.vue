@@ -261,7 +261,7 @@ watch(idle, v => { if (v) { restSince.value = Date.now(); slept = false; if (tv 
 /* A screen says what it is once the house is read, then again at each rest; a wall with its photos switched on rests
    on them (design/which-tv/, Wall A), and without them, or with none yet, as it always has. */
 watch(() => store.loaded, l => { if (l && (tv || screen)) { reportScreen(tv); loadRestPhotos() } }, { immediate: true })
-const wallPhotos = computed(() => !tv && screen && rest.shows && rest.photos.length > 0)
+const wallPhotos = computed(() => !tv && screen && (rest.view === 'board' || (rest.shows && rest.photos.length > 0)))
 function touched(e?: Event) {
   lastTouch = Date.now()
   if (!idle.value) return
