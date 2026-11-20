@@ -88,6 +88,34 @@ export function wayBack(colors: boolean, box: string): string {
 }
 export const HANDOVER_MS = 2200
 
+/* A remote plugged into the hub while the box is on the TV. The hub's own screen is out of sight then, so no press may
+   act on it: the box's keys go to the box, and Home or a colored button brings the house back. The words are the
+   brain's (brain/hub/boxes.py KEYS), which turns them into whatever the box's integration calls them. */
+export type BoxKey = 'up' | 'down' | 'left' | 'right' | 'ok' | 'back' | 'play_pause' | 'play' | 'pause' | 'next' | 'previous'
+  | 'forward' | 'rewind' | 'louder' | 'quieter'
+const BOX_KEYS: Record<string, BoxKey> = {
+  ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+  Enter: 'ok', Select: 'ok', ' ': 'ok',
+  Escape: 'back', Backspace: 'back', BrowserBack: 'back', GoBack: 'back', Exit: 'back',
+  MediaPlayPause: 'play_pause', MediaPlay: 'play', MediaPause: 'pause', MediaTrackNext: 'next', MediaTrackPrevious: 'previous',
+  MediaFastForward: 'forward', MediaRewind: 'rewind', AudioVolumeUp: 'louder', AudioVolumeDown: 'quieter',
+}
+export const boxKeyOf = (key: string): BoxKey | null => BOX_KEYS[key] ?? null
+
+export type PassOn = { key: (k: BoxKey, repeat: boolean) => void; back: () => void }
+export const passTo = shallowRef<PassOn | null>(null)
+
+/* Keys go to the box one at a time, in the order pressed. A held arrow sends as fast as the box answers rather than as
+   fast as the key repeats, so letting go stops it where it is. */
+export function keySender(send: (k: BoxKey) => Promise<unknown>): PassOn['key'] {
+  let chain: Promise<unknown> = Promise.resolve(), waiting = 0
+  return (k, repeat) => {
+    if (repeat && waiting > 0) return
+    waiting++
+    chain = chain.then(() => send(k)).catch(() => {}).finally(() => { waiting-- })
+  }
+}
+
 const ORDER = ['light', 'cover', 'climate', 'media', 'fan', 'switch', 'lock']
 /* Everything in the room a person can do something to, in an order that never changes with its state:
    a light turned off from the sofa stays exactly where it was. Cameras have a row of their own. */
@@ -277,6 +305,15 @@ export function installRemote(hooks: RemoteHooks): () => void {
   }
 
   function down(e: KeyboardEvent) {
+    const box = passTo.value
+    if (box) {
+      e.preventDefault(); e.stopImmediatePropagation()
+      const p = pressOf(e.key)
+      if (p === 'home' || p === 'red' || p === 'green' || p === 'yellow' || p === 'blue') { if (!e.repeat) box.back(); return }
+      const k = boxKeyOf(e.key)
+      if (k) box.key(k, e.repeat)
+      return
+    }
     if (typable(e.target as Element)) {
       if (e.key === 'Escape') { (e.target as HTMLElement).blur(); e.preventDefault() }
       return
@@ -318,6 +355,7 @@ export function installRemote(hooks: RemoteHooks): () => void {
     move(p as Dir)
   }
   function up(e: KeyboardEvent) {
+    if (passTo.value) { e.preventDefault(); e.stopImmediatePropagation(); return }
     if (pressOf(e.key) !== 'ok' || typable(e.target as Element)) return
     e.preventDefault(); e.stopImmediatePropagation()
     if (!holding) return

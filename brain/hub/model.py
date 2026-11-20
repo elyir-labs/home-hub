@@ -268,6 +268,8 @@ class Home:
         self.reports: dict[str, dict] = {}
         self.companions: dict[str, tuple[str, str]] = {}   # entity id -> (thermostat id, "comfort" | "air")
         self.boxes: set[str] = set()       # media players that are a streaming box, with apps to open (hub/boxes.py)
+        self.box_remotes: dict[str, str] = {}   # a box that takes keys, and its remote
+        self.box_platform: dict[str, str] = {}
         self.watched: boxes.Watched | None = None   # what each box last had on; the hub gives it settings
         self.told: dict[str, dict] = {}                    # thermostat id -> what its companions and room sensors say
         # LIGHTS FOLDED INTO ANOTHER LIGHT'S TILE: a roofline of several boxes is ONE light on the wall
@@ -308,6 +310,7 @@ class Home:
         # A HomePod comes through the same integration as an Apple TV, with no apps: it is a speaker, not a box.
         if eid in self.boxes and (apps := boxes.apps_of(a)):
             out.update(box=True, apps=apps, **(self.watched.attrs(eid) if self.watched else {}))
+            if eid in self.box_remotes: out["keys"] = True
         return out
 
     @staticmethod
@@ -365,6 +368,8 @@ class Home:
         reg = {e["entity_id"]: e for e in entities}
         st = {s["entity_id"]: s for s in states}
         self.boxes = {eid for eid, e in reg.items() if boxes.is_box(e)}
+        self.box_remotes = boxes.remotes_of(entities)
+        self.box_platform = {eid: reg[eid].get("platform") for eid in self.boxes}
         camera_devices = {e["device_id"] for e in entities if e["entity_id"].startswith("camera.") and e.get("device_id")}
         self.devices = {}
         self.twins = {e: own for e, own in self.engine_players(entities).items() if own != e}

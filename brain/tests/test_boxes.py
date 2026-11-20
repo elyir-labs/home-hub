@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Temitope Adeyeri
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""A streaming box beside the TV (hub/boxes.py, design/tv-box/, A): its apps, what it last had on, and opening an
-app on it, woken first when it sleeps.
+"""A streaming box beside the TV (hub/boxes.py, design/tv-box/, A): its apps, what it last had on, opening an app on
+it, woken first when it sleeps, and the keys of a remote plugged into the hub passed on to it.
 
 Run from brain/: .venv/bin/python -m unittest -v"""
 from tests.apptest import ApiTest, house, hardware, entity, state
@@ -12,10 +12,11 @@ def house_with_a_box():
     devices += [hardware("hw-box", "living", "Apple TV", manufacturer="Apple"), hardware("hw-tv", "living", "TV", manufacturer="Samsung"),
                 hardware("hw-pod", "living", "HomePod", manufacturer="Apple")]
     entities += [entity("media_player.apple_tv", "hw-box", platform="apple_tv"), entity("media_player.tv", "hw-tv", platform="samsungtv"),
-                 entity("media_player.homepod", "hw-pod", platform="apple_tv")]
+                 entity("media_player.homepod", "hw-pod", platform="apple_tv"), entity("remote.apple_tv", "hw-box", platform="apple_tv"),
+                 entity("remote.homepod", "hw-pod", platform="apple_tv")]
     states += [state("media_player.apple_tv", "standby", friendly_name="Apple TV", source_list=["Netflix", "YouTube", "Disney+"]),
                state("media_player.tv", "on", friendly_name="TV", source_list=["TV", "HDMI 1", "HDMI 2"]),
-               state("media_player.homepod", "off", friendly_name="HomePod")]
+               state("media_player.homepod", "off", friendly_name="HomePod"), state("remote.apple_tv", "on"), state("remote.homepod", "on")]
     return areas, devices, entities, states
 
 
@@ -74,3 +75,27 @@ class BoxTests(ApiTest):
         self.hub.home.build(*house_with_a_box())
         self.assertEqual(self.box().attrs["last_on"]["title"], "Harbor Lights")
         self.assertEqual(self.hub.settings.get("boxes")["last"]["media_player.apple_tv"]["app"], "YouTube")
+
+    def test_a_remote_s_keys_reach_the_apple_tv_through_its_own_remote_in_the_box_s_words(self):
+        self.assertTrue(self.box().attrs["keys"])
+        for key in ("up", "ok", "back", "louder"):
+            self.assertEqual(self.client.post("/devices/media_player.apple_tv/key", json={"key": key}).status_code, 200)
+        sent = self.ha.called("remote", "send_command", entity_id="remote.apple_tv")
+        self.assertEqual([c[3]["command"] for c in sent], ["up", "select", "menu", "volume_up"])
+        self.assertEqual(self.hub.log.recent(subject="media_player.apple_tv"), [])
+
+    def test_a_key_is_not_a_touch_on_the_room(self):
+        self.client.post("/devices/media_player.apple_tv/key", json={"key": "ok"})
+        self.assertIsNone(self.hub.home.rooms["living"].hold_until)
+
+    def test_a_key_the_box_has_no_word_for_or_a_player_that_is_not_a_box_is_refused(self):
+        self.assertEqual(self.client.post("/devices/media_player.apple_tv/key", json={"key": "eject"}).status_code, 400)
+        self.assertEqual(self.client.post("/devices/media_player.homepod/key", json={"key": "up"}).status_code, 400)
+        self.assertEqual(self.client.post("/devices/media_player.tv/key", json={"key": "up"}).status_code, 400)
+        self.assertEqual(self.ha.called("remote"), [])
+
+    def test_a_box_with_no_remote_beside_it_takes_no_keys(self):
+        areas, devices, entities, states = house_with_a_box()
+        self.hub.home.build(areas, devices, [e for e in entities if e["entity_id"] != "remote.apple_tv"], states)
+        self.assertNotIn("keys", self.box().attrs)
+        self.assertEqual(self.client.post("/devices/media_player.apple_tv/key", json={"key": "up"}).status_code, 400)

@@ -19,7 +19,7 @@ import { lastTurn } from './thisScreen'
 import CodePrompt from './CodePrompt.vue'
 import Keys from './Keys.vue'
 import { onWall } from './keys'
-import { installRemote, musicIn, onTV, sceneFor, type Press } from './tv'
+import { installRemote, musicIn, onTV, passTo, sceneFor, type Press } from './tv'
 import TvView from './views/TvView.vue'
 import DoorCorner from './DoorCorner.vue'
 import TvRecord from './TvRecord.vue'
@@ -323,7 +323,8 @@ let unremote: (() => void) | undefined
 async function rejoin() { halt(); await start() }                       // this screen just joined: read the house and reconnect
 function checkIdle() {
   // a page that is the whole screen is a question waiting for its answer (joining, which room), so it never rests under the clock
-  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && !shut.value && Date.now() - lastTouch > IDLE_AFTER) idle.value = true
+  // nor while a streaming box has the TV: the house is out of sight, and is what comes back when it is done
+  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && !shut.value && !passTo.value && Date.now() - lastTouch > IDLE_AFTER) idle.value = true
   forgetDone(idle.value)   // and the stale ones either way, for a screen that never rests
   if (idle.value) lastTurn.value = null   // This screen's Put it back, by the same rule
 }

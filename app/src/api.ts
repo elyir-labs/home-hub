@@ -821,6 +821,11 @@ export async function act(id: string, action: string, data?: Record<string, unkn
   const r = await request(`/devices/${encodeURIComponent(id)}/${action}`, { method: 'POST', headers: json, body: data ? JSON.stringify(data) : undefined })
   if (!r.ok) await fail(r)
 }
+/** A remote's key for the streaming box on the TV (brain/hub/boxes.py KEYS). */
+export async function pressKey(id: string, key: string) {
+  const r = await request(`/devices/${encodeURIComponent(id)}/key`, { method: 'POST', headers: json, body: JSON.stringify({ key }) })
+  if (!r.ok) await fail(r)
+}
 /* A color somebody matched against this room's own lamps, kept so it is one tap next time.
    Per room rather than per lamp: it was tuned against the bulbs in there, and the bulb beside
    it is the same make more often than not. */

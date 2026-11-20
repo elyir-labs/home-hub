@@ -25,9 +25,31 @@ WATCH_FIRST = ["Netflix", "YouTube", "Disney+", "Prime Video", "Max", "Hulu", "T
 
 USED_KEEP = 12
 
+# The keys a remote plugged into the hub passes on while the box is on the TV, in the panel's words, and what each
+# integration's remote calls them. A box whose integration is not here keeps its own remote and nothing is passed on.
+KEYS = {
+    "apple_tv": {"up": "up", "down": "down", "left": "left", "right": "right", "ok": "select", "back": "menu",
+                 "play_pause": "play_pause", "play": "play", "pause": "pause", "next": "next", "previous": "previous",
+                 "forward": "skip_forward", "rewind": "skip_backward", "louder": "volume_up", "quieter": "volume_down"},
+}
+
 
 def is_box(entity: dict) -> bool:
     return entity.get("entity_id", "").startswith("media_player.") and entity.get("platform") in BOXES
+
+
+def remotes_of(entities: list[dict]) -> dict[str, str]:
+    """Each box that takes keys, and the remote that sends them: the integration's remote on the same hardware."""
+    found = {}
+    for e in entities:
+        if not is_box(e) or e.get("platform") not in KEYS or not e.get("device_id"): continue
+        found[e["entity_id"]] = next((r["entity_id"] for r in entities if r["entity_id"].startswith("remote.")
+                                      and r.get("device_id") == e["device_id"] and r.get("platform") == e["platform"]), None)
+    return {eid: r for eid, r in found.items() if r}
+
+
+def command_for(platform: str, key: str) -> str | None:
+    return KEYS.get(platform, {}).get(key)
 
 
 def apps_of(attrs: dict) -> list[str]:

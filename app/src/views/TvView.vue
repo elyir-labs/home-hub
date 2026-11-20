@@ -12,13 +12,13 @@
    then its apps. OK on one opens it on the box and switches the TV over, after two seconds that say how to come back:
    a colored button on the TV's remote where this screen hears one meant for the box, Input otherwise, and the box going
    to sleep always (coming back: B, falling back to A). Back, the app is still lit and says Just now. */
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
 import type { Device, Room } from '../api'
 import { activity, capsOf, done, iconFor, keepDone, shortName, perform, roomActive, runScene, scenesFor, store, type Scene } from '../store'
 import { levelOf } from '../levels'
-import { appsOf, appTint, boxAsleep, boxIn, HANDOVER_MS, wayBack, camerasIn, COLOR_OF, hintFor, hintParts, lastOn, leadsOf, light, lit, louder, musicIn, okOf, playPause, speakersOf, stateOf, thingsIn } from '../tv'
+import { appsOf, appTint, boxAsleep, boxIn, HANDOVER_MS, wayBack, camerasIn, COLOR_OF, hintFor, hintParts, keySender, lastOn, leadsOf, light, lit, louder, musicIn, okOf, passTo, playPause, speakersOf, stateOf, thingsIn } from '../tv'
 import { showOnTv, tvShowing } from '../thisScreen'
-import { getGlow, imageUrl } from '../api'
+import { getGlow, imageUrl, pressKey } from '../api'
 import { locale } from '../lang'
 import Icon from '../Icon.vue'
 
@@ -60,9 +60,13 @@ function showAll() {
   if (first) nextTick(() => light(rowsEl.value?.querySelector<HTMLElement>(`[data-app="${CSS.escape(first)}"]`) ?? null))
 }
 /* Sent to the box. The TV comes back when the box goes to sleep, or is found showing the house again: a colored button
-   (startup/cec-watch.py switches it) or Input on the TV's remote. */
+   (startup/cec-watch.py switches it) or Input on the TV's remote, or Home or a colored button on a remote plugged into
+   the hub. While the box has the TV, that remote works the box. */
 let sent: { id: string; app: string | null; awake: boolean; away: boolean } | null = null
 let asking: number | undefined
+const onBox = ref(false)
+const sendKey = keySender(k => box.value?.attrs.keys ? pressKey(box.value.id, k) : Promise.resolve())
+watchEffect(() => { passTo.value = onBox.value ? { key: sendKey, back: () => cameBack(true) } : null })
 const colors = ref(false)
 const handover = ref<{ app: string; tint: string } | null>(null)
 async function watchOn(app: string | null) {
@@ -73,7 +77,12 @@ async function watchOn(app: string | null) {
   const opening = app ? perform(b, 'app', { source: app }) : perform(b, 'on')
   await Promise.all([opening, new Promise(r => setTimeout(r, HANDOVER_MS))])
   handover.value = null
+  if (!sent) return     // it came back while it was opening
+  onBox.value = true
   showOnTv('box')
+  follow()
+}
+function follow() {
   clearInterval(asking)
   asking = window.setInterval(async () => {
     const t = await tvShowing()
@@ -85,6 +94,7 @@ async function watchOn(app: string | null) {
 function cameBack(switchTv: boolean) {
   const b = box.value, s = sent
   sent = null
+  onBox.value = false
   clearInterval(asking)
   if (switchTv) showOnTv('house')
   if (!b || !s?.app) return
@@ -92,8 +102,9 @@ function cameBack(switchTv: boolean) {
   nextTick(() => light(rowsEl.value?.querySelector<HTMLElement>(`[data-app="${CSS.escape(s.app!)}"]`) ?? null))
 }
 const backToLast = () => watchOn(last.value?.app && box.value?.attrs.apps?.includes(last.value.app) ? last.value.app : null)
-watch(() => box.value?.state, () => {
+watch(() => box.value?.state, (now, was) => {
   const b = box.value
+  if (!sent && b && was && now && boxAsleep({ ...b, state: was }) && !boxAsleep(b)) setTimeout(adopt, 3000)
   if (!sent || !b || b.id !== sent.id) return
   if (!boxAsleep(b)) sent.awake = true
   else if (sent.awake) cameBack(true)
@@ -104,9 +115,20 @@ watch(() => [box.value?.id, box.value?.attrs.opened?.at] as const, ([id, at], [w
   const b = box.value
   if (!at || id !== wasId || !b || sent) return
   sent = { id: b.id, app: b.attrs.opened.app ?? null, awake: !boxAsleep(b), away: false }
+  onBox.value = true
   showOnTv('box')
+  follow()
 })
-onUnmounted(() => clearInterval(asking))
+/* The box woken by its own remote takes the TV over HDMI itself; where this screen hears that, it follows as if it
+   had sent it, so a remote plugged into the hub works the box and Home comes back. Without HDMI it can't tell. */
+async function adopt() {
+  const b = box.value
+  if (sent || !b || boxAsleep(b) || (await tvShowing())?.showing !== 'elsewhere' || sent) return
+  sent = { id: b.id, app: null, awake: true, away: true }
+  onBox.value = true
+  follow()
+}
+onUnmounted(() => { clearInterval(asking); passTo.value = null })
 const scenes = computed(() => props.here ? scenesFor(props.here) : [])
 const others = computed(() => props.rooms.filter(r => r.id !== props.here?.id && r.id !== 'unassigned' && r.devices.length))
 const cameras = computed(() => camerasIn(props.rooms))
