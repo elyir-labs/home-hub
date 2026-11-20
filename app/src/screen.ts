@@ -10,7 +10,7 @@ import { ref } from 'vue'
 import type { Phone, Room } from './api'
 import { kindFor } from './art'
 
-const SCREEN = 'screen', ROOM = 'screen-room'
+const SCREEN = 'screen', ROOM = 'screen-room', ID = 'screen-id', KIND = 'screen-kind'
 
 function get(k: string) { try { return localStorage.getItem(k) } catch { return null } }
 function put(k: string, v: string | null) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v) } catch {} }
@@ -19,6 +19,18 @@ export function isScreen(search = location.search): boolean {
   if (new URLSearchParams(search).get('screen') === '1') { put(SCREEN, '1'); return true }
   return get(SCREEN) === '1'
 }
+
+/** This screen's own id at the hub, made once and kept: a house with no passcode has no phone record to name it by (design/which-tv/). */
+export function screenId(): string {
+  let id = get(ID)
+  if (!id || !/^[a-f0-9]{32}$/.test(id)) { id = [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); put(ID, id) }
+  return id
+}
+
+/** What somebody said this screen is on This screen, which beats the panel's own guess (design/which-tv/, B's row). */
+export type ScreenKind = 'tv' | 'wall'
+export const screenKind = (): ScreenKind | null => { const k = get(KIND); return k === 'tv' || k === 'wall' ? k : null }
+export const keepScreenKind = (k: ScreenKind) => put(KIND, k)
 
 const room = ref(get(ROOM))   // a ref, so the panel notices when the room is changed from How it looks
 export const screenRoom = () => room.value

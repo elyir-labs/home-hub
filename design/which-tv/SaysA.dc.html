@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A: the TV says so itself</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="which.css">
+<style>body[data-at="tv"] [data-if="none"], body[data-at="none"] [data-if="tv"] { display: none !important; }</style>
+</head>
+<body data-at="tv">
+<div class="phone">
+  <div class="status-bar"><span>7:40 PM</span><span class="r"><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i></span></div>
+  <div class="col" style="top: 62px;" data-if="tv">
+    <div class="back"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>This house</div>
+    <h1>Photos on the TV</h1>
+    <p class="lede">The living room TV shows these when nobody is watching it. They stay on the hub, in this house, and nowhere else.</p>
+    <div class="cta"><svg class="i" width="20" height="20" viewBox="0 0 24 24" style="margin-right:8px"><path d="M12 5v14M5 12h14"/></svg>Add photos</div>
+    <div class="who"><b>3 photos</b><span>from 2 phones</span></div><div class="grid"><i class="p1"></i><i class="p2"></i><i class="p3"></i></div>
+  </div>
+  <div class="col" style="top: 62px;" data-if="none">
+    <h1>This house</h1>
+    <div class="group">Every day</div>
+    <div class="door"><span class="ic"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg></span><div><b>Routines</b><span>5 routines, 1 off</span></div><svg class="i" width="16" height="16" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+    <div class="door"><span class="ic"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></span><div><b>What happened</b><span>What the house did while you were out</span></div><svg class="i" width="16" height="16" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+    <div class="door"><span class="ic"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="10" r="5"/><path d="M10 17h4M10.5 20h3"/></svg></span><div><b>What the lights tell you</b><span>2 of 4 on · 1 of your own</span></div><svg class="i" width="16" height="16" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+    <p class="foot" style="margin: 14px 4px 0;">No Photos on the TV: this house has no TV for them.</p>
+  </div>
+  <div class="home-ind"></div>
+  <div class="flips"><div class="flipset"><span>A house</span><span class="flip on" data-g="at" data-to="tv">with a TV</span><span class="flip" data-g="at" data-to="none">without one</span></div></div>
+</div>
+<script>document.querySelectorAll(".flip").forEach(f => f.addEventListener("click", () => { document.body.dataset[f.dataset.g] = f.dataset.to; document.querySelectorAll(".flip[data-g=\"" + f.dataset.g + "\"]").forEach(g => g.classList.toggle("on", g === f)) }))</script>
+</body>
+</html>

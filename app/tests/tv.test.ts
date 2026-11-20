@@ -27,6 +27,12 @@ describe('which screen is a TV', () => {
     expect(onTV('?tv=1', 'Mac', false, 5)).toBe(true)
     expect(onTV('?tv=0', linux, true, 0)).toBe(false)
   })
+  it('is what somebody answered on This screen, over the guess, and only on a screen (design/which-tv/, B\'s row)', () => {
+    expect(onTV('', linux, true, 10, 'tv')).toBe(true)      // a touchscreen somebody says is a TV
+    expect(onTV('', linux, true, 0, 'wall')).toBe(false)    // a TV-looking box somebody says is on the wall
+    expect(onTV('', linux, false, 0, 'tv')).toBe(false)     // a laptop keeps no such answer
+    expect(onTV('?tv=0', linux, true, 0, 'tv')).toBe(false) // a preview still wins
+  })
 })
 
 describe('the keys every remote sends', () => {

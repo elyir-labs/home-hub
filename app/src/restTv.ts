@@ -13,7 +13,9 @@
  * weeks -- and after a long rest the TV is sent to standby, so a hub is never the reason it was on all night.
  */
 import { reactive } from 'vue'
-import type { Device } from './api'
+import { getPhotos, sayScreen, type Device } from './api'
+import { isScreen, keepScreenKind, screenId, screenKind, screenRoom } from './screen'
+import { tvGuess } from './tv'
 import { cap, HOUSE_SCENES, isDead, roomOf, runScene, store } from './store'
 import { sleepTv } from './thisScreen'
 
@@ -117,7 +119,25 @@ export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s 
 
 /** What the resting TV is showing, so the remote's OK and Back can do what that face says they do. `notYet` is the night
     Back was pressed on Bedtime, which then leaves the TV to its photos until the next evening. */
-export const rest = reactive({ face: 'window' as Face, notYet: '' })
+export const rest = reactive({ face: 'window' as Face, notYet: '', photos: [] as Photo[], photosKnown: false, shows: true })
+
+/** The household's photos, read when a screen starts and each time it rests. A hub that cannot say leaves it on the sky. */
+export async function loadRestPhotos() {
+  try { rest.photos = await getPhotos(); rest.photosKnown = true } catch { /* nothing to show */ }
+}
+
+/** This screen tells the hub what it is and which room it is in, and hears back whether it shows photos at rest
+    (design/which-tv/). An answer somebody gave on This screen is sent as theirs; one the hub kept from before, on a
+    screen that has forgotten it, is taken back, and the screen starts again as that if it is not that now. */
+export async function reportScreen(nowTv: boolean) {
+  if (!isScreen()) return
+  const said = screenKind()
+  try {
+    const me = await sayScreen({ id: screenId(), room: screenRoom(), tv: said ? said === 'tv' : tvGuess(), by: said ? 'person' : 'screen' })
+    rest.shows = me.photos
+    if (me.by === 'person' && !said) { keepScreenKind(me.tv ? 'tv' : 'wall'); if (me.tv !== nowTv) location.reload() }
+  } catch { /* an older hub, or none reachable: the screen keeps its own guess and its photos */ }
+}
 
 export const nightOf = (now: Date) => new Date(now.getTime() - BEDTIME_TO * 60000).toDateString()
 

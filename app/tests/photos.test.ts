@@ -3,7 +3,7 @@
 /* Photos on the TV from a phone (design/tv-photos/, A with C, decided 20 November 2026): what a photo is redrawn
    to before it leaves, when it says it was taken, and the page's words. */
 import { describe, expect, it } from 'vitest'
-import { countLine, fitted, LONGEST, photosPageUrl, sentLine, takenAt } from '../src/photos'
+import { countLine, fitted, LONGEST, photosPageUrl, screenLines, sentLine, takenAt } from '../src/photos'
 import type { Photo } from '../src/restTv'
 
 /** A JPEG's first bytes with one EXIF date in it, big-endian, laid out the way a camera writes it. */
@@ -61,5 +61,15 @@ describe('the TV\'s code (C)', () => {
     expect(photosPageUrl({ protocol: 'http:', host: 'hub.local', hostname: 'hub.local' })).toBe('http://hub.local/?sheet=photos')
     expect(photosPageUrl({ protocol: 'http:', host: '192.168.1.20:80', hostname: '192.168.1.20' })).toBe('http://192.168.1.20:80/?sheet=photos')
     expect(photosPageUrl({ protocol: 'http:', host: 'localhost', hostname: 'localhost' })).toBe('http://hub.local/?sheet=photos')
+  })
+})
+
+describe('the screens on Photos (design/which-tv/, C)', () => {
+  const screen = (over: object) => ({ id: 'a', room: 'living', room_name: 'Living room', tv: true, by: 'screen' as const, photos: true, ...over })
+  it('names a TV by its room and a wall screen by its own, and says what each shows when its photos are off', () => {
+    expect(screenLines(screen({}))).toEqual({ name: 'Living room TV', sub: 'A TV' })
+    expect(screenLines(screen({ photos: false }))).toEqual({ name: 'Living room TV', sub: 'A TV · shows the sky' })
+    expect(screenLines(screen({ room_name: 'Hallway', tv: false, photos: false }))).toEqual({ name: 'Hallway', sub: 'A screen on the wall · shows the clock' })
+    expect(screenLines(screen({ room_name: null, tv: false }))).toEqual({ name: 'A screen on the wall', sub: 'A screen on the wall' })
   })
 })
