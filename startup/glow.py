@@ -30,6 +30,7 @@ import time
 
 W, H = 64, 36
 FPS = 25
+MOST = 480     # colors in one frame: 18 + 480 x 3 bytes fits a single UDP datagram
 EDGES = {"left-up": ("left", True), "left-down": ("left", False), "right-up": ("right", True), "right-down": ("right", False),
          "top-right": ("top", False), "top-left": ("top", True), "bottom-right": ("bottom", False), "bottom-left": ("bottom", True)}
 INSET = 0.07    # how far inside the picture's edge to read: the edge itself is the TV's frame half the time
@@ -117,7 +118,8 @@ def camera(device):
 
 
 def run(config):
-    where = points(config["corners"], config["path"], int(config.get("lights", 48)))
+    # a frame has to fit in one datagram on a 1500-byte network: the strip does not put a split one back together
+    where = points(config["corners"], config["path"], min(MOST, int(config.get("lights", 48))))
     key = bytes.fromhex(config["strip"]["key"])
     to = (config["strip"]["host"], int(config["strip"].get("port", 21325)))
     run_ = int(config["strip"].get("run", 0))
