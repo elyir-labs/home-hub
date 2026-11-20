@@ -85,6 +85,15 @@
    "w": 1440,
    "h": 900,
    "title": "F / The stone, with everything else on its sides"
+  },
+  {
+   "file": "StoneQuietG.dc.html",
+   "page": "remote-stone",
+   "x": 0,
+   "y": 3300,
+   "w": 1440,
+   "h": 900,
+   "title": "G / The stone: the ring follows what is playing"
   }
  ],
  "annotations": [
@@ -174,7 +183,7 @@
    "x": 1560,
    "y": 1100,
    "w": 520,
-   "text": "E — THE SOUND ON ITS SIDE, AND A KEY OF YOUR OWN (recommended)\n\nThe case for it: the ring is only ever the light and the rocker only ever the sound, so neither changes the other by mistake, whatever the screen shows. One Favorite key runs the room's favorite scene without talking, which was the stone's biggest gap; held, it opens the choice of scene on the TV.\n\nWhat it gives up: Back stays a second press of Home and Play a press of OK. A rocker on one side favors one hand."
+   "text": "E — THE SOUND ON ITS SIDE, AND A KEY OF YOUR OWN\n\nThe case for it: the ring is only ever the light and the rocker only ever the sound, so neither changes the other by mistake, whatever the screen shows. One Favorite key runs the room's favorite scene without talking, which was the stone's biggest gap; held, it opens the choice of scene on the TV.\n\nWhat it gives up: Back stays a second press of Home and Play a press of OK. A rocker on one side favors one hand."
   },
   {
    "id": "f",
@@ -190,7 +199,7 @@
    "x": -620,
    "y": 1100,
    "w": 520,
-   "text": "PICK ONE\n\nD, Back and Play. E, the sound and a Favorite key. F, everything. Or keep B as decided, or a mix, or something else: describe it and I will draw it. Picking a stone replaces B as the decision on the page before."
+   "text": "PICK ONE\n\nD, Back and Play. E, the sound and a Favorite key. F, everything. G, no sound keys, the ring following what is playing, Favorite on both sides. Or keep B as decided, or a mix, or something else. Picking a stone replaces B as the decision on the page before."
   },
   {
    "id": "stone-recommended",
@@ -198,7 +207,15 @@
    "x": -620,
    "y": 1400,
    "w": 520,
-   "text": "RECOMMENDED: E\n\nIt closes the two gaps that matter most, scenes without a voice and the sound apart from the light, with two keys, and keeps the stone calm. Back is the one compromise, and the bought remote's key count will say whether it earns F's extra key. The open question is the left hand: the rocker may want to be mirrored."
+   "text": "RECOMMENDED: G\n\nThe ring already turns, so sound keys repeat it. G keeps the calmest stone, four things on top and one key on each side for either hand, closes the scenes gap with Favorite, and gives the lights one way that always works (hold Favorite and turn). Its cost is a rule to learn. If the hand test says holding a side key while turning is awkward, E's rocker is the fallback."
+  },
+  {
+   "id": "g",
+   "page": "remote-stone",
+   "x": 1560,
+   "y": 3300,
+   "w": 520,
+   "text": "G — THE RING FOLLOWS WHAT IS PLAYING (recommended)\n\nDrawn 20 November, after asking whether the stone needs sound keys at all, given the ring. It does not, if the ring keeps one rule: the volume while a film or music plays, the lights otherwise, and whatever is lit once Home brings the room up. E's rocker is gone, and Favorite is mirrored, one on each side, for either hand.\n\nThe lights while something plays: hold Favorite and turn the ring. It has to be a side key, because the ring and the pad are under the same thumb; a finger holds the side key while the thumb turns. Favorite then decides on release: turned while held is the lights, a short press is the favorite scene, a long hold with no turn opens the choice of scene on the TV.\n\nWhat it gives up: what the ring turns depends on whether something plays, and holding Favorite for the lights has to be told once. The side keys may be pressed when the stone is picked up, which the motion sensor is there to ignore."
   }
  ],
  "reading": [
@@ -216,6 +233,8 @@
   "e",
   "StoneAllF.dc.html",
   "f",
+  "StoneQuietG.dc.html",
+  "g",
   "stone-pick",
   "stone-recommended",
   "lost",
