@@ -89,7 +89,7 @@ transform() {
 settle() {
   local ask="${ELYIR_SCREEN_ASK:-/var/lib/elyir-screen}" rules="${ELYIR_TOUCH_RULES:-/etc/udev/rules.d/90-elyir-touch.rules}"
   local file="${ELYIR_TURN_FILE:-$(getent passwd elyir-wall 2>/dev/null | cut -d: -f6)/.config/elyir/turn}" t
-  t=$(tr -cd '0-9' < "$file" 2>/dev/null) || return 0
+  t=$(tr -cd '0-9' 2>/dev/null < "$file") || return 0
   [ -n "$t" ] || return 0
   if [ ! -e "$ask/turn.request" ]; then
     if [ "$t" = 0 ]; then [ -e "$rules" ] || return 0; else grep -qs "touch follows a turn of $t," "$rules" && return 0; fi
@@ -176,10 +176,17 @@ case "${1:-}" in
     # The scale is set on the display, not in the browser: Chromium on Wayland draws a forced scale under 1 into a
     # corner of the screen, while a scaled output is simply a bigger screen to it.
     # It is worked out here, inside cage, because only the compositor knows how big the glass is.
-    wlr-randr 2>/dev/null | outputs | while read -r out m mm; do
+    # Cage before 0.2 (Ubuntu 24.04's, so the x86 image's) aborts the moment an output is changed while it runs, a
+    # wlroots assertion in wlr_scene_output_layout_add_output. There the browser is scaled instead, which is safe at
+    # 1 and over, and the glass is not turned: a TV hangs the right way up.
+    scale=""
+    while read -r out m mm; do
       [ "$m" = - ] && m=$(mode)
-      wlr-randr --output "$out" --scale "${2:-$(fit "$m" "$mm")}" --transform "$(transform)" || true
-    done
+      s=${2:-$(fit "$m" "$mm")}
+      if cage -v 2>&1 | grep -q 'version 0\.1\.'; then scale=$s
+      else wlr-randr --output "$out" --scale "$s" --transform "$(transform)" || true; fi
+    done < <(wlr-randr 2>/dev/null | outputs)
+    awk -v s="${scale:-0}" 'BEGIN { exit !(s + 0 > 1) }' && set -- "$1" "" "--force-device-scale-factor=$scale"
     ELYIR_PANEL_URL="$PANEL_URL" python3 "$HERE/screen-helper.py" &
     # Chromium locks its profile under this machine's name and refuses to start, exit 21, when the name has changed
     # since -- which first boot does, to hub or to screen. Only this service runs a browser as this user, one at a
@@ -191,6 +198,6 @@ case "${1:-}" in
     exec "$(browser)" --kiosk --noerrdialogs --disable-infobars --no-first-run \
       --ozone-platform=wayland --disable-session-crashed-bubble --check-for-update-interval=31536000 \
       --disable-pinch --overscroll-history-navigation=0 --autoplay-policy=no-user-gesture-required \
-      "$PANEL_URL" ;;
+      ${3:+"$3"} "$PANEL_URL" ;;
   *) echo "usage: $0 wait|run|speaker|settle|guess|fit <mode> [<mm>]|outputs|browse [<scale>]" >&2; exit 2 ;;
 esac
