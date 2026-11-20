@@ -36,6 +36,10 @@ const when = computed(() => dead.value ? 'Not answering' : playing.value ? 'Play
 
 const art = ref('')
 watch(() => props.device.attrs.entity_picture, (p) => { art.value = p ? imageUrl(props.device.id) : '' }, { immediate: true })
+/* A song on a speaker (design/speaker-card/, A): the card is the song -- its cover beside the words, on the same cover
+   blurred, with back, pause, next and the volume. The sounds belong to a quiet speaker and come back when it stops. */
+const song = computed(() => !isTv.value && (playing.value || s.value === 'paused') && !!props.device.attrs.media_title && !props.device.attrs.sound)
+const record = computed(() => song.value && !!art.value)
 
 const d = () => props.device
 const toggle = () => playing.value ? perform(d(), 'pause', undefined, { state: 'paused' }) : perform(d(), 'play', undefined, { state: 'playing' })
@@ -75,7 +79,8 @@ async function room(r: { id: string; on: boolean }) {
 </script>
 
 <template>
-  <div class="tile media wide" :class="{ on: playing, off, dead, pending }">
+  <div class="tile media wide" :class="{ on: playing, off, dead, pending, record }">
+    <div class="media-blur" v-if="record" :style="{ backgroundImage: `url(${art})` }" aria-hidden="true"></div>
     <div class="media-art" :class="{ has: !!art }">
       <img v-if="art" :src="art" alt="" @error="art = ''" />
       <!-- rung two, in the slot rung one would have filled: a speaker or a screen,
@@ -130,7 +135,7 @@ async function room(r: { id: string; on: boolean }) {
       <button v-for="r in card.rooms" :key="r.id" class="clim-chip" :class="{ on: r.on }" :disabled="r.name === 'Here'" @click.stop="room(r)">{{ r.name }}</button>
       <span class="music-together" v-if="together > 1">Same song, {{ together === 2 ? 'both rooms' : `${together} rooms` }}</span>
     </div>
-    <div class="sounds" v-else-if="!isTv && !dead && store.sounds.length">
+    <div class="sounds" v-else-if="!isTv && !dead && !song && store.sounds.length">
       <button v-for="s in store.sounds" :key="s.id" class="clim-chip" :class="{ on: sound === s.id }" @click="sound === s.id ? stopSound() : playSound(s.id)">{{ s.name }}</button>
       <select class="snd-for" v-model.number="minutes" aria-label="For how long" :disabled="!!sound">
         <option :value="0">Until stopped</option><option :value="30">30 min</option><option :value="45">45 min</option><option :value="60">1 hour</option><option :value="90">1½ hours</option><option :value="480">8 hours</option>

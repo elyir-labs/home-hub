@@ -118,6 +118,8 @@ write_state() {
     [ -f "$DATA/network.reverted-why" ] && printf ', "reverted_why": %s' "$(json_str "$(cat "$DATA/network.reverted-why")")"
     [ -f "$SETUP" ] && printf ', "setup": %s, "setup_phones": %s' "$(cat "$SETUP")" "$(setup_phones)"
     [ -f "$JOINED" ] && printf ', "joined": %s' "$(cat "$JOINED")"
+    local m; m="$(modem | paste -sd, -)"
+    [ -n "$m" ] && printf ', "modem": %s' "$(python3 -c 'import json,sys; print(json.dumps(sys.argv[1].split(",")))' "$m")"
     printf '}\n'
   } > "$tmp" 2>/dev/null && mv "$tmp" "$STATE"
 }
@@ -187,6 +189,14 @@ wifi_dev() { nmcli -t -f DEVICE,TYPE device 2>/dev/null | awk -F: -v s="$SETUP_I
 # Online is a default route out of the house through anything but the setup Wi-Fi -- which never has
 # one -- so a cable NetworkManager does not manage counts as much as a Wi-Fi it does.
 online() { ip route show default 2>/dev/null | grep -v "dev $SETUP_IF" | grep -q .; }
+# On the house's network is that, through a link that is not on the open internet. A cable into the modem is online
+# (it finishes an install and fetches updates) but no phone in the house can reach the hub there, so it still gets
+# its own Wi-Fi to be set up from (design/modem-cable/, C).
+at_home() {
+  ip route show default 2>/dev/null | awk '{for (i = 1; i < NF; i++) if ($i == "dev") print $(i + 1)}' | grep -vx "$SETUP_IF" \
+    | grep -vxFf <(printf '%s\n' "$(modem)") | grep -q .
+}
+modem() { "$(dirname "$0")/public.sh" links 2>/dev/null; }
 
 # Can this card hold the setup Wi-Fi and join another at the same time? The kernel lists what each card
 # can run at once; both modes have to be in the same combination. Without `iw` there is no asking, and
@@ -264,7 +274,7 @@ setup_tick() {
     return
   fi
   local now; now=$(date +%s)
-  if online; then
+  if at_home; then
     rm -f "$OFFLINE"
     if [ -f "$SETUP" ]; then
       local at; at="$(python3 -c 'import json,sys; print(int(json.load(open(sys.argv[1]))["at"]))' "$JOINED" 2>/dev/null || echo 0)"
@@ -309,7 +319,7 @@ finish_install() {
 LOOK="${HUB_LOOK_AGAIN:-/var/lib/home-hub/look-again}"
 ROLE_REQ="${ELYIR_ROLE_REQUEST:-/var/lib/elyir-screen/role.request}"
 look_again() {
-  [ -f "$LOOK" ] && [ -f "${HUB_FIRSTBOOT_MARK:-/var/lib/home-hub/firstboot.done}" ] && online || return 0
+  [ -f "$LOOK" ] && [ -f "${HUB_FIRSTBOOT_MARK:-/var/lib/home-hub/firstboot.done}" ] && at_home || return 0
   rm -f "$LOOK"
   grep -qs '"setup_done": *true' "$DATA/settings.json" && return 0
   local hub; hub="$(FIND_FOR="${HOME_HUB_LOOK_FOR:-15}" "$DIR/startup/find-hub.sh" 2>/dev/null)" || { say "online: no other hub on this network, so this one runs the house"; return 0; }
@@ -410,6 +420,9 @@ forget() {
 }
 
 # ---------------------------------------------------------------- the one thing being asked
+
+# First, and on a hub NetworkManager does not run too.
+shut="$("$(dirname "$0")/public.sh" 2>&1)"; [ -n "$shut" ] && say "$shut"
 
 if ! have nmcli; then
   # Not a failure worth a log line every minute: it is a permanent property of this machine, and the

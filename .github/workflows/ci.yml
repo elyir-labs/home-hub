@@ -249,6 +249,7 @@ jobs:
         driver-layer/host/restart.sh
         driver-layer/host/watchdog.sh
         driver-layer/host/network.sh
+        driver-layer/host/public.sh
         driver-layer/host/away.sh
         driver-layer/host/verify.sh
         driver-layer/host/landed.sh

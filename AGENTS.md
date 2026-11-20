@@ -416,6 +416,11 @@ Do not reopen these, and do not propose around them.
   `brain/hub/boxes.py`); the panel only sees a player with apps. The input is switched by the screen's helper over CEC
   (`/tv` in `startup/screen-helper.py`, `cec.sh tv show|box`). Pinned by `brain/tests/test_boxes.py`,
   `app/tests/tv.test.ts`, `app/e2e/tv-box.spec.ts` and the `remote` and `changing` groups in `driver-layer/host/tests.sh`.
+- **A hub on a cable into the modem answers nobody on the internet, and its Ready offers two ways in** (19 November,
+  `design/modem-cable/`, C). A link with a public address takes no new connections (`driver-layer/host/public.sh`), and
+  counts as online but never as the house's network, so the hub still makes its own Wi-Fi. Ready puts that Wi-Fi's code
+  beside a picture of moving the cable to the router; whichever happens first wins. Pinned by `startup/startup.test.mjs`,
+  `startup/look.sh` and the `shutting` and `setting_up` groups in `driver-layer/host/tests.sh`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
   B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
   development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this

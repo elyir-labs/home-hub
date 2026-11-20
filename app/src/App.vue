@@ -495,7 +495,7 @@ onUnmounted(() => {
     </Transition>
 
     <Transition name="idle">
-      <div class="idle" v-if="idle && tvMusic && tvRoom" aria-label="Tap to wake">
+      <div class="idle" v-if="idle && tvMusic && tvRoom" aria-label="Tap to wake" :class="{ 'on-cover': !!tvMusic.attrs.entity_picture }">
         <TvRecord :d="tvMusic" :room="tvRoom" :time="restTime.time" :period="restTime.period ?? ''" :day="day" :temp="restWx?.temp ?? null" :under="tvBand" />
       </div>
       <div class="idle" v-else-if="idle" aria-label="Tap to wake" :class="{ 'under-band': tvBand }">
