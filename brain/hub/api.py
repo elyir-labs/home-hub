@@ -49,6 +49,7 @@ from .strip import Strips, StripError
 from .roofline import Roofline
 from .printers import Printers
 from .photos import Photos
+from .screens import Screens
 from .power import Power
 from .signals import Signals
 from . import things
@@ -145,6 +146,7 @@ class Hub:
         self.roofline = Roofline(self)     # several strip controllers as one light outside, its evenings and its holidays
         self.printers = Printers(self)     # 3D printers on the Wi-Fi, let in at the printer and followed: hub/printers.py
         self.photos = Photos()             # the household's own photos, for a TV at rest: design/rest-tv/
+        self.screens = Screens()           # the house's screens, which are TVs and which show photos: design/which-tv/
         self.power = Power()               # the sun on the roof, the battery and the grid: hub/power.py
         self._power_sent: tuple[float, tuple | None] = (0.0, None)
         self.net = Network(self)           # how this hub is connected, and what it hands out: docs/network.md
@@ -222,7 +224,8 @@ class Hub:
                 "location": bool(self.location), "rooms": sum(1 for r in self.home.rooms.values() if r.id != "unassigned"),
                 "devices": len(self.home.devices), "drivers": self.provision.summary(), "problems": self.provision.problems,
                 "locked": self.lock.locked, "version": self.updates.version, "update": self.updates.summary(),
-                "language": self.language, "handed_over": bool(self.settings.get("handed_over")) and not self.settings.get("setup_done")}
+                "language": self.language, "handed_over": bool(self.settings.get("handed_over")) and not self.settings.get("setup_done"),
+                "screens": len(self.screens.listed())}
 
     def _set(self, driver, reason=""):
         if (driver, reason) == (self.driver, self.reason): return
@@ -2839,7 +2842,30 @@ def _music_rooms(room: str | None) -> list[dict]:
 # ---------- the household's photos, for a TV at rest (design/rest-tv/, A) ----------
 @app.get("/photos")
 def photos_list():
-    return {"photos": hub.photos.list()}
+    return {"photos": hub.photos.list(), "screens": [_named(s) for s in hub.screens.listed()]}
+
+
+def _named(screen: dict) -> dict:
+    room = hub.home.rooms.get(screen["room"] or "")
+    return {**screen, "room_name": room.name if room else None}
+
+
+@app.post("/screens/me")
+def screens_me(body: dict):
+    """{"id", "room", "tv", "by"}: what a screen says about itself when it starts and when it rests, or, with by
+    "person", what somebody answered on This screen (design/which-tv/). Says back whether it shows photos at rest."""
+    try:
+        return _named(hub.screens.said(body.get("id"), room=body.get("room"), tv=body.get("tv"), by="person" if body.get("by") == "person" else "screen"))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/photos/screens/{screen_id}")
+def photos_screen(screen_id: str, body: dict):
+    """{"on": bool}: whether this screen shows the photos at rest, from the switch on Photos (design/which-tv/, C)."""
+    screen = hub.screens.show(screen_id, bool(body.get("on")))
+    if not screen: raise HTTPException(404, "No such screen.")
+    return _named(screen)
 
 
 @app.get("/photos/{photo_id}")

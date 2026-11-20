@@ -4,19 +4,22 @@
 -->
 <script setup lang="ts">
 /*
- * Photos on the TV (design/tv-photos/PageA, decided 20 November 2026 with C). Add photos opens the phone's
- * own picker; each one is redrawn here and sent in turn, the grid filling as they land. Anyone in the house
- * can take any photo off, from the sheet a tap opens, which says when it was taken and whose phone it came from.
+ * Photos (design/tv-photos/PageA, decided 20 November 2026 with C; design/which-tv/, C's screens). Add photos opens
+ * the phone's own picker; each one is redrawn here and sent in turn, the grid filling as they land. Anyone in the
+ * house can take any photo off, from the sheet a tap opens, which says when it was taken and whose phone it came from.
+ * Above the grid, every screen the house has and a switch for whether it shows them at rest: a TV starts on.
  */
 import { computed, onMounted, ref } from 'vue'
-import { getPhotos, photoUrl, removePhoto, sendPhoto } from './api'
-import { countLine, prepare, sentLine } from './photos'
+import { getPhotosPage, photoUrl, removePhoto, sendPhoto, showOnScreen, type ShownScreen } from './api'
+import { countLine, prepare, screenLines, sentLine } from './photos'
 import { photoLine, type Photo } from './restTv'
 import { locale } from './lang'
 import { notify } from './store'
 import Icon from './Icon.vue'
 
 const photos = ref<Photo[]>([])
+const screens = ref<ShownScreen[]>([])
+const switching = ref('')
 const loaded = ref(false)
 const sending = ref<{ done: number; of: number } | null>(null)
 const open = ref<Photo | null>(null)
@@ -24,7 +27,7 @@ const removing = ref(false)
 const picker = ref<HTMLInputElement | null>(null)
 
 onMounted(async () => {
-  try { photos.value = await getPhotos() } catch (e: any) { notify(e.message, 'error') }
+  try { const p = await getPhotosPage(); photos.value = p.photos; screens.value = p.screens ?? [] } catch (e: any) { notify(e.message, 'error') }
   loaded.value = true
 })
 
@@ -46,6 +49,14 @@ async function picked(e: Event) {
   if (!failed) notify(files.length === 1 ? 'The photo is on the TV.' : `${files.length} photos are on the TV.`)
 }
 
+async function flip(s: ShownScreen) {
+  if (switching.value) return
+  switching.value = s.id
+  try { const now = await showOnScreen(s.id, !s.photos); screens.value = screens.value.map(x => x.id === s.id ? { ...x, photos: now.photos } : x) }
+  catch (e: any) { notify(e.message, 'error') }
+  switching.value = ''
+}
+
 async function takeOff(p: Photo) {
   if (removing.value) return
   removing.value = true
@@ -57,12 +68,22 @@ async function takeOff(p: Photo) {
 
 <template>
   <div class="page photos-page">
-    <p class="page-lede">The TV shows these when nobody is watching it. They stay on the hub, in this house, and nowhere else.</p>
+    <p class="page-lede">The screens you choose show these when nobody is watching them. They stay on the hub, in this house, and nowhere else.</p>
     <input ref="picker" class="photos-input" type="file" accept="image/*" multiple @change="picked" />
     <button class="button photos-add" :class="{ ghost: !!sending }" :disabled="!!sending" @click="picker?.click()">
       <template v-if="sending">Sending {{ sending.done + 1 }} of {{ sending.of }}…</template>
       <template v-else><Icon name="plus" :size="18" />Add photos</template>
     </button>
+    <template v-if="screens.length">
+      <div class="photos-count photos-on-head"><b>Shown on</b><span>a TV starts on</span></div>
+      <ul class="photos-screens">
+        <li v-for="s in screens" :key="s.id">
+          <Icon :name="s.tv ? 'tv' : 'phone'" :size="20" />
+          <span class="photos-screen-text"><b>{{ screenLines(s).name }}</b><span>{{ screenLines(s).sub }}</span></span>
+          <button class="photos-switch" role="switch" :aria-checked="s.photos" :aria-label="screenLines(s).name" :class="{ on: s.photos, busy: switching === s.id }" @click="flip(s)"></button>
+        </li>
+      </ul>
+    </template>
     <template v-if="photos.length">
       <div class="photos-count"><b>{{ counted.count }}</b><span>{{ counted.from }}</span></div>
       <div class="photos-grid">

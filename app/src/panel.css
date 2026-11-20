@@ -3233,6 +3233,69 @@ input:focus-visible {
   font-size: 13px;
   color: var(--muted);
 }
+.photos-screens {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.photos-screens li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--edge);
+}
+.photos-screens li + li {
+  margin-top: 6px;
+}
+.photos-screen-text {
+  flex: 1;
+  min-width: 0;
+}
+.photos-screen-text b {
+  display: block;
+  font-weight: 500;
+}
+.photos-screen-text span {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+.photos-switch {
+  position: relative;
+  flex: none;
+  width: 46px;
+  height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--surface-hi);
+  border: 1px solid var(--edge-hi);
+}
+.photos-switch::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink-2);
+  transition: left 0.18s ease;
+}
+.photos-switch.on {
+  background: var(--lamp);
+  border-color: transparent;
+}
+.photos-switch.on::after {
+  left: 21px;
+  background: var(--lamp-ink);
+}
+.photos-switch.busy {
+  opacity: 0.6;
+}
 .photos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
@@ -3350,12 +3413,12 @@ input:focus-visible {
 .tvrest-fit {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
   overflow: hidden;
 }
 .tvrest {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 50%;
   flex: none;
   width: 1920px;
   height: 1080px;

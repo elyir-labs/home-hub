@@ -4,44 +4,44 @@
 -->
 <script setup lang="ts">
 /* A TV at rest (design/rest-tv/): the household's photos, the sky when there are none, the music while it
-   plays, and Bedtime late in the evening. Drawn at the TV's own 1920x1080, as the boards are, and scaled to the
-   screen it is on; restTv.ts decides which face and where everything sits this minute. */
+   plays, and Bedtime late in the evening. Drawn 1920 wide, as the boards are, as tall as the screen's own shape,
+   and scaled to it; restTv.ts decides which face and where everything sits this minute. A wall screen with its
+   photos switched on rests on the photo face alone, with nothing about a remote (design/which-tv/, Wall A). */
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { Room } from './api'
-import { getPhotos, imageUrl, photoUrl, qrUrl } from './api'
+import { imageUrl, photoUrl, qrUrl } from './api'
 import { photosPageUrl } from './photos'
 import { clockParts, restingFacts, restWeather } from './resting'
-import { drift, faceFor, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
+import { drift, faceFor, loadRestPhotos, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
   SLEEP_AFTER, slideAt, slides, stillOn, type Photo, type Shape } from './restTv'
 import { locale } from './lang'
 import Icon from './Icon.vue'
 
-const props = defineProps<{ now: Date; room: Room | null; since: number }>()
+const props = defineProps<{ now: Date; room: Room | null; since: number; wall?: boolean }>()
 
 const scale = ref(1)
-const fit = () => (scale.value = Math.min(innerWidth / 1920, innerHeight / 1080))
+const tall = ref(1080)
+const fit = () => { scale.value = innerWidth / 1920; tall.value = Math.round(1920 * innerHeight / innerWidth) }
 
-const photos = ref<Photo[]>([])
+const photos = computed(() => rest.photos)
 const learned = ref<Record<string, Shape>>({})
-const known = ref(false)   // the hub answered, so an empty list really is no photos yet, and the TV may ask for some (C)
 const qrOk = ref(true)
-async function load() { try { photos.value = await getPhotos(); known.value = true } catch { /* a hub without photos rests on the sky */ } }
 
 const tick = ref(Date.now())
 let timer: number | undefined, reload: number | undefined
 onMounted(() => {
-  fit(); addEventListener('resize', fit); load()
+  fit(); addEventListener('resize', fit)
   timer = window.setInterval(() => (tick.value = Date.now()), 1000)
-  reload = window.setInterval(load, 10 * 60 * 1000)
+  reload = window.setInterval(loadRestPhotos, 10 * 60 * 1000)
 })
 onUnmounted(() => { removeEventListener('resize', fit); clearInterval(timer); clearInterval(reload) })
 
 const music = computed(() => playingNow())
 const left = computed(() => stillOn())
 const listed = computed(() => (left.value.length > 6 ? left.value.slice(0, 5) : left.value))
-const face = computed(() => faceFor({ playing: !!music.value, stillOn: left.value.length, photos: photos.value.length, now: props.now,
-  notYet: rest.notYet === nightOf(props.now) }))
-watch(face, f => (rest.face = f), { immediate: true })
+const face = computed(() => props.wall ? 'photos' : faceFor({ playing: !!music.value, stillOn: left.value.length, photos: rest.shows ? photos.value.length : 0,
+  now: props.now, notYet: rest.notYet === nightOf(props.now) }))
+watch(face, f => { if (!props.wall) rest.face = f }, { immediate: true })
 
 const shown = computed(() => slideAt(slides(photos.value, learned.value), tick.value) ?? [])
 function opened(p: Photo, e: Event) {
@@ -63,6 +63,7 @@ const art = computed(() => (music.value?.attrs.entity_picture ? imageUrl(music.v
 const sleepsIn = computed(() => Math.max(1, Math.ceil((props.since + SLEEP_AFTER - tick.value) / 60000)))
 
 const ok = computed(() => {
+  if (props.wall) return ''
   if (face.value === 'bedtime') return 'Bedtime'
   return props.room ? `The ${props.room.name.toLowerCase()}` : ''
 })
@@ -70,7 +71,7 @@ const ok = computed(() => {
 
 <template>
   <div class="tvrest-fit">
-    <div class="tvrest" :class="`tvrest-${face}`" :style="{ transform: `scale(${scale})` }" :data-face="face">
+    <div class="tvrest" :class="`tvrest-${face}`" :style="{ transform: `translate(-50%, -50%) scale(${scale})`, height: `${tall}px` }" :data-face="face" :data-wall="wall ? '' : null">
 
       <template v-if="face === 'photos'">
         <Transition name="tvrest-fade">
@@ -112,7 +113,7 @@ const ok = computed(() => {
 
         <template v-else-if="face === 'window'">
           <div class="tvrest-alert" v-if="unlocked"><Icon name="lock" :size="32" />{{ unlocked }}</div>
-          <div class="tvrest-ask" v-if="known && qrOk">
+          <div class="tvrest-ask" v-if="rest.photosKnown && !photos.length && qrOk">
             <div><h2>Put your photos on this TV</h2><p>Point your phone’s camera at the code. The photos stay on the hub, in this house.</p></div>
             <img :src="qrUrl(photosPageUrl())" alt="A code that opens Photos on the TV on a phone" @error="qrOk = false" />
           </div>

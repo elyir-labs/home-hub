@@ -25,7 +25,7 @@ import DoorCorner from './DoorCorner.vue'
 import TvRecord from './TvRecord.vue'
 import TvBand from './TvBand.vue'
 import TvRest from './TvRest.vue'
-import { bedtime, nightOf, rest, SLEEP_AFTER } from './restTv'
+import { bedtime, loadRestPhotos, nightOf, reportScreen, rest, SLEEP_AFTER } from './restTv'
 import { sleepTv } from './thisScreen'
 import type { Device } from './api'
 import { lock } from './code'
@@ -240,7 +240,11 @@ const woke = ref(0)   // counted so Home can arrive again on every wake, not onl
    started resting or from its last key, whichever is later, and sent once. */
 const restSince = ref(Date.now())
 let slept = false
-watch(idle, v => { if (v) { restSince.value = Date.now(); slept = false } })
+watch(idle, v => { if (v) { restSince.value = Date.now(); slept = false; if (tv || screen) { reportScreen(tv); loadRestPhotos() } } })
+/* A screen says what it is once the house is read, then again at each rest; a wall with its photos switched on rests
+   on them (design/which-tv/, Wall A), and without them, or with none yet, as it always has. */
+watch(() => store.loaded, l => { if (l && (tv || screen)) { reportScreen(tv); loadRestPhotos() } }, { immediate: true })
+const wallPhotos = computed(() => !tv && screen && rest.shows && rest.photos.length > 0)
 function touched(e?: Event) {
   lastTouch = Date.now()
   if (!idle.value) return
@@ -510,7 +514,7 @@ onUnmounted(() => {
         <TvRecord :d="tvMusic" :room="tvRoom" :time="restTime.time" :period="restTime.period ?? ''" :day="day" :temp="restWx?.temp ?? null" :under="tvBand" />
       </div>
       <div class="idle" v-else-if="idle" aria-label="Tap to wake" :class="{ 'under-band': tvBand }">
-        <TvRest v-if="tv" :now="shown" :room="tvRoom" :since="restSince" />
+        <TvRest v-if="tv || wallPhotos" :now="shown" :room="tvRoom" :since="restSince" :wall="!tv" />
         <template v-else>
         <div class="idle-wx" v-if="restWx">
           <WeatherArt />
