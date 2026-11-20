@@ -8,18 +8,14 @@
    is its own cover, blurred and dimmed, rather than the sky (design/readable-rest/, D). */
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { imageUrl, type Device, type Room } from './api'
-import { shortName } from './store'
-import { speakersOf } from './tv'
 
 const props = defineProps<{ d: Device; room: Room; time: string; period: string; day: string; temp: string | null; under: boolean }>()
 const scale = ref(1)
 const fit = () => (scale.value = Math.min(innerWidth / 1920, innerHeight / 1080))
 onMounted(() => { fit(); window.addEventListener('resize', fit) })
 onUnmounted(() => window.removeEventListener('resize', fit))
-const where = computed(() => {
-  const n = speakersOf(props.d, props.room).map(x => shortName(x, props.room))
-  return `On the ${n.length > 1 ? `${n.slice(0, -1).join(', ')} and ${n[n.length - 1]}` : n[0]}, in the ${props.room.name.toLowerCase()}`
-})
+/* Which speakers and which room is not said: this is the TV in that room, playing what that room plays. Only a pause
+   is, since the record stays up a while after one. */
 const cover = computed(() => props.d.attrs.entity_picture ? imageUrl(props.d.id) : '')
 const pos = computed(() => {
   const at = Number(props.d.attrs.media_position), of = Number(props.d.attrs.media_duration)
@@ -37,11 +33,11 @@ const pos = computed(() => {
         <div class="rec-words">
           <div class="rec-t">{{ d.attrs.media_title || 'Music' }}</div>
           <div class="rec-a" v-if="d.attrs.media_artist">{{ d.attrs.media_artist }}</div>
-          <div class="rec-w">{{ where }}</div>
+          <div class="rec-w" v-if="d.state === 'paused'">Paused</div>
           <div class="rec-bar" v-if="pos != null"><i :style="{ width: `${pos}%` }"></i></div>
         </div>
       </div>
-      <div class="rec-keys" v-if="!under"><kbd>OK</kbd>Pause, next, louder</div>
+      <div class="rec-keys" v-if="!under"><kbd>OK</kbd>{{ d.state === 'paused' ? 'Play, next, louder' : 'Pause, next, louder' }}</div>
     </div>
   </div>
 </template>

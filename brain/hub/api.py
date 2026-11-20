@@ -47,6 +47,8 @@ from .pairing import Pairing
 from .bridge import Bridges
 from .strip import Strips, StripError
 from .roofline import Roofline
+from .glow import Glow, GlowError
+from . import glow as glow_mod
 from .printers import Printers
 from .photos import Photos
 from .screens import Screens
@@ -143,6 +145,7 @@ class Hub:
         self.errand = None                 # the one errand a bridge is running for us, if any: hub/errand.py
         self.bridge = Bridges(self)        # a puck on the cable, and the ones the house has
         self.strip = Strips(self)          # a light strip knocking over Bluetooth: hub/strip.py
+        self.glow = Glow(self)             # the light behind the TV, following the picture (design/tv-glow/)
         self.roofline = Roofline(self)     # several strip controllers as one light outside, its evenings and its holidays
         self.printers = Printers(self)     # 3D printers on the Wi-Fi, let in at the printer and followed: hub/printers.py
         self.photos = Photos()             # the household's own photos, for a TV at rest: design/rest-tv/
@@ -2706,6 +2709,51 @@ def phones_code(body: dict, request: Request):
     if not hub.lock.check(str(body.get("code") or ""), who): raise HTTPException(401, "That wasn't it.")
     phone, token = hub.phones.with_code(str(body.get("name") or ""), _device_kind(request, body))
     return _with_cookie({"ok": True, "phone": hub.phones._public(phone)}, request, phone, token)
+
+
+@app.get("/glow")
+def glow_get(room: str | None = None):
+    """The light behind the TV: which strip follows the picture, the strips in `room` that could, and where the host
+    sends its frames. The target carries the strip's key: only the house's own screens get this far."""
+    return {"glow": {k: v for k, v in hub.glow.state().items() if k != "key"}, "choices": hub.glow.choices(room),
+            "target": hub.glow.target()}
+
+
+@app.get("/glow/still")
+def glow_still():
+    """What the hub's camera sees, for marking where the TV is on a phone (design/tv-glow/, B). Only the house's own
+    phones get this far, and nothing is kept: it is taken when asked and handed straight over."""
+    try: data, ctype = glow_mod.helper("/still")
+    except Exception: raise HTTPException(503, "The hub's camera isn't answering.")
+    return Response(content=data, media_type=ctype or "image/png", headers={"Cache-Control": "no-store"})
+
+
+@app.post("/glow/corners")
+def glow_corners(body: dict):
+    """{"corners": [[x, y] x4], "start"?, "first"?, "bottom"?}: where the TV is in the camera's view, and the way the
+    strip runs when it is said. From the TV finding itself (A) or a phone marking it (B)."""
+    try: return hub.glow.save(body.get("corners") or [], body.get("start"), body.get("first"), bool(body.get("bottom")))
+    except GlowError as e: raise HTTPException(409, str(e))
+    except ValueError as e: raise HTTPException(400, str(e))
+    except Exception: raise HTTPException(503, "The hub's camera isn't answering.")
+
+
+@app.post("/glow/chase")
+def glow_chase(body: dict):
+    """The strip runs a light from its start, so a phone can say which way it goes; {"stop": true} ends it."""
+    try: hub.glow.chase(bool(body.get("stop")))
+    except GlowError as e: raise HTTPException(409, str(e))
+    except Exception: raise HTTPException(503, "The hub's camera isn't answering.")
+    return {"ok": True}
+
+
+@app.post("/glow")
+async def glow_set(body: dict):
+    """{"strip": id, "run": 0 | 1} to follow the picture, or {"on": false} to stop (design/tv-glow/, A)."""
+    hub.ready()
+    if body.get("on") is False: return await hub.glow.stop()
+    try: return await hub.glow.follow(str(body.get("strip") or ""), int(body.get("run") or 0))
+    except GlowError as e: raise HTTPException(404, str(e))
 
 
 @app.post("/speakers/pair")

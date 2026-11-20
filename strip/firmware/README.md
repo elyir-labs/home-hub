@@ -201,6 +201,7 @@ a strip that paired once and never again. (`main/press.h`, held to it by `test_p
     c++ -std=c++17 -O1 -o /tmp/versions test_versions_native.cpp && /tmp/versions
     c++ -std=c++17 -O1 -o /tmp/wire test_wire_native.cpp && /tmp/wire
     c++ -std=c++17 -O1 -o /tmp/look test_look_native.cpp && /tmp/look
+    c++ -std=c++17 -O1 -o /tmp/follow test_follow_native.cpp && /tmp/follow
 
 On a Mac whose newest SDK will not link, add `-isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk`.
 

@@ -67,7 +67,7 @@ test('a resting TV whose room plays music shows the record, and OK raises Pause,
   })
   await page.goto('/?tv=1&room=living&at=21:10&rest=1', { waitUntil: 'networkidle' })
   await expect(page.locator('.rec-t')).toHaveText('Blue in Green')
-  await expect(page.locator('.rec-w')).toContainText('in the living room')
+  await expect(page.locator('.rec-w')).toHaveCount(0)        // the TV is in that room: which speakers and where is not said
   await expect(page.locator('.idle-time')).toHaveCount(0)
   await page.keyboard.press('Enter')
   await expect(page.locator('.tvb-key')).toHaveText(['Pause', 'Next', 'The living room'])
@@ -97,4 +97,22 @@ test('a pair of speakers playing the same song is one record, and OK and the vol
   await expect.poll(() => asked.filter(a => a.endsWith('/pause')).sort()).toEqual(['/devices/s1/pause', '/devices/s2/pause'])
   await page.keyboard.press('ArrowDown')
   await expect.poll(() => asked.filter(a => a.endsWith('/volume')).sort()).toEqual(['/devices/s1/volume', '/devices/s2/volume'])
+})
+
+test('a pause keeps the record on the resting TV, saying Paused, with Play on OK', async ({ page }) => {
+  let s1: any
+  await page.route('**/home', async r => {
+    const res = await r.fetch(), home = await res.json()
+    for (const room of home.rooms) for (const d of room.devices) if (d.id === 's1') { d.state = 'playing'; s1 = d }
+    await r.fulfill({ response: res, json: home })
+  })
+  await page.goto('/?tv=1&room=living&at=21:10&rest=1', { waitUntil: 'networkidle' })
+  await expect(page.locator('.rec-t')).toHaveText('Blue in Green')
+  speak({ type: 'device', device: { ...s1, state: 'paused' } })
+  await page.waitForTimeout(600)
+  await expect(page.locator('.rec-t')).toHaveText('Blue in Green')
+  await expect(page.locator('.rec-w')).toHaveText('Paused')
+  await expect(page.locator('.rec-keys')).toContainText('Play, next, louder')
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.tvb-key').first()).toHaveText('Play')
 })

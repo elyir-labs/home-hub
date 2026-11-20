@@ -12,7 +12,7 @@ import type { Device, Room } from '../api'
 import { activity, capsOf, iconFor, shortName, perform, roomActive, runScene, scenesFor, store, type Scene } from '../store'
 import { levelOf } from '../levels'
 import { camerasIn, COLOR_OF, hintFor, hintParts, light, lit, louder, musicIn, okOf, playPause, speakersOf, stateOf, thingsIn } from '../tv'
-import { imageUrl } from '../api'
+import { getGlow, imageUrl } from '../api'
 import { locale } from '../lang'
 import Icon from '../Icon.vue'
 
@@ -62,6 +62,9 @@ const scene = (s: Scene) => props.here && runScene(props.here, s)
 const watchCam = (d: Device) => { store.viewer = d }
 
 const hint = computed(() => hintParts(lit.value?.dataset.hint ?? ''))
+/* a strip in the TV's room that can follow the picture brings its setup to the house's row (design/tv-glow/, A) */
+const glowable = ref(false)
+watch(() => props.home, async (room) => { try { glowable.value = !!room && (await getGlow(room)).choices.some(c => c.reachable) } catch { glowable.value = false } }, { immediate: true })
 
 /* The lit row rides at the top of the view; the rows above it slide away. */
 const rowsEl = ref<HTMLElement | null>(null)
@@ -170,6 +173,9 @@ onUnmounted(() => window.removeEventListener('resize', fit))
             <div class="tv-cards">
               <button class="tv-card tv-scene" data-tv data-hint="OK|Add something to the house" @click="store.sheet = 'add'">
                 <span class="tv-ic"><Icon name="plus" :size="26" /></span><span class="tv-nm">Add to the house</span>
+              </button>
+              <button v-if="glowable" class="tv-card tv-scene" data-tv data-hint="OK|Set up the light behind the TV" @click="store.glowSetup = true">
+                <span class="tv-ic"><Icon name="light" :size="26" /></span><span class="tv-nm">Light behind the TV</span>
               </button>
               <button class="tv-card tv-scene" data-tv data-hint="OK|Settings, people and the hub" @click="store.sheet = 'house'">
                 <span class="tv-ic"><Icon name="menu" :size="26" /></span><span class="tv-nm">This house</span>

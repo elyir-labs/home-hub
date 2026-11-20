@@ -1,0 +1,19 @@
+/* Setting up the light behind the TV (design/tv-glow/). The TV at 1920x1080, a phone at 390x844, the camera's view
+   drawn: a room with the TV in it, never a real one. */
+.cam { position: absolute; border-radius: 22px; overflow: hidden; background: linear-gradient(#3a3229, #241f19 60%, #1a1611); border: 1px solid var(--edge-hi); }
+.cam .tv { position: absolute; background: #0b0d12; border: 6px solid #111; border-radius: 6px; }
+.cam .mark { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; border: 3px solid var(--lamp); background: rgba(var(--lamp-rgb), .25); }
+.cam .edge { position: absolute; border: 2px dashed rgba(var(--lamp-rgb), .8); }
+.corner { position: absolute; width: 120px; height: 120px; background: #fff; }
+.ask { position: absolute; left: var(--safe-x); top: 140px; max-width: 900px; }
+.ask h1 { margin: 0; font-size: 76px; font-weight: 400; letter-spacing: -.03em; line-height: 1.02; }
+.ask p { margin: 22px 0 0; font-size: 30px; line-height: 1.35; color: var(--ink-2); }
+.opts { position: absolute; left: var(--safe-x); bottom: 150px; display: flex; gap: 24px; }
+.opt { height: 96px; padding: 0 40px; border-radius: 48px; display: inline-flex; align-items: center; font-size: 28px; font-weight: 500; }
+.glowbar { position: absolute; background: linear-gradient(90deg, #f5a623, #e84a7f); filter: blur(6px); border-radius: 10px; }
+.foot { position: absolute; left: var(--safe-x); right: var(--safe-x); bottom: var(--safe-y); display: flex; justify-content: space-between; z-index: 3; }
+.where { font-size: 22px; color: var(--muted); }
+.phone { position: absolute; width: 390px; height: 844px; border-radius: 56px; overflow: hidden; background: #0d0f14; border: 10px solid #22252c; }
+.phone .pt { position: absolute; left: 24px; right: 24px; top: 70px; color: #f1eee8; }
+.phone .pt h2 { margin: 0; font-size: 26px; font-weight: 600; } .phone .pt p { margin: 8px 0 0; font-size: 16px; color: #b9b5ad; line-height: 1.4; }
+.phone .btn { position: absolute; left: 24px; right: 24px; bottom: 40px; height: 56px; border-radius: 28px; display: grid; place-items: center; background: #f1eee8; color: #14161b; font-size: 17px; font-weight: 600; }
