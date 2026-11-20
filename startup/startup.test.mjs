@@ -7,7 +7,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
-import { NAME, HOUSE, TIME, BREATH, FIRST_BREATH, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, DRIVE, DRIVE_AT } from './sequence.mjs'
+import { NAME, HOUSE, TIME, BREATH, FIRST_BREATH, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, DRIVE, DRIVE_AT, MODEM } from './sequence.mjs'
 import { json } from './json.mjs'
 import { THEME, NAME_FRAMES, CODE, fingerprint, themeFile, timingSh, script } from './plymouth.mjs'
 
@@ -176,4 +176,35 @@ test('Ready with a code is where E puts it, and says what E says', () => {
   const [, hl, ht, hw] = css.match(/\.house\.small \{ left: (\d+)px; top: (\d+)px; width: (\d+)px/).map(Number)
   assert.deepEqual([hl + hw / 2, ht + hw / 2, hw], [...SCAN.house.center, SCAN.house.size])
   assert.equal(+css.match(/\.quiet \{[^}]*font-size: (\d+)px/)[1], WORDS.or.size)
+})
+
+// design/modem-cable/ (C) is the spec for Ready on a cable into the modem, and AloneC for a hub with no Wi-Fi card.
+test('Ready on a cable into the modem is where C puts it, and says what C says', () => {
+  const at = (f) => read(new URL(`../design/modem-cable/${f}`, import.meta.url))
+  const c = at('BothC.dc.html'), alone = at('AloneC.dc.html'), css = at('modem.css')
+  const box = (html, cls) => html.match(new RegExp(`class="${cls}" style="left: (\\d+)px; top: (\\d+)px(?:; width: (\\d+)px)?`)).slice(1).filter(Boolean).map(Number)
+  const text = (html, cls, part) => html.match(new RegExp(`class="${cls}"[^>]*><div class="big">([^<]*)</div><div class="small">(.*?)</div></div>`))[part === 'big' ? 1 : 2]
+  const ready = (html) => html.match(/class="say ready" style="top: (\d+)px">([^<]*)</).slice(1)
+  assert.deepEqual(ready(c), [String(WORDS.scanReady.top), MODEM.ready])
+  assert.deepEqual(ready(alone), [String(WORDS.scanReady.top), MODEM.alone])
+  const [, l, t, w, , pad] = c.match(/class="tile" style="left: (\d+)px; top: (\d+)px; width: (\d+)px; height: (\d+)px; padding: (\d+)px"/).map(Number)
+  assert.deepEqual([l, t, w, pad], [MODEM.tile.left, MODEM.tile.top, MODEM.tile.size, MODEM.tile.pad])
+  const [cl, ct, cw] = box(c, 'col code')
+  assert.deepEqual([cl + cw / 2, ct], [MODEM.code.center, MODEM.code.top])
+  assert.equal(text(c, 'col code', 'big'), MODEM.scan)
+  assert.equal(text(c, 'col code', 'small'), `${MODEM.orJoin}<b>Elyir Hub 4F2A</b>${SCAN.orPassword}<b>kite-maple-41</b>`)
+  assert.deepEqual(box(c, 'split').slice(0, 2), [MODEM.split.left, MODEM.split.top])
+  assert.ok(c.includes(MODEM.drawing) && alone.includes(MODEM.drawing), 'the boards draw the cable picture the splash renders')
+  assert.deepEqual(box(c, 'picture'), [MODEM.picture.left, MODEM.picture.top])
+  assert.deepEqual(box(alone, 'picture'), [MODEM.alonePicture.left, MODEM.alonePicture.top])
+  assert.deepEqual(box(c, 'col words'), [MODEM.words.left, MODEM.words.top, MODEM.words.width])
+  assert.deepEqual(box(alone, 'col words'), [MODEM.aloneWords.left, MODEM.aloneWords.top, MODEM.aloneWords.width])
+  assert.deepEqual([text(c, 'col words', 'big'), text(c, 'col words', 'small')], [MODEM.move, MODEM.moveWhy])
+  assert.deepEqual([text(alone, 'col words', 'big'), text(alone, 'col words', 'small')], [MODEM.aloneMove, MODEM.aloneWhy])
+  assert.equal(+css.match(/\.col \.big \{ font-size: (\d+)px/)[1], MODEM.big.size)
+  assert.equal(+css.match(/\.col \.small \{[^}]*font-size: (\d+)px/)[1], MODEM.small.size)
+  assert.equal(MODEM.small.size, WORDS.or.size, 'the Wi-Fi name and password are set from the same letters as E')
+  const sc = script()
+  for (const s of ['modem', 'nomodem']) assert.match(sc, new RegExp(`"elyir:${s}"`))
+  for (const f of ['modem-picture.png', 'modem-split.png', 'modem-move.png', 'modem-alone-move.png', 'modem-tile.png']) assert.match(sc, new RegExp(`Image\\("${f}"\\)`))
 })

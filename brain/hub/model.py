@@ -9,6 +9,8 @@ import re, time
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 
+from . import doorbell
+
 # Things we make answer to the maker's name, whatever older firmware still calls itself. A bridge
 # puck flashed before September announces its maker as the project's working name; the house should
 # not have to wait for a reflash to stop reading it.
@@ -249,6 +251,7 @@ class Home:
         # a screen's, because a plug that is noise on the wall is noise on every phone. Kept in settings.
         self.off_home: set[str] = set()
         self.room_colors: dict[str, list] = {}   # kept per room, from settings, so a restore brings them back
+        self.bells: dict[str, str] = {}    # a doorbell's button entity -> the camera in the same unit (doorbell.py)
         self.lamps: dict[str, str] = {}    # camera id -> the light built into the same unit (Ring floodlight and spotlight cams)
         self.eyes: dict[str, str] = {}     # light/switch/fan id -> the motion sensor built into the same unit (a Brilliant switch, a Ring pathlight): docs/units.md
         self.part_of: dict[str, str] = {}   # a car charger's reading -> the charger it belongs to (the plug's id)
@@ -323,10 +326,14 @@ class Home:
         others = {e.get("unique_id"): e["entity_id"] for e in entities
                   if e.get("platform") != "music_assistant" and e["entity_id"].startswith("media_player.") and e.get("unique_id")}
         ids = {e["entity_id"] for e in entities}
+        # An AirPlay speaker the driver layer also has (a HomePod through the Apple TV integration) is named by its
+        # network address there, "92:20:1C:13:8D:59", and by the engine as "ap" and the same address bare.
+        macs = {re.sub(r"[^0-9a-f]", "", uid.lower()): eid for uid, eid in others.items() if re.fullmatch(r"([0-9A-Fa-f]{2}[:-]?){5}[0-9A-Fa-f]{2}", uid)}
         out = {}
         for eid, e in mine.items():
             uid = str(e.get("unique_id") or "")
-            out[eid] = others.get(uid) or (uid if uid in ids and uid not in mine else eid)
+            air = re.fullmatch(r"ap([0-9a-f]{12})", uid.lower())
+            out[eid] = others.get(uid) or (uid if uid in ids and uid not in mine else None) or (air and macs.get(air.group(1))) or eid
         return out
 
     def build(self, areas, ha_devices, entities, states):
@@ -404,6 +411,8 @@ class Home:
             if d.capability == "light" and d.hw: lights.setdefault(d.hw, d.id)
         self.lamps = {d.id: lights[d.hw] for d in self.devices.values() if d.capability == "camera" and d.hw in lights}
         for cid, lid in self.lamps.items(): self.devices[cid].attrs["light"] = lid
+        # A doorbell's button, beside the camera in the same unit, so a ring can bring that picture up (doorbell.py).
+        self.bells = doorbell.buttons(entities, states, {d.hw: d.id for d in self.devices.values() if d.capability == "camera" and d.hw})
         # A switch with a motion sensor built in -- a Brilliant dimmer, a Ring pathlight, a motion switch --
         # is one thing on the wall, and its tile is where its motion belongs. The sensor stays a device of
         # its own as well, so rules and the room's line read it as they always did. docs/units.md.

@@ -11,10 +11,11 @@
 
 import { shallowRef } from 'vue'
 import type { Device, Room } from './api'
-import { cap, doneLine, done, isActive, isDead, PASSIVE, SCENES, type Scene } from './store'
-import { dimmable, lightPct, tempUnit } from './levels'
+import { cap, doneLine, done, isActive, isDead, PASSIVE, perform, SCENES, type Scene } from './store'
+import { dimmable, lightPct, step, tempUnit } from './levels'
 import { isScreen } from './screen'
 import { typable } from './keys'
+import { canStart } from './music'
 
 /* Worked out, not told: a screen for the hub, in Chromium on Linux, that nobody can touch -- a mini PC on a
    TV. A wall screen has a touchscreen and keeps the wall. ?tv=1 forces it for previews, ?tv=0 turns it off. */
@@ -50,6 +51,20 @@ export const sceneFor = (color: Color, scenes: Scene[]) => scenes.find(s => s.id
 export const coloredScenes = (scenes: Scene[]) => SCENES.filter(s => scenes.some(x => x.id === s.id))
 
 /* ---------- what is in a room, for the sofa ---------- */
+
+/* Music in the TV's own room (design/tv-music/, A and B): the room's speakers play it and the TV is its screen.
+   Awake, a paused record still leads the room, so it can be started again from the sofa; at rest only one that plays
+   takes the screen. The speakers are this room's that play in step with it, the one the remote works first. */
+export function musicIn(room: Room | null, playingOnly = false): Device | null {
+  const on = room?.devices.filter(d => canStart(d) && (d.state === 'playing' || (!playingOnly && d.state === 'paused'))) ?? []
+  return on.find(d => d.state === 'playing') ?? on[0] ?? null
+}
+export function speakersOf(d: Device, room: Room): Device[] {
+  const mates = new Set((d.attrs.together as string[] | undefined) ?? [])
+  // a pair fed the same song from elsewhere (an Apple TV playing to both HomePods) is in step without being grouped
+  const same = (x: Device) => canStart(x) && x.state === d.state && !!d.attrs.media_title && x.attrs.media_title === d.attrs.media_title
+  return [d, ...room.devices.filter(x => x.id !== d.id && (mates.has(x.id) || same(x)))]
+}
 
 const ORDER = ['light', 'cover', 'climate', 'media', 'fan', 'switch', 'lock']
 /* Everything in the room a person can do something to, in an order that never changes with its state:
@@ -116,6 +131,18 @@ export function hintParts(hint: string): { keys: string[]; before: string; words
     const before = k.startsWith('~') ? k.slice(1).replace(/\s*OK$/, '') : ''
     return { keys: k.startsWith('~') ? ['OK'] : k.split(' '), before, words }
   })
+}
+
+/* Pause, play and the volume work every speaker the record is on, so a pair of HomePods moves as one. Next is asked
+   of the first only: the others follow the same source, and asking each would skip as many songs. */
+export function playPause(d: Device, room: Room) {
+  const o = okOf(d)
+  if (!('open' in o)) for (const x of speakersOf(d, room)) perform(x, o.action, undefined, o.guess)
+}
+export function louder(d: Device, room: Room, dir: 1 | -1): boolean {
+  let moved = false
+  for (const x of speakersOf(d, room)) moved = !!step(x, dir) || moved
+  return moved
 }
 
 /* ---------- moving the highlight ---------- */

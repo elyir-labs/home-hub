@@ -398,6 +398,19 @@ Do not reopen these, and do not propose around them.
   remote's numbers or a pad the arrows move on. The digits are never a press anywhere else, so the colors are F1 to F4
   over CEC. A TV never shows the upside-down pill. `Join.vue`, `ScreenRoom.vue`, `/phones/plugged-in`; pinned by
   `app/e2e/tv-join.spec.ts`, `app/tests/tv.test.ts` and `brain/tests/test_api_screens.py`.
+- **Somebody at the door shows on the TV in a corner, and music in the TV's room is on its screen** (20 November,
+  `design/tv-doorbell/`, A; `design/tv-music/`, A and B). A doorbell press (an `event` of class doorbell, or ring-mqtt's
+  Ding) brings the camera in the same unit up in the corner over whatever is on, awake or resting: OK is the whole
+  screen, Back lets it go, and it goes after a minute. Nothing on it opens the door. Music stays on the room's own
+  speakers -- the hub never plays through the TV -- and the TV is its screen: awake, a Playing here row leads the room
+  (OK plays or pauses, Up and Down are the volume, Hold OK opens the music pane); at rest, a room that plays shows the
+  record, and OK raises Pause, Next and the volume. `brain/hub/doorbell.py`, `DoorCorner.vue`, `TvRecord.vue`,
+  `musicIn` in `tv.ts`; pinned by `brain/tests/test_doorbell.py`, `app/tests/tv.test.ts` and `app/e2e/tv-door-music.spec.ts`.
+- **A hub on a cable into the modem answers nobody on the internet, and its Ready offers two ways in** (19 November,
+  `design/modem-cable/`, C). A link with a public address takes no new connections (`driver-layer/host/public.sh`), and
+  counts as online but never as the house's network, so the hub still makes its own Wi-Fi. Ready puts that Wi-Fi's code
+  beside a picture of moving the cable to the router; whichever happens first wins. Pinned by `startup/startup.test.mjs`,
+  `startup/look.sh` and the `shutting` and `setting_up` groups in `driver-layer/host/tests.sh`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
   B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
   development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this

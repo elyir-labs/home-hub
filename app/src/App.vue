@@ -6,7 +6,7 @@
 import { inApp } from './inapp'
 import { narrow } from './band'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { store, start, halt, load, foundCount, visibleRooms, activity, roomActive, houseLine, weatherLine, needsSetup, dismissToast, updateReady, forgetDone, cap, linkNow, clockNow, runScene, scenesFor } from './store'
+import { store, start, halt, deviceById, load, foundCount, visibleRooms, activity, roomActive, houseLine, weatherLine, needsSetup, dismissToast, updateReady, forgetDone, cap, linkNow, clockNow, runScene, scenesFor } from './store'
 import { bandFor, probe, reach } from './reach'
 import { door } from './door'
 import Setup from './Setup.vue'
@@ -19,8 +19,10 @@ import { lastTurn } from './thisScreen'
 import CodePrompt from './CodePrompt.vue'
 import Keys from './Keys.vue'
 import { onWall } from './keys'
-import { installRemote, onTV, sceneFor, type Press } from './tv'
+import { installRemote, musicIn, onTV, sceneFor, type Press } from './tv'
 import TvView from './views/TvView.vue'
+import DoorCorner from './DoorCorner.vue'
+import TvRecord from './TvRecord.vue'
 import TvBand from './TvBand.vue'
 import TvRest from './TvRest.vue'
 import { bedtime, nightOf, rest, SLEEP_AFTER } from './restTv'
@@ -131,6 +133,8 @@ const tvHome = computed(() => homeRoom(rooms.value) ?? params.get('room')
   ?? rooms.value.find(r => r.devices.some(d => cap(d) === 'light'))?.id ?? rooms.value[0]?.id ?? null)
 const tvRoom = computed(() => room.value ?? rooms.value.find(r => r.id === tvHome.value) ?? null)
 const tvBand = ref(false)
+/* while the TV's room plays music, the resting TV is the record and its band works the music (design/tv-music/, B) */
+const tvMusic = computed(() => tv ? musicIn(tvRoom.value, true) : null)
 const toneParam = params.get('tone'), layoutParam = params.get('layout')
 
 /* The house's feel, which is what the Look page actually writes: one of three,
@@ -275,10 +279,17 @@ watch(() => store.bridge?.state, (is, was) => { if (is === 'knocking' && was && 
 /* The band's OK on a thing that opens rather than acts: a pane belongs to the awake panel. */
 function wakeOpen(d: Device) { wake(); store.opened = d }
 function remote(p: Press): boolean {
+  // somebody at the door: OK makes the door the whole screen, Back lets it go, awake or resting (design/tv-doorbell/, A)
+  if (store.ringing && (p === 'ok' || p === 'back')) {
+    const cam = deviceById(store.ringing.camera)
+    store.ringing = null
+    if (p === 'ok' && cam) { if (idle.value) wake(); store.viewer = cam }
+    return true
+  }
   if (!idle.value) return false
   if (tvBand.value) { if (p === 'home') { wake(); return true } return false }
-  if (rest.face === 'bedtime' && p === 'ok') { bedtime(); return true }
-  if (rest.face === 'bedtime' && p === 'back') { rest.notYet = nightOf(shown.value); return true }
+  if (!tvMusic.value && rest.face === 'bedtime' && p === 'ok') { bedtime(); return true }
+  if (!tvMusic.value && rest.face === 'bedtime' && p === 'back') { rest.notYet = nightOf(shown.value); return true }
   if (p === 'ok' || p === 'up' || p === 'down') tvBand.value = true
   else if (p === 'home') wake()
   return true   // nothing else does anything to a resting TV
@@ -347,7 +358,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="shell" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking, 'house-open': panel && docked, 'pane-open': !!store.opened && docked }">
+  <div class="shell" :data-ringing="tv && store.ringing ? '' : null" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking, 'house-open': panel && docked, 'pane-open': !!store.opened && docked }">
     <Sky :quiet="!idle && !setup" :held="wall && !idle" />
     <!-- glass lays its blooms on the sky the canvas just painted, under the veil -->
     <div class="sky-bloom" v-if="face === 'glass'"></div>
@@ -495,7 +506,10 @@ onUnmounted(() => {
     </Transition>
 
     <Transition name="idle">
-      <div class="idle" v-if="idle" aria-label="Tap to wake" :class="{ 'under-band': tvBand }">
+      <div class="idle" v-if="idle && tvMusic && tvRoom" aria-label="Tap to wake">
+        <TvRecord :d="tvMusic" :room="tvRoom" :time="restTime.time" :period="restTime.period ?? ''" :day="day" :temp="restWx?.temp ?? null" :under="tvBand" />
+      </div>
+      <div class="idle" v-else-if="idle" aria-label="Tap to wake" :class="{ 'under-band': tvBand }">
         <TvRest v-if="tv" :now="shown" :room="tvRoom" :since="restSince" />
         <template v-else>
         <div class="idle-wx" v-if="restWx">
@@ -514,6 +528,7 @@ onUnmounted(() => {
         </template>
       </div>
     </Transition>
-    <TvBand v-if="tv && idle && tvBand && tvRoom" :room="tvRoom" @rooms="wake" @open="wakeOpen" />
+    <DoorCorner v-if="tv && store.ringing" />
+    <TvBand v-if="tv && idle && tvBand && tvRoom" :room="tvRoom" :music="tvMusic" @rooms="wake" @open="wakeOpen" />
   </div>
 </template>

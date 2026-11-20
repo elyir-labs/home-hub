@@ -7,14 +7,15 @@
    films, while it plays one -- OK brings this room up as one band along the foot and Back puts it away;
    whatever is behind keeps going. Left and Right walk the room's things, Up and Down are the level itself,
    one press each, and the colored buttons start the room's scenes. The rest of the house is behind Other
-   rooms, which opens the rows. */
+   rooms, which opens the rows. While the room plays music the band works the music instead (design/tv-music/, B):
+   Pause, Next, the room, and Up and Down on Pause are the volume. */
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { Device, Room } from './api'
 import { activity, perform, scenesFor, shortName, store } from './store'
 import { levelOf, step } from './levels'
-import { coloredScenes, COLOR_OF, hintFor, hintParts, light, lit, okOf, stateOf, thingsIn } from './tv'
+import { coloredScenes, COLOR_OF, hintFor, hintParts, light, lit, louder, okOf, playPause, stateOf, thingsIn } from './tv'
 
-const props = defineProps<{ room: Room }>()
+const props = defineProps<{ room: Room; music?: Device | null }>()
 const emit = defineEmits<{ rooms: []; open: [d: Device] }>()
 
 const scale = ref(1)
@@ -36,6 +37,9 @@ function level(e: Event, d: Device) {
   else if (levelOf(d) != null) e.preventDefault()   // at the end of its level: stay on the card rather than leave the band
 }
 
+function pair(e: Event) { if (props.music && louder(props.music, props.room, (e as CustomEvent<1 | -1>).detail)) e.preventDefault(); else e.preventDefault() }
+const vol = computed(() => props.music?.attrs.volume_level != null ? Math.round(Number(props.music.attrs.volume_level) * 100) : null)
+
 const band = ref<HTMLElement | null>(null)
 onMounted(() => { fit(); window.addEventListener('resize', fit); light(band.value?.querySelector<HTMLElement>('[data-tv-start]') ?? null) })
 onUnmounted(() => window.removeEventListener('resize', fit))
@@ -46,6 +50,14 @@ onUnmounted(() => window.removeEventListener('resize', fit))
     <div class="tvb" :style="{ zoom: scale }">
       <div class="tvb-scrim"></div>
       <div class="tvb-band" ref="band" data-tv-own-scroll>
+        <div class="tvb-row tvb-music" v-if="music">
+          <button class="tvb-key" data-tv data-tv-start :data-hint="`OK|${music.state === 'playing' ? 'Pause' : 'Play'};▲ ▼|Louder or quieter;Back|Put it away`"
+                  :data-thing="music.id" @click="playPause(music, room)" @tv-level="pair($event)">{{ music.state === 'playing' ? 'Pause' : 'Play' }}</button>
+          <button class="tvb-key" data-tv data-hint="OK|Skip this one;Back|Put it away" @click="perform(music, 'next')">Next</button>
+          <button class="tvb-key" data-tv :data-hint="`OK|The whole ${room.name.toLowerCase()};Back|Put it away`" @click="emit('rooms')">The {{ room.name.toLowerCase() }}</button>
+          <span class="tvb-vol" v-if="vol != null">Volume<span class="tvb-vol-bar"><i :style="{ width: `${vol}%` }"></i></span>{{ vol }}%</span>
+        </div>
+        <template v-else>
         <div class="tvb-hd">
           <h1>{{ room.name }}<small>{{ activity(room) }}</small></h1>
           <div class="tvb-scenes">
@@ -65,6 +77,7 @@ onUnmounted(() => window.removeEventListener('resize', fit))
             <span class="tvb-nm">Other rooms</span><span class="tvb-st">{{ othersLine }}</span>
           </button>
         </div>
+        </template>
         <div class="tvb-hint">
           <span v-for="(h, i) in hint" :key="i">{{ h.before }}<kbd v-for="k in h.keys" :key="k">{{ k }}</kbd>{{ h.words }}</span>
         </div>
@@ -98,9 +111,15 @@ onUnmounted(() => window.removeEventListener('resize', fit))
 .tvb-meter { position: absolute; right: 14px; top: 22px; bottom: 22px; width: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.12); opacity: 0; transition: opacity 0.2s; }
 .tvb-meter i { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 4px; height: var(--v, 0%); background: var(--lamp); transition: height 0.15s; }
 .tvb-thing[data-lit] .tvb-meter { opacity: 1; }
+.tvb-music { align-items: center; padding: 22px 24px; border-radius: var(--r-lg); background: rgba(14, 16, 20, 0.92); border: 1px solid var(--edge-hi); }
+.tvb-key { height: 84px; padding: 0 30px; font: inherit; font-size: 26px; color: inherit; cursor: pointer; border-radius: var(--r-lg);
+  background: rgba(22, 24, 30, 0.62); border: 1px solid var(--edge); }
+.tvb-vol { flex: 1; display: flex; gap: 16px; align-items: center; justify-content: flex-end; font-size: 24px; color: var(--ink-2); }
+.tvb-vol-bar { width: 300px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); }
+.tvb-vol-bar i { display: block; height: 100%; border-radius: 3px; background: var(--ink); transition: width 0.15s; }
 .tvb-more { justify-content: center; gap: 10px; white-space: normal; padding: 22px; }
 .tvb-hint { margin-top: 26px; display: flex; gap: 28px; align-items: center; font-size: 22px; color: var(--ink-2); white-space: nowrap; }
 .tvb-hint span { display: inline-flex; gap: 10px; align-items: center; }
-.tvb-hint kbd { font: 600 17px/1 inherit; letter-spacing: 0.04em; color: var(--ink); min-width: 40px; height: 36px; padding: 0 10px; display: inline-grid; place-items: center;
+.tvb-hint kbd { font-family: inherit; font-size: 17px; font-weight: 600; line-height: 1; letter-spacing: 0.04em; color: var(--ink); min-width: 40px; height: 36px; padding: 0 10px; display: inline-grid; place-items: center;
   border-radius: 18px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--edge-hi); }
 </style>

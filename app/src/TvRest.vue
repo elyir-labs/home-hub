@@ -14,7 +14,6 @@ import { clockParts, restingFacts, restWeather } from './resting'
 import { drift, faceFor, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
   SLEEP_AFTER, slideAt, slides, stillOn, type Photo, type Shape } from './restTv'
 import { locale } from './lang'
-import { roomOf } from './store'
 import Icon from './Icon.vue'
 
 const props = defineProps<{ now: Date; room: Room | null; since: number }>()
@@ -65,7 +64,6 @@ const sleepsIn = computed(() => Math.max(1, Math.ceil((props.since + SLEEP_AFTER
 
 const ok = computed(() => {
   if (face.value === 'bedtime') return 'Bedtime'
-  if (face.value === 'playing' && music.value && props.room && roomOf(music.value)?.id === props.room.id) return 'Pause, louder or quieter'
   return props.room ? `The ${props.room.name.toLowerCase()}` : ''
 })
 </script>

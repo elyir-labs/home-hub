@@ -9,7 +9,7 @@
 // It borrows the panel's Playwright (app/node_modules) to draw; PLAYWRIGHT=<path to the package's
 // index.mjs> points it at another copy.
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { COLOR, NAME, HOUSE, TIME, SLOW, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, DRIVE, DRIVE_AT } from './sequence.mjs'
+import { COLOR, NAME, HOUSE, TIME, SLOW, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, DRIVE, DRIVE_AT, MODEM } from './sequence.mjs'
 import { THEME, K, NAME_FRAMES, fingerprint, themeFile, timingSh, script, glyphFile, smallFile, driveFile, DRIVE_SETS } from './plymouth.mjs'
 
 const OUT = new URL(`plymouth/${THEME}/`, import.meta.url)
@@ -160,6 +160,31 @@ const letter = async (file, ch, w) => {
   await shoot(file, Math.max(1, Math.round(width)), w.size * 1.3 * K, `<div style="white-space:pre;${f};color:${w.color}">${ch}</div>`)
 }
 for (const [set, key] of Object.entries(DRIVE_SETS)) for (const ch of GLYPHS) await letter(driveFile(set, ch), ch, DRIVE_AT[key])
+
+// Ready on a cable into the modem (design/modem-cable/, C): a smaller tile for the left column, the lines that are
+// always the same, the drawing of the cable, the split between the two answers, and the words beside the drawing.
+const mt = MODEM.tile.size * K
+await shoot('modem-tile.png', mt, mt, `<div style="width:${mt}px;height:${mt}px;border-radius:${SCAN.tile.radius * K}px;background:${SCAN.tile.color}"></div>`)
+await across('modem-ready.png', WORDS.scanReady, MODEM.ready)
+await across('modem-alone.png', WORDS.scanReady, MODEM.alone)
+await across('modem-scan.png', MODEM.big, MODEM.scan)
+await piece('modem-or-join.png', MODEM.orJoin, WORDS.or.color, 400, WORDS.or)
+const mp = MODEM.picture
+await shoot('modem-picture.png', mp.width * K, mp.height * K,
+  MODEM.drawing.replace(`width="${mp.width}" height="${mp.height}"`, `width="${mp.width * K}" height="${mp.height * K}"`))
+const sp = MODEM.split
+await shoot('modem-split.png', sp.width * K, sp.height * K, `<div style="width:${sp.width * K}px;height:${sp.height * K}px;display:flex;flex-direction:column;align-items:center;font-family:'Instrument Sans',sans-serif">
+  <i style="display:block;width:${K}px;height:${120 * K}px;background:#2b2721"></i>
+  <span style="height:${60 * K}px;line-height:${60 * K}px;font-size:${18 * K}px;color:#6f6b64;letter-spacing:.1em;text-transform:uppercase">or</span>
+  <i style="display:block;width:${K}px;height:${160 * K}px;background:#2b2721"></i></div>`)
+const words = (big, small, width) => `<div style="width:${width * K}px;text-align:center;font-family:'Instrument Sans',sans-serif">
+  <div style="font-size:${MODEM.big.size * K}px;color:${MODEM.big.color};line-height:1.3">${big}</div>
+  <div style="margin-top:${10 * K}px;font-size:${MODEM.small.size * K}px;color:${MODEM.small.color};line-height:1.45">${small}</div></div>`
+for (const [file, big, small, w] of [['modem-move.png', MODEM.move, MODEM.moveWhy, MODEM.words.width],
+  ['modem-alone-move.png', MODEM.aloneMove, MODEM.aloneWhy, MODEM.aloneWords.width]]) {
+  const html = words(big, small, w)
+  await shoot(file, w * K, await tall(html, w * K), html)
+}
 
 await browser.close()
 

@@ -92,6 +92,13 @@ class Folding(unittest.TestCase):
         es = [ent("media_player.den", "cast", "cast-x", area_id="living"), ent("media_player.den_2", "music_assistant", "media_player.den")]
         self.assertEqual(Home.engine_players(es), {"media_player.den_2": "media_player.den"})
 
+    def test_an_airplay_speaker_the_driver_layer_also_has_is_one_speaker(self):
+        # a HomePod: the Apple TV integration names it by its address, the engine by "ap" and the same address bare
+        es = [ent("media_player.left_left", "apple_tv", "92:20:1C:13:8D:59", area_id="living"),
+              ent("media_player.left", "music_assistant", "ap92201c138d59"),
+              ent("media_player.loft", "music_assistant", "ap0a0b0c0d0e0f")]
+        self.assertEqual(Home.engine_players(es), {"media_player.left": "media_player.left_left", "media_player.loft": "media_player.loft"})
+
     def test_a_screen_the_engine_does_not_reach_cannot_start_music(self):
         h = house().home
         self.assertNotIn("media_player.living_tv", h.players)
