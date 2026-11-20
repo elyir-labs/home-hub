@@ -56,3 +56,19 @@
 
 .try { position: absolute; right: var(--safe-x); top: calc(var(--safe-y) + 60px); z-index: 4; font-size: 18px; color: var(--muted); text-align: right; line-height: 1.6; }
 .try kbd { font: 600 14px/1 "Instrument Sans", system-ui, sans-serif; padding: 4px 8px; border-radius: 10px; background: rgba(255,255,255,.08); border: 1px solid var(--edge); }
+
+/* the handover (page 2, the way back): for two seconds before the TV switches, the foot says where you are going and
+   how you come back, because once the box is on the screen the hub can't say anything */
+.handover { position: absolute; left: var(--safe-x); right: var(--safe-x); bottom: 40px; z-index: 8; display: flex; gap: 28px; align-items: center;
+            padding: 26px 32px; border-radius: 28px; background: rgba(12,14,19,.94); border: 1px solid rgba(var(--lamp-rgb), .45);
+            box-shadow: 0 30px 80px rgba(0,0,0,.6); opacity: 0; transform: translateY(20px); transition: opacity .25s, transform .25s; pointer-events: none; }
+.handover.on { opacity: 1; transform: none; }
+.handover .tile { width: 96px; height: 96px; border-radius: 20px; flex: none; display: grid; place-items: end start; padding: 12px; font-size: 18px; font-weight: 500;
+                  background: linear-gradient(160deg, rgba(var(--t), .7), rgba(var(--t), .25)); }
+.handover b { display: block; font-size: 34px; font-weight: 500; letter-spacing: -.01em; }
+.handover p { margin: 8px 0 0; font-size: 26px; color: var(--ink-2); line-height: 1.35; }
+.handover p kbd, .box .way kbd.dot { display: inline-block; width: 22px; height: 22px; border-radius: 50%; vertical-align: -3px; margin: 0 3px; padding: 0; }
+.box .way kbd.dot { width: 18px; height: 18px; }
+.handover .bar { position: absolute; left: 32px; right: 32px; bottom: 12px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.1); overflow: hidden; }
+.handover .bar i { display: block; height: 100%; width: 0; background: var(--lamp); }
+.handover.on .bar i { width: 100%; transition: width 2.2s linear; }

@@ -7,11 +7,19 @@
   "pages": [
     {
       "id": "tv",
-      "name": "One TV, the box and the house"
+      "name": "One TV, the box and the house",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A"
+      }
     },
     {
       "id": "tv-lost",
       "name": "One TV, the box and the house: not chosen"
+    },
+    {
+      "id": "back",
+      "name": "Coming back to the house"
     }
   ],
   "artboards": [
@@ -52,6 +60,45 @@
       "w": 390,
       "h": 844,
       "title": "C: the box keeps the TV, the phone is the remote",
+      "is_interactive": true
+    },
+    {
+      "file": "BackToday.dc.html",
+      "page": "back",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: the Watch row as built, and no way back"
+    },
+    {
+      "file": "InputA.dc.html",
+      "page": "back",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: Input, or the box going to sleep",
+      "is_interactive": true
+    },
+    {
+      "file": "ColorB.dc.html",
+      "page": "back",
+      "x": 0,
+      "y": 3000,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: any colored button comes back",
+      "is_interactive": true
+    },
+    {
+      "file": "PhoneBackC.dc.html",
+      "page": "back",
+      "x": 0,
+      "y": 4500,
+      "w": 390,
+      "h": 844,
+      "title": "C: the phone brings the house back",
       "is_interactive": true
     }
   ],
@@ -127,10 +174,70 @@
       "y": 0,
       "w": 500,
       "text": "NOT CHOSEN\n\nB kept the room first but left every app except the last one behind a hold. C brought back the input switching this was asked to remove. A puts watching where the remote starts, and the room's lights stay on the first screen."
+    },
+    {
+      "id": "back-why",
+      "page": "back",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\nA (decided this morning) said Home on the box's remote brings the house back. Tried on the living room TV on 20 November, it doesn't: an Apple TV says which app holds what is playing, not which is on the screen. Through Home Assistant it said nothing at all when Netflix opened or Home was pressed. Asked directly, it said Netflix once, and leaving it only showed because the HomePods' music took the slot back; the second time, nothing.\n\nWhat it does say reliably is when it goes to sleep. And once the hub's HDMI adapter is in, the hub hears the TV's own remote and can switch the TV back itself."
+    },
+    {
+      "id": "back-today",
+      "page": "back",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "TODAY\n\nThe Watch row as built, on the pretend house. OK on an app opens it on the Apple TV and the TV switches over. Coming back is the TV's Input button, and nothing on the screen says so before the hub is gone."
+    },
+    {
+      "id": "back-same",
+      "page": "back",
+      "x": -620,
+      "y": 1500,
+      "w": 500,
+      "text": "THE SAME IN EVERY DIRECTION\n\nTHE BOX GOING TO SLEEP brings the house back. It is the one thing every box reports, and Sleep and All off already put it to sleep.\n\nINPUT ON THE TV'S REMOTE always works, because it is the TV's own; when the house comes back that way, the app you left is still lit and says Just now.\n\nTHE HANDOVER. For two seconds before the TV switches, the foot of the screen says what is opening and how to come back, because once the box is on the screen the hub can't say anything. In A and B it is drawn; C keeps the hint line as it is.\n\nNo second remote. The Logitech keyboard is for working on the hub, not for a household."
+    },
+    {
+      "id": "back-a",
+      "page": "back",
+      "x": 2040,
+      "y": 1500,
+      "w": 560,
+      "text": "A: INPUT, OR THE BOX GOING TO SLEEP\n\nNothing new to learn and nothing to prove: the handover says press Input on the TV's remote, or wait for the Apple TV to sleep.\n\nFOR: It works on every TV and every box today, with or without the adapter.\n\nAGAINST: Input is a different button on every TV, and on many it opens a list to step through. Waiting for sleep can be half an hour. It is the old way back, said out loud.\n\nTry it: Right to Netflix, Enter, then I or S."
+    },
+    {
+      "id": "back-b",
+      "page": "back",
+      "x": 2040,
+      "y": 3000,
+      "w": 560,
+      "text": "B: ANY COLORED BUTTON COMES BACK\n\nAn Apple TV, a Roku and a Google TV do nothing with the four colored buttons. So while the box is on the screen, any of them brings the house back, and only that: the scene it starts on the house's own screen doesn't run on the way. The handover shows the four colors.\n\nFOR: One press on the remote already in your hand, the same press every time, on any box. On the house's screen the colors still start the scenes, as decided.\n\nAGAINST: A press has to be heard while the TV is sending it to the box, which needs the USB adapter to listen to the whole HDMI bus. To prove the day the adapter arrives; if it can't, B falls back to A. And a color means two things: the scene at home, the way home from the box.\n\nTry it: Right to Netflix, Enter, then R, G, Y or B."
+    },
+    {
+      "id": "back-c",
+      "page": "back",
+      "x": 520,
+      "y": 4500,
+      "w": 560,
+      "text": "C: THE PHONE BRINGS THE HOUSE BACK\n\nThe living room on the phone says what is on the TV and has one big Show the house on the TV. The TV itself says nothing new.\n\nFOR: Needs nothing proved, and works today with the adapter's Input switch.\n\nAGAINST: The phone, to get back to the house from the sofa where the remote is. A guest without the app has Input, or waiting.\n\nTap Show the house on the TV."
+    },
+    {
+      "id": "back-recommend",
+      "page": "back",
+      "x": -620,
+      "y": 3000,
+      "w": 500,
+      "text": "RECOMMENDED: B, FALLING BACK TO A\n\nB is the only answer where coming back is one press on the remote already in your hand, the same on every TV and every box. Its handover is A's with four colors instead of a sentence about Input, so if the adapter can't hear a press meant for the Apple TV, the board becomes A by changing one line, and nothing else moves.\n\nC is worth having as well, as a button on the phone's TV card, but not as the way back."
+    },
+    {
+      "id": "back-pick",
+      "page": "back",
+      "x": -620,
+      "y": 3600,
+      "w": 500,
+      "text": "PICK ONE\n\nA, B, C, B with C's phone button, or something else -- describe it."
     }
-  ],
-  "decided": {
-    "on": "2026-11-20",
-    "chose": "A"
-  }
+  ]
 }
