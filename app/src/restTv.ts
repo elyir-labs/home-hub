@@ -13,21 +13,26 @@
  * weeks -- and after a long rest the TV is sent to standby, so a hub is never the reason it was on all night.
  */
 import { reactive } from 'vue'
-import { getBoard, getPhotos, getWords, sayScreen, type BoardNote, type Countdown, type DayWords, type Device, type MorningLine } from './api'
+import { getArt, getBoard, getPhotos, getWords, sayScreen, type BoardNote, type Countdown, type DayWords, type Device, type MorningLine, type Painting } from './api'
 import { moonPhase, sunGuess, sunPosition } from './sun'
 import { isScreen, keepScreenKind, screenId, screenKind, screenRoom } from './screen'
 import { tvGuess } from './tv'
 import { cap, HOUSE_SCENES, isDead, roomOf, runScene, store } from './store'
 import { sleepTv } from './thisScreen'
 
-export type Face = 'photos' | 'window' | 'playing' | 'bedtime' | 'board' | 'morning' | 'night'
+export type Face = 'photos' | 'window' | 'playing' | 'bedtime' | 'board' | 'art' | 'morning' | 'night'
 export type Photo = { id: string; taken: number | null; added: number; by: string | null; w?: number | null; h?: number | null }
 export type Shape = 'wide' | 'tall'
 export type StillOn = { name: string; what: string; kind: 'light' | 'music' | 'door' }
 
 export const SLEEP_AFTER = 20 * 60 * 1000     // at rest this long with no key pressed, the TV goes to standby
-export const BEAT_FOR = { photo: 18_000, title: 7_000, collage: 12_000, note: 20_000, count: 15_000, day: 15_000, fact: 18_000, trivia: 20_000, joke: 15_000, quote: 15_000 }   // design/tv-moments/: a photo every 18 seconds
+export const BEAT_FOR = { photo: 18_000, title: 7_000, collage: 12_000, note: 20_000, count: 15_000, day: 15_000, fact: 18_000, trivia: 20_000, joke: 15_000, quote: 15_000, art: 25_000 }   // design/tv-moments/: a photo every 18 seconds
 export const CARD_EVERY = 5   // a note or a countdown takes a turn after this many photos (design/tv-moments/, cards A)
+/* A painting opens close on one part, pulls back to the whole, and only then says what it is: ART_LOOK in all, 8
+   seconds close and 5 pulling back (design/tv-art/StoryC). As a channel, each stays ART_HOLD before the next. */
+export const ART_LOOK = 13_000
+export const ART_HOLD = 10 * 60_000
+export const ART_A_DAY = 2
 export const MOVES = 4                       // the ways a photo can move: in, across, out, up; each photo keeps its own
 const BEDTIME_FROM = 22 * 60 + 30             // 10:30 PM, until
 const BEDTIME_TO = 4 * 60                     // 4 AM
@@ -38,12 +43,13 @@ export function atBedtime(now: Date): boolean {
 }
 
 /** Which face, in the board's order of who wins: music, then bedtime, then photos, then the sky. */
-export function faceFor(o: { playing: boolean; stillOn: number; photos: number; now: Date; notYet: boolean; board?: boolean; morning?: boolean; night?: boolean }): Face {
+export function faceFor(o: { playing: boolean; stillOn: number; photos: number; now: Date; notYet: boolean; board?: boolean; art?: boolean; morning?: boolean; night?: boolean }): Face {
   if (o.night) return 'night'
   if (o.playing) return 'playing'
   if (o.stillOn && atBedtime(o.now) && !o.notYet) return 'bedtime'
   if (o.morning) return 'morning'
   if (o.board) return 'board'
+  if (o.art) return 'art'
   return o.photos ? 'photos' : 'window'
 }
 
@@ -95,6 +101,7 @@ export type Beat =
   | { kind: 'count'; count: Countdown }
   | { kind: 'day' }
   | { kind: 'fact' | 'trivia' | 'joke' | 'quote'; first: string; second: string }
+  | { kind: 'art'; painting: Painting }
 
 const when = (p: Photo) => new Date((p.taken ?? p.added) * 1000)
 const moveOf = (id: string) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % MOVES
@@ -165,14 +172,45 @@ export function withCards(list: Beat[], board: { notes: BoardNote[]; countdowns:
 }
 
 /** The day's fun cards, in the order they take their turns, as this screen has them switched on (design/tv-moments/,
-    cards A and ScreenA): the house today, then the day's facts and questions, a joke and a quote, mixed. */
-export function funCards(words: DayWords, on: { today: boolean; facts: boolean; jokes: boolean; quotes: boolean }): Beat[] {
+    cards A and ScreenA): the house today, then the day's facts and questions, a joke, a quote and a painting, mixed. */
+export function funCards(words: DayWords, on: { today: boolean; facts: boolean; jokes: boolean; quotes: boolean; art?: boolean }, paintings: Painting[] = [], now = new Date()): Beat[] {
   const of = (kind: 'fact' | 'trivia' | 'joke' | 'quote', rows?: string[][]) => (rows ?? []).filter(r => r[0] && r[1]).map(([first, second]) => ({ kind, first, second }) as Beat)
   const facts = on.facts ? of('fact', words.facts) : [], trivia = on.facts ? of('trivia', words.trivia) : []
   const jokes = on.jokes ? of('joke', words.jokes) : [], quotes = on.quotes ? of('quote', words.quotes) : []
+  const art = on.art ? paintingsOfTheDay(paintings, now).map(painting => ({ kind: 'art', painting }) as Beat) : []
   const out: Beat[] = on.today ? [{ kind: 'day' }] : []
-  for (let i = 0; i < Math.max(facts.length, trivia.length, jokes.length, quotes.length); i++) out.push(...[facts[i], trivia[i], jokes[i], quotes[i]].filter(Boolean))
+  for (let i = 0; i < Math.max(facts.length, trivia.length, jokes.length, quotes.length, art.length); i++) out.push(...[facts[i], trivia[i], art[i], jokes[i], quotes[i]].filter(Boolean))
   return out
+}
+
+const hashOf = (id: string) => [...id].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 7)
+/** The set in an order of its own, the same on every screen, so neighbors in the file don't come round together. */
+export const artOrder = (list: Painting[]) => [...list].sort((a, b) => hashOf(a.id) - hashOf(b.id) || a.id.localeCompare(b.id))
+const dayNumber = (d: Date) => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000)
+
+/** The day's paintings between the photos: the next few of the set each day, so the whole set comes round before any
+    painting does again. */
+export function paintingsOfTheDay(list: Painting[], now: Date, k = ART_A_DAY): Painting[] {
+  const order = artOrder(list)
+  if (!order.length) return []
+  const at = (dayNumber(now) * k) % order.length
+  return Array.from({ length: Math.min(k, order.length) }, (_, i) => order[(at + i) % order.length])
+}
+
+/** On a screen that shows paintings all day: the one up now, a new one every ART_HOLD, and when it came up. */
+export function paintingAt(list: Painting[], at: number): { painting: Painting; from: number } | null {
+  const order = artOrder(list)
+  if (!order.length) return null
+  const n = Math.floor(at / ART_HOLD)
+  return { painting: order[n % order.length], from: n * ART_HOLD }
+}
+
+/** Where a painting sits on the 1920-wide stage: as large as fits beside its label, never cropped, centered in the
+    height it has. The label takes what is left on the right. */
+export function hang(p: { w: number; h: number }, tall: number): { x: number; y: number; w: number; h: number; label: number } {
+  const maxW = 1100, maxH = tall - 230, r = p.w / p.h
+  const w = Math.round(Math.min(maxW, maxH * r)), h = Math.round(w / r)
+  return { x: 96, y: Math.round((tall - 100 - h) / 2), w, h, label: 96 + w + 90 }
 }
 
 /** When the sun next crosses the horizon after `from`, going up or down, found by stepping through the day. */
@@ -272,9 +310,9 @@ export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s 
 /** What the resting TV is showing, so the remote's OK and Back can do what that face says they do. `notYet` is the night
     Back was pressed on Bedtime, which then leaves the TV to its photos until the next evening. */
 export const rest = reactive({ face: 'window' as Face, notYet: '', photos: [] as Photo[], photosKnown: false, shows: true, play: 'days' as Play,
-  view: 'photos' as 'photos' | 'board', cards: true, board: { notes: [], countdowns: [] } as { notes: BoardNote[]; countdowns: Countdown[]; mornings?: MorningLine[] },
+  view: 'photos' as 'photos' | 'board' | 'art', cards: true, paintings: [] as Painting[], board: { notes: [], countdowns: [] } as { notes: BoardNote[]; countdowns: Countdown[]; mornings?: MorningLine[] },
   lines: true, words: { day: '', morning: null, evening: null } as DayWords, morningSeen: '', goodnight: '',
-  fun: { today: true, facts: true, jokes: false, quotes: false }, beat: '' as string, beatKey: '', revealed: '' })
+  fun: { today: true, facts: true, jokes: false, quotes: false, art: false }, beat: '' as string, beatKey: '', revealed: '' })
 
 /** The household's photos, read when a screen starts and each time it rests. A hub that cannot say leaves it on the sky. */
 export async function loadRestBoard() {
@@ -288,9 +326,16 @@ export async function loadRestWords(now = new Date()) {
   try { rest.words = await getWords(day) } catch { /* an older hub has no lines */ }
 }
 
+/** The paintings on the hub (hub/art.py), for a screen that shows them; none until one does and they have arrived. */
+export async function loadRestArt() {
+  if (!rest.fun.art && rest.view !== 'art') return
+  try { rest.paintings = (await getArt()).paintings } catch { /* an older hub has no paintings */ }
+}
+
 export async function loadRestPhotos() {
   loadRestBoard()
   loadRestWords()
+  loadRestArt()
   try { rest.photos = await getPhotos(); rest.photosKnown = true } catch { /* nothing to show */ }
 }
 
@@ -304,10 +349,11 @@ export async function reportScreen(nowTv: boolean) {
     const me = await sayScreen({ id: screenId(), room: screenRoom(), tv: said ? said === 'tv' : tvGuess(), by: said ? 'person' : 'screen' })
     rest.shows = me.photos
     rest.play = me.play === 'each' ? 'each' : 'days'
-    rest.view = me.shows === 'board' ? 'board' : 'photos'
+    rest.view = me.shows === 'board' || me.shows === 'art' ? me.shows : 'photos'
     rest.cards = me.notes !== false
     rest.lines = me.lines !== false
-    rest.fun = { today: me.today !== false, facts: me.facts !== false, jokes: me.jokes === true, quotes: me.quotes === true }
+    rest.fun = { today: me.today !== false, facts: me.facts !== false, jokes: me.jokes === true, quotes: me.quotes === true, art: me.art === true }
+    loadRestArt()
     if (me.by === 'person' && !said) { keepScreenKind(me.tv ? 'tv' : 'wall'); if (me.tv !== nowTv) location.reload() }
   } catch { /* an older hub, or none reachable: the screen keeps its own guess and its photos */ }
 }

@@ -23,9 +23,9 @@ STATE = DATA / "screens-shown.json"
 FORGET_AFTER = 30 * 86400
 ID = re.compile(r"^[a-f0-9]{16,64}$")
 PLAYS = ("each", "days")   # one photo after another, or a day's photos together (design/tv-moments/, A and B)
-SHOWS = ("photos", "board")  # what a screen rests on: the photos, or the family board (design/tv-moments/, cards C)
+SHOWS = ("photos", "board", "art")  # the photos, the family board (design/tv-moments/, cards C), or paintings (design/tv-art/)
 # the cards that may take a turn between the photos (design/tv-moments/ScreenA), and whether each starts on
-CARDS = {"today": True, "facts": True, "jokes": False, "quotes": False}
+CARDS = {"today": True, "facts": True, "jokes": False, "quotes": False, "art": False}
 
 
 class Screens:
@@ -80,6 +80,10 @@ class Screens:
             if k in CARDS and isinstance(on, bool): rec[k] = on
         self._save()
         return self._public(rec)
+
+    def want_art(self) -> bool:
+        """Whether any screen heard from this month shows paintings, as a card or all day (hub/art.py)."""
+        return any(s["art"] or s["shows"] == "art" for s in self.listed())
 
     def listed(self) -> list[dict]:
         """The screens heard from this month: TVs first, then by room."""

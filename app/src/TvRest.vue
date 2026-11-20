@@ -12,12 +12,13 @@ import type { Room } from './api'
 import { imageUrl, photoUrl, qrUrl } from './api'
 import { photosPageUrl } from './photos'
 import { clockParts, restingFacts, restWeather } from './resting'
-import { countWords, drift, faceFor, funCards, houseToday, isMorning, localDay, morningLine, MORNING_FOR, loadRestPhotos, noteFrom, withCards, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
+import { countWords, drift, faceFor, funCards, paintingAt, houseToday, isMorning, localDay, morningLine, MORNING_FOR, loadRestPhotos, noteFrom, withCards, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
   SLEEP_AFTER, BEAT_FOR, beats, beatAt, dayTitle, agoLine, stillOn, type Photo, type Shape } from './restTv'
 import { locale } from './lang'
 import { store } from './store'
 import { changeLine, range } from './weather'
 import Icon from './Icon.vue'
+import TvPainting from './TvPainting.vue'
 
 const props = defineProps<{ now: Date; room: Room | null; since: number; wall?: boolean }>()
 
@@ -42,12 +43,14 @@ const music = computed(() => playingNow())
 const left = computed(() => stillOn())
 const listed = computed(() => (left.value.length > 6 ? left.value.slice(0, 5) : left.value))
 const board = computed(() => rest.view === 'board')
+/* A screen that shows paintings all day (design/tv-art/, the channel): one at a time, until the hub has them. */
+const gallery = computed(() => rest.view === 'art' ? paintingAt(rest.paintings, tick.value) : null)
 /* The morning card (design/tv-moments/MorningA): the first time a screen rests after first light, until a key is
    pressed or MORNING_FOR has gone by, then not again that day. */
 const greeting = computed(() => morningLine(props.now))
 const morning = computed(() => rest.lines && !!greeting.value && isMorning(props.now, store.sky.elevation) && rest.morningSeen !== localDay(props.now))
-const face = computed(() => props.wall ? (morning.value ? 'morning' : board.value ? 'board' : 'photos') : faceFor({ playing: !!music.value, stillOn: left.value.length,
-  photos: rest.shows ? photos.value.length : 0, now: props.now, notYet: rest.notYet === nightOf(props.now), board: board.value,
+const face = computed(() => props.wall ? (morning.value ? 'morning' : board.value ? 'board' : gallery.value ? 'art' : 'photos') : faceFor({ playing: !!music.value, stillOn: left.value.length,
+  photos: rest.shows ? photos.value.length : 0, now: props.now, notYet: rest.notYet === nightOf(props.now), board: board.value, art: !!gallery.value,
   morning: morning.value, night: !!rest.goodnight }))
 watch(face, f => { if (!props.wall) rest.face = f }, { immediate: true })
 let morningTimer: number | undefined
@@ -70,7 +73,7 @@ const waiting = computed(() => {
   return [...soon, ...note]
 })
 
-const timeline = computed(() => withCards(beats(photos.value, rest.play, props.now), rest.cards ? rest.board : { notes: [], countdowns: [] }, funCards(rest.words, rest.fun)))
+const timeline = computed(() => withCards(beats(photos.value, rest.play, props.now), rest.cards ? rest.board : { notes: [], countdowns: [] }, funCards(rest.words, rest.fun, rest.paintings, props.now)))
 const heldFrom = Date.now()
 const previewBeat = new URLSearchParams(location.search).get('beat')   // ?beat=note (or count, title, collage) holds the first of that kind, for a preview
 const current = computed(() => {
@@ -182,6 +185,7 @@ const ok = computed(() => {
                 <div class="tvrest-card-sub" v-if="beat.kind === 'quote' || revealed">{{ beat.second }}</div>
               </div>
             </template>
+            <TvPainting v-else-if="beat.kind === 'art'" :painting="beat.painting" :from="current?.from ?? tick" :tall="tall" />
             <template v-else-if="beat.kind === 'count'">
               <img v-if="photos.length" class="tvrest-fill tvrest-fill-dim" :src="photoUrl(photos[photos.length - 1].id)" alt="" /><div v-else class="tvrest-night"></div>
               <div class="tvrest-card">
@@ -206,6 +210,10 @@ const ok = computed(() => {
 
       <template v-else-if="face === 'board'">
         <div class="tvrest-boardbg"></div>
+      </template>
+
+      <template v-else-if="face === 'art' && gallery">
+        <TvPainting :key="gallery.painting.id" :painting="gallery.painting" :from="gallery.from" :tall="tall" :drift="place" />
       </template>
 
       <template v-else-if="face === 'morning'">
@@ -275,6 +283,10 @@ const ok = computed(() => {
               <span class="tvrest-fact-where" v-if="f.key === 'lights' && f.live">{{ f.where }}</span>
             </div>
           </div>
+        </template>
+
+        <template v-else-if="face === 'art'">
+          <div class="tvrest-cardclock"><span class="tvrest-time display">{{ time.time }}<span class="tvrest-period" v-if="time.period">{{ time.period }}</span></span><span class="tvrest-day">{{ day }}<template v-if="wx"> · {{ wx.temp }}</template></span></div>
         </template>
 
         <template v-else-if="face === 'window'">

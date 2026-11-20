@@ -3733,6 +3733,83 @@ input:focus-visible {
 .tvrest-card-under {
   font-size: 44px;
 }
+/* A painting (design/tv-art/StoryC): close on one part, then the whole, then its label. The look's 61.5% is 8 of
+   ART_LOOK's 13 seconds held close, in restTv.ts. */
+.tvrest-gallery {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 70% at 30% 45%, #1d1a17, #0e0d0c);
+}
+.tvrest-painting {
+  position: absolute;
+  overflow: hidden;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.6);
+  transition: translate 2s ease;
+}
+.tvrest-painting-look {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation-name: tvrest-look;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
+}
+@keyframes tvrest-look {
+  0%,
+  61.5% {
+    transform: scale(2.6);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.tvrest-plaque {
+  position: absolute;
+  top: 0;
+  right: 96px;
+  bottom: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  animation: tvrest-plaque 1.6s ease both;
+  transition: translate 2s ease;
+}
+@keyframes tvrest-plaque {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.tvrest-plaque .tvrest-card-cap {
+  color: var(--ink-2);
+}
+.tvrest-plaque-title {
+  margin-top: 14px;
+  font-family: var(--serif);
+  font-size: 68px;
+  line-height: 1.05;
+}
+.tvrest-plaque-by {
+  margin-top: 12px;
+  font-size: 28px;
+}
+.tvrest-plaque-line {
+  margin-top: 22px;
+  max-width: 560px;
+  font-size: 26px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+.tvrest-plaque-from {
+  margin-top: 22px;
+  font-size: 20px;
+  color: var(--ink-2);
+}
 .tvrest-cardclock,
 .tvrest-boardclock {
   position: absolute;

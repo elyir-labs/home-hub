@@ -14,8 +14,8 @@ What it makes:
 - the deploy workflow's own token (`deploy.tf`): the account's, able only to upload Pages, written with the account's
   id into the repository's Actions secrets. Nobody makes either by hand.
 
-To apply, with a token in the environment (Account > Cloudflare Pages > Edit, Account > D1 > Edit, Account > Account
-API Tokens > Edit, Zone > DNS > Edit on `elyir.com`) and a GitHub token that can write the repository's secrets:
+To apply, with a token in the environment (Account > Cloudflare Pages > Edit, Account > D1 > Edit, Account > Workers R2
+Storage > Edit, Account > Account API Tokens > Edit, Zone > DNS > Edit on `elyir.com`) and a GitHub token that can write the repository's secrets:
 
 ```sh
 export CLOUDFLARE_API_TOKEN=...
@@ -30,3 +30,9 @@ would the token. Replacing the token is `terraform apply -replace=cloudflare_acc
 secret in the same run.
 
 Reading the list: `npx wrangler d1 execute elyir-waitlist --remote --command "SELECT product, count(*) FROM signups GROUP BY product"`.
+
+## The paintings
+
+`art.tf` makes the bucket the screens' paintings are downloaded from, at `art.elyir.com` (design/tv-art/,
+`brain/hub/art.py`). It is filled by `python3 tools/art/prepare.py --publish`, not by Terraform, and
+`brain/hub/paintings.json` is committed after that, never before.

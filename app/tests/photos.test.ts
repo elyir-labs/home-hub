@@ -3,7 +3,7 @@
 /* Photos on the TV from a phone (design/tv-photos/, A with C, decided 20 November 2026): what a photo is redrawn
    to before it leaves, when it says it was taken, and the page's words. */
 import { describe, expect, it } from 'vitest'
-import { countLine, fitted, LONGEST, morningFor, noteLine, photosPageUrl, screenLines, sentLine, takenAt, untilFor, yearly } from '../src/photos'
+import { artLines, countLine, fitted, LONGEST, morningFor, noteLine, photosPageUrl, screenLines, sentLine, takenAt, untilFor, yearly } from '../src/photos'
 import type { Photo } from '../src/restTv'
 
 /** A JPEG's first bytes with one EXIF date in it, big-endian, laid out the way a camera writes it. */
@@ -98,5 +98,18 @@ describe('a line for the morning', () => {
     expect(morningFor(new Date(2026, 10, 20, 21, 30))).toBe('2026-11-21')
     expect(morningFor(new Date(2026, 10, 21, 1, 30))).toBe('2026-11-21')
     expect(morningFor(new Date(2026, 11, 31, 22, 0))).toBe('2027-01-01')
+  })
+})
+
+describe('art on a screen\'s page (design/tv-art/PhoneEvery)', () => {
+  const a = { have: 0, of: 60, bytes: 25_400_000, getting: false, failed: false }
+  it('says how many and from where, and what turning it on costs', () => {
+    expect(artLines(a, false).sub).toBe('A painting every few photos · 60 from museums’ free collections')
+    expect(artLines(a, false).foot).toBe('The first time any screen turns art on, the hub downloads the paintings once, about 25 MB. Turning art off on every screen frees the room again.')
+  })
+  it('says how far the download has got, and when it did not work', () => {
+    expect(artLines({ ...a, have: 12, getting: true }, true).foot).toBe('Getting the paintings: 12 of 60.')
+    expect(artLines({ ...a, have: 58, failed: true }, true).foot).toBe('Some paintings didn’t download. The hub tries again in an hour.')
+    expect(artLines({ ...a, have: 60 }, true).foot).toMatch(/^The paintings are on the hub, about 25 MB\./)
   })
 })

@@ -807,6 +807,13 @@ export async function getPhotos(): Promise<import('./restTv').Photo[]> {
   const r = await request('/photos'); if (!r.ok) await fail(r); return (await r.json()).photos
 }
 export const photoUrl = (id: string) => apiUrl(`/photos/${encodeURIComponent(id)}`)
+/** A painting from the hub's set (hub/art.py, design/tv-art/): `focus` is where the close look opens, as fractions. */
+export type Painting = { id: string; title: string; painter: string; year: string; museum: string; line: string; w: number; h: number; focus: [number, number] | null }
+export type ArtState = { paintings: Painting[]; have: number; of: number; bytes: number; getting: boolean; failed: boolean }
+export async function getArt(): Promise<ArtState> {
+  const r = await request('/art'); if (!r.ok) await fail(r); return r.json()
+}
+export const paintingUrl = (id: string) => apiUrl(`/art/${encodeURIComponent(id)}`)
 /** The family board: notes and countdowns left for the screens (hub/board.py, design/tv-moments/). */
 export type BoardNote = { id: string; text: string; by: string | null; added: number; until: number | null }
 export type Countdown = { id: string; what: string; date: string; next: string; yearly: boolean; by: string | null; added: number }
@@ -832,14 +839,14 @@ export async function takeDown(id: string) {
   const r = await request(`/board/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (!r.ok) await fail(r)
 }
 /** One of the house's screens, as it said what it is (hub/screens.py, design/which-tv/). */
-export type ShownScreen = { id: string; room: string | null; room_name?: string | null; tv: boolean; by: 'screen' | 'person' | null; photos: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board'; notes?: boolean; lines?: boolean; today?: boolean; facts?: boolean; jokes?: boolean; quotes?: boolean }
+export type ShownScreen = { id: string; room: string | null; room_name?: string | null; tv: boolean; by: 'screen' | 'person' | null; photos: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board' | 'art'; notes?: boolean; lines?: boolean; today?: boolean; facts?: boolean; jokes?: boolean; quotes?: boolean; art?: boolean }
 export async function getPhotosPage(): Promise<{ photos: import('./restTv').Photo[]; screens: ShownScreen[] }> {
   const r = await request('/photos'); if (!r.ok) await fail(r); return r.json()
 }
 export async function sayScreen(body: { id: string; room: string | null; tv: boolean; by: 'screen' | 'person' }): Promise<ShownScreen> {
   const r = await request('/screens/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!r.ok) await fail(r); return r.json()
 }
-export async function showOnScreen(id: string, set: { on?: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board'; notes?: boolean; lines?: boolean; today?: boolean; facts?: boolean; jokes?: boolean; quotes?: boolean }): Promise<ShownScreen> {
+export async function showOnScreen(id: string, set: { on?: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board' | 'art'; notes?: boolean; lines?: boolean; today?: boolean; facts?: boolean; jokes?: boolean; quotes?: boolean; art?: boolean }): Promise<ShownScreen> {
   const r = await request(`/photos/screens/${encodeURIComponent(id)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(set) }); if (!r.ok) await fail(r); return r.json()
 }
 /** One photo, already redrawn on the phone (photos.ts): its size and when it was taken travel beside it. */

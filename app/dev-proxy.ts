@@ -13,7 +13,7 @@
  * again without something saying so.
  */
 export const BRAIN_PATHS = [
-  '/accounts', '/address', '/ambient', '/assistant', '/backup', '/board', '/bridge', '/catalog', '/credentials', '/devices', '/discovered',
+  '/accounts', '/address', '/ambient', '/art', '/assistant', '/backup', '/board', '/bridge', '/catalog', '/credentials', '/devices', '/discovered',
   '/developer', '/drafts', '/drive', '/events', '/flows', '/geo', '/glow', '/handover', '/happened', '/health', '/home', '/language', '/location', '/look', '/music', '/network', '/pair',
   '/phone', '/phones', '/photos', '/power', '/presence', '/printers', '/qr.svg', '/reset', '/restart', '/restore', '/roofline', '/rooms', '/rules', '/say', '/scenes', '/screens', '/signals',
   '/setup', '/share', '/sounds', '/speakers', '/strip', '/suggestions', '/things', '/update', '/words',

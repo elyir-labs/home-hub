@@ -9,9 +9,9 @@
  * house can take any photo off, from the sheet a tap opens, which says when it was taken and whose phone it came from.
  * Above the grid, every screen the house has and a switch for whether it shows them at rest: a TV starts on.
  */
-import { computed, onMounted, ref } from 'vue'
-import { addCountdown, getBoard, getPhotosPage, leaveMorning, leaveNote, photoUrl, removePhoto, sendPhoto, showOnScreen, takeDown, type BoardNote, type Countdown, type MorningLine, type ShownScreen } from './api'
-import { countLine, morningFor, noteLine, prepare, screenLines, sentLine, untilFor, yearly, type Until } from './photos'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { addCountdown, getArt, getBoard, getPhotosPage, leaveMorning, leaveNote, photoUrl, removePhoto, sendPhoto, showOnScreen, takeDown, type BoardNote, type Countdown, type ArtState, type MorningLine, type ShownScreen } from './api'
+import { artLines, countLine, morningFor, noteLine, prepare, screenLines, sentLine, untilFor, yearly, type Until } from './photos'
 import { countWords } from './restTv'
 import { photoLine, type Photo } from './restTv'
 import { locale } from './lang'
@@ -65,9 +65,19 @@ const open = ref<Photo | null>(null)
 const removing = ref(false)
 const picker = ref<HTMLInputElement | null>(null)
 
+/* Paintings (design/tv-art/PhoneEvery): the switch is there only on a hub whose code has a set to download. */
+const art = ref<ArtState | null>(null)
+async function loadArt() { try { art.value = await getArt() } catch { /* an older hub has no paintings */ } }
+const artWanted = computed(() => screens.value.some(s => s.art === true || s.shows === 'art'))
+const artSaid = computed(() => art.value && art.value.of ? artLines(art.value, artWanted.value) : null)
+let artPoll: number | undefined
+watch(() => art.value?.getting, getting => { clearTimeout(artPoll); if (getting) artPoll = window.setTimeout(loadArt, 3000) })
+onUnmounted(() => clearTimeout(artPoll))
+
 onMounted(async () => {
   try { const p = await getPhotosPage(); photos.value = p.photos; screens.value = p.screens ?? [] } catch (e: any) { notify(e.message, 'error') }
   loadBoard()
+  loadArt()
   loaded.value = true
 })
 
@@ -97,13 +107,14 @@ const FUN = [
   { key: 'quotes', name: 'Quotes', sub: 'Short lines from long ago', on: false },
 ] as const
 const funOn = (s: ShownScreen, k: (typeof FUN)[number]['key'], start: boolean) => (s[k] ?? start) === true
-async function setScreen(s: ShownScreen, set: { on?: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board'; notes?: boolean; lines?: boolean; today?: boolean; facts?: boolean; jokes?: boolean; quotes?: boolean }) {
+async function setScreen(s: ShownScreen, set: { on?: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board' | 'art'; notes?: boolean; lines?: boolean; today?: boolean; facts?: boolean; jokes?: boolean; quotes?: boolean; art?: boolean }) {
   if (switching.value) return
   switching.value = s.id
   try {
     const now = await showOnScreen(s.id, set)
     screens.value = screens.value.map(x => x.id === s.id ? { ...x, ...now } : x)
     if (screen.value?.id === s.id) screen.value = screens.value.find(x => x.id === s.id) ?? null
+    if ('art' in set || set.shows) window.setTimeout(loadArt, 500)
   } catch (e: any) { notify(e.message, 'error') }
   switching.value = ''
 }
@@ -124,31 +135,36 @@ async function takeOff(p: Photo) {
     <p class="page-lede">What it shows when nobody is watching.</p>
     <ul class="photos-screens">
       <li class="photos-play-row">
-        <span class="photos-screen-text"><b>What it shows</b><span>The family board puts the notes and countdowns up instead, with one photo beside them</span></span>
+        <span class="photos-screen-text"><b>What it shows</b><span>{{ screen.shows === 'art' ? 'Art shows one painting at a time, all day, with the clock small beside it' : 'The family board puts the notes and countdowns up instead, with one photo beside them' }}</span></span>
         <span class="photos-play">
-          <button class="button small" :class="{ ghost: screen.shows === 'board' }" @click="setScreen(screen, { shows: 'photos' })">Photos</button>
+          <button class="button small" :class="{ ghost: screen.shows === 'board' || screen.shows === 'art' }" @click="setScreen(screen, { shows: 'photos' })">Photos</button>
           <button class="button small" :class="{ ghost: screen.shows !== 'board' }" @click="setScreen(screen, { shows: 'board' })">The family board</button>
+          <button class="button small" v-if="artSaid" :class="{ ghost: screen.shows !== 'art' }" @click="setScreen(screen, { shows: 'art' })">Art</button>
         </span>
       </li>
-      <li>
+      <li v-if="screen.shows !== 'art'">
         <span class="photos-screen-text"><b>Photos</b><span>{{ counted.count }}, {{ counted.from }}</span></span>
         <button class="photos-switch" role="switch" :aria-checked="screen.photos" aria-label="Photos" :class="{ on: screen.photos, busy: switching === screen.id }" @click="setScreen(screen, { on: !screen.photos })"></button>
       </li>
-      <li class="photos-play-row" v-if="screen.photos">
+      <li class="photos-play-row" v-if="screen.photos && screen.shows !== 'art'">
         <span class="photos-screen-text"><b>How the photos play</b><span>Day by day groups a day’s photos, and starts with one from this day in an earlier year</span></span>
         <span class="photos-play">
           <button class="button small" :class="{ ghost: screen.play !== 'each' }" @click="setScreen(screen, { play: 'each' })">One after another</button>
           <button class="button small" :class="{ ghost: (screen.play ?? 'days') !== 'days' }" @click="setScreen(screen, { play: 'days' })">Day by day</button>
         </span>
       </li>
-      <li v-if="screen.shows !== 'board'">
+      <li v-if="screen.shows !== 'board' && screen.shows !== 'art'">
         <span class="photos-screen-text"><b>Notes and countdowns</b><span>Left from your phones, between the photos</span></span>
         <button class="photos-switch" role="switch" :aria-checked="screen.notes !== false" aria-label="Notes and countdowns" :class="{ on: screen.notes !== false, busy: switching === screen.id }" @click="setScreen(screen, { notes: screen.notes === false })"></button>
       </li>
-      <template v-if="screen.shows !== 'board'">
+      <template v-if="screen.shows !== 'board' && screen.shows !== 'art'">
         <li v-for="f in FUN" :key="f.key">
           <span class="photos-screen-text"><b>{{ f.name }}</b><span>{{ f.sub }}</span></span>
           <button class="photos-switch" role="switch" :aria-checked="funOn(screen, f.key, f.on)" :aria-label="f.name" :class="{ on: funOn(screen, f.key, f.on), busy: switching === screen.id }" @click="setScreen(screen, { [f.key]: !funOn(screen, f.key, f.on) })"></button>
+        </li>
+        <li v-if="artSaid">
+          <span class="photos-screen-text"><b>Art</b><span>{{ artSaid.sub }}</span></span>
+          <button class="photos-switch" role="switch" :aria-checked="screen.art === true" aria-label="Art" :class="{ on: screen.art === true, busy: switching === screen.id }" @click="setScreen(screen, { art: screen.art !== true })"></button>
         </li>
       </template>
       <li>
@@ -156,6 +172,7 @@ async function takeOff(p: Photo) {
         <button class="photos-switch" role="switch" :aria-checked="screen.lines !== false" aria-label="A line for the day" :class="{ on: screen.lines !== false, busy: switching === screen.id }" @click="setScreen(screen, { lines: screen.lines === false })"></button>
       </li>
     </ul>
+    <p class="photos-foot photos-left photos-art-foot" v-if="artSaid">{{ artSaid.foot }}</p>
   </div>
   <div class="page photos-page" v-else-if="writing">
     <button class="linkish photos-back" @click="writing = null"><Icon name="back" :size="16" />Your screens</button>
