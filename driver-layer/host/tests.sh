@@ -1711,6 +1711,7 @@ zigbee_kept() {
   git -C "$up" add -A; git -C "$up" commit -qm one; git clone -q "$up" "$dir"
   printf 'advanced:\n  network_key:\n    - 7\n' > "$dir/driver-layer/zigbee2mqtt/configuration.yaml"   # Zigbee2MQTT made the network
   echo two > "$up/f"; git -C "$up" commit -qam two; git -C "$dir" fetch -q origin
+  # shellcheck disable=SC2034  # DIR and CHANNEL are read by the go_to_ref pulled in by eval
   ( DIR="$dir" CHANNEL=branch; want_ref() { echo origin/HEAD; }
     eval "$(sed -n '/^go_to_ref() {/,/^}/p' "$HERE/../../install.sh")"; go_to_ref >/dev/null )
   is "the code moves on" "$(cat "$dir/f")" "two"
