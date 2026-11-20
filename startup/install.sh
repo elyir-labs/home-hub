@@ -24,7 +24,7 @@ if [ "${1:-}" = --if-changed ] && [ -n "$SUM" ] && [ "$(cat "$STAMP" 2>/dev/null
 
 log "packages: a one-window compositor, its display scaling and a browser"
 export DEBIAN_FRONTEND=noninteractive
-apt-get install -y --no-install-recommends cage wlr-randr curl python3-minimal >/dev/null
+apt-get install -y --no-install-recommends cage wlr-randr xwayland curl python3-minimal >/dev/null
 apt-get install -y --no-install-recommends chromium >/dev/null 2>&1 \
   || apt-get install -y --no-install-recommends chromium-browser >/dev/null
 

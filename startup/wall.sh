@@ -177,8 +177,9 @@ case "${1:-}" in
     # corner of the screen, while a scaled output is simply a bigger screen to it.
     # It is worked out here, inside cage, because only the compositor knows how big the glass is.
     # Cage before 0.2 (Ubuntu 24.04's, so the x86 image's) aborts the moment an output is changed while it runs, a
-    # wlroots assertion in wlr_scene_output_layout_add_output. There the browser is scaled instead, which is safe at
-    # 1 and over, and the glass is not turned: a TV hangs the right way up.
+    # wlroots assertion in wlr_scene_output_layout_add_output. There the browser scales itself instead, through
+    # Xwayland, since a forced scale on Wayland draws into a corner at any size; and the glass is not turned: a TV
+    # hangs the right way up.
     scale=""
     while read -r out m mm; do
       [ "$m" = - ] && m=$(mode)
@@ -186,7 +187,7 @@ case "${1:-}" in
       if cage -v 2>&1 | grep -q 'version 0\.1\.'; then scale=$s
       else wlr-randr --output "$out" --scale "$s" --transform "$(transform)" || true; fi
     done < <(wlr-randr 2>/dev/null | outputs)
-    awk -v s="${scale:-0}" 'BEGIN { exit !(s + 0 > 1) }' && set -- "$1" "" "--force-device-scale-factor=$scale"
+    awk -v s="${scale:-0}" 'BEGIN { exit !(s + 0 > 1) }' && set -- "$1" "" "--force-device-scale-factor=$scale" x11
     ELYIR_PANEL_URL="$PANEL_URL" python3 "$HERE/screen-helper.py" &
     # Chromium locks its profile under this machine's name and refuses to start, exit 21, when the name has changed
     # since -- which first boot does, to hub or to screen. Only this service runs a browser as this user, one at a
@@ -196,7 +197,7 @@ case "${1:-}" in
     # the wall and a sideways swipe would go back a page; both are switched off here instead. Nobody may be standing
     # at the wall when it is asked to speak, so a sound plays without a tap first, as the Android kiosk's does.
     exec "$(browser)" --kiosk --noerrdialogs --disable-infobars --no-first-run \
-      --ozone-platform=wayland --disable-session-crashed-bubble --check-for-update-interval=31536000 \
+      --ozone-platform="${4:-wayland}" --disable-session-crashed-bubble --check-for-update-interval=31536000 \
       --disable-pinch --overscroll-history-navigation=0 --autoplay-policy=no-user-gesture-required \
       ${3:+"$3"} "$PANEL_URL" ;;
   *) echo "usage: $0 wait|run|speaker|settle|guess|fit <mode> [<mm>]|outputs|browse [<scale>]" >&2; exit 2 ;;
