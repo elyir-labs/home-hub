@@ -1,21 +1,136 @@
 {
   "name": "A streaming box beside the hub",
-  "areas": ["Watching and listening", "Wall screens"],
-  "pages": [{ "id": "tv", "name": "One TV, the box and the house" }],
+  "areas": [
+    "Watching and listening",
+    "Wall screens"
+  ],
+  "pages": [
+    {
+      "id": "tv",
+      "name": "One TV, the box and the house"
+    },
+    {
+      "id": "tv-lost",
+      "name": "One TV, the box and the house: not chosen"
+    }
+  ],
   "artboards": [
-    { "file": "Today.dc.html", "page": "tv", "x": 0, "y": 0, "w": 1920, "h": 1080, "title": "Today: the TV's home, with a box beside the hub" },
-    { "file": "WatchA.dc.html", "page": "tv", "x": 0, "y": 1500, "w": 1920, "h": 1080, "title": "A: Watch leads the TV's home", "is_interactive": true },
-    { "file": "RoomB.dc.html", "page": "tv", "x": 0, "y": 3000, "w": 1920, "h": 1080, "title": "B: the box is one thing in the room", "is_interactive": true },
-    { "file": "PhoneC.dc.html", "page": "tv", "x": 0, "y": 4500, "w": 390, "h": 844, "title": "C: the box keeps the TV, the phone is the remote", "is_interactive": true }
+    {
+      "file": "Today.dc.html",
+      "page": "tv",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: the TV's home, with a box beside the hub"
+    },
+    {
+      "file": "WatchA.dc.html",
+      "page": "tv",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: Watch leads the TV's home",
+      "is_interactive": true
+    },
+    {
+      "file": "RoomB.dc.html",
+      "page": "tv-lost",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: the box is one thing in the room",
+      "is_interactive": true
+    },
+    {
+      "file": "PhoneC.dc.html",
+      "page": "tv-lost",
+      "x": 0,
+      "y": 1500,
+      "w": 390,
+      "h": 844,
+      "title": "C: the box keeps the TV, the phone is the remote",
+      "is_interactive": true
+    }
   ],
   "annotations": [
-    { "id": "why", "page": "tv", "x": -620, "y": 0, "w": 500, "text": "WHY THIS EXISTS\n\n20 November 2026: can Apple TV, Apple Music, Spotify and the rest come into the box, so nobody is switching between boxes?\n\nThe hub can't play them itself. Netflix, Apple TV+, Disney+, Max and Prime stream in full only on devices they have certified, and the hub will never be one; in a browser on Linux they drop to low resolution or refuse to play. Spotify stays as decided on 20 October: only on speakers that have it built in. Apple Music is the same: on the HomePods and the Apple TV, never the hub.\n\nWhat it can do is drive one box behind the TV: an Apple TV, Google TV, Roku or Fire TV. Over the network the hub can wake the box, open an app on it, see what it is playing and pause it. Over HDMI it can switch the TV to the box and back. So the question is where the box goes on the TV's home (B, decided 19 November, design/living-room/) and how somebody gets back to the house." },
-    { "id": "today", "page": "tv", "x": 2040, "y": 0, "w": 560, "text": "TODAY\n\nThe TV home from 19 November (design/living-room/, B, still on its branch), on the pretend house at 9:10 PM. The room's TV is a card that plays and pauses.\n\nThe house has no word for the box behind it and no way to put it on the screen. The brain carries a player's on, off and playing, and the name of the app, and nothing that switches the TV's input or opens an app." },
-    { "id": "same", "page": "tv", "x": -620, "y": 1500, "w": 500, "text": "THE SAME IN EVERY DIRECTION\n\nTHE TV IS ONE SCREEN. Nobody presses Input again. Choosing something on the box switches the TV over and wakes the box; Home on the box's remote, or the box going to sleep, switches the TV back to the house. Sleep and All off put the box to sleep with the lights.\n\nTHE HUB CAN'T DRAW OVER THE BOX. While the box is on the screen, the picture, menus and remote are the box's, and the hub waits behind it. A doorbell still takes the TV (design/tv-doorbell/) and gives it back.\n\nAPPS ARE THE BOX'S OWN LIST, by their names. No logos are drawn on these boards, and none go into the panel until we know we may use them.\n\nANY BOX. Apple TV, Google TV, Roku and Fire TV look the same here; the panel never branches on which. One is added on the Add page, with the code it shows on the TV typed on the wall or a phone.\n\nON THE WALL AND THE PHONE the box is the living room's TV card (design/player/, A): its picture, pause and volume, and Watch sends it to the TV.\n\nTO PROVE BEFORE IT IS PROMISED: that each kind of box tells the hub when it is back on its own home screen, and that the hub's HDMI adapter can switch this TV's input." },
-    { "id": "a", "page": "tv", "x": 2040, "y": 1500, "w": 560, "text": "A: WATCH LEADS THE TV'S HOME\n\nThe TV opens on a row of its own above the room: what was last on, then the box's apps. OK on one switches the TV over and opens it there. Home on the box's remote brings the house back with that app still lit and saying Just now, so OK goes straight back in. The room, its scenes and the other rooms follow below, as decided.\n\nFOR: The TV is for watching, and watching is the first thing on it. Everything the household watches is one press from where the remote starts, and the box's own home screen becomes something they rarely see.\n\nAGAINST: The room moves down a row, a day after it was picked to come first. The lights are a press further away.\n\nTry it: Right to Netflix, Enter, then H." },
-    { "id": "b", "page": "tv", "x": 2040, "y": 3000, "w": 560, "text": "B: THE BOX IS ONE THING IN THE ROOM\n\nThe TV home stays as decided. The box is a card in the room's row, with what was last on as its picture. OK goes back to that; Hold OK brings the box's apps up over the home, and OK on one switches the TV over. Coming back, the box's card is lit and says what it was doing.\n\nFOR: Nothing decided on 19 November moves. The box is a thing in the room like a lamp, which is how the house treats everything else.\n\nAGAINST: Any app but the last one is a hold away, and a hold is the press people don't find. On a TV where watching is the point, the box sits third among the lamps.\n\nTry it: Right to Apple TV, Space for Hold OK, Enter on an app, then H." },
-    { "id": "c", "page": "tv", "x": 520, "y": 4500, "w": 560, "text": "C: THE BOX KEEPS THE TV, THE PHONE IS THE REMOTE\n\nThe TV shows the box, as it does in most homes now. The house comes up on it only when asked (Show the house on the TV) or for the doorbell. The phone becomes the one remote: what the box is playing and its pause, a pad to move around on the TV, the apps to open, and the room's lights beneath.\n\nFOR: Nothing changes for somebody who only wants to watch: the box's own home, profiles and voice search stay where they are. Everybody already has a phone in hand.\n\nAGAINST: It undoes the hub on the TV picked on 19 November. The house is an input again, which is the switching this asked to be rid of, and a guest with no phone set up gets the box and no lights.\n\nTap an app, or Show the house on the TV." },
-    { "id": "pick", "page": "tv", "x": -620, "y": 3000, "w": 500, "text": "PICK ONE\n\nA, B, C, a mix (B's room with A's row only while the box is on, say), or something else -- describe it." },
-    { "id": "recommend", "page": "tv", "x": -620, "y": 3400, "w": 500, "text": "RECOMMENDED: A\n\nThe question was how to stop switching between boxes, and A is the only direction where watching is where the remote already starts. The cost is smaller than it reads: on a 1080p TV the room's row is still on the first screen, right under Watch, so the lights are one press down rather than gone.\n\nB keeps yesterday's layout, but leaves every app except the last one behind a hold. C brings back the input switching this was asked to remove.\n\nA TV with no box beside it shows no Watch row, so a house without one opens on its room exactly as decided on 19 November." }
-  ]
+    {
+      "id": "why",
+      "page": "tv",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026: can Apple TV, Apple Music, Spotify and the rest come into the box, so nobody is switching between boxes?\n\nThe hub can't play them itself. Netflix, Apple TV+, Disney+, Max and Prime stream in full only on devices they have certified, and the hub will never be one; in a browser on Linux they drop to low resolution or refuse to play. Spotify stays as decided on 20 October: only on speakers that have it built in. Apple Music is the same: on the HomePods and the Apple TV, never the hub.\n\nWhat it can do is drive one box behind the TV: an Apple TV, Google TV, Roku or Fire TV. Over the network the hub can wake the box, open an app on it, see what it is playing and pause it. Over HDMI it can switch the TV to the box and back. So the question is where the box goes on the TV's home (B, decided 19 November, design/living-room/) and how somebody gets back to the house."
+    },
+    {
+      "id": "today",
+      "page": "tv",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "TODAY\n\nThe TV home from 19 November (design/living-room/, B, still on its branch), on the pretend house at 9:10 PM. The room's TV is a card that plays and pauses.\n\nThe house has no word for the box behind it and no way to put it on the screen. The brain carries a player's on, off and playing, and the name of the app, and nothing that switches the TV's input or opens an app."
+    },
+    {
+      "id": "same",
+      "page": "tv",
+      "x": -620,
+      "y": 1500,
+      "w": 500,
+      "text": "THE SAME IN EVERY DIRECTION\n\nTHE TV IS ONE SCREEN. Nobody presses Input again. Choosing something on the box switches the TV over and wakes the box; Home on the box's remote, or the box going to sleep, switches the TV back to the house. Sleep and All off put the box to sleep with the lights.\n\nTHE HUB CAN'T DRAW OVER THE BOX. While the box is on the screen, the picture, menus and remote are the box's, and the hub waits behind it. A doorbell still takes the TV (design/tv-doorbell/) and gives it back.\n\nAPPS ARE THE BOX'S OWN LIST, by their names. No logos are drawn on these boards, and none go into the panel until we know we may use them.\n\nANY BOX. Apple TV, Google TV, Roku and Fire TV look the same here; the panel never branches on which. One is added on the Add page, with the code it shows on the TV typed on the wall or a phone.\n\nON THE WALL AND THE PHONE the box is the living room's TV card (design/player/, A): its picture, pause and volume, and Watch sends it to the TV.\n\nTO PROVE BEFORE IT IS PROMISED: that each kind of box tells the hub when it is back on its own home screen, and that the hub's HDMI adapter can switch this TV's input."
+    },
+    {
+      "id": "a",
+      "page": "tv",
+      "x": 2040,
+      "y": 1500,
+      "w": 560,
+      "text": "A: WATCH LEADS THE TV'S HOME\n\nThe TV opens on a row of its own above the room: what was last on, then the box's apps. OK on one switches the TV over and opens it there. Home on the box's remote brings the house back with that app still lit and saying Just now, so OK goes straight back in. The room, its scenes and the other rooms follow below, as decided.\n\nFOR: The TV is for watching, and watching is the first thing on it. Everything the household watches is one press from where the remote starts, and the box's own home screen becomes something they rarely see.\n\nAGAINST: The room moves down a row, a day after it was picked to come first. The lights are a press further away.\n\nTry it: Right to Netflix, Enter, then H."
+    },
+    {
+      "id": "b",
+      "page": "tv-lost",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "B: THE BOX IS ONE THING IN THE ROOM\n\nThe TV home stays as decided. The box is a card in the room's row, with what was last on as its picture. OK goes back to that; Hold OK brings the box's apps up over the home, and OK on one switches the TV over. Coming back, the box's card is lit and says what it was doing.\n\nFOR: Nothing decided on 19 November moves. The box is a thing in the room like a lamp, which is how the house treats everything else.\n\nAGAINST: Any app but the last one is a hold away, and a hold is the press people don't find. On a TV where watching is the point, the box sits third among the lamps.\n\nTry it: Right to Apple TV, Space for Hold OK, Enter on an app, then H."
+    },
+    {
+      "id": "c",
+      "page": "tv-lost",
+      "x": 520,
+      "y": 1500,
+      "w": 560,
+      "text": "C: THE BOX KEEPS THE TV, THE PHONE IS THE REMOTE\n\nThe TV shows the box, as it does in most homes now. The house comes up on it only when asked (Show the house on the TV) or for the doorbell. The phone becomes the one remote: what the box is playing and its pause, a pad to move around on the TV, the apps to open, and the room's lights beneath.\n\nFOR: Nothing changes for somebody who only wants to watch: the box's own home, profiles and voice search stay where they are. Everybody already has a phone in hand.\n\nAGAINST: It undoes the hub on the TV picked on 19 November. The house is an input again, which is the switching this asked to be rid of, and a guest with no phone set up gets the box and no lights.\n\nTap an app, or Show the house on the TV."
+    },
+    {
+      "id": "recommend",
+      "page": "tv",
+      "x": -620,
+      "y": 3800,
+      "w": 500,
+      "text": "RECOMMENDED: A\n\nThe question was how to stop switching between boxes, and A is the only direction where watching is where the remote already starts. The cost is smaller than it reads: on a 1080p TV the room's row is still on the first screen, right under Watch, so the lights are one press down rather than gone.\n\nB keeps yesterday's layout, but leaves every app except the last one behind a hold. C brings back the input switching this was asked to remove.\n\nA TV with no box beside it shows no Watch row, so a house without one opens on its room exactly as decided on 19 November."
+    },
+    {
+      "id": "decided",
+      "page": "tv",
+      "x": -620,
+      "y": 3000,
+      "w": 500,
+      "text": "DECIDED 20 NOVEMBER 2026 -- A\n\nThe Watch row leads the TV's home: what the box last had on, then its apps, seven at a time with the ones the house has seen used first, and All apps for the rest. OK opens an app on the box and the TV switches over by itself; once the box is back on its own home screen or asleep, the TV shows the house again, with that app still lit and saying Just now.\n\nOne thing the board did not draw: music playing in the TV's room still comes first (design/tv-music/, A), with Watch right under it. A TV with no box beside it has no Watch row and opens on its room, as decided on 19 November.\n\nB and C are kept on the page beside this one, with their cases."
+    },
+    {
+      "id": "lost",
+      "page": "tv-lost",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "NOT CHOSEN\n\nB kept the room first but left every app except the last one behind a hold. C brought back the input switching this was asked to remove. A puts watching where the remote starts, and the room's lights stay on the first screen."
+    }
+  ],
+  "decided": {
+    "on": "2026-11-20",
+    "chose": "A"
+  }
 }
