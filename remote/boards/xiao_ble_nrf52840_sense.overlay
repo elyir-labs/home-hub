@@ -1,0 +1,58 @@
+/* SPDX-FileCopyrightText: 2026 Temitope Adeyeri */
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+
+/* The remote on a Seeed XIAO nRF52840 Sense, wired by hand: every key and both ring lines are a switch to ground on
+   D0-D10 (README.md has the table). The XIAO's serial, I2C and SPI pins are among them, so those are switched off. The
+   light is the XIAO's own LED, red and green, which make the amber. */
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <zephyr/dt-bindings/pwm/pwm.h>
+
+/ {
+	remote_keys {
+		compatible = "gpio-keys";
+		debounce-interval-ms = <10>;
+		up { gpios = <&xiao_d 0 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>; zephyr,code = <INPUT_KEY_UP>; };
+		down { gpios = <&xiao_d 1 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>; zephyr,code = <INPUT_KEY_DOWN>; };
+		left { gpios = <&xiao_d 2 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>; zephyr,code = <INPUT_KEY_LEFT>; };
+		right { gpios = <&xiao_d 3 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>; zephyr,code = <INPUT_KEY_RIGHT>; };
+		ok { gpios = <&xiao_d 4 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>; zephyr,code = <INPUT_KEY_ENTER>; };
+		home { gpios = <&xiao_d 5 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>; zephyr,code = <INPUT_KEY_HOME>; };
+		talk { gpios = <&xiao_d 6 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>; zephyr,code = <INPUT_BTN_0>; };
+		favorite_left { gpios = <&xiao_d 7 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>; zephyr,code = <INPUT_BTN_1>; };
+		favorite_right { gpios = <&xiao_d 8 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>; zephyr,code = <INPUT_BTN_2>; };
+	};
+
+	zephyr,user {
+		ring-a-gpios = <&xiao_d 9 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
+		ring-b-gpios = <&xiao_d 10 (GPIO_PULL_UP | GPIO_ACTIVE_HIGH)>;
+	};
+
+	lamp {
+		compatible = "pwm-leds";
+		lamp_red: red { pwms = <&pwm1 0 PWM_USEC(500) PWM_POLARITY_INVERTED>; };
+		lamp_green: green { pwms = <&pwm1 1 PWM_USEC(500) PWM_POLARITY_INVERTED>; };
+	};
+};
+
+&xiao_serial { status = "disabled"; };
+&xiao_i2c { status = "disabled"; };
+&xiao_spi { status = "disabled"; };
+
+&pwm1 {
+	status = "okay";
+	pinctrl-0 = <&remote_pwm_default>;
+	pinctrl-1 = <&remote_pwm_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&pinctrl {
+	remote_pwm_default: remote_pwm_default {
+		group1 { psels = <NRF_PSEL(PWM_OUT0, 0, 26)>, <NRF_PSEL(PWM_OUT1, 0, 30)>; };
+	};
+	remote_pwm_sleep: remote_pwm_sleep {
+		group1 {
+			psels = <NRF_PSEL(PWM_OUT0, 0, 26)>, <NRF_PSEL(PWM_OUT1, 0, 30)>;
+			low-power-enable;
+		};
+	};
+};
