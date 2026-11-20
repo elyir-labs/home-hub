@@ -1026,7 +1026,8 @@ export function createHouse({ env = {}, qr = null } = {}) {
       if (ph) ph.remote = on
       json(res, ph ?? {})
     }) }
-    if (p === '/phones') return json(res, phones)
+    // the screen asking is seen as it asks, as on a hub, rather than when the mock started
+    if (p === '/phones') return json(res, { ...phones, phones: phones.phones.map(x => x.me ? { ...x, last_seen: Math.floor(Date.now() / 1000) } : x) })
     /* What this house has: one door holding everything, grouped by what brought it. Derived from the
        mock house rather than written out, so the page cannot drift from the rooms beside it -- and so
        that SWITCHES=11 fills the bridge group the way a real bridge does. brain/hub/things.py is the

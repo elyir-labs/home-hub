@@ -56,6 +56,12 @@ test.beforeAll(() => {
   servers = [serve(true).listen(5174), serve(false).listen(5175)]
 })
 test.afterAll(() => { for (const s of servers) s.close() })
+/* On localhost the app finds the pretend house at 8399 (devHouse in houses.ts). With BASE pointing the suite at a mock
+   on another port, the app is told so, and the app and the panel it frames talk to the same house. */
+test.beforeEach(async ({ context }) => {
+  const base = process.env.BASE
+  if (base) await context.addInitScript(b => { if (location.port === '5174') localStorage.setItem('houses:dev', b) }, base.replace(/\/$/, ''))
+})
 
 async function app(page: Page, origin: string, _base: string, others = false) {
   await page.setViewportSize({ width: 390, height: 844 })
@@ -167,7 +173,7 @@ test('the pretend house opens framed like a house, named so, and is never kept',
   await fresh(page)
   await page.goto(`${APP}/?shell=ios&store=US`)
   await page.getByRole('button', { name: 'Try a pretend house' }).click()
-  await expect(page.locator('.hs-frame')).toHaveAttribute('src', 'http://localhost:8399/?app=1&shell=ios&store=US')
+  await expect(page.locator('.hs-frame')).toHaveAttribute('src', `${(process.env.BASE || 'http://localhost:8399').replace(/\/$/, '')}/?app=1&shell=ios&store=US`)
   const name = page.frameLocator('.hs-frame').locator('.house-switch')
   await expect(name).toContainText('Pretend house')
   await name.click()
@@ -462,7 +468,7 @@ test('inside the store app the shell is handed every house and the one opened, a
   for (const h of list.houses) {
     expect(Object.keys(h).sort()).toEqual(['id', 'lan', 'name', 'origin', 'token'])
     expect(h.token).toBe('mocktoken')
-    expect(h.origin).toBe('http://localhost:8399')
+    expect(h.origin).toBe((process.env.BASE || 'http://localhost:8399').replace(/\/$/, ''))
   }
   expect(said.filter(m => m.type === 'houses:opened')).toEqual([{ type: 'houses:opened', id: 'maple-court' }])
 

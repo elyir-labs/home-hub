@@ -1757,7 +1757,7 @@ zigbee_kept() {
   printf 'advanced:\n  network_key:\n    - 7\n' > "$dir/driver-layer/zigbee2mqtt/configuration.yaml"   # Zigbee2MQTT made the network
   echo two > "$up/f"; git -C "$up" commit -qam two; git -C "$dir" fetch -q origin
   # shellcheck disable=SC2034  # DIR and CHANNEL are read by the go_to_ref pulled in by eval
-  ( DIR="$dir" CHANNEL=branch; want_ref() { echo origin/HEAD; }
+  ( export DIR="$dir" CHANNEL=branch; want_ref() { echo origin/HEAD; }   # read by install.sh's go_to_ref, loaded below
     eval "$(sed -n '/^go_to_ref() {/,/^}/p' "$HERE/../../install.sh")"; go_to_ref >/dev/null )
   is "the code moves on" "$(cat "$dir/f")" "two"
   is "...and the house's network key is still in its file" "$(grep -c -- '- 7' "$dir/driver-layer/zigbee2mqtt/configuration.yaml")" "1"
