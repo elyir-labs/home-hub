@@ -1,0 +1,114 @@
+{
+  "name": "A TV joining the house",
+  "areas": [
+    "Wall screens",
+    "First run"
+  ],
+  "pages": [
+    {
+      "id": "join",
+      "name": "A TV joining the house, with only its remote"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "join",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: a TV joining Maple Court"
+    },
+    {
+      "file": "DigitsA.dc.html",
+      "page": "join",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: the remote's number buttons",
+      "is_interactive": true
+    },
+    {
+      "file": "PadB.dc.html",
+      "page": "join",
+      "x": 0,
+      "y": 3000,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: a keypad the arrows move on",
+      "is_interactive": true
+    },
+    {
+      "file": "OwnC.dc.html",
+      "page": "join",
+      "x": 0,
+      "y": 4500,
+      "w": 1920,
+      "h": 1080,
+      "title": "C: the TV plugged into the hub is already in",
+      "is_interactive": true
+    },
+    {
+      "file": "AskC.dc.html",
+      "page": "join",
+      "x": 2100,
+      "y": 4500,
+      "w": 1920,
+      "h": 1080,
+      "title": "C: a TV on another box asks a phone",
+      "is_interactive": true
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "join",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026: the panel came up on the living room TV, plugged into the hub, and stopped at the passcode. A screen joining a house with a passcode is asked for it (design/companion/, C), and on a TV only a keyboard could type it: the remote's number buttons are switched off, so 1 to 4 never start a scene by accident. Above it, the first-start pill asked to be tapped to turn the screen over."
+    },
+    {
+      "id": "same",
+      "page": "join",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "THE SAME IN EVERY DIRECTION\n\nNO PILL ON A TV. A TV is never hung upside down and has no glass to tap, so the first-start pill is not drawn there. This screen keeps the four ways up for anybody who needs them.\n\nASKING A PHONE IS ALWAYS THERE. Any phone already in the house can say yes, the way a second wall screen joins today.\n\nREAD FROM THE SOFA. Nothing a person must read is under 22px, something is always lit, and the line at the foot says what each key does.\n\nOnly on a TV. A phone and the wall join exactly as they do today."
+    },
+    {
+      "id": "a",
+      "page": "join",
+      "x": 2040,
+      "y": 1500,
+      "w": 560,
+      "text": "A: THE REMOTE'S NUMBER BUTTONS\n\nThe passcode is four digits, and most TV remotes have the ten buttons that type them. On this screen they type; everywhere else the colored buttons stay the scenes, and the digits do nothing.\n\nThe quickest for the person holding the remote, and the screen stays as it is, only bigger.\n\nAGAINST: some remotes have no number buttons (a few new ones, most USB air mice), and then the only way in is asking a phone.\n\nTry it: type four digits, Escape takes one off."
+    },
+    {
+      "id": "b",
+      "page": "join",
+      "x": 2040,
+      "y": 3000,
+      "w": 560,
+      "text": "B: A KEYPAD THE ARROWS MOVE ON\n\nTwelve cards beside the question: the digits, one that takes a digit off, and Join. The arrows and OK work every remote there is, and the number buttons still type straight in where a remote has them.\n\nThe way every TV app asks for a PIN, so it is familiar.\n\nAGAINST: slower with arrows only, about a dozen presses for four digits, and the pad is a second thing to draw on a screen people see once.\n\nTry it: arrows and Enter, or type digits."
+    },
+    {
+      "id": "c",
+      "page": "join",
+      "x": -620,
+      "y": 4500,
+      "w": 500,
+      "text": "C: THE HUB'S OWN TV IS ALREADY IN\n\nThe TV plugged into the hub is the hub's own glass: the hub already knows that request comes from itself (it is how only that screen is shown the hub's Wi-Fi password, design/screen-wifi/). So it is let in without a passcode and asked only which room it is in.\n\nA TV on another box, which is where somebody could plug in a stranger's, asks the phones in the house first, with B's keypad behind Type the passcode instead.\n\nFOR: the TV people will set up most is a Hub Plus on the living room TV, and it never asks. AGAINST: anyone who can reach the hub's HDMI port gets in without the passcode. They could already restart or reset it from there, but it is a rule the wall does not have today."
+    },
+    {
+      "id": "pick",
+      "page": "join",
+      "x": -620,
+      "y": 1500,
+      "w": 500,
+      "text": "PICK ONE\n\nA, B or C, a mix (C's own TV with A's digits elsewhere, say), or something else -- describe it."
+    }
+  ]
+}

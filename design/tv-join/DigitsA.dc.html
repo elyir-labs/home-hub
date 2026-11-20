@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A: the remote's number buttons</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css">
+<link rel="stylesheet" href="join.css">
+</head>
+<body>
+<div class="screen">
+  <div class="join">
+    <span class="mark"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span>
+    <h1>This TV is for Maple&nbsp;Court.</h1>
+    <p class="lede">Type the house passcode with the <b>number buttons</b> on your remote.</p>
+    <div class="code" id="code" data-f data-f-start data-hint="0–9|Type the passcode;⌫ Back|Take one off;▼|Ask a phone instead"><i class="now"></i><i></i><i></i><i></i></div>
+    <p class="error" id="err"></p>
+    <div class="actions">
+      <span class="btn go off" id="go" data-f data-hint="OK|Join the house">Continue</span>
+      <span class="btn" data-f data-hint="OK|Ask the phones in the house">Ask a phone instead</span>
+    </div>
+  </div>
+  <div class="foot"><div class="keys" id="hint"></div><span class="where">Living room TV</span></div>
+</div>
+<script>
+  // Digits type straight into the boxes from anywhere on the screen; Back takes one off before it goes back.
+  const boxes = [...document.querySelectorAll('#code i')], go = document.getElementById('go')
+  let typed = ''
+  function draw() {
+    boxes.forEach((b, i) => { b.className = i < typed.length ? 'on' : i === typed.length ? 'now' : '' })
+    go.classList.toggle('off', typed.length < 4)
+    document.getElementById('err').textContent = typed.length === 4 ? 'Press OK on Continue.' : ''
+  }
+  window.tvKeys = (key, cur, light) => {
+    if (/^[0-9]$/.test(key) && typed.length < 4) { typed += key; draw(); if (typed.length === 4) light(go); return true }
+    if ((key === 'Escape' || key === 'Backspace') && typed) { typed = typed.slice(0, -1); draw(); light(document.getElementById('code')); return true }
+    return false
+  }
+</script>
+<script src="tv.js"></script>
+</body>
+</html>
