@@ -1,0 +1,85 @@
+{
+ "name": "Our own remote",
+ "areas": [
+  "Watching and listening"
+ ],
+ "pages": [
+  {
+   "id": "remote",
+   "name": "What our own remote is like"
+  }
+ ],
+ "artboards": [
+  { "file": "Today.dc.html", "page": "remote", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Today / A bought remote, plugged into the hub" },
+  { "file": "StoneA.dc.html", "page": "remote", "x": 0, "y": 1100, "w": 1440, "h": 900, "title": "A / The stone: four things to press, and the rest said aloud" },
+  { "file": "BarB.dc.html", "page": "remote", "x": 0, "y": 2200, "w": 1440, "h": 900, "title": "B / The bar: a remote you already know how to hold" },
+  { "file": "DialC.dc.html", "page": "remote", "x": 0, "y": 3300, "w": 1440, "h": 900, "title": "C / The dial: it lives on the table, and you turn it" }
+ ],
+ "annotations": [
+  {
+   "id": "why",
+   "page": "remote",
+   "x": -620,
+   "y": 0,
+   "w": 520,
+   "text": "WHY THIS EXISTS\n\n20 November 2026: a bought USB remote is on order for the living room hub, and the question was what our own remote would be if the experience is to be great, more than a third party's can be.\n\nA bought remote sends keys to whatever is on the screen. Ours can know the house: which room it is in, what the TV is showing, and what the room's lights are doing. So it can be useful with the TV off, which no TV remote is. These boards are about its shape and what is on it. The electronics are the same in every direction (see beside)."
+  },
+  {
+   "id": "given",
+   "page": "remote",
+   "x": -620,
+   "y": 620,
+   "w": 520,
+   "text": "WHAT EVERY DIRECTION KEEPS, SO IT IS NOT WHAT THEY ARGUE ABOUT\n\nIT KNOWS ITS ROOM. The hub and the bridge pucks already listen for Bluetooth; the remote is in the room whose listener hears it loudest. \"The lights\" means this room's lights, with nothing to set up. A second remote in the bedroom just works there.\n\nIT WORKS WITH THE TV OFF. Turning dims the room it is in, a press turns it on or off. The TV adds the room's row along its foot (design/living-room, C's band), and changes nothing about what a key means.\n\nHOLD TO TALK INTO THE COMMAND BOX. The words go into the same fixed grammar the box already runs, with no model, so it works on every hub. Speech to text is sized to the hub (Hub runs a small one). The answer is on the TV if it is on, and a blink of the remote's light if not.\n\nONE LIGHT. The lamp dot from the startup, breathing while it listens. It is an LED, so it gets its own saturated warm color, not the panel's pastel (emitter colors are not screen colors).\n\nWAKES WHEN PICKED UP, FOUND WHEN ASKED. A motion sensor wakes it before a key is pressed. \"Where is the remote?\" in the command box makes it chirp and blink.\n\nJOINED BY A PRESS. Hold Home while Add is open, and it arrives like anything else does. One sold with a hub comes joined.\n\nINSIDE. An ESP32-class chip, as in the puck (C6 or H2 for battery life). It first speaks as an ordinary Bluetooth remote, so the hub hears the same keys as the bought one and the tv-remote branch's work carries straight over; the room, the voice, the light and waking are a second channel on top. Rechargeable, months a charge. The board and case go in home-hub-hardware, never this repository.\n\nTHE OPEN RISK. Bluetooth reach from sofa to hub is the strip's unsolved problem too. The pucks will likely have to carry it."
+  },
+  {
+   "id": "today",
+   "page": "remote",
+   "x": 1560,
+   "y": 0,
+   "w": 520,
+   "text": "TODAY\n\nA typical bought remote with a USB receiver, drawn because the ordered one is not here yet; redraw it when it arrives. The keys outlined are the ones branch tv-remote listens to (KEYS in brain/hub/boxes.py): arrows, OK, Back, play, skip and volume pass to an Apple TV while it has the TV, and Home and the colored keys bring the house back. Untested on the real Apple TV.\n\nWhat to do with it while ours is drawn: count which keys get pressed in the living room for a few weeks. Ours keeps the ones that get used."
+  },
+  {
+   "id": "a",
+   "page": "remote",
+   "x": 1560,
+   "y": 1100,
+   "w": 520,
+   "text": "A — THE STONE\n\nThe case for it: four things to press (a ring that turns and presses, OK, Home, talk), all findable by feel. It is the least to learn and the most unlike anything in the shops, and it reads as an object for the coffee table rather than a gadget.\n\nWhat it gives up: scenes depend on talking, so a household that would rather not talk to it gets them only on the TV. With no Back and no Play, Home does two jobs and a held OK stands in for Play, and a streaming box's own screens lean on both. A pebble does not point."
+  },
+  {
+   "id": "b",
+   "page": "remote",
+   "x": 1560,
+   "y": 2200,
+   "w": 520,
+   "text": "B — THE BAR (recommended)\n\nThe case for it: nobody has to learn to hold it. It has everything a streaming box asks for (ring, OK, Back, Play), plus the house's own: a ring that turns for how much, Home that always means the house, four scene keys in the TV's colors that work with the screen off, and a key to talk.\n\nWhat it gives up: twelve things to press, the most of the three, and from across the room it looks like any remote. What makes it ours is what it does, not how it looks.\n\nThe part to find first: a ring that turns, with detents, around a four-way press and OK. That one part decides whether B can be made."
+  },
+  {
+   "id": "c",
+   "page": "remote",
+   "x": 1560,
+   "y": 3300,
+   "w": 520,
+   "text": "C — THE DIAL\n\nThe case for it: turning is the most natural way to say how much, and dimming feels like a real dimmer. It lives on its charging dish, so it is never lost or flat, and it glows faintly under itself so it is found in the dark. A second one makes a bedroom's control with no TV at all.\n\nWhat it gives up: no arrows, so walking a streaming box's grid of apps by turning is slow; for watching it is the weakest. Turning means moving or setting depending on a press, which has to be learned. It does not point and it is not for a lap."
+  },
+  {
+   "id": "pick",
+   "page": "remote",
+   "x": -620,
+   "y": 2200,
+   "w": 520,
+   "text": "PICK ONE\n\nA, the stone. B, the bar. C, the dial. Or a mix (say which part of which), or something else: describe it and I will draw it."
+  },
+  {
+   "id": "recommended",
+   "page": "remote",
+   "x": -620,
+   "y": 2560,
+   "w": 520,
+   "text": "RECOMMENDED: B, WITH C'S DISH\n\nB is the only one that is good at both jobs: the house with the TV off, and a streaming box's own screens with it on. A and C are each better at one and weak at the other. Its cost is the most keys of the three, and every key it keeps is one the bought remote's count should justify.\n\nBorrow C's dish: B lies on a small charging dish on the side table, so it has a home and is never flat."
+  }
+ ],
+ "reading": ["why", "given", "Today.dc.html", "today", "StoneA.dc.html", "a", "BarB.dc.html", "b", "DialC.dc.html", "c", "pick", "recommended"]
+}
