@@ -8,6 +8,10 @@
     {
       "id": "rest",
       "name": "Readable at any hour"
+    },
+    {
+      "id": "rest-rejected",
+      "name": "Readable at any hour: not chosen"
     }
   ],
   "artboards": [
@@ -22,7 +26,7 @@
     },
     {
       "file": "InkA.dc.html",
-      "page": "rest",
+      "page": "rest-rejected",
       "x": 2100,
       "y": 0,
       "w": 1920,
@@ -31,7 +35,7 @@
     },
     {
       "file": "VeilB.dc.html",
-      "page": "rest",
+      "page": "rest-rejected",
       "x": 4200,
       "y": 0,
       "w": 1920,
@@ -59,7 +63,7 @@
     },
     {
       "id": "a",
-      "page": "rest",
+      "page": "rest-rejected",
       "x": 2100,
       "y": 2220,
       "w": 1920,
@@ -67,7 +71,7 @@
     },
     {
       "id": "b",
-      "page": "rest",
+      "page": "rest-rejected",
       "x": 4200,
       "y": 2220,
       "w": 1920,
@@ -82,12 +86,12 @@
       "text": "C: A SOFT WASH BEHIND THE WORDS. The sky stays as bright as today at its edges, and darkens gently toward the middle where the words are, and along the foot. Every word passes. FOR: the sky keeps more of its day. AGAINST: a shape of its own on the sky, which a screen with words somewhere else (the TV's record, the corner clock) has to be drawn for."
     },
     {
-      "id": "pick",
+      "id": "decided",
       "page": "rest",
       "x": -620,
       "y": 1200,
       "w": 500,
-      "text": "PICK ONE\n\nB or C, or something else -- describe it. Either way the measure joins CI, so a color that cannot be read at some hour fails a test instead of reaching a screen."
+      "text": "DECIDED 20 NOVEMBER 2026\n\nC: a soft wash behind the words, in the dark look only, with every word at full ink. The measure (e2e/readable.ts) runs in the tests for the resting TV and the resting wall at four hours and both looks."
     }
   ]
 }
