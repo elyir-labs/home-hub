@@ -19,7 +19,15 @@
     },
     {
       "id": "back",
-      "name": "Coming back to the house"
+      "name": "Coming back to the house",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "B, falling back to A"
+      }
+    },
+    {
+      "id": "back-lost",
+      "name": "Coming back to the house: not chosen"
     }
   ],
   "artboards": [
@@ -93,9 +101,9 @@
     },
     {
       "file": "PhoneBackC.dc.html",
-      "page": "back",
+      "page": "back-lost",
       "x": 0,
-      "y": 4500,
+      "y": 0,
       "w": 390,
       "h": 844,
       "title": "C: the phone brings the house back",
@@ -217,9 +225,9 @@
     },
     {
       "id": "back-c",
-      "page": "back",
+      "page": "back-lost",
       "x": 520,
-      "y": 4500,
+      "y": 0,
       "w": 560,
       "text": "C: THE PHONE BRINGS THE HOUSE BACK\n\nThe living room on the phone says what is on the TV and has one big Show the house on the TV. The TV itself says nothing new.\n\nFOR: Needs nothing proved, and works today with the adapter's Input switch.\n\nAGAINST: The phone, to get back to the house from the sofa where the remote is. A guest without the app has Input, or waiting.\n\nTap Show the house on the TV."
     },
@@ -232,12 +240,20 @@
       "text": "RECOMMENDED: B, FALLING BACK TO A\n\nB is the only answer where coming back is one press on the remote already in your hand, the same on every TV and every box. Its handover is A's with four colors instead of a sentence about Input, so if the adapter can't hear a press meant for the Apple TV, the board becomes A by changing one line, and nothing else moves.\n\nC is worth having as well, as a button on the phone's TV card, but not as the way back."
     },
     {
-      "id": "back-pick",
+      "id": "back-decided",
       "page": "back",
       "x": -620,
       "y": 3600,
       "w": 500,
-      "text": "PICK ONE\n\nA, B, C, B with C's phone button, or something else -- describe it."
+      "text": "DECIDED 20 NOVEMBER 2026 -- B, FALLING BACK TO A\n\nWhile a streaming box is on the TV, any colored button on the TV's remote brings the house back, where the screen's HDMI adapter can hear a press meant for the box (startup/cec-watch.py). Where it can't, the handover says Input instead, which is A. The box going to sleep brings the house back either way. Coming back, by any of them, leaves the app lit and saying Just now.\n\nTo prove when the adapter arrives: whether a Pulse-Eight hears the whole bus. C is kept on the page beside this one, with its case."
+    },
+    {
+      "id": "back-lost-why",
+      "page": "back-lost",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "NOT CHOSEN\n\nThe phone as the way back means reaching past the remote already in your hand. Its button may still come to the phone's TV card one day; it isn't the way back."
     }
   ]
 }
