@@ -77,11 +77,12 @@ test('a resting TV whose room plays music shows the record, and OK raises the mu
   await expect(lit(page)).toHaveText('Pause')
   await expect(page.locator('.tvb-srow').nth(1).locator('.tvb-nm')).not.toContainText(['Sonos'])   // the music row works the speaker
   await expect(page.locator('.tvb-chip').filter({ hasText: 'Movie' })).toBeVisible()
+  await risen(page)
+  await page.locator('.rec-art').evaluate(e => Promise.all(e.getAnimations().map(a => a.finished)))   // the record has finished stepping up
   const rec = (await page.locator('.rec-art').boundingBox())!, sheet = (await page.locator('.tvb-sheet').boundingBox())!
   expect(rec.y + rec.height).toBeLessThan(sheet.y)                         // the record steps up above the sheet, never under it
   for (const b of await page.locator('.tvb-sheet [data-tv]').evaluateAll(es => es.map(e => e.getBoundingClientRect().right)))
     expect(b).toBeLessThanOrEqual(1920)                                    // every row is one line inside the TV
-  await risen(page)
   await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowDown')
   await expect(page.locator('.tvb-srow').nth(2).locator('[data-lit]')).toHaveCount(1)   // Up and Down move between the rows
   await page.keyboard.press('Escape')
