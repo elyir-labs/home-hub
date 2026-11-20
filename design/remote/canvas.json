@@ -14,6 +14,10 @@
    }
   },
   {
+   "id": "remote-stone",
+   "name": "The stone on its dish, with keys on its sides"
+  },
+  {
    "id": "remote-rejected",
    "name": "What our own remote is like: not chosen"
   }
@@ -54,6 +58,33 @@
    "w": 1440,
    "h": 900,
    "title": "C / The dial: it lives on the table, and you turn it"
+  },
+  {
+   "file": "StoneBackD.dc.html",
+   "page": "remote-stone",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "D / The stone, with Back and Play on its sides"
+  },
+  {
+   "file": "StoneSoundE.dc.html",
+   "page": "remote-stone",
+   "x": 0,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "E / The stone, with the sound on its side and a key of your own"
+  },
+  {
+   "file": "StoneAllF.dc.html",
+   "page": "remote-stone",
+   "x": 0,
+   "y": 2200,
+   "w": 1440,
+   "h": 900,
+   "title": "F / The stone, with everything else on its sides"
   }
  ],
  "annotations": [
@@ -120,6 +151,54 @@
    "y": 0,
    "w": 520,
    "text": "NOT CHOSEN\n\nA and C were each better at one job and weak at the other. The stone needs a voice for scenes and has no Back or Play for a streaming box's screens; the dial has no arrows, so a grid of apps is slow. C's dish was kept: B charges on it."
+  },
+  {
+   "id": "stone-why",
+   "page": "remote-stone",
+   "x": -620,
+   "y": 0,
+   "w": 520,
+   "text": "WHY THIS PAGE EXISTS\n\n20 November 2026, after B was picked: on a second look, the stone is the one that feels like ours. The question is the stone with the bar's charging dish, and the keys the stone lacked put on its sides, if there is room.\n\nThere is room. At its widest the stone's flank is about 12 mm tall, enough for a 10 mm key or a 16 mm rocker on each side, without touching its top. The ring and pad are the same two parts as the bar's (Alps EC21A ring, Alps SKRH pad), at 46 mm and 30 mm. Presses while it is being lifted are ignored, which the motion sensor already knows.\n\nThe top stays as A drew it: the light, the talk key, the ring with its tilting pad, and Home."
+  },
+  {
+   "id": "d",
+   "page": "remote-stone",
+   "x": 1560,
+   "y": 0,
+   "w": 520,
+   "text": "D — BACK AND PLAY ON ITS SIDES\n\nThe case for it: the stone's two gaps for watching, closed by feel: Back under the fingers, Play under the palm. Home goes back to one job.\n\nWhat it gives up: the ring stays two things, the sound while a film plays and the light once the room is up, so it depends on what the screen shows. Scenes still need a voice. A key under the palm may be pressed just by holding it."
+  },
+  {
+   "id": "e",
+   "page": "remote-stone",
+   "x": 1560,
+   "y": 1100,
+   "w": 520,
+   "text": "E — THE SOUND ON ITS SIDE, AND A KEY OF YOUR OWN (recommended)\n\nThe case for it: the ring is only ever the light and the rocker only ever the sound, so neither changes the other by mistake, whatever the screen shows. One Favorite key runs the room's favorite scene without talking, which was the stone's biggest gap; held, it opens the choice of scene on the TV.\n\nWhat it gives up: Back stays a second press of Home and Play a press of OK. A rocker on one side favors one hand."
+  },
+  {
+   "id": "f",
+   "page": "remote-stone",
+   "x": 1560,
+   "y": 2200,
+   "w": 520,
+   "text": "F — EVERYTHING ELSE ON ITS SIDES\n\nThe case for it: every job its own key (rocker on the right, Back and Favorite on the left), with the top still four things. Closest to the bar in what it does.\n\nWhat it gives up: three keys round a pebble are the most to press by accident and the most to find by feel, and two keys on one flank can be confused in the dark."
+  },
+  {
+   "id": "stone-pick",
+   "page": "remote-stone",
+   "x": -620,
+   "y": 1100,
+   "w": 520,
+   "text": "PICK ONE\n\nD, Back and Play. E, the sound and a Favorite key. F, everything. Or keep B as decided, or a mix, or something else: describe it and I will draw it. Picking a stone replaces B as the decision on the page before."
+  },
+  {
+   "id": "stone-recommended",
+   "page": "remote-stone",
+   "x": -620,
+   "y": 1400,
+   "w": 520,
+   "text": "RECOMMENDED: E\n\nIt closes the two gaps that matter most, scenes without a voice and the sound apart from the light, with two keys, and keeps the stone calm. Back is the one compromise, and the bought remote's key count will say whether it earns F's extra key. The open question is the left hand: the rocker may want to be mirrored."
   }
  ],
  "reading": [
@@ -130,6 +209,15 @@
   "today",
   "BarB.dc.html",
   "b",
+  "stone-why",
+  "StoneBackD.dc.html",
+  "d",
+  "StoneSoundE.dc.html",
+  "e",
+  "StoneAllF.dc.html",
+  "f",
+  "stone-pick",
+  "stone-recommended",
   "lost",
   "StoneA.dc.html",
   "a",
