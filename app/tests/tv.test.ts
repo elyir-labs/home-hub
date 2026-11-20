@@ -5,6 +5,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
+import { activity } from '../src/store'
 import { digitOf, hintFor, musicIn, nearest, okOf, onTV, pressOf, sceneFor, speakersOf, stateOf, thingsIn } from '../src/tv'
 import { stepOf } from '../src/levels'
 import { SCENES, store } from '../src/store'
@@ -137,6 +138,10 @@ describe('music in the TV\'s room (design/tv-music/, A and B)', () => {
   it('names the speakers in this room that play in step with it', () => {
     const left = sp('left', 'playing', { together: ['right', 'kitchen1'] }), right = sp('right', 'playing')
     expect(speakersOf(left, room(left, right, sp('other', 'idle'))).map(d => d.id)).toEqual(['left', 'right'])
+  })
+  it("says a song on both of a room's speakers once", () => {
+    const pods = room(sp('left', 'playing', { media_title: 'Drowning' }), sp('right', 'playing', { media_title: 'Drowning' }))
+    expect(activity(pods)).toBe('Drowning')
   })
   it('counts a speaker playing the same song in the room as in step, though nothing grouped them', () => {
     const left = sp('left', 'playing', { media_title: 'Drowning' }), right = sp('right', 'playing', { media_title: 'Drowning' })
