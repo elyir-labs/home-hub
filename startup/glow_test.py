@@ -81,6 +81,101 @@ class Packet(unittest.TestCase):
         self.assertEqual(glow.packet(0x10000 + 5, bytes(8), [])[6:8], b"\x00\x05")
 
 
+def still_with_squares(quad, w=glow.FW, h=glow.FH, size=8):
+    """A camera's picture, w by h, with a white square just inside each corner of `quad` (pixel corners)."""
+    px = [[(0, 0, 0)] * w for _ in range(h)]
+    inward = [(1, 1), (-1, 1), (-1, -1), (1, -1)]
+    for (cx, cy), (dx, dy) in zip(quad, inward):
+        for y in range(size):
+            for x in range(size):
+                xx, yy = cx + dx * x, cy + dy * y
+                if 0 <= xx < w and 0 <= yy < h: px[yy][xx] = (250, 250, 250)
+    return bytes(c for row in px for p in row for c in p)
+
+
+class Finding(unittest.TestCase):
+    DARK = bytes(glow.FW * glow.FH * 3)
+
+    def test_four_white_corners_are_found_where_the_screen_is(self):
+        quad = [(30, 15), (128, 20), (125, 75), (33, 70)]
+        found = glow.corners(still_with_squares(quad), self.DARK)
+        for (fx, fy), (qx, qy) in zip(found, quad):
+            self.assertAlmostEqual(fx * (glow.FW - 1), qx, delta=1.5)
+            self.assertAlmostEqual(fy * (glow.FH - 1), qy, delta=1.5)
+
+    def test_nothing_brighter_is_nothing_found(self):
+        self.assertIsNone(glow.corners(self.DARK, self.DARK))
+
+    def test_a_camera_that_sees_two_corners_finds_no_screen(self):
+        self.assertIsNone(glow.corners(still_with_squares([(30, 15), (128, 20)] + [(-50, -50)] * 2), self.DARK))
+
+
+class Way(unittest.TestCase):
+    def test_from_the_bottom_left_up_the_side_it_leaves_the_bottom_bare(self):
+        self.assertEqual(glow.path_of("bottom-left", "up"), ["left-up", "top-right", "right-down"])
+        self.assertEqual(glow.path_of("bottom-left", "up", bottom=True), ["left-up", "top-right", "right-down", "bottom-left"])
+
+    def test_from_the_bottom_right_up_it_goes_the_other_way_round(self):
+        self.assertEqual(glow.path_of("bottom-right", "up"), ["right-up", "top-left", "left-down"])
+
+    def test_along_the_bottom_first_takes_the_bottom(self):
+        self.assertEqual(glow.path_of("bottom-left", "across")[0], "bottom-right")
+
+    def test_from_a_top_corner_it_goes_all_the_way_round(self):
+        self.assertEqual(glow.path_of("top-left", "across"), ["top-right", "right-down", "bottom-left", "left-up"])
+        self.assertEqual(glow.path_of("top-right", "down"), ["right-down", "bottom-left", "left-up", "top-right"])
+
+
+class Helper(unittest.TestCase):
+    """The helper the TV's setup asks, on this machine's own address, answering only the panel."""
+    @classmethod
+    def setUpClass(cls):
+        import tempfile
+        from http.server import ThreadingHTTPServer
+        cls.dir = tempfile.mkdtemp()
+        glow.STATE = os.path.join(cls.dir, "glow.json"); glow.CAMERA = "test:"
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), glow.Answer)
+        threading.Thread(target=cls.server.serve_forever, daemon=True).start()
+        cls.url = f"http://127.0.0.1:{cls.server.server_address[1]}"
+
+    @classmethod
+    def tearDownClass(cls): cls.server.shutdown()
+
+    def ask(self, path, body=None, origin="http://localhost"):
+        import json, urllib.request, urllib.error
+        req = urllib.request.Request(self.url + path, data=None if body is None else json.dumps(body).encode(),
+                                     headers={"Origin": origin, "Content-Type": "application/json"}, method="GET" if body is None else "POST")
+        try:
+            with urllib.request.urlopen(req, timeout=15) as r: return r.status, json.loads(r.read())
+        except urllib.error.HTTPError as e: return e.code, None
+
+    def test_only_the_panel_is_answered(self):
+        self.assertEqual(self.ask("/glow", origin="http://evil.example")[0], 403)
+        self.assertEqual(self.ask("/glow")[1], {"camera": True, "set": False} if not os.path.exists(glow.STATE) else {"camera": True, "set": True})
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "needs ffmpeg")
+    def test_a_camera_that_sees_no_corners_says_so(self):
+        self.assertEqual(self.ask("/find?phase=lit", {})[0], 200)
+        self.assertEqual(self.ask("/find?phase=dark", {}), (200, {"corners": None}))
+
+    def test_the_answers_are_kept_where_the_following_reads_them(self):
+        target = {"host": "127.0.0.1", "port": 9, "key": "0011223344556677", "run": 0}
+        code, out = self.ask("/save", {"corners": SQUARE, "start": "bottom-left", "first": "up", "lights": 900, "target": target})
+        self.assertEqual((code, out["path"]), (200, ["left-up", "top-right", "right-down"]))
+        import json
+        kept = json.load(open(glow.STATE))
+        self.assertEqual((kept["lights"], kept["strip"]["key"]), (glow.MOST, "0011223344556677"))
+
+    def test_the_moving_light_reaches_the_strip(self):
+        strip = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); strip.bind(("127.0.0.1", 0)); strip.settimeout(3)
+        target = {"host": "127.0.0.1", "port": strip.getsockname()[1], "key": "0011223344556677", "run": 0}
+        self.assertEqual(self.ask("/chase", {"target": target, "lights": 30})[0], 200)
+        frames = [strip.recvfrom(2048)[0] for _ in range(10)]
+        lit = [max(range(30), key=lambda i: p[18 + i * 3]) for p in frames]
+        self.assertGreater(len(set(lit)), 1)      # it moves
+        self.ask("/chase", {"stop": True}); strip.close()
+
+
 @unittest.skipUnless(shutil.which("ffmpeg"), "needs ffmpeg")
 class ForReal(unittest.TestCase):
     def test_a_moving_picture_reaches_a_strip_about_25_times_a_second(self):
