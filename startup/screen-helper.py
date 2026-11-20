@@ -16,7 +16,8 @@ Four things, and no more:
   role      whether this unit runs the house or shows another hub's. It cannot do that itself: it
             leaves one word in a file and role.sh, as root, decides what to do with it
   tv        which input the TV shows, over HDMI-CEC (cec.sh): this unit, or the streaming box beside
-            it (design/tv-box/, A), so nobody reaches for the TV's Input button
+            it (design/tv-box/, A), so nobody reaches for the TV's Input button; and, from what
+            cec-watch.py heard, which one it is showing and whether a colored button brings it back
 
 Nothing here takes a command from the panel. A turn is checked against four numbers, and a role and
 what the TV shows against two words each, the way restart.sh checks its rungs.
@@ -39,6 +40,7 @@ TURN_FILE = os.environ.get("ELYIR_TURN_FILE") or os.path.expanduser("~/.config/e
 ASK_DIR = os.environ.get("ELYIR_SCREEN_ASK", "/var/lib/elyir-screen")
 FIND_HUB = os.environ.get("ELYIR_FIND_HUB", os.path.join(HERE, "find-hub.sh"))
 ROLE = "screen" if os.environ.get("HUB_ROLE") == "screen" else "hub"
+CEC_STATE = os.environ.get("ELYIR_CEC_STATE", "/run/elyir-cec")
 
 # How each turn is said to the compositor. One place, because which way "90" goes is the display's
 # convention, not ours, and is checked on the unit itself.
@@ -89,6 +91,18 @@ def turn_to(t):
         except OSError:
             pass
     return ok
+
+
+def showing():
+    """What the TV is showing, as cec-watch.py last heard it: "house", "elsewhere", or None when nothing listens."""
+    def read(name):
+        try:
+            with open(os.path.join(CEC_STATE, name)) as f:
+                return f.read().strip()
+        except OSError:
+            return ""
+    own, source = read("own"), read("source")
+    return {"showing": ("house" if source == own else "elsewhere") if own and source else None, "colors": read("hears") == "all"}
 
 
 class Other:
@@ -162,6 +176,8 @@ class Answer(BaseHTTPRequestHandler):
     def do_GET(self):
         if not self.allowed():
             return self.reply(403)
+        if self.path == "/tv":
+            return self.reply(200, showing())
         if self.path != "/this":
             return self.reply(404)
         other = {"home": Other.home} if ROLE == "hub" and Other.url else None

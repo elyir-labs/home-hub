@@ -10,18 +10,21 @@ test.use({ viewport: { width: 1920, height: 1080 } })
 
 const HELPER = 'http://helper.test'
 const asked: string[] = [], shown: string[] = []
+let tvSays: { showing: string | null; colors: boolean } = { showing: null, colors: false }
 let box: Record<string, any> = {}
 let speak: (m: object) => void = () => {}
 
-async function tv(page: Page, withBox = true) {
-  asked.length = 0; shown.length = 0
+async function tv(page: Page, withBox = true, colors = false) {
+  asked.length = 0; shown.length = 0; tvSays = { showing: null, colors }
   await page.routeWebSocket('**/stream', ws => { ws.connectToServer(); speak = m => ws.send(JSON.stringify(m)) })
   await page.route('**/devices/*/*', r => r.request().method() === 'POST'
     ? (asked.push(new URL(r.request().url()).pathname + ' ' + (r.request().postData() ?? '')), r.fulfill({ status: 200, body: '{}' }))
     : r.fallback())
   await page.route(`${HELPER}/**`, r => {
-    if (r.request().method() === 'POST' && r.request().url().endsWith('/tv')) shown.push(JSON.parse(r.request().postData() ?? '{}').show)
-    return r.fulfill({ status: 200, headers: { 'Access-Control-Allow-Origin': '*' }, json: r.request().method() === 'POST' ? { ok: true } : { role: 'hub', turn: 0, turns: false, other: null } })
+    const post = r.request().method() === 'POST', tv = r.request().url().endsWith('/tv')
+    if (post && tv) shown.push(JSON.parse(r.request().postData() ?? '{}').show)
+    return r.fulfill({ status: 200, headers: { 'Access-Control-Allow-Origin': '*' },
+      json: post ? { ok: true } : tv ? tvSays : { role: 'hub', turn: 0, turns: false, other: null } })
   })
   await page.route('**/home', async r => {
     const res = await r.fetch(), home = await res.json()
@@ -49,23 +52,37 @@ test('the Watch row leads the TV, with what was last on and then the apps the ho
   expect(small).toBe(0)
 })
 
-test('OK on an app opens it on the box and switches the TV over; the box going home brings the house back', async ({ page }) => {
+test('OK on an app says how to come back, opens it on the box and switches the TV over; the box going to sleep brings the house back', async ({ page }) => {
   await tv(page)
   await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight')
   await expect(lit(page)).toContainText('Netflix')
   await page.keyboard.press('Enter')
+  // nothing on this screen hears a colored button meant for the box, so the way back is Input, or sleep (A)
+  await expect(page.locator('.tv-handover')).toContainText('Opening Netflix on the TV')
+  await expect(page.locator('.tv-handover')).toContainText('press Input on the TV’s remote. When the TV goes to sleep')
   await expect.poll(() => asked).toContainEqual('/devices/m1/app {"source":"Netflix"}')
   await expect.poll(() => shown).toEqual(['box'])
-  // the TV is the box's now; the box wakes into Netflix, then Home on its remote takes it back to its own home screen
-  boxSays('standby', null)
-  await page.waitForTimeout(200)
-  expect(shown).toEqual(['box'])                                  // still asleep is not back home: it never left
+  await expect(page.locator('.tv-handover')).toHaveCount(0)
   boxSays('on', 'Netflix')
-  await page.waitForTimeout(200)
-  boxSays('idle', null)
+  await page.waitForTimeout(300)
+  boxSays('standby', null)
   await expect.poll(() => shown).toEqual(['box', 'house'])
   await expect(lit(page)).toContainText('Netflix')
   await expect(lit(page)).toContainText('Just now')
+})
+
+test('where a colored button is heard, the handover shows the four colors, and the TV found showing the house again is coming back', async ({ page }) => {
+  await tv(page, true, true)
+  await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.tv-handover')).toContainText('press any colored button on the TV’s remote')
+  await expect(page.locator('.tv-handover .tv-key')).toHaveCount(4)
+  await expect.poll(() => shown).toEqual(['box'])
+  tvSays = { showing: 'elsewhere', colors: true }
+  await page.waitForTimeout(2500)
+  tvSays = { showing: 'house', colors: true }                      // a colored button: cec-watch.py switched the TV itself
+  await expect(lit(page)).toContainText('Just now', { timeout: 6000 })
+  expect(shown).toEqual(['box'])                                    // the screen didn't need to switch it again
 })
 
 test('All apps lays the rest out in the same row', async ({ page }) => {

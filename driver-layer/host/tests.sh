@@ -623,6 +623,36 @@ FAKE
   DRIVER=x cec tv box
   is "switching to the streaming box asks the other player where it is, never this one, and shows that" \
     "$(grep -c -- '--to 4 --give-physical-addr' "$root/asked") $(asked --set-stream-path)" "0 cec-ctl -d /dev/cec0 --to 15 --set-stream-path phys-addr=3.0.0.0"
+
+  # the way back from a streaming box (startup/cec-watch.py, design/tv-box/, B falling back to A)
+  local w="$root/watch"; mkdir -p "$w"
+  cat > "$w/cec-ctl" <<'FAKE'
+#!/usr/bin/env bash
+if [ $# -eq 2 ]; then printf '\tPhysical Address         : 2.0.0.0\n\tLogical Address          : 4 (Playback Device 1)\n'; exit 0; fi
+case "$3" in
+  --monitor-all) [ -n "$ALL" ] || { echo "monitor-all not supported" >&2; exit 1; } ;;
+esac
+cat "$FEED"
+FAKE
+  printf '#!/usr/bin/env bash\necho "cec.sh $*" >> "%s/shown"\n' "$w" > "$w/cec.sh"; chmod +x "$w/cec-ctl" "$w/cec.sh"
+  cat > "$w/feed" <<'FEED'
+Received from Playback Device 2 to all (8 to 15): ACTIVE_SOURCE (0x82):
+	phys-addr: 3.0.0.0
+Received from TV to Playback Device 1 (0 to 4): USER_CONTROL_PRESSED (0x44):
+	ui-cmd: F2 (Red) (0x72)
+Received from TV to Playback Device 2 (0 to 8): USER_CONTROL_PRESSED (0x44):
+	ui-cmd: Select (0x00)
+FEED
+  watch() { rm -rf "$w/state" "$w/shown"; PATH="$w:$PATH" FEED="$w/feed" ELYIR_CEC_STATE="$w/state" ELYIR_CEC_SH="$w/cec.sh" ELYIR_CEC_SETTLE=0.2 \
+    python3 "$HERE/../../startup/cec-watch.py" /dev/cec0; }
+  ALL=1 watch
+  is "the box on the TV is heard as what the TV shows, and a press meant for this unit or OK for the box changes nothing" \
+    "$(cat "$w/state/source") $(cat "$w/state/own") $(cat "$w/state/hears") $(cat "$w/shown" 2>/dev/null | wc -l | tr -d ' ')" "3.0.0.0 2.0.0.0 all 0"
+  printf 'Received from TV to Playback Device 2 (0 to 8): USER_CONTROL_PRESSED (0x44):\n\tui-cmd: F3 (Green) (0x73)\n' >> "$w/feed"
+  ALL=1 watch
+  is "a colored button meant for the box brings the house back, and the TV is showing it again" "$(cat "$w/shown") $(cat "$w/state/source")" "cec.sh tv show 2.0.0.0"
+  watch
+  is "an adapter that can't hear the whole bus says so, and the way back falls back to Input or sleep" "$(cat "$w/state/hears") $(cat "$w/shown" 2>/dev/null | wc -l | tr -d ' ')" "own 0"
   rm -rf "$root"
 }
 
@@ -1515,7 +1545,7 @@ changing() {
   at="http://127.0.0.1:$port"
   helper() {   # role, found
     PATH="$bin:$PATH" WAYLAND_DISPLAY=wayland-0 HUB_ROLE="$1" FOUND="$2" ELYIR_SCREEN_PORT=$port ELYIR_PANEL_URL='http://hub.local/?screen=1' \
-      ELYIR_TURN_FILE="$root/turn" ELYIR_SCREEN_ASK="$root/ask" ELYIR_FIND_HUB="$dir/startup/find-hub.sh" \
+      ELYIR_TURN_FILE="$root/turn" ELYIR_SCREEN_ASK="$root/ask" ELYIR_FIND_HUB="$dir/startup/find-hub.sh" ELYIR_CEC_STATE="$root/cec-state" \
       python3 "$HERE/../../startup/screen-helper.py" & pid=$!
     for _ in $(seq 1 50); do curl -s -o /dev/null "$at/this" && break; sleep 0.1; done
   }
@@ -1530,6 +1560,11 @@ changing() {
   printf '#!/usr/bin/env bash\necho "cec-ctl $*" >> "%s/cec"\n[ $# -eq 2 ] && printf "\\tPhysical Address : 2.0.0.0\\n"\nexit 0\n' "$root" > "$bin/cec-ctl"; chmod +x "$bin/cec-ctl"
   is "the TV is switched back to the house over HDMI" "$(call /tv '{"show": "house"}') $(grep -c -- '--active-source phys-addr=2.0.0.0' "$root/cec")" "200 1"
   is "...and the TV is never sent anywhere but the house or the box" "$(call /tv '{"show": "HDMI 3"}')" "400"
+  is "with nothing listening on the HDMI, what the TV shows is not known" "$(curl -s -H "Origin: $origin" "$at/tv")" '{"showing": null, "colors": false}'
+  mkdir -p "$root/cec-state"; echo 2.0.0.0 > "$root/cec-state/own"; echo 3.0.0.0 > "$root/cec-state/source"; echo all > "$root/cec-state/hears"
+  is "...the box on the TV is somewhere else, and a colored button brings the house back" "$(curl -s -H "Origin: $origin" "$at/tv")" '{"showing": "elsewhere", "colors": true}'
+  echo 2.0.0.0 > "$root/cec-state/source"
+  is "...and once it is back, the TV shows the house" "$(curl -s -H "Origin: $origin" "$at/tv")" '{"showing": "house", "colors": true}'
   is "a screen asked to show another hub, which it already does, is refused" "$(call /role '{"to": "screen"}')" "400"
   is "a screen asked to run a house leaves the one word for role.sh" "$(call /role '{"to": "hub"}') $(cat "$root/ask/role.request")" "200 hub"
   kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null

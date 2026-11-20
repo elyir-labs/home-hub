@@ -103,10 +103,18 @@ export function lastOn(d: Device): { label: string; title: string; where: string
   return { label: d.state === 'playing' ? 'On now' : 'Last on', title: l.title || l.app!, where: l.title && l.app ? `In ${l.app}` : '', app: l.app }
 }
 
-/* The box is back on its own home screen, or asleep: time for the TV to show the house again. Only acted on once the
-   box has been seen away from home since the hub sent the TV over, so the press that wakes it is not mistaken for it. */
-export const boxAtHome = (d: Device) =>
-  ['off', 'standby', 'unavailable'].includes(d.state) || (['on', 'idle'].includes(d.state) && !d.attrs.app_name)
+/* The box gone to sleep: time for the TV to show the house again. Sleeping is the one thing every box reports; an
+   Apple TV doesn't say when Home is pressed (tried on the living room TV, 20 November). Only acted on once the box has
+   been seen awake since the hub sent the TV over, so the sleep it is woken from is not mistaken for it. */
+export const boxAsleep = (d: Device) => ['off', 'standby', 'unavailable'].includes(d.state)
+
+/* What the handover says for the two seconds before the TV switches (design/tv-box/, coming back: B, falling back to A).
+   A colored button is the way back only where this screen has said it can hear one meant for the box. */
+export function wayBack(colors: boolean, box: string): string {
+  return colors ? 'To come back to the house, press any colored button on the TV’s remote:'
+    : `To come back to the house, press Input on the TV’s remote. When the ${box} goes to sleep, the house comes back by itself.`
+}
+export const HANDOVER_MS = 2200
 
 const ORDER = ['light', 'cover', 'climate', 'media', 'fan', 'switch', 'lock']
 /* Everything in the room a person can do something to, in an order that never changes with its state:

@@ -32,6 +32,13 @@ export async function showOnTv(show: 'house' | 'box'): Promise<boolean> {
   try { await call('/tv', { show }); return true } catch { return false }
 }
 
+/* What the TV is showing, as this screen last heard it over HDMI, and whether a colored button brings the house back
+   from a streaming box. Null when nothing on this screen listens. */
+export type TvShowing = { showing: 'house' | 'elsewhere' | null; colors: boolean }
+export async function tvShowing(): Promise<TvShowing | null> {
+  try { return await call<TvShowing>('/tv') } catch { return null }
+}
+
 export async function ask(): Promise<Here | null> {
   try { here.value = await call<Here>('/this') } catch { here.value = null }
   return here.value

@@ -9,14 +9,15 @@
    ones above slide away. Drawn at the TV's 1920x1080 and scaled to whatever the TV says it is.
 
    With a streaming box beside the TV, a Watch row comes above the room (design/tv-box/, A): what the box last had on,
-   then its apps. OK on one opens it on the box and switches the TV over; the box's own Home brings the house back,
-   with that app still lit and saying Just now. */
+   then its apps. OK on one opens it on the box and switches the TV over, after two seconds that say how to come back:
+   a colored button on the TV's remote where this screen hears one meant for the box, Input otherwise, and the box going
+   to sleep always (coming back: B, falling back to A). Back, the app is still lit and says Just now. */
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { Device, Room } from '../api'
 import { activity, capsOf, done, iconFor, keepDone, shortName, perform, roomActive, runScene, scenesFor, store, type Scene } from '../store'
 import { levelOf } from '../levels'
-import { appsOf, appTint, boxAtHome, boxIn, camerasIn, COLOR_OF, hintFor, hintParts, lastOn, leadsOf, light, lit, louder, musicIn, okOf, playPause, speakersOf, stateOf, thingsIn } from '../tv'
-import { showOnTv } from '../thisScreen'
+import { appsOf, appTint, boxAsleep, boxIn, HANDOVER_MS, wayBack, camerasIn, COLOR_OF, hintFor, hintParts, lastOn, leadsOf, light, lit, louder, musicIn, okOf, playPause, speakersOf, stateOf, thingsIn } from '../tv'
+import { showOnTv, tvShowing } from '../thisScreen'
 import { imageUrl } from '../api'
 import { locale } from '../lang'
 import Icon from '../Icon.vue'
@@ -58,27 +59,46 @@ function showAll() {
   allApps.value = true
   if (first) nextTick(() => light(rowsEl.value?.querySelector<HTMLElement>(`[data-app="${CSS.escape(first)}"]`) ?? null))
 }
-/* Sent to the box: the TV comes back once the box has been seen away from its own home screen and then back on it. */
-let sent: { id: string; app: string | null; left: boolean } | null = null
+/* Sent to the box. The TV comes back when the box goes to sleep, or is found showing the house again: a colored button
+   (startup/cec-watch.py switches it) or Input on the TV's remote. */
+let sent: { id: string; app: string | null; awake: boolean; away: boolean } | null = null
+let asking: number | undefined
+const colors = ref(false)
+const handover = ref<{ app: string; tint: string } | null>(null)
 async function watchOn(app: string | null) {
-  const b = box.value; if (!b) return
-  sent = { id: b.id, app, left: false }
-  await (app ? perform(b, 'app', { source: app }) : perform(b, 'on'))
+  const b = box.value; if (!b || handover.value) return
+  sent = { id: b.id, app, awake: !boxAsleep(b), away: false }
+  colors.value = (await tvShowing())?.colors ?? false
+  handover.value = { app: app ?? shortName(b, props.here), tint: appTint(app ?? b.name) }
+  const opening = app ? perform(b, 'app', { source: app }) : perform(b, 'on')
+  await Promise.all([opening, new Promise(r => setTimeout(r, HANDOVER_MS))])
+  handover.value = null
   showOnTv('box')
+  clearInterval(asking)
+  asking = window.setInterval(async () => {
+    const t = await tvShowing()
+    if (!sent || !t?.showing) return
+    if (t.showing === 'elsewhere') sent.away = true
+    else if (sent.away) cameBack(false)
+  }, 2000)
+}
+function cameBack(switchTv: boolean) {
+  const b = box.value, s = sent
+  sent = null
+  clearInterval(asking)
+  if (switchTv) showOnTv('house')
+  if (!b || !s?.app) return
+  keepDone(`app:${b.id}:${s.app}`, 'Just now')
+  nextTick(() => light(rowsEl.value?.querySelector<HTMLElement>(`[data-app="${CSS.escape(s.app!)}"]`) ?? null))
 }
 const backToLast = () => watchOn(last.value?.app && box.value?.attrs.apps?.includes(last.value.app) ? last.value.app : null)
-watch(() => box.value && [box.value.state, box.value.attrs.app_name], () => {
+watch(() => box.value?.state, () => {
   const b = box.value
   if (!sent || !b || b.id !== sent.id) return
-  if (!boxAtHome(b)) { sent.left = true; return }
-  if (!sent.left) return
-  const app = sent.app
-  sent = null
-  showOnTv('house')
-  if (!app) return
-  keepDone(`app:${b.id}:${app}`, 'Just now')
-  nextTick(() => light(rowsEl.value?.querySelector<HTMLElement>(`[data-app="${CSS.escape(app)}"]`) ?? null))
+  if (!boxAsleep(b)) sent.awake = true
+  else if (sent.awake) cameBack(true)
 })
+onUnmounted(() => clearInterval(asking))
 const scenes = computed(() => props.here ? scenesFor(props.here) : [])
 const others = computed(() => props.rooms.filter(r => r.id !== props.here?.id && r.id !== 'unassigned' && r.devices.length))
 const cameras = computed(() => camerasIn(props.rooms))
@@ -238,7 +258,15 @@ onUnmounted(() => window.removeEventListener('resize', fit))
           </section>
         </div>
       </div>
-      <div class="tv-hint" aria-live="polite">
+      <div class="tv-handover" v-if="handover" role="status" :style="{ '--t': handover.tint }">
+        <span class="tv-handover-tile">{{ handover.app }}</span>
+        <span>
+          <b>Opening {{ handover.app }} on the {{ box ? shortName(box, here) : 'TV' }}</b>
+          <span class="tv-handover-way">{{ wayBack(colors, box ? shortName(box, here) : 'box') }}<template v-if="colors"> <i class="tv-key red"></i><i class="tv-key green"></i><i class="tv-key yellow"></i><i class="tv-key blue"></i></template></span>
+        </span>
+        <span class="tv-handover-bar" :style="{ animationDuration: `${HANDOVER_MS}ms` }"></span>
+      </div>
+      <div class="tv-hint" aria-live="polite" v-show="!handover">
         <span v-for="(h, i) in hint" :key="i">{{ h.before }}<kbd v-for="k in h.keys" :key="k">{{ k }}</kbd>{{ h.words }}</span>
         <span v-if="hint.length && away"><kbd>Back</kbd>The {{ rooms.find(r => r.id === home)?.name.toLowerCase() }}</span>
       </div>
@@ -293,6 +321,19 @@ onUnmounted(() => window.removeEventListener('resize', fit))
 .tv-app .tv-st { font-size: 20px; }
 .tv-app.was .tv-st { color: var(--lamp); }
 .tv-app.tv-all { justify-content: space-between; background: var(--surface); border-color: var(--edge); }
+.tv-handover { position: absolute; left: var(--safe-x); right: var(--safe-x); bottom: 40px; z-index: 4; display: flex; gap: 28px; align-items: center;
+  padding: 26px 32px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid rgba(var(--lamp-rgb), 0.45); backdrop-filter: blur(30px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); animation: tv-handover-in 0.25s ease both; }
+@keyframes tv-handover-in { from { opacity: 0; transform: translateY(20px); } }
+.tv-handover-tile { width: 96px; height: 96px; flex: none; border-radius: 20px; display: grid; place-items: end start; padding: 12px; font-size: 18px; font-weight: 500;
+  background: linear-gradient(160deg, rgba(var(--t), 0.7), rgba(var(--t), 0.25)); }
+.tv-handover b { display: block; font-size: 34px; font-weight: 500; letter-spacing: -0.01em; }
+.tv-handover-way { display: block; margin-top: 8px; font-size: 26px; color: var(--ink-2); line-height: 1.35; }
+.tv-handover-way .tv-key { position: static; display: inline-block; width: 22px; height: 22px; margin: 0 3px; vertical-align: -3px; }
+.tv-handover-way .tv-key:first-of-type { margin-left: 12px; }
+.tv-handover-bar { position: absolute; left: 32px; right: 32px; bottom: 12px; height: 4px; border-radius: 2px; background: var(--lamp);
+  transform-origin: left; animation: tv-handover-bar linear both; }
+@keyframes tv-handover-bar { from { transform: scaleX(0); } }
 .tv-thing { width: 260px; height: 230px; padding: 24px 24px 44px; flex-direction: column; justify-content: space-between; }
 .tv-thing.on { background: linear-gradient(160deg, rgba(var(--lamp-rgb), 0.5), rgba(var(--lamp-rgb), 0.12) 60%, var(--surface)); border-color: rgba(var(--lamp-rgb), 0.5); }
 .tv-thing.on .tv-ic { background: var(--lamp); color: var(--lamp-ink); }

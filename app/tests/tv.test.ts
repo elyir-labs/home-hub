@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
 import { activity } from '../src/store'
-import { appsOf, appTint, boxAtHome, boxIn, digitOf, hintFor, lastOn, leadsOf, musicIn, nearest, okOf, onTV, pressOf, sceneFor, speakersOf, stateOf, thingsIn } from '../src/tv'
+import { appsOf, appTint, boxAsleep, boxIn, digitOf, hintFor, lastOn, leadsOf, musicIn, nearest, okOf, onTV, pressOf, sceneFor, speakersOf, stateOf, thingsIn, wayBack } from '../src/tv'
 import { stepOf } from '../src/levels'
 import { SCENES, store } from '../src/store'
 
@@ -173,12 +173,15 @@ describe('a streaming box beside the TV', () => {
     expect(lastOn(box('standby', { last_on: { title: 'Harbor Lights', app: 'Max' } }))).toMatchObject({ label: 'Last on', title: 'Harbor Lights', where: 'In Max', app: 'Max' })
     expect(lastOn(box('playing', { last_on: { title: null, app: 'YouTube' } }))).toMatchObject({ label: 'On now', title: 'YouTube', where: '' })
   })
-  it('counts the box back home when it sleeps or has no app open', () => {
-    expect(boxAtHome(box('standby'))).toBe(true)
-    expect(boxAtHome(box('off'))).toBe(true)
-    expect(boxAtHome(box('idle', { app_name: null }))).toBe(true)
-    expect(boxAtHome(box('on', { app_name: 'Netflix' }))).toBe(false)
-    expect(boxAtHome(box('playing', { app_name: 'Netflix' }))).toBe(false)
+  it('brings the house back only when the box goes to sleep, since a box does not say when Home is pressed', () => {
+    expect(boxAsleep(box('standby'))).toBe(true)
+    expect(boxAsleep(box('off'))).toBe(true)
+    expect(boxAsleep(box('idle', { app_name: null }))).toBe(false)
+    expect(boxAsleep(box('playing', { app_name: 'Netflix' }))).toBe(false)
+  })
+  it('says the way back before the TV switches: a colored button where one is heard, Input and sleep where not', () => {
+    expect(wayBack(true, 'Apple TV')).toBe('To come back to the house, press any colored button on the TV’s remote:')
+    expect(wayBack(false, 'Apple TV')).toBe('To come back to the house, press Input on the TV’s remote. When the Apple TV goes to sleep, the house comes back by itself.')
   })
   it('gives an app the same tint every time, from a quiet set, never a logo', () => {
     expect(appTint('Netflix')).toBe(appTint('Netflix'))
