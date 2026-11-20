@@ -1,0 +1,17 @@
+{
+  "name": "Music on the TV's room",
+  "areas": ["Music", "Wall screens"],
+  "pages": [{ "id": "music", "name": "Music in the room the TV is in" }],
+  "artboards": [
+    { "file": "Today.dc.html", "page": "music", "x": 0, "y": 0, "w": 1920, "h": 1080, "title": "Today: music playing in the TV's room" },
+    { "file": "HereA.dc.html", "page": "music", "x": 0, "y": 1500, "w": 1920, "h": 1080, "title": "A: what plays here, first in the room", "is_interactive": true },
+    { "file": "RestB.dc.html", "page": "music", "x": 0, "y": 3000, "w": 1920, "h": 1080, "title": "B: the resting TV shows the record", "is_interactive": true }
+  ],
+  "annotations": [
+    { "id": "why", "page": "music", "x": -620, "y": 0, "w": 500, "text": "WHY THIS EXISTS\n\nStep 4 of the living room (20 November 2026) was music to the TV's soundbar. In our living room the HomePods are the speakers, so the hub never plays through the TV: the music stays on the room's own speakers (design/music/, A), and the TV becomes the screen for it -- what is playing, and the remote to work it." },
+    { "id": "same", "page": "music", "x": 2040, "y": 0, "w": 560, "text": "THE SAME IN BOTH\n\nNothing new is played: the speakers in the TV's room play, and choosing what is still the music pane (design/music/, A with C's sentences), opened with Hold OK.\n\nOnly when something plays in the TV's own room; music in the kitchen is the kitchen's.\n\nRead from the sofa: nothing under 22px." },
+    { "id": "a", "page": "music", "x": 2040, "y": 1500, "w": 560, "text": "A: WHAT PLAYS HERE, FIRST IN THE ROOM\n\nWhile music plays in the room, a row of its own leads the TV's home: the record, where it plays and how loud, Next, and Other rooms. OK pauses, Up and Down are the volume.\n\nFOR: one press from the sofa, where the highlight already starts.\n\nAGAINST: changes nothing at rest, and resting is when a TV with music on mostly sits." },
+    { "id": "b", "page": "music", "x": 2040, "y": 3000, "w": 560, "text": "B: THE RESTING TV SHOWS THE RECORD\n\nWhile music plays in the room and the TV rests, the record fills it, with the time in a corner. OK raises the band (the living room's, OverC) with Pause, Next and the volume.\n\nFOR: the TV looks like what the room is doing, which is playing music.\n\nAGAINST: awake, the speaker is still the last card in its row.\n\nTry it: Enter, then Escape." },
+    { "id": "pick", "page": "music", "x": -620, "y": 1500, "w": 500, "text": "PICK ONE\n\nA, B, both (A awake and B at rest), or something else -- describe it." }
+  ]
+}

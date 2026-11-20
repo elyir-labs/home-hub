@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A: what plays here, first in the room</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css"><link rel="stylesheet" href="music.css">
+<style>
+  .now { width: 820px; height: 230px; padding: 24px; display: flex; gap: 28px; align-items: stretch; flex: none; }
+  .now .art { width: 182px; height: 182px; }
+  .now .body { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+  .now .nm { font-size: 34px; } .now .st { font-size: 24px; }
+  .now .where { font-size: 22px; color: var(--muted); }
+  .pill { width: 260px; height: 230px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; flex: none; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="top"><div class="clock">9:10 PM<small>Friday, November 20</small></div></div>
+  <div class="title"><h1>Living room</h1><p>2 lights on · Slow Evening on the Pods</p></div>
+  <div class="row" style="top:320px"><h2 style="color:var(--lamp)">Playing here</h2>
+    <div class="cards">
+      <div class="card now" data-f data-f-start data-hint="OK|Pause;▲ ▼|Volume;~Hold OK|Something else">
+        <div class="art"></div>
+        <div class="body"><div><div class="nm">Slow Evening</div><div class="st">The Larkins · Low Light</div></div>
+          <div class="where">Left and Right Pod · 35%</div><div class="pbar"><i></i></div></div>
+      </div>
+      <div class="card pill" data-f data-hint="OK|Next song"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 5l10 7-10 7zM18 5v14"/></svg></div><div><div class="nm">Next</div><div class="st">Harbor Lights</div></div></div>
+      <div class="card pill" data-f data-hint="OK|Play it in other rooms too"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 10h16M4 14h16M8 6v12M16 6v12"/></svg></div><div><div class="nm">Other rooms</div><div class="st">Only here now</div></div></div>
+    </div></div>
+  <div class="row" style="top:660px"><h2>In the living room</h2>
+    <div class="cards">
+      <div class="card thing" data-f data-hint="OK|Turn off"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg></div><div><div class="nm">Ceiling light</div><div class="st">On, 35%</div></div></div>
+      <div class="card thing" data-f data-hint="OK|Turn off"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg></div><div><div class="nm">Floor lamp</div><div class="st">On, 24%</div></div></div>
+      <div class="card thing" data-f data-hint="OK|Turn on"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16"/></svg></div><div><div class="nm">Blinds</div><div class="st">70% open</div></div></div>
+      <div class="card thing" data-f data-hint="OK|Open"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 7l14 10M19 7L5 17"/></svg></div><div><div class="nm">Thermostat</div><div class="st">71° · cooling</div></div></div>
+    </div></div>
+  <div class="keys" id="hint"></div>
+</div>
+<script src="tv.js"></script>
+</body>
+</html>

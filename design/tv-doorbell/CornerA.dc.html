@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A: the door in a corner, over whatever is on</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css"><link rel="stylesheet" href="door.css">
+<style>
+  .corner { position: absolute; right: var(--safe-x); bottom: 130px; width: 640px; z-index: 5; border-radius: var(--r-lg); overflow: hidden;
+            background: rgba(14,16,20,.92); border: 1px solid var(--edge-hi); box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+  .corner .frame { position: relative; height: 360px; }
+  .corner .live { left: 18px; top: 18px; }
+  .corner .txt { padding: 20px 26px 24px; }
+  .big { position: absolute; inset: 0; z-index: 7; display: none; background: #000; }
+  .big .live { left: var(--safe-x); top: var(--safe-y); }
+  .big .door-t { position: absolute; left: var(--safe-x); bottom: 130px; font-size: 56px; }
+  .screen.full .big { display: block; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <img class="under" src="shipped-tv.jpg" alt=""><div class="under-hush"></div>
+  <div class="corner" data-f data-f-start data-hint="OK|Bigger;Back|Not now">
+    <div class="frame"><img class="pic" src="porch.svg" alt="The front door"><span class="live">Live</span></div>
+    <div class="txt"><div class="door-t">Someone's at the front door</div><div class="door-s">Just now · goes in a minute</div></div>
+  </div>
+  <div class="big"><img class="pic" src="porch.svg" alt="The front door"><span class="live">Live</span><div class="door-t">The front door</div></div>
+  <div class="foot"><div class="keys" id="hint"></div><span class="where">The TV, while the doorbell rings</span></div>
+</div>
+<script>
+  // OK makes the corner the whole screen, and Back puts it back; Back from the corner lets it go.
+  const scr = document.querySelector('.screen')
+  document.querySelector('.corner').addEventListener('click', () => { scr.classList.add('full'); document.getElementById('hint').innerHTML = '<span><kbd>Back</kbd>Back to the living room</span>' })
+  window.tvKeys = (key) => {
+    if (key !== 'Escape' && key !== 'Backspace') return false
+    if (scr.classList.contains('full')) scr.classList.remove('full'); else document.querySelector('.corner').style.display = 'none'
+    return true
+  }
+</script>
+<script src="tv.js"></script>
+</body>
+</html>
