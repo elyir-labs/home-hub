@@ -1,0 +1,160 @@
+{
+  "name": "The streaming box on the wall and the phone",
+  "areas": [
+    "Watching and listening",
+    "Wall screens",
+    "Phones and away"
+  ],
+  "pages": [
+    {
+      "id": "card",
+      "name": "The box's card"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "card",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: an Apple TV asleep, on the wall"
+    },
+    {
+      "file": "TodayPhone.dc.html",
+      "page": "card",
+      "x": 1560,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Today: on the phone"
+    },
+    {
+      "file": "AppsA.dc.html",
+      "page": "card",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A: its apps on the card",
+      "is_interactive": true
+    },
+    {
+      "file": "AppsAPhone.dc.html",
+      "page": "card",
+      "x": 1560,
+      "y": 1300,
+      "w": 390,
+      "h": 844,
+      "title": "A on the phone",
+      "is_interactive": true
+    },
+    {
+      "file": "WatchB.dc.html",
+      "page": "card",
+      "x": 0,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "B: Watch opens a pane of its apps",
+      "is_interactive": true
+    },
+    {
+      "file": "WatchBPhone.dc.html",
+      "page": "card",
+      "x": 1560,
+      "y": 2600,
+      "w": 390,
+      "h": 844,
+      "title": "B on the phone",
+      "is_interactive": true
+    },
+    {
+      "file": "ShowC.dc.html",
+      "page": "card",
+      "x": 0,
+      "y": 3900,
+      "w": 1440,
+      "h": 900,
+      "title": "C: the card is the last thing on",
+      "is_interactive": true
+    },
+    {
+      "file": "ShowCPhone.dc.html",
+      "page": "card",
+      "x": 1560,
+      "y": 3900,
+      "w": 390,
+      "h": 844,
+      "title": "C on the phone",
+      "is_interactive": true
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "card",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\nThe TV's own screen has a Watch row (design/tv-box/, A). The wall and the phone show the same Apple TV as a TV card that says Off with a power button, under a picture of a television: nothing about what was on or what it can play. Somebody on the sofa with only their phone, or passing the wall, can't start anything on the TV.\n\nThe brain already has what every direction needs: the box's apps, what the house has seen used, and what was last on when the box said so."
+    },
+    {
+      "id": "today",
+      "page": "card",
+      "x": 2080,
+      "y": 0,
+      "w": 520,
+      "text": "TODAY\n\nThe shipped panel on the pretend house at 8:10 PM with its TV asleep. Awake and playing, the card is tall, with the show, pause and how far through; that stays in every direction."
+    },
+    {
+      "id": "same",
+      "page": "card",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "THE SAME IN EVERY DIRECTION\n\nTHE CARD STAYS ITS SIZE. Each board redraws only the TV card, in exactly its place, so the room's arrangement and its test don't move.\n\nITS OWN NAME. The card says Apple TV, as the household named it, not TV under a picture of one; asleep is Asleep, not Off.\n\nOPENING AN APP FROM HERE: the box wakes and opens it, and switches the TV over itself, as an Apple TV does when it wakes. If it was already awake, the TV's screen sees it start and switches the TV.\n\nPLAYING, the card is today's tall card, and tapping it opens the same choice of apps as asleep.\n\nApps by name on a quiet tint, never a logo, the used ones first, as on the TV."
+    },
+    {
+      "id": "a",
+      "page": "card",
+      "x": 2080,
+      "y": 1300,
+      "w": 520,
+      "text": "A: ITS APPS ON THE CARD\n\nAsleep, the card is the three apps the house uses most and More. One tap from the room starts one.\n\nFOR: The fewest taps of the three.\n\nAGAINST: Three buttons and a More on a card the size of a lamp's; on the phone only two fit. The card reads as a menu rather than a thing in the room, and it says nothing about what was on."
+    },
+    {
+      "id": "b",
+      "page": "card",
+      "x": 2080,
+      "y": 2600,
+      "w": 520,
+      "text": "B: WATCH OPENS A PANE OF ITS APPS\n\nAsleep, the card is calm, the way every card is: Apple TV, Asleep, what was last on when that is known, and one Watch button. Watch, or a tap anywhere on it, opens its pane: what was last on, then every app, laid out like the TV's own Watch row.\n\nFOR: The card stays one thing with one button, and the pane is the same choice the TV's screen gives. It doesn't lean on knowing what was last on, which an Apple TV often doesn't say: without it the card still reads Asleep and Watch.\n\nAGAINST: Two taps to start anything, even the show you always watch.\n\nTry it: tap the card."
+    },
+    {
+      "id": "c",
+      "page": "card",
+      "x": 2080,
+      "y": 3900,
+      "w": 520,
+      "text": "C: THE CARD IS THE LAST THING ON\n\nAsleep, the card is what was on last, its picture behind the words, the way a speaker's card is its song (design/speaker-card/, A). Play starts it again; Other apps, or holding the card, opens B's pane.\n\nFOR: The commonest thing, carrying on, is one tap, and the room looks like what it was doing.\n\nAGAINST: It stands on knowing what was last on. Through Home Assistant an Apple TV said nothing at all for Netflix on 20 November, so on many evenings this card would be a guess or blank.\n\nTry it: tap play, or Other apps."
+    },
+    {
+      "id": "recommend",
+      "page": "card",
+      "x": -620,
+      "y": 2600,
+      "w": 500,
+      "text": "RECOMMENDED: B\n\nIt is the only direction that reads right whatever the box reports, and the box reports less than we hoped: the apps are always known, what was last on often isn't. The card stays calm and the same size, and the pane is the TV's own Watch row in another shape, so a household learns one choice, not three.\n\nFrom C, keep one thing: when what was last on is known, the pane leads with it, as drawn."
+    },
+    {
+      "id": "pick",
+      "page": "card",
+      "x": -620,
+      "y": 3400,
+      "w": 500,
+      "text": "PICK ONE\n\nA, B, C, B with C's card when what was last on is known, or something else -- describe it."
+    }
+  ]
+}
