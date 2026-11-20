@@ -71,3 +71,9 @@ export function doorHint(room: string | null, role: Role | null, home: string): 
   const what = role === 'hub' ? 'runs the house' : role === 'screen' ? `shows ${home}` : ''
   return [room, what].filter(Boolean).join(' · ') || 'This screen'
 }
+
+/** The TV this screen is plugged into, sent to standby over HDMI (design/rest-tv/). A screen with no TV behind it has
+    nothing to say, and that is not a failure anybody needs to hear about. */
+export async function sleepTv(): Promise<boolean> {
+  try { await call('/sleep', {}); return true } catch { return false }
+}

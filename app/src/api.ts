@@ -802,6 +802,11 @@ export async function getSounds(): Promise<{ sounds: Sound[]; folder: string }> 
 /* Music in every room (hub/music.py, design/music/). */
 export type MusicRoom = { id: string; name: string; here: boolean; playing: string | null }
 export type MusicCatalog = { ready: boolean; again: MusicItem[]; radio: MusicItem[]; own: MusicItem[]; rooms: MusicRoom[]; again_by_room: Record<string, MusicItem[]> }
+/** The household's photos for a TV at rest, newest first (hub/photos.py, design/rest-tv/, A). */
+export async function getPhotos(): Promise<import('./restTv').Photo[]> {
+  const r = await request('/photos'); if (!r.ok) await fail(r); return (await r.json()).photos
+}
+export const photoUrl = (id: string) => `/photos/${encodeURIComponent(id)}`
 export async function getMusic(room?: string | null): Promise<MusicCatalog> {
   const r = await request(`/music${room ? `?room=${encodeURIComponent(room)}` : ''}`); if (!r.ok) await fail(r); return r.json()
 }

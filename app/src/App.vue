@@ -22,6 +22,9 @@ import { onWall } from './keys'
 import { installRemote, onTV, sceneFor, type Press } from './tv'
 import TvView from './views/TvView.vue'
 import TvBand from './TvBand.vue'
+import TvRest from './TvRest.vue'
+import { goodnight, nightOf, rest, SLEEP_AFTER } from './restTv'
+import { sleepTv } from './thisScreen'
 import type { Device } from './api'
 import { lock } from './code'
 import Sky from './Sky.vue'
@@ -229,10 +232,15 @@ const idle = ref(new URLSearchParams(location.search).get('rest') === '1')   // 
 let lastTouch = Date.now()
 const kiosk = window.matchMedia('(min-width: 861px)')
 const woke = ref(0)   // counted so Home can arrive again on every wake, not only on the first load
+/* A TV at rest is sent to standby after SLEEP_AFTER with no key pressed (design/rest-tv/). Counted from when it
+   started resting or from its last key, whichever is later, and sent once. */
+const restSince = ref(Date.now())
+let slept = false
+watch(idle, v => { if (v) { restSince.value = Date.now(); slept = false } })
 function touched(e?: Event) {
   lastTouch = Date.now()
   if (!idle.value) return
-  if (tv && e?.type === 'keydown') return   // a resting TV raises its band on OK; Home is what wakes it
+  if (tv && e?.type === 'keydown') { restSince.value = Date.now(); slept = false; return }   // a resting TV raises its band on OK; Home is what wakes it
   wake()
 }
 function wake() {
@@ -269,6 +277,8 @@ function wakeOpen(d: Device) { wake(); store.opened = d }
 function remote(p: Press): boolean {
   if (!idle.value) return false
   if (tvBand.value) { if (p === 'home') { wake(); return true } return false }
+  if (rest.face === 'goodnight' && p === 'ok') { goodnight(); return true }
+  if (rest.face === 'goodnight' && p === 'back') { rest.notYet = nightOf(shown.value); return true }
   if (p === 'ok' || p === 'up' || p === 'down') tvBand.value = true
   else if (p === 'home') wake()
   return true   // nothing else does anything to a resting TV
@@ -298,6 +308,7 @@ function checkIdle() {
   if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && !shut.value && Date.now() - lastTouch > IDLE_AFTER) idle.value = true
   forgetDone(idle.value)   // and the stale ones either way, for a screen that never rests
   if (idle.value) lastTurn.value = null   // This screen's Put it back, by the same rule
+  if (tv && idle.value && !slept && Date.now() - restSince.value > SLEEP_AFTER) { slept = true; sleepTv() }
 }
 /*
  * The panel has looked away, and that is the ONE moment Home may take back a
@@ -485,6 +496,8 @@ onUnmounted(() => {
 
     <Transition name="idle">
       <div class="idle" v-if="idle" aria-label="Tap to wake" :class="{ 'under-band': tvBand }">
+        <TvRest v-if="tv" :now="shown" :room="tvRoom" :since="restSince" />
+        <template v-else>
         <div class="idle-wx" v-if="restWx">
           <WeatherArt />
           <div><div class="idle-wx-temp display">{{ restWx.temp }}</div><div class="idle-wx-label">{{ restWx.label }}</div></div>
@@ -498,7 +511,7 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="idle-line" v-else>{{ houseLine() }}</div>
-        <div class="idle-remote" v-if="tv && tvRoom && !tvBand"><kbd>OK</kbd>The {{ tvRoom.name.toLowerCase() }}</div>
+        </template>
       </div>
     </Transition>
     <TvBand v-if="tv && idle && tvBand && tvRoom" :room="tvRoom" @rooms="wake" @open="wakeOpen" />

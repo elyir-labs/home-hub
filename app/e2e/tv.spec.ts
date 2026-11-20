@@ -67,7 +67,7 @@ test('holding OK opens a thing, and Back returns to the card that opened it', as
 
 test('a resting TV raises the room as a band on OK; Up and Down are the level, Back puts it away', async ({ page }) => {
   await tv(page, true)
-  await expect(page.locator('.idle-remote')).toContainText('The living room')
+  await expect(page.locator('.tvrest-ok')).toContainText('The living room')
   await page.keyboard.press('ArrowLeft')                        // nothing but OK, Up, Down and Home does anything at rest
   await expect(page.locator('.tvb-band')).toHaveCount(0)
   await page.keyboard.press('Enter')

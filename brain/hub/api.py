@@ -47,6 +47,7 @@ from .bridge import Bridges
 from .strip import Strips, StripError
 from .roofline import Roofline
 from .printers import Printers
+from .photos import Photos
 from .power import Power
 from .signals import Signals
 from . import things
@@ -141,6 +142,7 @@ class Hub:
         self.strip = Strips(self)          # a light strip knocking over Bluetooth: hub/strip.py
         self.roofline = Roofline(self)     # several strip controllers as one light outside, its evenings and its holidays
         self.printers = Printers(self)     # 3D printers on the Wi-Fi, let in at the printer and followed: hub/printers.py
+        self.photos = Photos()             # the household's own photos, for a TV at rest: design/rest-tv/
         self.power = Power()               # the sun on the roof, the battery and the grid: hub/power.py
         self._power_sent: tuple[float, tuple | None] = (0.0, None)
         self.net = Network(self)           # how this hub is connected, and what it hands out: docs/network.md
@@ -2806,6 +2808,42 @@ def _music_rooms(room: str | None) -> list[dict]:
     rooms = [hub.home.rooms[r] for r in hub.music.rooms() if r in hub.home.rooms]
     rooms.sort(key=lambda r: (r.id != room, r.name))
     return [{"id": r.id, "name": r.name, "here": r.id == room, "playing": playing.get(r.id)} for r in rooms]
+
+
+# ---------- the household's photos, for a TV at rest (design/rest-tv/, A) ----------
+@app.get("/photos")
+def photos_list():
+    return {"photos": hub.photos.list()}
+
+
+@app.get("/photos/{photo_id}")
+def photos_file(photo_id: str):
+    found = hub.photos.file(photo_id)
+    if not found: raise HTTPException(404, "no such photo")
+    path, ctype = found
+    return FileResponse(path, media_type=ctype, headers={"Cache-Control": "private, max-age=31536000, immutable"})
+
+
+@app.post("/photos")
+async def photos_add(request: Request):
+    """The photo's bytes as the body, already redrawn by the phone. `X-Taken` is when it was taken, in seconds,
+    if the phone knew, and `X-Width` and `X-Height` its size. The phone's own name is who it came from."""
+    phone = hub.phones.identify(_phone_token(request))
+    try: taken = float(request.headers.get("x-taken") or "") or None
+    except ValueError: taken = None
+    try: size = (int(request.headers["x-width"]), int(request.headers["x-height"]))
+    except (KeyError, ValueError): size = None
+    try:
+        photo = hub.photos.add(await request.body(), by=(phone or {}).get("name"), taken=taken, size=size)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return photo
+
+
+@app.delete("/photos/{photo_id}")
+def photos_remove(photo_id: str):
+    if not hub.photos.remove(photo_id): raise HTTPException(404, "no such photo")
+    return {"ok": True}
 
 
 @app.get("/music")

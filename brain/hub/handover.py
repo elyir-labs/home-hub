@@ -117,6 +117,7 @@ class Handover:
         self.hub.phones._save()
         self.hub.log.clear()
         PRINTERS.unlink(missing_ok=True)       # the printers go with their people, and each was let in by one of them
+        self.hub.photos.clear()                # the photos sent to the TV are the people's, not the house's
         data = {k: v for k, v in self.hub.settings.data.items() if k not in THEIRS}
         data.update(setup_done=False, handed_over=time.time())
         self.hub.settings.replace(data)
