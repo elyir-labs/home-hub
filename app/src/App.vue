@@ -23,6 +23,7 @@ import { installRemote, musicIn, onTV, sceneFor, type Press } from './tv'
 import TvView from './views/TvView.vue'
 import DoorCorner from './DoorCorner.vue'
 import TvRecord from './TvRecord.vue'
+import TvGlow from './TvGlow.vue'
 import TvBand from './TvBand.vue'
 import type { Device } from './api'
 import { lock } from './code'
@@ -300,6 +301,7 @@ function remote(p: Press): boolean {
   return true   // nothing else does anything to a resting TV
 }
 function remoteBack(): boolean {
+  if (store.glowSetup) { store.glowSetup = false; return true }
   if (tvBand.value) { tvBand.value = false; return true }
   if (store.viewer) { store.viewer = null; return true }
   if (store.opened) { store.opened = null; return true }
@@ -530,6 +532,7 @@ onUnmounted(() => {
         <div class="idle-remote" v-if="tv && tvRoom && !tvBand"><kbd>OK</kbd>The {{ tvRoom.name.toLowerCase() }}</div>
       </div>
     </Transition>
+    <TvGlow v-if="tv && store.glowSetup && tvRoom" :room="tvRoom" />
     <DoorCorner v-if="tv && store.ringing" />
     <TvBand v-if="tv && idle && tvBand && tvRoom" :room="tvRoom" :music="tvMusic" @rooms="wake" @open="wakeOpen" />
   </div>

@@ -36,6 +36,21 @@ class Glow:
         ip = self._strip(g["strip"]).get("ip")
         return {"host": ip, "port": PORT, "key": g["key"], "run": int(g.get("run", 0))} if ip else None
 
+    def choices(self, room: str | None) -> list[dict]:
+        """The strips that could be the light behind the TV: each run that is a light in this room, with how many lights
+        it has, so the colors are sent at its own count."""
+        st, home = getattr(self.hub, "strip", None), getattr(self.hub, "home", None)
+        if st is None or home is None: return []
+        out = []
+        for id_, known in st.strips.items():
+            for lid, runs in st._lights(id_).items():
+                d = home.devices.get(lid)
+                if d is None or (room and d.room_id != room): continue
+                run = runs[0] - 1
+                count = (known.get("run2") or {}).get("count") if run else known.get("count")
+                out.append({"strip": id_, "run": run, "light": lid, "name": d.name, "lights": int(count or 48), "reachable": bool(known.get("ip"))})
+        return out
+
     async def follow(self, strip: str, run: int = 0) -> dict:
         """Tell one strip to follow the picture. The key is made once and kept, so the host's settings stay good."""
         if strip not in getattr(self.hub.strip, "strips", {}): raise GlowError("No such light strip.")

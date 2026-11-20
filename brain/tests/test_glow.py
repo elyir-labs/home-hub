@@ -19,11 +19,20 @@ class HA:
 
 
 class Strips:
-    def __init__(self): self.strips = {"ab12": {"ip": "192.168.1.57", "online": True}}
+    def __init__(self): self.strips = {"ab12": {"ip": "192.168.1.57", "online": True, "count": 120}}
+    def _lights(self, id_): return {"light.behind_tv": [1]} if id_ == "ab12" else {}
+
+
+class Dev:
+    def __init__(self, room, name): self.room_id, self.name = room, name
+
+
+class Home:
+    devices = {"light.behind_tv": Dev("living_room", "Behind the TV")}
 
 
 class Hub:
-    def __init__(self): self.settings, self.ha, self.strip = Settings(), HA(), Strips()
+    def __init__(self): self.settings, self.ha, self.strip, self.home = Settings(), HA(), Strips(), Home()
 
 
 class Following(unittest.TestCase):
@@ -65,3 +74,10 @@ class Following(unittest.TestCase):
     def test_no_address_yet_is_no_target(self):
         self.hub.strip.strips["ab12"].pop("ip")
         self.assertIsNone(asyncio.run(self.glow.follow("ab12"))["target"])
+
+
+class Choosing(unittest.TestCase):
+    def test_the_strips_in_the_tvs_room_are_offered_with_their_own_count(self):
+        g = Glow(Hub())
+        self.assertEqual(g.choices("living_room"), [{"strip": "ab12", "run": 0, "light": "light.behind_tv", "name": "Behind the TV", "lights": 120, "reachable": True}])
+        self.assertEqual(g.choices("kitchen"), [])

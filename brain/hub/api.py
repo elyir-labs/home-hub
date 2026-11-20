@@ -2706,9 +2706,11 @@ def phones_code(body: dict, request: Request):
 
 
 @app.get("/glow")
-def glow_get():
-    """The light behind the TV: which strip follows the picture, and where the host sends its frames."""
-    return {"glow": {k: v for k, v in hub.glow.state().items() if k != "key"}, "target": hub.glow.target()}
+def glow_get(room: str | None = None):
+    """The light behind the TV: which strip follows the picture, the strips in `room` that could, and where the host
+    sends its frames. The target carries the strip's key: only the house's own screens get this far."""
+    return {"glow": {k: v for k, v in hub.glow.state().items() if k != "key"}, "choices": hub.glow.choices(room),
+            "target": hub.glow.target()}
 
 
 @app.post("/glow")
