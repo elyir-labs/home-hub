@@ -573,9 +573,12 @@ speaking() {
   local bin="$root/bin"; mkdir -p "$bin" "$root/asound/card0" "$root/asound/card1"
   echo HID > "$root/asound/card0/id"; echo PCH > "$root/asound/card1/id"
   for p in 3:0 7:1 8:2 9:3; do mkdir -p "$root/asound/card1/pcm${p%:*}p"; echo "id: HDMI ${p#*:}" > "$root/asound/card1/pcm${p%:*}p/info"; done
-  printf '#!/usr/bin/env bash
-[ "$2" = 1 ] && [[ "$4" == *"pcm=$JACK "* ]] && echo "  : values=on" || echo "  : values=off"
-' > "$bin/amixer"; chmod +x "$bin/amixer"
+  # amixer splits a control's name at its comma unless it is quoted, so the fake answers only the quoted name.
+  cat > "$bin/amixer" <<'FAKE'
+#!/usr/bin/env bash
+[ "$2" = 1 ] && [ "$4" = "iface=CARD,name='HDMI/DP,pcm=$JACK Jack'" ] && echo "  : values=on" || echo "  : values=off"
+FAKE
+  chmod +x "$bin/amixer"
   heard() { sed -n 's/.*slave.pcm "\(hdmi:[^"]*\)".*/\1/p' "$root/home/.asoundrc" 2>/dev/null; }
   PATH="$bin:$PATH" JACK=7 plug disconnected connected
   is "a mini PC plays through the HDMI output its TV listens on, not the USB dongle that is card 0" "$(heard)" "hdmi:CARD=PCH,DEV=1"

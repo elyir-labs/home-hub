@@ -134,7 +134,7 @@ speaker() {
     for info in "$asound"/card*/pcm*p/info; do
       dev=$(sed -n 's/^id: HDMI \([0-9][0-9]*\)$/\1/p' "$info" 2>/dev/null); [ -n "$dev" ] || continue
       c=${info%/pcm*}; n=${info#"$c"/pcm}; n=${n%p/info}
-      amixer -c "${c##*card}" cget "iface=CARD,name=HDMI/DP,pcm=$n Jack" 2>/dev/null | grep -q ': values=on' || continue
+      amixer -c "${c##*card}" cget "iface=CARD,name='HDMI/DP,pcm=$n Jack'" 2>/dev/null | grep -q ': values=on' || continue
       card=$(cat "$c/id"); break
     done
   fi
