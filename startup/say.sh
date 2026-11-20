@@ -61,14 +61,25 @@ drive_waiting() {
   curl -fsS -m 2 "$DRIVE_URL" 2>/dev/null | python3 -c 'import json,sys; print(1 if json.load(sys.stdin).get("ask") else 0)' 2>/dev/null \
     || echo 0
 }
-# On a network, its address; on nothing, the Wi-Fi it makes of its own, which a flashed NUC has no label for. Fields are
+# On a network, its address; on nothing, the Wi-Fi it makes of its own, which a flashed NUC has no label for. On a
+# cable into the modem (design/modem-cable/, C) the address is no use to a phone in the house, so it is both: that
+# Wi-Fi, and where the cable should go; or, on a hub with no Wi-Fi card, where the cable should go alone. Fields are
 # split by a unit separator, which no address, Wi-Fi name or password has.
 US=$'\x1f'
+modem() { "$HERE/../driver-layer/host/public.sh" links 2>/dev/null; }
+at_home() {
+  ip -4 route show default 2>/dev/null | awk '{for (i = 1; i < NF; i++) if ($i == "dev") print $(i + 1)}' | grep -vx hubsetup0 \
+    | grep -vxFf <(printf '%s\n' "$(modem)") | grep -q .
+}
+radio() { ls -d "${HUB_NET:-/sys/class/net}"/*/phy80211 >/dev/null 2>&1; }
 where_now() {
-  if ip -4 route show default 2>/dev/null | grep -q . || [ -z "$(conf HUB_SETUP_SSID)" ]; then
+  local ssid on_modem; ssid="$(conf HUB_SETUP_SSID)"; on_modem="$(modem)"
+  if at_home || { [ -z "$ssid" ] && [ -z "$on_modem" ]; }; then
     printf 'addr%s%s%s%s%s' "$US" "$(mdns_name)" "$US" "$US" "$(drive_waiting)"
+  elif [ -n "$ssid" ] && { [ -z "$on_modem" ] || radio; }; then
+    printf '%s%s%s%s%s%s%s' "$([ -n "$on_modem" ] && echo modem || echo wifi)" "$US" "$ssid" "$US" "$(conf HUB_SETUP_PASS)" "$US" "$(drive_waiting)"
   else
-    printf 'wifi%s%s%s%s%s%s' "$US" "$(conf HUB_SETUP_SSID)" "$US" "$(conf HUB_SETUP_PASS)" "$US" "$(drive_waiting)"
+    printf 'alone%s%s%s%s' "$US" "$US" "$US" "$(drive_waiting)"
   fi
 }
 # Without a code it is the same words, under the house.
@@ -76,9 +87,12 @@ draw() {
   local kind a b q
   IFS="$US" read -r kind a b q <<< "$1"
   [ "$q" = 1 ] && tell "elyir:drive:phone" || tell "elyir:drive:none"
+  case "$kind" in modem|alone) tell "elyir:modem" ;; *) tell "elyir:nomodem" ;; esac
   if [ "$kind" = addr ]; then
     spell addr "$a"
     code "http://$a" || tell "elyir:nocode"
+  elif [ "$kind" = alone ]; then
+    tell "elyir:nocode"
   else
     spell wifi "$a"
     spell pass "$b"
@@ -122,7 +136,7 @@ case "${1:-}" in
     up && tell "elyir:step:preparing" ;;
   end)
     [ -e "$FIRST" ] || exec "$HERE/wall.sh" wait
-    until curl -fsS -m 2 -o /dev/null "$READY_URL"; do sleep 1; done
+    until curl -fs -m 2 -o /dev/null "$READY_URL"; do sleep 1; done
     up || exit 0
     tell "elyir:step:starting"
     # Ready follows the network for as long as it is on screen: a cable plugged in after it was drawn turns the
