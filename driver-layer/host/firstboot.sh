@@ -10,7 +10,7 @@
 #      bring the bootloader current and make sure PCIe is on, so an NVMe on any base works.
 #   2. On a Pi 5 that booted from SD with an empty NVMe attached: copy itself to the NVMe and reboot
 #      from it (HUB_AUTO_NVME=0 in /etc/home-hub.conf turns this off).
-#   3. On a unit with its own screen (the wall's DSI panel, or on a Pi any screen at all), in a house
+#   3. On a unit with its own screen (the wall's DSI panel, a Pi's monitor, a mini PC's TV), in a house
 #      that already has a hub: become that hub's screen and stop there -- no second house
 #      (design/companion/, C). HUB_ROLE=hub in /etc/home-hub.conf skips the look. HUB_ROLE=screen makes any display the screen (an HDMI monitor too), looks for ten
 #      minutes instead of twenty seconds, and never installs a hub: finding none, it tries again at
@@ -103,14 +103,11 @@ if [ "${HUB_IMAGE:-}" = x86 ]; then
   fi
 fi
 
-# The wall, on its DSI connector. A monitor on a NUC is somebody's desk, not the product's face --
-# unless this unit was told it is a screen. A Pi with any screen plugged in at its first boot is the
-# wall: the Pi image has no desktop, so a screen on one is there to show the house.
-is_pi() { grep -qs "Raspberry Pi" "$MODEL"; }
+# Any screen plugged in at first boot is there to show the house: neither image has a desktop, and a mini PC's
+# HDMI is most often the living room TV (design/living-room/). This screen can say otherwise later.
 screen_here() {
   local drm="${HUB_DRM:-/sys/class/drm}"
-  { [ "${HUB_ROLE:-}" = screen ] || grep -qsx connected "$drm"/card*-DSI-*/status \
-      || { is_pi && grep -qsx connected "$drm"/card*-*/status; }; } && [ -x "$DIR/startup/install.sh" ]
+  { [ "${HUB_ROLE:-}" = screen ] || grep -qsx connected "$drm"/card*-*/status; } && [ -x "$DIR/startup/install.sh" ]
 }
 # The panel now, not at the next boot: on the image the splash is still up and the wall takes over from it.
 wall_now() { systemctl start --no-block elyir-wall.service >/dev/null 2>&1 || true; }

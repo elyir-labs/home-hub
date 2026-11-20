@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /* The TV's rules (design/living-room/): which screens are TVs, what each remote's keys mean, where an arrow
    goes, what is in a room's row and in what order, and what OK and Up/Down ask of a thing. */
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
 import { hintFor, nearest, okOf, onTV, pressOf, sceneFor, stateOf, thingsIn } from '../src/tv'
@@ -38,6 +39,25 @@ describe('the keys every remote sends', () => {
     expect(sceneFor('red', SCENES)?.id).toBe('movie')
     expect(sceneFor('yellow', SCENES)?.id).toBe('asleep')
     expect(sceneFor('red', SCENES.filter(s => s.id !== 'movie'))).toBeNull()
+  })
+})
+
+describe("the TV's own remote, over HDMI-CEC", () => {
+  // startup/cec-keys.toml turns each CEC code into a Linux key; Chromium hands the panel these names for them.
+  const DOM: Record<string, string> = { KEY_ENTER: 'Enter', KEY_ESC: 'Escape', KEY_HOME: 'Home', KEY_UP: 'ArrowUp',
+    KEY_DOWN: 'ArrowDown', KEY_LEFT: 'ArrowLeft', KEY_RIGHT: 'ArrowRight', KEY_1: '1', KEY_2: '2', KEY_3: '3', KEY_4: '4' }
+  const keys = Object.fromEntries([...readFileSync('../startup/cec-keys.toml', 'utf8')
+    .matchAll(/^(0x[0-9a-f]{2}) = "(\w+)"/gm)].map(([, code, key]) => [code, pressOf(DOM[key] ?? '')]))
+  it('moves, chooses, goes back and goes home', () => {
+    expect([keys['0x01'], keys['0x02'], keys['0x03'], keys['0x04']]).toEqual(['up', 'down', 'left', 'right'])
+    expect([keys['0x00'], keys['0x0d'], keys['0x09']]).toEqual(['ok', 'back', 'home'])
+  })
+  it("gives each colored button its own color's scene: CEC numbers them blue, red, green, yellow", () => {
+    expect([keys['0x71'], keys['0x72'], keys['0x73'], keys['0x74']]).toEqual(['blue', 'red', 'green', 'yellow'])
+  })
+  it('leaves the digits alone, so 1 to 4 on the remote never start a scene', () => {
+    expect(Object.keys(keys).filter(k => k >= '0x20' && k <= '0x29')).toEqual([])
+    expect(Object.values(keys)).not.toContain(null)
   })
 })
 

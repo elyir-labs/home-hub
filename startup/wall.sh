@@ -121,16 +121,26 @@ guess() {
 # screen's own speakers. Its HDMI card takes only IEC958 frames, so a browser left on ALSA's plain default is
 # silent; the hdmi: device converts to them. The card is the one on the port that is connected, worked out each
 # time the wall starts, since a screen can move ports. A DSI screen, or a box with no such card, is left alone.
+# A mini PC has one card for all its HDMI ports, and ALSA's default there is often a USB dongle instead; the
+# card's HDMI outputs each have a jack saying whether a screen listens on it.
 speaker() {
-  local rc="$HOME/.asoundrc" s port card
+  local rc="$HOME/.asoundrc" asound="${HUB_ASOUND:-/proc/asound}" s port card dev=0 info c n
   for s in "${HUB_DRM:-/sys/class/drm}"/card*-HDMI-A-*/status; do
     [ "$(cat "$s" 2>/dev/null)" = connected ] || continue
     port=${s%/status}; port=${port##*-}
-    [ -e "${HUB_ASOUND:-/proc/asound}/vc4hdmi$((port - 1))" ] && { card=vc4hdmi$((port - 1)); break; }
+    [ -e "$asound/vc4hdmi$((port - 1))" ] && { card=vc4hdmi$((port - 1)); break; }
   done
+  if [ -z "${card:-}" ] && grep -qsx connected "${HUB_DRM:-/sys/class/drm}"/card*-*/status; then
+    for info in "$asound"/card*/pcm*p/info; do
+      dev=$(sed -n 's/^id: HDMI \([0-9][0-9]*\)$/\1/p' "$info" 2>/dev/null); [ -n "$dev" ] || continue
+      c=${info%/pcm*}; n=${info#"$c"/pcm}; n=${n%p/info}
+      amixer -c "${c##*card}" cget "iface=CARD,name=HDMI/DP,pcm=$n Jack" 2>/dev/null | grep -q ': values=on' || continue
+      card=$(cat "$c/id"); break
+    done
+  fi
   if [ -z "${card:-}" ]; then rm -f "$rc"; return; fi
-  printf '# Written by startup/wall.sh each time the wall starts.\npcm.!default { type plug; slave.pcm "hdmi:CARD=%s,DEV=0" }\nctl.!default { type hw; card %s }\n' \
-    "$card" "$card" > "$rc"
+  printf '# Written by startup/wall.sh each time the wall starts.\npcm.!default { type plug; slave.pcm "hdmi:CARD=%s,DEV=%s" }\nctl.!default { type hw; card %s }\n' \
+    "$card" "$dev" "$card" > "$rc"
 }
 
 browser() {

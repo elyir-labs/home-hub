@@ -386,8 +386,11 @@ Do not reopen these, and do not propose around them.
   cameras -- the arrows move a lamp-colored highlight, OK is a tap, holding OK is a hold, Back goes back. Resting (and,
   once films are built, playing one) OK raises the room as one band along the foot, where Up and Down are the level and
   the colored buttons are always the same four scenes. OK never unlocks a door. Nothing a person must read is under
-  22px. `app/src/tv.ts`, `levels.ts`, `views/TvView.vue`, `TvBand.vue`; pinned by `app/tests/tv.test.ts` and
-  `app/e2e/tv.spec.ts`.
+  22px. Any screen plugged into a hub at its first start shows the panel, a mini PC's TV included (said 20 November). The
+  TV's own remote arrives over HDMI-CEC as the same keys, through a Pulse-Eight USB adapter where the HDMI carries
+  none (`startup/cec.sh`, `cec-keys.toml`). `app/src/tv.ts`, `levels.ts`, `views/TvView.vue`, `TvBand.vue`; pinned by
+  `app/tests/tv.test.ts`, `app/e2e/tv.spec.ts` and the `becoming`, `speaking` and `remote` groups in
+  `driver-layer/host/tests.sh`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
   B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
   development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this

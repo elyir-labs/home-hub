@@ -1,0 +1,10 @@
+# The TV learns this box is a player called Elyir, and its remote becomes the panel's keys (70-elyir-cec.rules).
+[Unit]
+Description=The TV's remote through %I
+BindsTo=dev-%i.device
+After=dev-%i.device
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/home-hub/startup/cec.sh claim /dev/%I

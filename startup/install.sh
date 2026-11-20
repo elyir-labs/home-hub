@@ -59,11 +59,19 @@ install -d -o elyir-wall -m 0755 /var/lib/elyir-screen
 install -m 0644 "$HERE/elyir-screen-role.path" "$HERE/elyir-screen-role.service" \
                "$HERE/elyir-screen-turn.path" "$HERE/elyir-screen-turn.service" /etc/systemd/system/
 
+log "the TV's remote and power over HDMI-CEC, and which HDMI output a TV listens on"
+apt-get install -y --no-install-recommends v4l-utils ir-keytable inputattach alsa-utils >/dev/null \
+  || log "could not install the CEC and sound tools; the screen is unaffected"
+install -m 0644 "$HERE/70-elyir-cec.rules" /etc/udev/rules.d/70-elyir-cec.rules
+install -m 0644 "$HERE/elyir-cec-attach@.service" "$HERE/elyir-cec@.service" /etc/systemd/system/
+
 log "this screen's own updates, following its hub"
 install -m 0644 "$HERE/elyir-screen-update.service" "$HERE/elyir-screen-update.timer" \
                "$HERE/elyir-screen-report.service" "$HERE/elyir-screen-report.timer" /etc/systemd/system/
 
 systemctl daemon-reload
+# An adapter already plugged in is claimed now rather than at the next boot.
+udevadm control --reload 2>/dev/null && udevadm trigger --subsystem-match=tty --subsystem-match=cec 2>/dev/null || true
 systemctl enable elyir-wall.service >/dev/null
 systemctl enable --now elyir-keep-hub.timer >/dev/null 2>&1 || true
 systemctl enable --now elyir-screen-update.timer >/dev/null 2>&1 || true

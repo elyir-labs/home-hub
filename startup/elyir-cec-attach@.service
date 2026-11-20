@@ -1,0 +1,10 @@
+# The Pulse-Eight HDMI-CEC adapter, made a CEC device while it is plugged in (70-elyir-cec.rules).
+[Unit]
+Description=The TV's HDMI-CEC adapter on %I
+BindsTo=dev-%i.device
+After=dev-%i.device
+
+[Service]
+ExecStart=/opt/home-hub/startup/cec.sh attach /dev/%I
+Restart=on-failure
+RestartSec=2

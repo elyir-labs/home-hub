@@ -567,7 +567,52 @@ speaking() {
   plug disconnected disconnected
   is "a DSI screen has no HDMI to point at, and nothing is left behind" "$(said)" "nothing"
   rm -f "$root/asound/"*; plug connected disconnected
-  is "a box whose HDMI card is not a Pi's keeps ALSA's own default" "$(said)" "nothing"
+  is "a box with no HDMI card at all keeps ALSA's own default" "$(said)" "nothing"
+
+  # A mini PC: one card, its HDMI outputs bound to whichever port has a screen, each with a jack saying so.
+  local bin="$root/bin"; mkdir -p "$bin" "$root/asound/card0" "$root/asound/card1"
+  echo HID > "$root/asound/card0/id"; echo PCH > "$root/asound/card1/id"
+  for p in 3:0 7:1 8:2 9:3; do mkdir -p "$root/asound/card1/pcm${p%:*}p"; echo "id: HDMI ${p#*:}" > "$root/asound/card1/pcm${p%:*}p/info"; done
+  printf '#!/usr/bin/env bash
+[ "$2" = 1 ] && [[ "$4" == *"pcm=$JACK "* ]] && echo "  : values=on" || echo "  : values=off"
+' > "$bin/amixer"; chmod +x "$bin/amixer"
+  heard() { sed -n 's/.*slave.pcm "\(hdmi:[^"]*\)".*/\1/p' "$root/home/.asoundrc" 2>/dev/null; }
+  PATH="$bin:$PATH" JACK=7 plug disconnected connected
+  is "a mini PC plays through the HDMI output its TV listens on, not the USB dongle that is card 0" "$(heard)" "hdmi:CARD=PCH,DEV=1"
+  PATH="$bin:$PATH" JACK=none plug disconnected connected
+  is "...and with no jack on, keeps ALSA's own default" "$(said)" "nothing"
+  rm -rf "$root"
+}
+
+# The TV's own remote and its power over HDMI-CEC (startup/cec.sh, design/living-room/).
+remote() {
+  group "the TV's remote and power, over HDMI-CEC"
+  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin" "$root/drm/card1-HDMI-A-1" "$root/drm/card1-HDMI-A-2" \
+    "$root/dev/serio0" "$root/dev/usb3" "$root/cec/cec0" "$root/rc/rc0" "$root/rc/rc1"
+  echo disconnected > "$root/drm/card1-HDMI-A-1/status"; echo connected > "$root/drm/card1-HDMI-A-2/status"
+  ln -s "$root/dev/serio0" "$root/cec/cec0/device"; ln -s "$root/dev/usb3" "$root/rc/rc0/device"; ln -s "$root/dev/serio0" "$root/rc/rc1/device"
+  cat > "$bin/cec-ctl" <<'FAKE'
+#!/usr/bin/env bash
+echo "cec-ctl $*" >> "$ASKED"
+if [ $# -eq 2 ]; then printf '\tDriver                   : %s\n\tPhysical Address         : 2.0.0.0\n' "$DRIVER"; fi
+case "$*" in *give-device-power-status*) echo "    pwr-state: standby (0x01)" ;; esac
+FAKE
+  printf '#!/usr/bin/env bash\necho "ir-keytable $*" >> "$ASKED"\n' > "$bin/ir-keytable"; chmod +x "$bin"/*
+  cec() { rm -f "$root/asked"; PATH="$bin:$PATH" ASKED="$root/asked" HUB_DRM="$root/drm" HUB_CEC_SYS="$root/cec" HUB_RC_SYS="$root/rc" \
+    ELYIR_CEC=/dev/cec0 "$HERE/../../startup/cec.sh" "$@"; }
+  local startup; startup=$(cd "$HERE/../../startup" && pwd)
+  asked() { grep -e "$1" "$root/asked" 2>/dev/null | head -n1 | sed "s|$root|ROOT|g; s|$startup|STARTUP|"; }
+
+  DRIVER=pulse8-cec cec claim /dev/cec0
+  is "a USB adapter is a player called Elyir, placed on the TV's HDMI by the screen it is plugged into" \
+    "$(asked --playback)" "cec-ctl -d /dev/cec0 --playback --osd-name Elyir --phys-addr-from-edid ROOT/drm/card1-HDMI-A-2/edid"
+  is "...and its own remote device, not another, takes the TV's keys as the panel's" "$(asked ir-keytable)" "ir-keytable -s rc1 -c -w STARTUP/cec-keys.toml"
+  DRIVER=i915 cec claim /dev/cec0
+  is "a GPU's own CEC knows its place, and is not told one" "$(asked --playback)" "cec-ctl -d /dev/cec0 --playback --osd-name Elyir"
+  cec tv show
+  is "showing the house wakes the TV, then switches it to this box" "$(grep -c -- '--image-view-on' "$root/asked") $(asked --active-source)" \
+    "1 cec-ctl -d /dev/cec0 --to 15 --active-source phys-addr=2.0.0.0"
+  is "...and the TV can be asked whether it is on" "$(DRIVER=x cec tv status)" "standby"
   rm -rf "$root"
 }
 
@@ -654,10 +699,14 @@ becoming() {
   boot "" "" dsi
   is "the wall's own screen and no hub: it runs the house, on its own screen" "$(ran)" "hub screen done"
   is "...shown now, not at the next boot" "$(wall)" "1"
+  boot "" "" "" hdmi "Intel(R) NUC"
+  is "a TV on a NUC's HDMI and no hub: it runs the house, on that TV" "$(ran)" "hub screen done"
+  is "...shown now, not at the next boot" "$(wall)" "1"
   boot "" http://hub.local "" hdmi "Intel(R) NUC"
-  is "a monitor on a NUC's HDMI and nobody said screen: a hub, as before, whatever is on the Wi-Fi" "$(ran)" "hub done"
+  is "a TV on a NUC's HDMI and a hub on the Wi-Fi: that hub's screen, never a second house" "$(ran)" "screen done"
+  boot "" http://hub.local "" "" "Intel(R) NUC"
+  is "a NUC with nothing plugged in: a hub, whatever is on the Wi-Fi, and no wall" "$(ran) $(wall)" "hub done 0"
   is "...and a hub keeps its house: nothing taken down" "$(cat "$root/asked" 2>/dev/null | grep -c 'compose down\|disable')" "0"
-  is "...and no wall" "$(wall)" "0"
   boot "" "" "" hdmi "Raspberry Pi 4 Model B Rev 1.5"
   is "a Pi with a monitor on HDMI and no hub: it runs the house, on that monitor" "$(ran)" "hub screen done"
   is "...shown now, not at the next boot" "$(wall)" "1"
@@ -1603,6 +1652,6 @@ SH
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; describing; starting_over
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; remote; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; describing; starting_over
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]
