@@ -11,7 +11,9 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { Device, Room } from '../api'
 import { activity, capsOf, iconFor, shortName, perform, roomActive, runScene, scenesFor, store, type Scene } from '../store'
 import { levelOf } from '../levels'
-import { camerasIn, COLOR_OF, hintFor, hintParts, light, lit, okOf, stateOf, thingsIn } from '../tv'
+import { camerasIn, COLOR_OF, hintFor, hintParts, light, lit, musicIn, okOf, speakersOf, stateOf, thingsIn } from '../tv'
+import { imageUrl } from '../api'
+import { step } from '../levels'
 import { locale } from '../lang'
 import Icon from '../Icon.vue'
 
@@ -21,7 +23,23 @@ const emit = defineEmits<{ open: [id: string | null] }>()
 const scale = ref(1)
 const fit = () => (scale.value = Math.min(innerWidth / 1920, innerHeight / 1080))
 
-const things = computed(() => props.here ? thingsIn(props.here) : [])
+/* What plays here leads the room as a row of its own (design/tv-music/, A); its speakers leave the room's row for it. */
+const music = computed(() => musicIn(props.here))
+const speakers = computed(() => music.value && props.here ? speakersOf(music.value, props.here) : [])
+const things = computed(() => props.here ? thingsIn(props.here).filter(d => !speakers.value.includes(d)) : [])
+const lead = computed(() => music.value ? 1 : 0)
+const playedOn = computed(() => {
+  const names = speakers.value.map(d => shortName(d, props.here!))
+  const vol = music.value?.attrs.volume_level
+  return `${names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0] ?? ''}${vol != null ? ` · ${Math.round(Number(vol) * 100)}%` : ''}`
+})
+const elsewhere = computed(() => {
+  const mates = ((music.value?.attrs.together as string[] | undefined) ?? []).map(id => props.rooms.find(r => r.id !== props.here?.id && r.devices.some(d => d.id === id))).filter(Boolean)
+  const names = [...new Set(mates.map(r => r!.name))]
+  return names.length ? `Also in ${names.join(', ')}` : 'Only here now'
+})
+function volume(e: Event) { if (music.value && step(music.value, (e as CustomEvent<1 | -1>).detail)) e.preventDefault() }
+const pickMusic = () => { if (props.here) store.musicPane = props.here.id }
 const scenes = computed(() => props.here ? scenesFor(props.here) : [])
 const others = computed(() => props.rooms.filter(r => r.id !== props.here?.id && r.id !== 'unassigned' && r.devices.length))
 const cameras = computed(() => camerasIn(props.rooms))
@@ -82,11 +100,32 @@ onUnmounted(() => window.removeEventListener('resize', fit))
       </div>
       <div class="tv-view">
         <div class="tv-rows" ref="rowsEl" :style="{ transform: `translateY(${-ride}px)` }">
-          <section class="tv-row tv-here" :class="{ gone: rowAt > 0 }" v-if="things.length">
+          <section class="tv-row tv-here" :class="{ gone: rowAt > 0 }" v-if="music">
+            <h2>Playing here</h2>
+            <div class="tv-cards">
+              <button class="tv-card tv-now" data-tv data-tv-start :data-hint="`OK|${music.state === 'playing' ? 'Pause' : 'Play'};▲ ▼|Louder or quieter;~Hold OK|Something else`"
+                      :data-thing="music.id" @click="ok(music)" @tv-level="volume" @tv-hold="pickMusic">
+                <span class="tv-art"><img v-if="music.attrs.entity_picture" :src="imageUrl(music.id)" alt="" /></span>
+                <span class="tv-now-body">
+                  <span><span class="tv-nm">{{ music.attrs.media_title || 'Music' }}</span><span class="tv-st">{{ music.state === 'paused' ? 'Paused' : music.attrs.media_artist || '' }}</span></span>
+                  <span class="tv-now-where">{{ playedOn }}</span>
+                </span>
+              </button>
+              <button class="tv-card tv-thing" data-tv data-hint="OK|Skip this one" @click="perform(music, 'next')">
+                <span class="tv-ic"><Icon name="next" :size="26" /></span>
+                <span><span class="tv-nm">Next</span><span class="tv-st">Skip this one</span></span>
+              </button>
+              <button class="tv-card tv-thing" data-tv data-hint="OK|Choose rooms and music" @click="pickMusic">
+                <span class="tv-ic"><Icon name="music" :size="26" /></span>
+                <span><span class="tv-nm">Other rooms</span><span class="tv-st">{{ elsewhere }}</span></span>
+              </button>
+            </div>
+          </section>
+          <section class="tv-row" :class="{ 'tv-here': !music, gone: rowAt > lead }" v-if="things.length">
             <h2>In the {{ here!.name.toLowerCase() }}</h2>
             <div class="tv-cards">
               <button v-for="(d, i) in things" :key="d.id" class="tv-card tv-thing" :class="{ on: d.state === 'on' || d.state === 'playing' || d.state === 'open', dead: d.state === 'unavailable' }"
-                      data-tv :data-tv-start="i === 0 ? '' : null" :data-hint="hintFor(d, false)" :data-thing="d.id"
+                      data-tv :data-tv-start="i === 0 && !music ? '' : null" :data-hint="hintFor(d, false)" :data-thing="d.id"
                       :style="{ '--v': `${Math.round((levelOf(d) ?? 0) * 100)}%` }"
                       @click="ok(d)" @tv-hold="more(d)">
                 <span class="tv-ic"><Icon :name="iconFor(d)" :size="26" /></span>
@@ -95,10 +134,10 @@ onUnmounted(() => window.removeEventListener('resize', fit))
               </button>
             </div>
           </section>
-          <section class="tv-row" :class="{ gone: rowAt > 1 }" v-if="scenes.length">
+          <section class="tv-row" :class="{ gone: rowAt > lead + 1 }" v-if="scenes.length">
             <h2>Scenes here</h2>
             <div class="tv-cards">
-              <button v-for="(s, i) in scenes" :key="s.id" class="tv-card tv-scene" data-tv :data-tv-start="!things.length && i === 0 ? '' : null"
+              <button v-for="(s, i) in scenes" :key="s.id" class="tv-card tv-scene" data-tv :data-tv-start="!music && !things.length && i === 0 ? '' : null"
                       :data-hint="`OK|Start ${s.label}`" @click="scene(s)">
                 <span class="tv-ic"><Icon :name="s.icon" :size="26" /></span>
                 <span><span class="tv-nm">{{ s.label }}</span><span class="tv-st">{{ s.hint(capsOf(here!.devices)) }}</span></span>
@@ -106,7 +145,7 @@ onUnmounted(() => window.removeEventListener('resize', fit))
               </button>
             </div>
           </section>
-          <section class="tv-row" :class="{ gone: rowAt > 2 }" v-if="others.length || away">
+          <section class="tv-row" :class="{ gone: rowAt > lead + 2 }" v-if="others.length || away">
             <h2>Other rooms</h2>
             <div class="tv-cards">
               <button v-if="away" class="tv-card tv-room lit" data-tv data-hint="OK|Back to the TV’s room" @click="emit('open', home)">
@@ -118,7 +157,7 @@ onUnmounted(() => window.removeEventListener('resize', fit))
               </button>
             </div>
           </section>
-          <section class="tv-row" :class="{ gone: rowAt > 3 }" v-if="cameras.length">
+          <section class="tv-row" :class="{ gone: rowAt > lead + 3 }" v-if="cameras.length">
             <h2>Cameras</h2>
             <div class="tv-cards">
               <button v-for="c in cameras" :key="c.id" class="tv-card tv-cam" data-tv :data-hint="`OK|Watch the ${c.name.toLowerCase()}`" @click="watchCam(c)">
@@ -173,6 +212,14 @@ onUnmounted(() => window.removeEventListener('resize', fit))
 .tv-nm { display: block; font-size: 28px; font-weight: 500; letter-spacing: -0.005em; }
 .tv-st { display: block; font-size: 22px; color: var(--ink-2); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tv-ic { width: 44px; height: 44px; border-radius: var(--r-sm); display: grid; place-items: center; background: rgba(255, 255, 255, 0.08); flex: none; }
+.tv-now { width: 820px; height: 230px; padding: 24px; gap: 28px; align-items: stretch; }
+.tv-art { width: 182px; height: 182px; flex: none; border-radius: 18px; overflow: hidden;
+  background: radial-gradient(60% 60% at 30% 30%, rgba(var(--lamp-rgb), 0.55), transparent 70%), linear-gradient(160deg, #2a3142, #151a24); }
+.tv-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tv-now-body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+.tv-now .tv-nm { font-size: 34px; }
+.tv-now .tv-st { font-size: 24px; }
+.tv-now-where { font-size: 22px; color: var(--muted); }
 .tv-thing { width: 260px; height: 230px; padding: 24px 24px 44px; flex-direction: column; justify-content: space-between; }
 .tv-thing.on { background: linear-gradient(160deg, rgba(var(--lamp-rgb), 0.5), rgba(var(--lamp-rgb), 0.12) 60%, var(--surface)); border-color: rgba(var(--lamp-rgb), 0.5); }
 .tv-thing.on .tv-ic { background: var(--lamp); color: var(--lamp-ink); }
@@ -188,6 +235,6 @@ onUnmounted(() => window.removeEventListener('resize', fit))
 .tv-cam { width: 400px; height: 225px; padding: 22px; flex-direction: column; justify-content: space-between; background: linear-gradient(#2b3444, #11151c); }
 .tv-hint { position: absolute; left: 0; right: 0; bottom: var(--safe-y); display: flex; gap: 28px; justify-content: center; align-items: center; font-size: 22px; color: var(--ink-2); white-space: nowrap; }
 .tv-hint span { display: inline-flex; gap: 10px; align-items: center; }
-.tv-hint kbd { font: 600 17px/1 inherit; letter-spacing: 0.04em; color: var(--ink); min-width: 40px; height: 36px; padding: 0 10px; display: inline-grid; place-items: center;
+.tv-hint kbd { font-family: inherit; font-size: 17px; font-weight: 600; line-height: 1; letter-spacing: 0.04em; color: var(--ink); min-width: 40px; height: 36px; padding: 0 10px; display: inline-grid; place-items: center;
   border-radius: 18px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--edge-hi); }
 </style>

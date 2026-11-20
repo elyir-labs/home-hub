@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
-import { digitOf, hintFor, nearest, okOf, onTV, pressOf, sceneFor, stateOf, thingsIn } from '../src/tv'
+import { digitOf, hintFor, musicIn, nearest, okOf, onTV, pressOf, sceneFor, speakersOf, stateOf, thingsIn } from '../src/tv'
 import { stepOf } from '../src/levels'
 import { SCENES, store } from '../src/store'
 
@@ -121,5 +121,21 @@ describe('Up and Down as the level', () => {
     store.tempUnit = '°F'
     expect(stepOf(dev('t', 'Thermostat', 'climate', 'cool', { temperature: 71 }), 1)?.data).toEqual({ temperature: 72 })
     expect(stepOf(dev('t', 'Thermostat', 'climate', 'off', { temperature: 71 }), 1)).toBeNull()
+  })
+})
+
+describe('music in the TV\'s room (design/tv-music/, A and B)', () => {
+  const sp = (id: string, state: string, attrs: Record<string, unknown> = {}) => ({ id, name: id, state, capability: 'media', room_id: 'living', attrs: { music: true, ...attrs } }) as any
+  const room = (...devices: any[]) => ({ id: 'living', name: 'Living room', devices }) as any
+  it('leads with what plays, and a paused record only while the TV is awake', () => {
+    const tvSet = { id: 'tv', name: 'TV', state: 'playing', capability: 'media', room_id: 'living', attrs: {} } as any
+    expect(musicIn(room(tvSet, sp('a', 'paused')))?.id).toBe('a')            // a TV playing a show is not the room's music
+    expect(musicIn(room(sp('a', 'paused')), true)).toBeNull()                 // at rest only music that plays takes the screen
+    expect(musicIn(room(sp('a', 'paused'), sp('b', 'playing')))?.id).toBe('b')
+    expect(musicIn(room(sp('a', 'idle')))).toBeNull()
+  })
+  it('names the speakers in this room that play in step with it', () => {
+    const left = sp('left', 'playing', { together: ['right', 'kitchen1'] }), right = sp('right', 'playing')
+    expect(speakersOf(left, room(left, right, sp('other', 'idle'))).map(d => d.id)).toEqual(['left', 'right'])
   })
 })

@@ -4,7 +4,7 @@ import { carried, tell } from './inapp'
 import { moveCode, withoutCode } from './move'
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { reactive, watch } from 'vue'
-import { getMe, claimMove, kickStream, type Me, doRestart, type Rung, getBridge, type Bridge, getStrip, stripLooking, type Strip, getHome, getEvents, getAmbient, getScenes, getStatus, getDiscovered, getRoutines, getAssistant, getPresence, getHealth, getSounds, getMusic, connect, act, setIntent, setHomeIntent, type Room, type Device, type Home, type Event, type Ambient, type Rules, type Status, type Found, type Intent, type Routine, type Assistant, type Presence, type Note, type Sound, requestUpdate, getPhones, type Phone, type Ask, getAccounts, type Account, getShare, type Share, getHappened, type Happened, getChanges, type Changes, getSignals, type SignalsPage, type TryBrief, getRoofline, type Roofline, getPrinters, type Printers, type Printer, getPower, getPowerDay, type Power, type PowerDay, getDeveloper, type Developer } from './api'
+import { getMe, claimMove, kickStream, type Me, doRestart, type Rung, getBridge, type Bridge, getStrip, stripLooking, type Strip, getHome, getEvents, getAmbient, getScenes, getStatus, getDiscovered, getRoutines, getAssistant, getPresence, getHealth, getSounds, getMusic, connect, act, setIntent, setHomeIntent, type Room, type Device, type Home, type Event, type Ambient, type Rules, type Status, type Found, type Intent, type Routine, type Assistant, type Presence, type Note, type Sound, requestUpdate, getPhones, type Phone, type Ask, getAccounts, type Account, getShare, type Share, getHappened, type Happened, getChanges, type Changes, getSignals, type SignalsPage, type TryBrief, getRoofline, type Roofline, getPrinters, type Printers, type Printer, getPower, getPowerDay, type Power, type PowerDay, getDeveloper, type Developer, type Ring } from './api'
 import type { MusicItem } from './music'
 import { previewHeld, previewHeldNote, previewRoofDevice, previewRoofline, previewStripBeat } from './controller'
 import { lock, CANCELED, failed } from './code'
@@ -24,6 +24,7 @@ export const store = reactive({
   toast: null as null | { id: number; text: string; kind: 'info' | 'error'; action?: { label: string; run: () => void } },   // a toast may carry one way back, like Undo
   pending: {} as Record<string, true>,     // devices waiting for the house to confirm a change
   viewer: null as Device | null,            // camera shown full screen
+  ringing: (new URLSearchParams(location.search).get('ring') ? { camera: new URLSearchParams(location.search).get('ring')!, at: Date.now() / 1000 } : null) as Ring | null,   // a doorbell just pressed; ?ring=<camera> previews it
   events: [] as Event[],
   opened: null as Device | null,   // one device, held open in front of the house
   /* the weather, held open in the same pane. Its own flag rather than a seat in `opened`,
@@ -677,6 +678,16 @@ export async function loadRoofline() {
  * under the finger, and a print finishing is not a finger, but it IS somebody glancing at the wall to see
  * whether it is done -- and the card they were looking for should still be where it was.
  */
+/* A doorbell pressed (design/tv-doorbell/, A). The door stays up a minute, or until somebody lets it go; a second
+   press starts the minute again. */
+export const RING_FOR = 60_000
+let ringTimer: number | undefined
+export function rang(r: Ring) {
+  store.ringing = r
+  clearTimeout(ringTimer)
+  ringTimer = window.setTimeout(() => { if (store.ringing === r) store.ringing = null }, RING_FOR)
+}
+
 export function applyPrinters(next: Printers) {
   for (const was of store.printers?.printers ?? []) {
     const now = next.printers.find(p => p.id === was.id)
@@ -1042,7 +1053,7 @@ export async function start() {
   refreshBridge()
   refreshStrip()
   watchReach()
-  stop = connect({ device: applyDevice, home: applyHome, intent: applyIntent, drafts: d => { store.drafts = d; eventsSoon() }, presence: p => { store.presence = p; eventsSoon() }, phones: () => loadPhones(true), share: () => { store.shareTick++; loadShare() }, signals: t => { store.signalTry = t; if (store.signals) loadSignals() }, roofline: r => { if (!ROOF_PARAM) store.roofline = r }, printers: applyPrinters, power: p => { store.power = p }, note: m => notify(m.text), ambient: a => { store.ambient = a; updateSky() }, status: s => {
+  stop = connect({ device: applyDevice, home: applyHome, intent: applyIntent, drafts: d => { store.drafts = d; eventsSoon() }, presence: p => { store.presence = p; eventsSoon() }, phones: () => loadPhones(true), share: () => { store.shareTick++; loadShare() }, signals: t => { store.signalTry = t; if (store.signals) loadSignals() }, roofline: r => { if (!ROOF_PARAM) store.roofline = r }, printers: applyPrinters, power: p => { store.power = p }, ring: rang, note: m => notify(m.text), ambient: a => { store.ambient = a; updateSky() }, status: s => {
     const was = store.status?.driver, version = store.status?.version
     store.status = s
     if (newBuild(version, s.version)) {

@@ -1,19 +1,108 @@
 {
   "name": "The doorbell on the TV",
-  "areas": ["Cameras", "Wall screens"],
-  "pages": [{ "id": "door", "name": "Someone at the door, while the TV is on" }],
+  "areas": [
+    "Cameras",
+    "Wall screens"
+  ],
+  "pages": [
+    {
+      "id": "door",
+      "name": "Someone at the door, while the TV is on"
+    },
+    {
+      "id": "door-rejected",
+      "name": "Someone at the door, while the TV is on: not chosen"
+    }
+  ],
   "artboards": [
-    { "file": "Today.dc.html", "page": "door", "x": 0, "y": 0, "w": 1920, "h": 1080, "title": "Today: the doorbell rings while the TV is on" },
-    { "file": "CornerA.dc.html", "page": "door", "x": 0, "y": 1500, "w": 1920, "h": 1080, "title": "A: the door in a corner, over whatever is on", "is_interactive": true },
-    { "file": "WholeB.dc.html", "page": "door", "x": 0, "y": 3000, "w": 1920, "h": 1080, "title": "B: the door takes the whole screen", "is_interactive": true },
-    { "file": "BandC.dc.html", "page": "door", "x": 0, "y": 4500, "w": 1920, "h": 1080, "title": "C: a line along the foot, the picture a press away", "is_interactive": true }
+    {
+      "file": "Today.dc.html",
+      "page": "door",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: the doorbell rings while the TV is on"
+    },
+    {
+      "file": "CornerA.dc.html",
+      "page": "door",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: the door in a corner, over whatever is on",
+      "is_interactive": true
+    },
+    {
+      "file": "WholeB.dc.html",
+      "page": "door-rejected",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: the door takes the whole screen",
+      "is_interactive": true
+    },
+    {
+      "file": "BandC.dc.html",
+      "page": "door-rejected",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "C: a line along the foot, the picture a press away",
+      "is_interactive": true
+    }
   ],
   "annotations": [
-    { "id": "why", "page": "door", "x": -620, "y": 0, "w": 500, "text": "WHY THIS EXISTS\n\nStep 4 of the living room (20 November 2026): the hub sits at the TV, so whoever is on the sofa should see who is at the door without finding a phone. Today the hub does not notice a ring at all, on the wall or the TV; the brain's half (hearing the doorbell, from Ring or any doorbell Home Assistant brings in, and telling every screen) is the same whichever is picked." },
-    { "id": "same", "page": "door", "x": 2040, "y": 0, "w": 560, "text": "THE SAME IN EVERY DIRECTION\n\nOnly the TV in a room is drawn here; the wall gets its own boards. It shows over the awake TV and over the resting one alike, and (once films are built) over a film, which pauses.\n\nIt goes by itself after a minute, and Back lets it go sooner. Nothing on it opens the door: OK never unlocks one (design/living-room/).\n\nRead from the sofa: nothing under 22px, the picture live, not a still." },
-    { "id": "a", "page": "door", "x": 2040, "y": 1500, "w": 560, "text": "A: THE DOOR IN A CORNER\n\nA live picture in the corner, over whatever was on, lit so OK makes it the whole screen and Back lets it go. The room stays in view behind it.\n\nFOR: you see the visitor at once without losing your place, the way a phone's picture-in-picture does.\n\nAGAINST: covers a corner of a film, and a face at 640 wide is small from three meters." },
-    { "id": "b", "page": "door", "x": 2040, "y": 3000, "w": 560, "text": "B: THE DOOR TAKES THE SCREEN\n\nThe whole TV becomes the front door, live, with the porch light a press away, and Back returns to what was on.\n\nFOR: a face is readable from the sofa at once, and it is unmissable.\n\nAGAINST: the loudest of the three. It takes the screen from whoever is watching, every time, for a parcel as much as a guest." },
-    { "id": "c", "page": "door", "x": 2040, "y": 4500, "w": 560, "text": "C: A LINE ALONG THE FOOT\n\nOne line in the band's place with a small still, saying who rang and when; OK opens the live picture. The quiet way a knock already arrives (design/knock/, C with A).\n\nFOR: the calmest, and the same shape as everything else that arrives on the TV.\n\nAGAINST: the still is small, so you press OK to see who it is." },
-    { "id": "pick", "page": "door", "x": -620, "y": 1500, "w": 500, "text": "PICK ONE\n\nA, B or C, a mix, or something else -- describe it." }
+    {
+      "id": "why",
+      "page": "door",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\nStep 4 of the living room (20 November 2026): the hub sits at the TV, so whoever is on the sofa should see who is at the door without finding a phone. Today the hub does not notice a ring at all, on the wall or the TV; the brain's half (hearing the doorbell, from Ring or any doorbell Home Assistant brings in, and telling every screen) is the same whichever is picked."
+    },
+    {
+      "id": "same",
+      "page": "door",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "THE SAME IN EVERY DIRECTION\n\nOnly the TV in a room is drawn here; the wall gets its own boards. It shows over the awake TV and over the resting one alike, and (once films are built) over a film, which pauses.\n\nIt goes by itself after a minute, and Back lets it go sooner. Nothing on it opens the door: OK never unlocks one (design/living-room/).\n\nRead from the sofa: nothing under 22px, the picture live, not a still."
+    },
+    {
+      "id": "a",
+      "page": "door",
+      "x": 2040,
+      "y": 1500,
+      "w": 560,
+      "text": "A: THE DOOR IN A CORNER\n\nA live picture in the corner, over whatever was on, lit so OK makes it the whole screen and Back lets it go. The room stays in view behind it.\n\nFOR: you see the visitor at once without losing your place, the way a phone's picture-in-picture does.\n\nAGAINST: covers a corner of a film, and a face at 640 wide is small from three meters."
+    },
+    {
+      "id": "b",
+      "page": "door-rejected",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "B: THE DOOR TAKES THE SCREEN\n\nThe whole TV becomes the front door, live, with the porch light a press away, and Back returns to what was on.\n\nFOR: a face is readable from the sofa at once, and it is unmissable.\n\nAGAINST: the loudest of the three. It takes the screen from whoever is watching, every time, for a parcel as much as a guest."
+    },
+    {
+      "id": "c",
+      "page": "door-rejected",
+      "x": 2040,
+      "y": 1500,
+      "w": 560,
+      "text": "C: A LINE ALONG THE FOOT\n\nOne line in the band's place with a small still, saying who rang and when; OK opens the live picture. The quiet way a knock already arrives (design/knock/, C with A).\n\nFOR: the calmest, and the same shape as everything else that arrives on the TV.\n\nAGAINST: the still is small, so you press OK to see who it is."
+    },
+    {
+      "id": "decided",
+      "page": "door",
+      "x": -620,
+      "y": 1500,
+      "w": 500,
+      "text": "DECIDED 20 NOVEMBER 2026\n\nA: the door in a corner, over whatever is on. Live where the camera will stream, its newest picture while it connects; OK makes it the whole screen, Back lets it go, and it goes by itself after a minute."
+    }
   ]
 }

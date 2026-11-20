@@ -11,6 +11,7 @@ from fastapi.responses import Response, JSONResponse, FileResponse, StreamingRes
 from starlette.background import BackgroundTask
 from fastapi import Request
 from . import ha_setup
+from . import doorbell
 from .ha_adapter import HAAdapter, AuthError
 from . import forecast as forecast_of
 from .model import CONTROLS, Home, kinds_for, kind_of, default_kind
@@ -518,6 +519,11 @@ class Hub:
         self._broadcast(json.dumps({"type": "home", "home": self.home_dict()}))
         log.info("home rebuilt: %d rooms, %d devices", len(self.home.rooms), len(self.home.devices))
 
+    def ring(self, camera: str):
+        """Somebody pressed a doorbell: every screen shows that door (design/tv-doorbell/, A)."""
+        self.log.add("camera", camera, None, "rang", source="device")
+        self._broadcast(json.dumps({"type": "ring", "ring": {"camera": camera, "at": time.time()}}))
+
     POWER_EVERY = 10.0   # the gateway reports every few seconds; the panel is told at most this often unless the band changes
 
     def power_changed(self, force=False):
@@ -543,6 +549,10 @@ class Hub:
                 self.log.add("presence", "home", presence_word(was), presence_word(self.presence.somebody), source="device", detail=self.presence.as_dict())
                 self._broadcast(json.dumps({"type": "presence", "presence": self.presence.as_dict()}))
                 self.engine.on_presence()
+            return
+        if d["entity_id"] in self.home.bells:
+            # The doorbell's button is not a thing of its own: a press brings its camera up on the screens.
+            if doorbell.rang(d["entity_id"], d.get("old_state"), d.get("new_state")): self.ring(self.home.bells[d["entity_id"]])
             return
         if d["entity_id"] in self.home.companions:
             # Away, Sleep or the air, said beside a thermostat: news for the pane, and not a change in the

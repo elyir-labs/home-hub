@@ -15,6 +15,7 @@ import { cap, doneLine, done, isActive, isDead, PASSIVE, SCENES, type Scene } fr
 import { dimmable, lightPct, tempUnit } from './levels'
 import { isScreen } from './screen'
 import { typable } from './keys'
+import { canStart } from './music'
 
 /* Worked out, not told: a screen for the hub, in Chromium on Linux, that nobody can touch -- a mini PC on a
    TV. A wall screen has a touchscreen and keeps the wall. ?tv=1 forces it for previews, ?tv=0 turns it off. */
@@ -50,6 +51,18 @@ export const sceneFor = (color: Color, scenes: Scene[]) => scenes.find(s => s.id
 export const coloredScenes = (scenes: Scene[]) => SCENES.filter(s => scenes.some(x => x.id === s.id))
 
 /* ---------- what is in a room, for the sofa ---------- */
+
+/* Music in the TV's own room (design/tv-music/, A and B): the room's speakers play it and the TV is its screen.
+   Awake, a paused record still leads the room, so it can be started again from the sofa; at rest only one that plays
+   takes the screen. The speakers are this room's that play in step with it, the one the remote works first. */
+export function musicIn(room: Room | null, playingOnly = false): Device | null {
+  const on = room?.devices.filter(d => canStart(d) && (d.state === 'playing' || (!playingOnly && d.state === 'paused'))) ?? []
+  return on.find(d => d.state === 'playing') ?? on[0] ?? null
+}
+export function speakersOf(d: Device, room: Room): Device[] {
+  const mates = new Set((d.attrs.together as string[] | undefined) ?? [])
+  return [d, ...room.devices.filter(x => x.id !== d.id && mates.has(x.id))]
+}
 
 const ORDER = ['light', 'cover', 'climate', 'media', 'fan', 'switch', 'lock']
 /* Everything in the room a person can do something to, in an order that never changes with its state:

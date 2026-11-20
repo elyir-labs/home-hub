@@ -3151,7 +3151,10 @@ input:focus-visible {
   color: var(--ink-2);
 }
 .idle-remote kbd {
-  font: 600 17px/1 inherit;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1;
   min-width: 40px;
   height: 36px;
   padding: 0 10px;
@@ -15596,4 +15599,10 @@ html[data-wall] [data-moving] *::after {
   .dev-cards {
     grid-template-columns: 1fr;
   }
+}
+
+/* Somebody at the door on a TV: the door's own keys are the ones said along the foot (design/tv-doorbell/, A) */
+.shell[data-ringing] .tv-hint,
+.shell[data-ringing] .idle-remote {
+  visibility: hidden;
 }
