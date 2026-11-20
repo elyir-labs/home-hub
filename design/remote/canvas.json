@@ -63,7 +63,7 @@
    "x": -620,
    "y": -760,
    "w": 520,
-   "text": "DECIDED 20 NOVEMBER 2026 — B, WITH C'S DISH\n\nThe bar: ring that turns and presses around OK, Back, Home, Play, a key to talk, the room's four scenes in the TV's colors, and the light. It lies on a small charging dish on the side table, borrowed from C, so it has a home and is never flat.\n\nNext: find the ring (a detented ring around a four-way press and OK), then a devkit prototype speaking as an ordinary Bluetooth remote, then the board and case in home-hub-hardware. The bought remote's key count decides whether all twelve keys stay."
+   "text": "DECIDED 20 NOVEMBER 2026 — B, WITH C'S DISH\n\nThe bar: a ring that turns around a pad that tilts to move and presses for OK, Back, Home, Play, a key to talk, the room's four scenes in the TV's colors, and the light. It lies on a small charging dish on the side table, borrowed from C, so it has a home and is never flat.\n\nThe ring and the pad are two stock parts, found 20 November: an Alps EC21A1520401 ring encoder (21.6 mm, 9 mm tall, 30 clicks a turn, 50,000 turns) with an Alps SKRHABE010 five-way switch (7.35 x 7.5 x 1.8 mm) in its hollow middle. A ring on a fixed part cannot tilt, so the arrows moved from the ring to the pad, on A's and B's boards both. Backup: the all-in-one Alps RKJXT1F42001, which keeps tilting on the ring but is rated for only 15,000 turns.\n\nNext: try both by hand, then a devkit prototype speaking as an ordinary Bluetooth remote, then the board and case in home-hub-hardware. The bought remote's key count decides whether all twelve keys stay."
   },
   {
    "id": "why",
@@ -95,7 +95,7 @@
    "x": 1560,
    "y": 0,
    "w": 520,
-   "text": "A — THE STONE\n\nThe case for it: four things to press (a ring that turns and presses, OK, Home, talk), all findable by feel. It is the least to learn and the most unlike anything in the shops, and it reads as an object for the coffee table rather than a gadget.\n\nWhat it gives up: scenes depend on talking, so a household that would rather not talk to it gets them only on the TV. With no Back and no Play, Home does two jobs and a held OK stands in for Play, and a streaming box's own screens lean on both. A pebble does not point."
+   "text": "A — THE STONE\n\nThe case for it: four things to press (a ring that turns, a pad inside it that tilts to move and presses for OK, Home, talk), all findable by feel. It is the least to learn and the most unlike anything in the shops, and it reads as an object for the coffee table rather than a gadget.\n\nWhat it gives up: scenes depend on talking, so a household that would rather not talk to it gets them only on the TV. With no Back and no Play, Home does two jobs and a held OK stands in for Play, and a streaming box's own screens lean on both. A pebble does not point."
   },
   {
    "id": "b",
@@ -103,7 +103,7 @@
    "x": 1560,
    "y": 1100,
    "w": 520,
-   "text": "B — THE BAR (chosen 20 November)\n\nThe case for it: nobody has to learn to hold it. It has everything a streaming box asks for (ring, OK, Back, Play), plus the house's own: a ring that turns for how much, Home that always means the house, four scene keys in the TV's colors that work with the screen off, and a key to talk.\n\nWhat it gives up: twelve things to press, the most of the three, and from across the room it looks like any remote. What makes it ours is what it does, not how it looks.\n\nThe part to find first: a ring that turns, with detents, around a four-way press and OK. That one part decides whether B can be made."
+   "text": "B — THE BAR (chosen 20 November)\n\nThe case for it: nobody has to learn to hold it. It has everything a streaming box asks for (ring, OK, Back, Play), plus the house's own: a ring that turns for how much, Home that always means the house, four scene keys in the TV's colors that work with the screen off, and a key to talk.\n\nWhat it gives up: twelve things to press, the most of the three, and from across the room it looks like any remote. What makes it ours is what it does, not how it looks.\n\nThe arrows are on the pad inside the ring (20 November): the ring only turns, and the pad tilts to move and presses for OK, because the ring's part cannot tilt."
   },
   {
    "id": "c",
