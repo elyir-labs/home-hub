@@ -6,16 +6,65 @@
  "pages": [
   {
    "id": "remote",
-   "name": "What our own remote is like"
+   "name": "What our own remote is like",
+   "decided": {
+    "on": "2026-11-20",
+    "chose": "B, with C's dish",
+    "board": "BarB.dc.html"
+   }
+  },
+  {
+   "id": "remote-rejected",
+   "name": "What our own remote is like: not chosen"
   }
  ],
  "artboards": [
-  { "file": "Today.dc.html", "page": "remote", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Today / A bought remote, plugged into the hub" },
-  { "file": "StoneA.dc.html", "page": "remote", "x": 0, "y": 1100, "w": 1440, "h": 900, "title": "A / The stone: four things to press, and the rest said aloud" },
-  { "file": "BarB.dc.html", "page": "remote", "x": 0, "y": 2200, "w": 1440, "h": 900, "title": "B / The bar: a remote you already know how to hold" },
-  { "file": "DialC.dc.html", "page": "remote", "x": 0, "y": 3300, "w": 1440, "h": 900, "title": "C / The dial: it lives on the table, and you turn it" }
+  {
+   "file": "Today.dc.html",
+   "page": "remote",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today / A bought remote, plugged into the hub"
+  },
+  {
+   "file": "StoneA.dc.html",
+   "page": "remote-rejected",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "A / The stone: four things to press, and the rest said aloud"
+  },
+  {
+   "file": "BarB.dc.html",
+   "page": "remote",
+   "x": 0,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "B / The bar: a remote you already know how to hold"
+  },
+  {
+   "file": "DialC.dc.html",
+   "page": "remote-rejected",
+   "x": 0,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "C / The dial: it lives on the table, and you turn it"
+  }
  ],
  "annotations": [
+  {
+   "id": "decided",
+   "page": "remote",
+   "x": -620,
+   "y": -760,
+   "w": 520,
+   "text": "DECIDED 20 NOVEMBER 2026 — B, WITH C'S DISH\n\nThe bar: ring that turns and presses around OK, Back, Home, Play, a key to talk, the room's four scenes in the TV's colors, and the light. It lies on a small charging dish on the side table, borrowed from C, so it has a home and is never flat.\n\nNext: find the ring (a detented ring around a four-way press and OK), then a devkit prototype speaking as an ordinary Bluetooth remote, then the board and case in home-hub-hardware. The bought remote's key count decides whether all twelve keys stay."
+  },
   {
    "id": "why",
    "page": "remote",
@@ -42,9 +91,9 @@
   },
   {
    "id": "a",
-   "page": "remote",
+   "page": "remote-rejected",
    "x": 1560,
-   "y": 1100,
+   "y": 0,
    "w": 520,
    "text": "A — THE STONE\n\nThe case for it: four things to press (a ring that turns and presses, OK, Home, talk), all findable by feel. It is the least to learn and the most unlike anything in the shops, and it reads as an object for the coffee table rather than a gadget.\n\nWhat it gives up: scenes depend on talking, so a household that would rather not talk to it gets them only on the TV. With no Back and no Play, Home does two jobs and a held OK stands in for Play, and a streaming box's own screens lean on both. A pebble does not point."
   },
@@ -52,34 +101,39 @@
    "id": "b",
    "page": "remote",
    "x": 1560,
-   "y": 2200,
+   "y": 1100,
    "w": 520,
-   "text": "B — THE BAR (recommended)\n\nThe case for it: nobody has to learn to hold it. It has everything a streaming box asks for (ring, OK, Back, Play), plus the house's own: a ring that turns for how much, Home that always means the house, four scene keys in the TV's colors that work with the screen off, and a key to talk.\n\nWhat it gives up: twelve things to press, the most of the three, and from across the room it looks like any remote. What makes it ours is what it does, not how it looks.\n\nThe part to find first: a ring that turns, with detents, around a four-way press and OK. That one part decides whether B can be made."
+   "text": "B — THE BAR (chosen 20 November)\n\nThe case for it: nobody has to learn to hold it. It has everything a streaming box asks for (ring, OK, Back, Play), plus the house's own: a ring that turns for how much, Home that always means the house, four scene keys in the TV's colors that work with the screen off, and a key to talk.\n\nWhat it gives up: twelve things to press, the most of the three, and from across the room it looks like any remote. What makes it ours is what it does, not how it looks.\n\nThe part to find first: a ring that turns, with detents, around a four-way press and OK. That one part decides whether B can be made."
   },
   {
    "id": "c",
-   "page": "remote",
+   "page": "remote-rejected",
    "x": 1560,
-   "y": 3300,
+   "y": 1100,
    "w": 520,
    "text": "C — THE DIAL\n\nThe case for it: turning is the most natural way to say how much, and dimming feels like a real dimmer. It lives on its charging dish, so it is never lost or flat, and it glows faintly under itself so it is found in the dark. A second one makes a bedroom's control with no TV at all.\n\nWhat it gives up: no arrows, so walking a streaming box's grid of apps by turning is slow; for watching it is the weakest. Turning means moving or setting depending on a press, which has to be learned. It does not point and it is not for a lap."
   },
   {
-   "id": "pick",
-   "page": "remote",
+   "id": "lost",
+   "page": "remote-rejected",
    "x": -620,
-   "y": 2200,
+   "y": 0,
    "w": 520,
-   "text": "PICK ONE\n\nA, the stone. B, the bar. C, the dial. Or a mix (say which part of which), or something else: describe it and I will draw it."
-  },
-  {
-   "id": "recommended",
-   "page": "remote",
-   "x": -620,
-   "y": 2560,
-   "w": 520,
-   "text": "RECOMMENDED: B, WITH C'S DISH\n\nB is the only one that is good at both jobs: the house with the TV off, and a streaming box's own screens with it on. A and C are each better at one and weak at the other. Its cost is the most keys of the three, and every key it keeps is one the bought remote's count should justify.\n\nBorrow C's dish: B lies on a small charging dish on the side table, so it has a home and is never flat."
+   "text": "NOT CHOSEN\n\nA and C were each better at one job and weak at the other. The stone needs a voice for scenes and has no Back or Play for a streaming box's screens; the dial has no arrows, so a grid of apps is slow. C's dish was kept: B charges on it."
   }
  ],
- "reading": ["why", "given", "Today.dc.html", "today", "StoneA.dc.html", "a", "BarB.dc.html", "b", "DialC.dc.html", "c", "pick", "recommended"]
+ "reading": [
+  "decided",
+  "why",
+  "given",
+  "Today.dc.html",
+  "today",
+  "BarB.dc.html",
+  "b",
+  "lost",
+  "StoneA.dc.html",
+  "a",
+  "DialC.dc.html",
+  "c"
+ ]
 }
