@@ -5,7 +5,7 @@
    which face wins, or what Bedtime lists and says, drifts from the boards. */
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
-import { atBedtime, drift, faceFor, bedtimeLine, photoLine, playingNow, playingRooms, position, beats, beatAt, dayTitle, agoLine, BEAT_FOR, stillOn, withCards, daysTo, countWords, noteWhen, noteFrom, faceFor as face_, isMorning, morningLine, rest,
+import { atBedtime, drift, faceFor, bedtimeLine, photoLine, playingNow, playingRooms, position, beats, beatAt, dayTitle, agoLine, BEAT_FOR, stillOn, withCards, daysTo, countWords, noteWhen, noteFrom, faceFor as face_, isMorning, morningLine, rest, funCards, houseToday, sunCross,
   type Photo } from '../src/restTv'
 import { store } from '../src/store'
 
@@ -195,5 +195,33 @@ describe('morning and night (design/tv-moments/, morning A and the night line)',
     expect(face_({ ...base, playing: true })).toBe('playing')
     expect(face_({ ...base, playing: true, night: true })).toBe('night')
     expect(face_({ ...base, morning: false })).toBe('board')
+  })
+})
+
+describe('the day\'s fun cards (design/tv-moments/, cards A)', () => {
+  const words = { day: '2026-11-20', morning: null, evening: null, facts: [['F1', 'f1'], ['F2', 'f2']], trivia: [['Q1?', 'A1'], ['Q2?', 'A2']], jokes: [['J?', 'j.']], quotes: [['Q.', 'Who']] }
+  const kinds = (b: ReturnType<typeof funCards>) => b.map(x => x.kind === 'fact' || x.kind === 'trivia' || x.kind === 'joke' || x.kind === 'quote' ? `${x.kind}:${x.first}` : x.kind)
+
+  it('starts with the house today, then mixes the day\'s facts, questions, a joke and a quote, as the screen has them on', () => {
+    expect(kinds(funCards(words, { today: true, facts: true, jokes: true, quotes: true }))).toEqual(['day', 'fact:F1', 'trivia:Q1?', 'joke:J?', 'quote:Q.', 'fact:F2', 'trivia:Q2?'])
+    expect(kinds(funCards(words, { today: false, facts: true, jokes: false, quotes: false }))).toEqual(['fact:F1', 'trivia:Q1?', 'fact:F2', 'trivia:Q2?'])
+    expect(funCards({ day: '', morning: null, evening: null }, { today: false, facts: true, jokes: true, quotes: true })).toEqual([])
+  })
+
+  it('takes a turn with the notes and countdowns, after them', () => {
+    const list = withCards(beats([{ id: 'p', taken: null, added: 0, by: null }], 'each', at(19, 40)), { notes: [], countdowns: [] }, funCards(words, { today: true, facts: false, jokes: false, quotes: false }))
+    expect(list.map(b => b.kind)).toEqual(['photo', 'day'])
+  })
+
+  it('says when the sun next sets or rises, what tonight brings, and the moon', () => {
+    const clock = (d: Date) => `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
+    const afternoon = houseToday(at(14, 0), null, { low: 28, frost: 32, change: '' }, clock)
+    expect(afternoon.lines[0]).toMatch(/^The sun sets at \d+:\d\d\.$/)
+    expect(afternoon.lines[1]).toBe('Frost likely tonight.')
+    expect(houseToday(at(14, 0), null, { low: 45, frost: 32, change: 'Rain from 4 PM' }, clock).lines[1]).toBe('Rain from 4 PM.')
+    expect(houseToday(at(14, 0), null, { low: 45, frost: 32, change: '' }, clock).lines[1]).toBe('Down to 45° tonight.')
+    expect(houseToday(at(21, 0), null, { low: null, frost: 32, change: '' }, clock).lines).toEqual([expect.stringMatching(/^The sun rises at \d+:\d\d tomorrow\.$/)])
+    expect(afternoon.under).toMatch(/moon tonight$/)
+    expect(sunCross(at(14, 0), false, { lat: 42.5, lon: -92.4 })!.getTime()).toBeGreaterThan(at(14, 0).getTime())
   })
 })

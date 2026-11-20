@@ -12,7 +12,7 @@ import type { Room } from './api'
 import { imageUrl, photoUrl, qrUrl } from './api'
 import { photosPageUrl } from './photos'
 import { clockParts, restingFacts, restWeather } from './resting'
-import { countWords, drift, faceFor, isMorning, localDay, morningLine, MORNING_FOR, loadRestPhotos, noteFrom, withCards, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
+import { countWords, drift, faceFor, funCards, houseToday, isMorning, localDay, morningLine, MORNING_FOR, loadRestPhotos, noteFrom, withCards, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
   SLEEP_AFTER, BEAT_FOR, beats, beatAt, dayTitle, agoLine, stillOn, type Photo, type Shape } from './restTv'
 import { locale } from './lang'
 import { store } from './store'
@@ -70,13 +70,29 @@ const waiting = computed(() => {
   return [...soon, ...note]
 })
 
-const timeline = computed(() => withCards(beats(photos.value, rest.play, props.now), rest.cards ? rest.board : { notes: [], countdowns: [] }))
+const timeline = computed(() => withCards(beats(photos.value, rest.play, props.now), rest.cards ? rest.board : { notes: [], countdowns: [] }, funCards(rest.words, rest.fun)))
+const heldFrom = Date.now()
 const previewBeat = new URLSearchParams(location.search).get('beat')   // ?beat=note (or count, title, collage) holds the first of that kind, for a preview
 const current = computed(() => {
   const held = previewBeat ? timeline.value.find(b => b.kind === previewBeat) : null
-  return held ? { beat: held, index: 0, from: 0, lasts: BEAT_FOR[held.kind] } : beatAt(timeline.value, tick.value)
+  return held ? { beat: held, index: 0, from: heldFrom, lasts: BEAT_FOR[held.kind] } : beatAt(timeline.value, tick.value)
 })
-const onCard = computed(() => beat.value?.kind === 'note' || beat.value?.kind === 'count')
+const onCard = computed(() => !!beat.value && !['photo', 'title', 'collage'].includes(beat.value.kind))
+watch(current, c => { rest.beat = c?.beat.kind ?? ''; rest.beatKey = String(c?.from ?? '') }, { immediate: true })
+/* A trivia question's answer and a joke's punchline wait for OK on a TV; on their own they come in a little before
+   the card goes, and a joke's after a few seconds, so a screen nobody can press still gets there. */
+const into = computed(() => (current.value ? tick.value - current.value.from : 0))
+const revealed = computed(() => {
+  const b = beat.value, c = current.value
+  if (!b || !c) return false
+  if (rest.revealed === rest.beatKey) return true
+  return b.kind === 'joke' ? into.value > 6_000 : b.kind === 'trivia' ? into.value > c.lasts - 7_000 : true
+})
+const today = computed(() => {
+  const r = range(props.now), unit = store.ambient.weather?.unit ?? '°F'
+  return houseToday(props.now, store.ambient.location, { low: r?.low ?? null, frost: /C/.test(unit) ? 0 : 32, change: changeLine(props.now) },
+    d => { const t = clockParts(d); return `${t.time}${t.period ? ` ${t.period}` : ''}` })
+})
 /* The family board (design/tv-moments/BoardC): the notes as paper, what is coming up, and one photo at a time beside them. */
 const boardNotes = computed(() => rest.board.notes.slice(0, 4))
 const boardCounts = computed(() => rest.board.countdowns.slice(0, 3))
@@ -107,6 +123,8 @@ const sleepsIn = computed(() => Math.max(1, Math.ceil((props.since + SLEEP_AFTER
 const ok = computed(() => {
   if (props.wall || face.value === 'night') return ''
   if (face.value === 'bedtime') return 'Bedtime'
+  if (face.value === 'photos' && !revealed.value && beat.value?.kind === 'trivia') return 'The answer'
+  if (face.value === 'photos' && !revealed.value && beat.value?.kind === 'joke') return 'The punchline'
   return props.room ? `The ${props.room.name.toLowerCase()}` : ''
 })
 </script>
@@ -138,6 +156,30 @@ const ok = computed(() => {
               <div class="tvrest-card">
                 <div class="tvrest-paper">{{ beat.note.text }}</div>
                 <div class="tvrest-card-from">{{ noteFrom(beat.note, now, locale()) }}</div>
+              </div>
+            </template>
+            <template v-else-if="beat.kind === 'day'">
+              <div class="tvrest-night"></div><div class="tvrest-stars"></div>
+              <div class="tvrest-card">
+                <div class="tvrest-card-cap">The house today</div>
+                <div class="tvrest-card-big">{{ today.lines.join(' ') }}</div>
+                <div class="tvrest-card-sub">{{ today.under }}</div>
+              </div>
+            </template>
+            <template v-else-if="beat.kind === 'fact' || beat.kind === 'trivia'">
+              <div class="tvrest-night"></div><div class="tvrest-stars"></div>
+              <div class="tvrest-card">
+                <div class="tvrest-card-cap">{{ beat.kind === 'fact' ? 'Something to know' : 'Who knows?' }}</div>
+                <div class="tvrest-card-big">{{ beat.first }}</div>
+                <div class="tvrest-card-sub" :class="{ 'tvrest-answer': beat.kind === 'trivia' }" v-if="beat.kind === 'fact' || revealed">{{ beat.second }}</div>
+              </div>
+            </template>
+            <template v-else-if="beat.kind === 'joke' || beat.kind === 'quote'">
+              <img v-if="photos.length" class="tvrest-fill tvrest-fill-dim" :src="photoUrl(photos[Math.min(1, photos.length - 1)].id)" alt="" /><div v-else class="tvrest-night"></div>
+              <div class="tvrest-card">
+                <div class="tvrest-card-cap" v-if="beat.kind === 'joke'">A joke</div>
+                <div class="tvrest-card-big" :class="{ 'tvrest-quote': beat.kind === 'quote' }">{{ beat.kind === 'quote' ? `“${beat.first}”` : beat.first }}</div>
+                <div class="tvrest-card-sub" v-if="beat.kind === 'quote' || revealed">{{ beat.second }}</div>
               </div>
             </template>
             <template v-else-if="beat.kind === 'count'">

@@ -130,3 +130,33 @@ class MorningRoutes(ApiTest):
         sid = "b" * 16
         self.client.post("/screens/me", json={"id": sid, "tv": True})
         self.assertFalse(self.client.post(f"/photos/screens/{sid}", json={"lines": False}).json()["lines"])
+
+
+class Cards(unittest.TestCase):
+    def test_a_day_brings_two_facts_two_questions_a_joke_and_a_quote_each_in_two_parts(self):
+        from hub import words
+        day = words.cards_of_the_day(date(2026, 11, 21))
+        self.assertEqual({k: len(v) for k, v in day.items()}, {"facts": 2, "trivia": 2, "jokes": 1, "quotes": 1})
+        self.assertTrue(all(len(c) == 2 and all(c) for v in day.values() for c in v))
+        self.assertNotEqual(day["facts"], words.cards_of_the_day(date(2026, 11, 22))["facts"])
+
+    def test_every_card_has_its_two_parts_within_what_the_tv_fits(self):
+        from hub import words
+        most = {"facts": (60, 110), "trivia": (70, 40), "jokes": (70, 70), "quotes": (90, 40)}
+        for name, (a, b) in most.items():
+            for line in words.lines(name):
+                first, _, second = line.partition("|")
+                self.assertTrue(second.strip(), f"{name}: {line!r} has no second part")
+                self.assertLessEqual(len(first.strip()), a, f"{name}: {line!r}")
+                self.assertLessEqual(len(second.strip()), b, f"{name}: {line!r}")
+
+
+class CardRoutes(ApiTest):
+    def test_the_days_cards_come_with_its_lines_and_each_screen_chooses_which(self):
+        w = self.client.get("/words/today", params={"day": "2026-11-21"}).json()
+        self.assertEqual(len(w["facts"][0]), 2)
+        sid = "c" * 16
+        me = self.client.post("/screens/me", json={"id": sid, "tv": True}).json()
+        self.assertEqual({k: me[k] for k in ("today", "facts", "jokes", "quotes")}, {"today": True, "facts": True, "jokes": False, "quotes": False})
+        r = self.client.post(f"/photos/screens/{sid}", json={"jokes": True, "facts": False}).json()
+        self.assertEqual((r["jokes"], r["facts"], r["today"]), (True, False, True))

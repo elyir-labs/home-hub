@@ -2962,7 +2962,7 @@ def words_today(day: str):
     """The morning's line and the evening's for a screen's own day, "YYYY-MM-DD" (hub/words.py)."""
     try: d = date.fromisoformat(day)
     except ValueError: raise HTTPException(400, "That isn't a day.") from None
-    return {"day": d.isoformat(), "morning": words.of_the_day("morning", d), "evening": words.of_the_day("evening", d)}
+    return {"day": d.isoformat(), "morning": words.of_the_day("morning", d), "evening": words.of_the_day("evening", d), **words.cards_of_the_day(d)}
 
 
 @app.delete("/board/{item_id}")
@@ -2978,7 +2978,8 @@ def photos_screen(screen_id: str, body: dict):
     on = body.get("on") if isinstance(body.get("on"), bool) else None
     notes = body.get("notes") if isinstance(body.get("notes"), bool) else None
     said = body.get("lines") if isinstance(body.get("lines"), bool) else None
-    screen = hub.screens.show(screen_id, on=on, play=body.get("play"), notes=notes, shows=body.get("shows"), lines=said)
+    cards = {k: body[k] for k in ("today", "facts", "jokes", "quotes") if isinstance(body.get(k), bool)}
+    screen = hub.screens.show(screen_id, on=on, play=body.get("play"), notes=notes, shows=body.get("shows"), lines=said, cards=cards)
     if not screen: raise HTTPException(404, "No such screen.")
     return _named(screen)
 
