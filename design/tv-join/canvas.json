@@ -8,6 +8,10 @@
     {
       "id": "join",
       "name": "A TV joining the house, with only its remote"
+    },
+    {
+      "id": "join-rejected",
+      "name": "A TV joining the house, with only its remote: not chosen"
     }
   ],
   "artboards": [
@@ -21,10 +25,30 @@
       "title": "Today: a TV joining Maple Court"
     },
     {
-      "file": "DigitsA.dc.html",
+      "file": "OwnC.dc.html",
       "page": "join",
       "x": 0,
       "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "C: the TV plugged into the hub is already in",
+      "is_interactive": true
+    },
+    {
+      "file": "BothC.dc.html",
+      "page": "join",
+      "x": 0,
+      "y": 3000,
+      "w": 1920,
+      "h": 1080,
+      "title": "C: a TV on another box, with a phone, the numbers or the pad",
+      "is_interactive": true
+    },
+    {
+      "file": "DigitsA.dc.html",
+      "page": "join-rejected",
+      "x": 0,
+      "y": 0,
       "w": 1920,
       "h": 1080,
       "title": "A: the remote's number buttons",
@@ -32,29 +56,19 @@
     },
     {
       "file": "PadB.dc.html",
-      "page": "join",
+      "page": "join-rejected",
       "x": 0,
-      "y": 3000,
+      "y": 1500,
       "w": 1920,
       "h": 1080,
       "title": "B: a keypad the arrows move on",
       "is_interactive": true
     },
     {
-      "file": "OwnC.dc.html",
-      "page": "join",
-      "x": 0,
-      "y": 4500,
-      "w": 1920,
-      "h": 1080,
-      "title": "C: the TV plugged into the hub is already in",
-      "is_interactive": true
-    },
-    {
       "file": "AskC.dc.html",
-      "page": "join",
-      "x": 2100,
-      "y": 4500,
+      "page": "join-rejected",
+      "x": 0,
+      "y": 3000,
       "w": 1920,
       "h": 1080,
       "title": "C: a TV on another box asks a phone",
@@ -80,35 +94,55 @@
     },
     {
       "id": "a",
-      "page": "join",
+      "page": "join-rejected",
       "x": 2040,
-      "y": 1500,
+      "y": 0,
       "w": 560,
       "text": "A: THE REMOTE'S NUMBER BUTTONS\n\nThe passcode is four digits, and most TV remotes have the ten buttons that type them. On this screen they type; everywhere else the colored buttons stay the scenes, and the digits do nothing.\n\nThe quickest for the person holding the remote, and the screen stays as it is, only bigger.\n\nAGAINST: some remotes have no number buttons (a few new ones, most USB air mice), and then the only way in is asking a phone.\n\nTry it: type four digits, Escape takes one off."
     },
     {
       "id": "b",
-      "page": "join",
+      "page": "join-rejected",
       "x": 2040,
-      "y": 3000,
+      "y": 1500,
       "w": 560,
       "text": "B: A KEYPAD THE ARROWS MOVE ON\n\nTwelve cards beside the question: the digits, one that takes a digit off, and Join. The arrows and OK work every remote there is, and the number buttons still type straight in where a remote has them.\n\nThe way every TV app asks for a PIN, so it is familiar.\n\nAGAINST: slower with arrows only, about a dozen presses for four digits, and the pad is a second thing to draw on a screen people see once.\n\nTry it: arrows and Enter, or type digits."
     },
     {
       "id": "c",
-      "page": "join",
+      "page": "join-rejected",
       "x": -620,
-      "y": 4500,
+      "y": 3000,
       "w": 500,
       "text": "C: THE HUB'S OWN TV IS ALREADY IN\n\nThe TV plugged into the hub is the hub's own glass: the hub already knows that request comes from itself (it is how only that screen is shown the hub's Wi-Fi password, design/screen-wifi/). So it is let in without a passcode and asked only which room it is in.\n\nA TV on another box, which is where somebody could plug in a stranger's, asks the phones in the house first, with B's keypad behind Type the passcode instead.\n\nFOR: the TV people will set up most is a Hub Plus on the living room TV, and it never asks. AGAINST: anyone who can reach the hub's HDMI port gets in without the passcode. They could already restart or reset it from there, but it is a rule the wall does not have today."
     },
     {
-      "id": "pick",
+      "id": "decided",
       "page": "join",
       "x": -620,
       "y": 1500,
       "w": 500,
-      "text": "PICK ONE\n\nA, B or C, a mix (C's own TV with A's digits elsewhere, say), or something else -- describe it."
+      "text": "DECIDED 20 NOVEMBER 2026\n\nC, with A's number buttons and B's pad on a TV on another box.\n\nThe TV plugged into the hub is already in and is asked only its room. A TV on another box asks every phone in the house as it comes up, and meanwhile the passcode can be typed either way: the remote's number buttons, or the pad the arrows move on, for a remote that has no numbers."
+    },
+    {
+      "id": "both",
+      "page": "join",
+      "x": 2040,
+      "y": 3000,
+      "w": 560,
+      "text": "A TV ON ANOTHER BOX\n\nNothing to choose between: the phones are asked the moment the screen comes up, and the passcode can be typed while it waits. The remote's numbers type straight in; a remote with none moves on the pad. A passcode is 4 to 8 digits, so the boxes grow, and Join waits for four.\n\nTry it: type digits, or arrows and Enter on the pad; Escape takes one off."
+    },
+    {
+      "id": "own",
+      "page": "join",
+      "x": 2040,
+      "y": 1500,
+      "w": 560,
+      "text": "THE TV PLUGGED INTO THE HUB\n\nThe hub knows the request is from its own screen, so it lets the screen in without the passcode and asks only which room it is in. The same holds for a wall screen plugged into a hub: the rule is about the hub's own HDMI port, not about TVs."
     }
-  ]
+  ],
+  "decided": {
+    "on": "2026-11-20",
+    "chose": "C, with A's number buttons and B's pad on a TV on another box"
+  }
 }

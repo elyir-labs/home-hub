@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C: a TV on another box, with a phone, the numbers or the pad</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css">
+<link rel="stylesheet" href="join.css">
+</head>
+<body>
+<div class="screen">
+  <div class="join">
+    <span class="mark"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span>
+    <h1>This TV is for Maple&nbsp;Court.</h1>
+    <p class="lede">Say yes on a phone that already uses the house, or type the house passcode with the remote's numbers or the pad.</p>
+    <div class="code" id="code"><i class="now"></i><i></i><i></i><i></i></div>
+    <p class="error" id="err"></p>
+    <p class="waiting" style="margin-top:8px"><span class="pulse"></span>Asked every phone in the house</p>
+  </div>
+  <div class="pad" id="pad"></div>
+  <div class="foot"><div class="keys" id="hint"></div><span class="where">A TV on another box, in the bedroom</span></div>
+</div>
+<script>
+  // Both ways at once: the phones are asked as the screen comes up, and the passcode can be typed meanwhile.
+  // A passcode is 4 to 8 digits, so the boxes grow past four and Join waits for at least four.
+  const pad = document.getElementById('pad'), code = document.getElementById('code')
+  for (const k of ['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', 'Join']) {
+    const e = document.createElement('span')
+    e.className = 'k card' + (k === '⌫' ? ' small' : k === 'Join' ? ' ok' : '')
+    e.textContent = k; e.dataset.f = ''; e.dataset.k = k
+    e.dataset.hint = k === '⌫' ? 'OK|Take one off;Back|Take one off' : k === 'Join' ? 'OK|Join the house' : `OK|Type ${k};0–9|Type straight in`
+    if (k === '1') e.dataset.fStart = ''
+    pad.append(e)
+  }
+  let typed = ''
+  function draw() {
+    const n = Math.min(8, Math.max(4, typed.length + 1))
+    code.innerHTML = Array.from({ length: n }, (_, i) => `<i class="${i < typed.length ? 'on' : i === typed.length ? 'now' : ''}"></i>`).join('')
+    pad.querySelector('[data-k="Join"]').style.opacity = typed.length >= 4 ? 1 : .45
+  }
+  function press(k) {
+    if (/^[0-9]$/.test(k)) { if (typed.length < 8) typed += k }
+    else if (k === '⌫') typed = typed.slice(0, -1)
+    else if (k === 'Join' && typed.length >= 4) document.getElementById('err').textContent = 'Joining…'
+    draw()
+  }
+  pad.addEventListener('click', (ev) => { const e = ev.target.closest('[data-k]'); if (e) press(e.dataset.k) })
+  window.tvKeys = (key, cur, light) => {
+    if (/^[0-9]$/.test(key)) { press(key); if (typed.length >= 4) light(pad.querySelector('[data-k="Join"]')); return true }
+    if ((key === 'Escape' || key === 'Backspace') && typed) { press('⌫'); return true }
+    return false
+  }
+  draw()
+</script>
+<script src="tv.js"></script>
+</body>
+</html>
