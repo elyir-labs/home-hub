@@ -168,6 +168,12 @@ protection, as `nmcli device wifi hotspot` makes one.
 reports it as unmanaged. A real port with carrier and an address now counts as a cable, and "online" is a default
 route through anything, so the hub on its router is never mistaken for a hub on nothing.
 
+**A cable into the modem, not the router.** That hands the hub a public address, and online by the rule above,
+with every door open to the internet: a NUC sat like that for five hours on 19 November 2026, its setup screen
+reachable by anyone. `host/public.sh` runs on every tick of `network.sh` and shuts any link whose IPv4 address is
+public to new connections, IPv6 included, leaving replies, DHCP and ICMP; a link on the house's network beside it
+stays open. The screen does not say so yet: Ready still shows the address, which a phone in the house cannot reach.
+
 ## Piece 6: the ones that did not follow
 
 Perfection is not available. A puck that was unplugged during the change, or is on a socket at the edge of

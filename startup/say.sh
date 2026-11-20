@@ -122,7 +122,7 @@ case "${1:-}" in
     up && tell "elyir:step:preparing" ;;
   end)
     [ -e "$FIRST" ] || exec "$HERE/wall.sh" wait
-    until curl -fsS -m 2 -o /dev/null "$READY_URL"; do sleep 1; done
+    until curl -fs -m 2 -o /dev/null "$READY_URL"; do sleep 1; done
     up || exit 0
     tell "elyir:step:starting"
     # Ready follows the network for as long as it is on screen: a cable plugged in after it was drawn turns the

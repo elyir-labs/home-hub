@@ -411,6 +411,9 @@ forget() {
 
 # ---------------------------------------------------------------- the one thing being asked
 
+# First, and on a hub NetworkManager does not run too.
+shut="$("$(dirname "$0")/public.sh" 2>&1)"; [ -n "$shut" ] && say "$shut"
+
 if ! have nmcli; then
   # Not a failure worth a log line every minute: it is a permanent property of this machine, and the
   # brain reads the absence of network.json as "nobody can change this from here" and says so.

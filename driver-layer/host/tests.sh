@@ -1600,9 +1600,54 @@ SH
   rm -rf "$root"
 }
 
+# A hub whose cable goes to the ISP's modem gets a public address, and a link with one takes no new
+# connections, while the house's own Wi-Fi beside it stays open (public.sh). The firewall is a script on PATH
+# that keeps each chain in a file.
+shutting() {
+  group "a link on the open internet takes no connections; the house's own stays open"
+  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin"
+  cat > "$bin/ip" <<'SH'
+#!/usr/bin/env bash
+[ "$*" = "-4 -o addr show scope global" ] || exit 0
+i=2; for a in ${ADDRS:-}; do printf '%s: %s    inet %s brd x scope global %s\n' "$i" "${a%%=*}" "${a#*=}" "${a%%=*}"; i=$((i + 1)); done
+SH
+  cat > "$bin/iptables" <<'SH'
+#!/usr/bin/env bash
+t="$ROOT/$(basename "$0")"; mkdir -p "$t"; shift 2   # -t mangle
+case "$1" in
+  -N) [ -f "$t/$2" ] && exit 1; : > "$t/$2" ;;
+  -C) grep -qx -- "-j $4" "$t/$2" 2>/dev/null ;;
+  -I) echo "-j $4" >> "$t/$2" ;;
+  -S) echo "-N $2"; cat "$t/$2" ;;
+  -F) : > "$t/$2"; echo x >> "$t/flushed" ;;
+  -A) c="$2"; shift 2; echo "-A $c $*" >> "$t/$c" ;;
+esac
+SH
+  cp "$bin/iptables" "$bin/ip6tables"; chmod +x "$bin"/*
+  shut() { PATH="$bin:$PATH" ROOT="$root" HUB_PUBLIC_ANY_USER=1 ADDRS="$1" "$HERE/public.sh"; }
+  chain() { grep -c -- "-i $2 " "$root/$1/HOME-HUB-PUBLIC" 2>/dev/null; }
+
+  is "on the house's network alone, nothing is shut" "$(shut 'wlp1s0=192.168.1.20/24')" ""
+  is "...but the chain is in place, ahead of Docker's" "$(cat "$root/iptables/PREROUTING")" "-j HOME-HUB-PUBLIC"
+  is "a cable into the modem is said once" "$(shut 'enp3s0=1.2.3.4/24 wlp1s0=192.168.1.20/24')" \
+    "on the open internet, taking no connections there: enp3s0"
+  is "...and shut, for IPv4 and IPv6 alike" "$(chain iptables enp3s0) $(chain ip6tables enp3s0)" "4 4"
+  is "...ending in a drop" "$(tail -1 "$root/iptables/HOME-HUB-PUBLIC")" "-A HOME-HUB-PUBLIC -i enp3s0 -j DROP"
+  is "...letting through what the hub asked for, and its own address" \
+    "$(grep -c -e 'ESTABLISHED -j RETURN' -e 'dport 68 -j RETURN' "$root/iptables/HOME-HUB-PUBLIC")" "2"
+  is "...while the house's Wi-Fi stays open" "$(chain iptables wlp1s0)" "0"
+  rm -f "$root"/*/flushed
+  is "the next tick changes nothing and says nothing" "$(shut 'enp3s0=1.2.3.4/24 wlp1s0=192.168.1.20/24')$(cat "$root"/*/flushed 2>/dev/null)" ""
+  is "...and the chain is hooked in once" "$(grep -c HOME-HUB-PUBLIC "$root/iptables/PREROUTING")" "1"
+  is "CGNAT, link-local and Docker's own bridges are not the open internet" \
+    "$(shut 'enp3s0=100.72.1.9/10 eth1=169.254.3.3/16 docker0=172.17.0.1/16 wlp1s0=10.0.0.4/24')" "no link on the open internet"
+  is "...and the cable, moved to the router, is open again" "$(chain iptables enp3s0)" "0"
+  rm -rf "$root"
+}
+
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; describing; starting_over
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; describing; starting_over; shutting
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]
