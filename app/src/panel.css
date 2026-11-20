@@ -351,6 +351,7 @@ input:focus-visible {
    the fault twice over: the clock landed on live text, AND the sheet's own veil blacked out the sky
    the resting screen is mostly made of, so the weather went with it. */
 .shell.resting .opened,
+.shell.resting .music-pane-wrap,
 .shell.resting .sheet-back {
   opacity: 0;
   transition: opacity 0.9s var(--ease);
@@ -358,6 +359,7 @@ input:focus-visible {
 /* and takes no touches while it is invisible: the first press on a resting screen is the one that
    wakes it, and it must not also land on the veil of a pane nobody can see */
 .shell.resting .opened,
+.shell.resting .music-pane-wrap,
 .shell.resting .sheet-back {
   pointer-events: none;
 }

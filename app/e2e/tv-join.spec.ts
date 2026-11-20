@@ -66,3 +66,17 @@ test("the TV plugged into the hub is already in, and OK on a room is the answer"
   await expect(page.locator('.tvr')).toHaveCount(0)
   await expect(page.locator('.tv-title h1')).toHaveText(first!)
 })
+
+test('a question that fills the screen never rests under the clock', async ({ page }) => {
+  let joined = false
+  await page.clock.install()
+  await page.route('**/phones/me', r => r.fulfill({ json: joined ? { ...ME, paired: true } : { ...ME, plugged_in: true } }))
+  await page.route('**/phones/plugged-in', r => { joined = true; return r.fulfill({ json: { ok: true, phone: { ...SCREEN, how: 'plugged in' } } }) })
+  await page.goto('/?screen=1&tv=1&join=1&at=21:10', { waitUntil: 'networkidle' })
+  await expect(page.locator('.tvr h1')).toHaveText('Which room is this TV in?')
+  // past the three minutes a screen waits before it rests: a jump, then long enough for the check that runs every five seconds
+  await page.clock.fastForward(4 * 60 * 1000)
+  await page.clock.runFor(6000)
+  // read straight off the page: expect's own polling waits on timers the fake clock is now holding
+  expect(await page.evaluate(() => [document.querySelectorAll('.shell.resting, .idle').length, !!document.querySelector('.tvr h1')])).toEqual([0, true])
+})

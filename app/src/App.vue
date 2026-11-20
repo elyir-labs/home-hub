@@ -294,7 +294,8 @@ function remoteColor(c: 'red' | 'green' | 'yellow' | 'blue') {
 let unremote: (() => void) | undefined
 async function rejoin() { halt(); await start() }                       // this screen just joined: read the house and reconnect
 function checkIdle() {
-  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && Date.now() - lastTouch > IDLE_AFTER) idle.value = true
+  // a page that is the whole screen is a question waiting for its answer (joining, which room), so it never rests under the clock
+  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && !shut.value && Date.now() - lastTouch > IDLE_AFTER) idle.value = true
   forgetDone(idle.value)   // and the stale ones either way, for a screen that never rests
   if (idle.value) lastTurn.value = null   // This screen's Put it back, by the same rule
 }
