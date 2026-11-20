@@ -16,11 +16,20 @@
     },
     {
       "id": "which-wall",
-      "name": "A wall screen that shows photos at rest"
+      "name": "A wall screen that shows photos at rest",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A",
+        "board": "WallA.dc.html"
+      }
     },
     {
       "id": "which-tv-rejected",
       "name": "How the hub knows which of its screens is a TV: not chosen"
+    },
+    {
+      "id": "which-wall-rejected",
+      "name": "A wall screen that shows photos at rest: not chosen"
     }
   ],
   "artboards": [
@@ -91,7 +100,7 @@
     },
     {
       "file": "WallB.dc.html",
-      "page": "which-wall",
+      "page": "which-wall-rejected",
       "x": 0,
       "y": 1300,
       "w": 1440,
@@ -100,7 +109,7 @@
     },
     {
       "file": "WallC.dc.html",
-      "page": "which-wall",
+      "page": "which-wall-rejected",
       "x": 1560,
       "y": 1300,
       "w": 1440,
@@ -199,7 +208,7 @@
     },
     {
       "id": "wall-b",
-      "page": "which-wall",
+      "page": "which-wall-rejected",
       "x": 0,
       "y": 2220,
       "w": 1440,
@@ -207,11 +216,27 @@
     },
     {
       "id": "wall-c",
-      "page": "which-wall",
+      "page": "which-wall-rejected",
       "x": 1560,
       "y": 2220,
       "w": 1440,
-      "text": "WALL C: THE PHOTO FRAMED, THE HOUSE ON A BAND. The photo fills the top four fifths untouched; a dark band along the foot holds the clock and the four facts, like a caption under a print. FOR: the photo is never covered, and nothing has to fight it for contrast. AGAINST: the clock is smaller than either A or B, and the band is a new shape for the wall.\n\nTO PICK: A, B or C, or something else."
+      "text": "WALL C: THE PHOTO FRAMED, THE HOUSE ON A BAND. The photo fills the top four fifths untouched; a dark band along the foot holds the clock and the four facts, like a caption under a print. FOR: the photo is never covered, and nothing has to fight it for contrast. AGAINST: the clock is smaller than either A or B, and the band is a new shape for the wall."
+    },
+    {
+      "id": "wall-decided",
+      "page": "which-wall",
+      "x": 3120,
+      "y": 0,
+      "w": 420,
+      "text": "DECIDED 20 NOVEMBER 2026 -- A\n\nA wall screen with its photos switched on rests on the TV's photo face, at its own size: the photo, when and whose along the top, the clock bottom left, three facts bottom right, and no OK line, since a wall is touched. With its photos off, or no photos yet, it rests as CornerF does. Bedtime and the music face stay the TV's."
+    },
+    {
+      "id": "wall-lost",
+      "page": "which-wall-rejected",
+      "x": 3120,
+      "y": 0,
+      "w": 420,
+      "text": "NOT CHOSEN\n\nB put the wall's words over the middle of the photo; C made the clock smaller and gave the wall a new shape. A is one look for photos on every screen."
     }
   ]
 }
