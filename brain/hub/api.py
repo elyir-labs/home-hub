@@ -52,6 +52,7 @@ from . import glow as glow_mod
 from .printers import Printers
 from .photos import Photos
 from .screens import Screens
+from .art import Art
 from .board import Board
 from . import words
 from .power import Power
@@ -154,6 +155,7 @@ class Hub:
         self.photos = Photos()             # the household's own photos, for a TV at rest: design/rest-tv/
         self.screens = Screens()           # the house's screens, which are TVs and which show photos: design/which-tv/
         self.board = Board()               # notes and countdowns the household leaves for its screens: design/tv-moments/
+        self.art = Art()                   # paintings between the photos, or all day: design/tv-art/
         self.power = Power()               # the sun on the roof, the battery and the grid: hub/power.py
         self._power_sent: tuple[float, tuple | None] = (0.0, None)
         self.net = Network(self)           # how this hub is connected, and what it hands out: docs/network.md
@@ -823,9 +825,10 @@ async def lifespan(app):
     hub._roofline_task = asyncio.create_task(hub._roofline_loop())
     hub._address_task = asyncio.create_task(hub._address_loop())
     hub._printers_task = asyncio.create_task(hub.printers.run())   # needs no engine: a printer is its own
+    hub._art_task = asyncio.create_task(hub.art.run(hub.screens.want_art))
     yield
     for t in (hub._loop_task, hub._tick_task, hub._signals_task, hub._drivers_task, hub._comfort_task, hub._update_task,
-              hub._suggest_task, hub._prune_task, hub._roofline_task, hub._printers_task): t.cancel()
+              hub._suggest_task, hub._prune_task, hub._roofline_task, hub._printers_task, hub._art_task): t.cancel()
     if hub.ha: await hub.ha.close()
 
 
@@ -2978,10 +2981,25 @@ def photos_screen(screen_id: str, body: dict):
     on = body.get("on") if isinstance(body.get("on"), bool) else None
     notes = body.get("notes") if isinstance(body.get("notes"), bool) else None
     said = body.get("lines") if isinstance(body.get("lines"), bool) else None
-    cards = {k: body[k] for k in ("today", "facts", "jokes", "quotes") if isinstance(body.get(k), bool)}
+    cards = {k: body[k] for k in ("today", "facts", "jokes", "quotes", "art") if isinstance(body.get(k), bool)}
     screen = hub.screens.show(screen_id, on=on, play=body.get("play"), notes=notes, shows=body.get("shows"), lines=said, cards=cards)
     if not screen: raise HTTPException(404, "No such screen.")
+    if "art" in cards or body.get("shows"): hub.art.poke()
     return _named(screen)
+
+
+# ---------- paintings (design/tv-art/, C and a channel too) ----------
+@app.get("/art")
+def art_list():
+    """The paintings on this hub, and how getting them is going, for the screens and for the phone's switch."""
+    return {"paintings": hub.art.list(), **hub.art.state()}
+
+
+@app.get("/art/{painting_id}")
+def art_file(painting_id: str):
+    path = hub.art.file(painting_id)
+    if not path: raise HTTPException(404, "no such painting")
+    return FileResponse(path, media_type="image/jpeg", headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 
 @app.get("/photos/{photo_id}")

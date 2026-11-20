@@ -103,9 +103,20 @@ export function sentLine(p: Photo, now = new Date(), locale?: string): string {
 export function screenLines(s: ShownScreen): { name: string; sub: string } {
   const name = s.room_name ? (s.tv ? `${s.room_name} TV` : s.room_name) : (s.tv ? 'A TV' : 'A screen on the wall')
   const kind = s.tv ? 'A TV' : 'A screen on the wall'
-  const showing = s.shows === 'board' ? 'the family board'
+  const showing = s.shows === 'board' ? 'the family board' : s.shows === 'art' ? 'paintings'
     : s.photos ? (s.play === 'each' ? 'photos, one after another' : 'photos, day by day') : (s.tv ? 'the sky' : 'the clock')
   return { name, sub: `${kind} · shows ${showing}` }
+}
+
+/** What the Art switch says under it, and the line under the switches about the download (design/tv-art/PhoneEvery):
+    how many paintings and from where, then how big the download is, how far it has got, or that it did not work. */
+export function artLines(a: { have: number; of: number; bytes: number; getting: boolean; failed: boolean }, wanted: boolean): { sub: string; foot: string } {
+  const sub = `A painting every few photos · ${a.of} from museums’ free collections`
+  const mb = Math.max(1, Math.round(a.bytes / 1e6))
+  if (a.getting) return { sub, foot: `Getting the paintings: ${a.have} of ${a.of}.` }
+  if (wanted && a.failed) return { sub, foot: 'Some paintings didn’t download. The hub tries again in an hour.' }
+  if (wanted && a.have >= a.of) return { sub, foot: `The paintings are on the hub, about ${mb} MB. Turning art off on every screen frees the room again.` }
+  return { sub, foot: `The first time any screen turns art on, the hub downloads the paintings once, about ${mb} MB. Turning art off on every screen frees the room again.` }
 }
 
 /** When a note comes down, in this phone's own day: the end of tonight, the end of tomorrow, or never. */

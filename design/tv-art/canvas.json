@@ -7,7 +7,16 @@
   "pages": [
     {
       "id": "tv-art",
-      "name": "How a painting looks on the TV, and where it comes from"
+      "name": "How a painting looks on the TV, and where it comes from",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "C, and a channel too",
+        "board": "StoryC.dc.html"
+      }
+    },
+    {
+      "id": "tv-art-rejected",
+      "name": "How a painting looks on the TV, and where it comes from: not chosen"
     }
   ],
   "artboards": [
@@ -22,7 +31,7 @@
     },
     {
       "file": "GalleryA.dc.html",
-      "page": "tv-art",
+      "page": "tv-art-rejected",
       "x": 0,
       "y": 1500,
       "w": 1920,
@@ -31,7 +40,7 @@
     },
     {
       "file": "FillB.dc.html",
-      "page": "tv-art",
+      "page": "tv-art-rejected",
       "x": 0,
       "y": 3000,
       "w": 1920,
@@ -96,7 +105,7 @@
     },
     {
       "id": "a",
-      "page": "tv-art",
+      "page": "tv-art-rejected",
       "x": 0,
       "y": 2620,
       "w": 1920,
@@ -104,7 +113,7 @@
     },
     {
       "id": "b",
-      "page": "tv-art",
+      "page": "tv-art-rejected",
       "x": 0,
       "y": 4120,
       "w": 1920,
@@ -132,7 +141,7 @@
       "x": 2040,
       "y": 3600,
       "w": 910,
-      "text": "TO PICK\n\nA, B or C for how a painting looks, or something else; and whether art is only a card between the photos, or a channel too.\n\nMy suggestion: C, because it never crops the painting and shows what a TV can that a print can't; and the channel too, since the hallway question is the one that started C on Your screens."
+      "text": "DECIDED 20 NOVEMBER 2026\n\nC, and a channel too. Each painting opens close on one part, pulls back to the whole uncropped, then says what it is. Art is a switch beside the other cards on a screen's page, and What it shows gains Art, for a screen that wants to be a frame all day.\n\nA and B are kept, with their cases, on the page after this one."
     }
   ]
 }

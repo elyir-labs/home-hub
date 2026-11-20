@@ -6,7 +6,8 @@
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
 import { atBedtime, drift, faceFor, bedtimeLine, photoLine, playingNow, playingRooms, position, beats, beatAt, dayTitle, agoLine, BEAT_FOR, stillOn, withCards, daysTo, countWords, noteWhen, noteFrom, faceFor as face_, isMorning, morningLine, rest, funCards, houseToday, sunCross,
-  type Photo } from '../src/restTv'
+  paintingsOfTheDay, paintingAt, hang, ART_A_DAY, ART_HOLD, type Photo } from '../src/restTv'
+import type { Painting } from '../src/api'
 import { store } from '../src/store'
 
 const at = (h: number, m = 0) => { const d = new Date(2026, 10, 20, h, m); return d }
@@ -223,5 +224,48 @@ describe('the day\'s fun cards (design/tv-moments/, cards A)', () => {
     expect(houseToday(at(21, 0), null, { low: null, frost: 32, change: '' }, clock).lines).toEqual([expect.stringMatching(/^The sun rises at \d+:\d\d tomorrow\.$/)])
     expect(afternoon.under).toMatch(/moon tonight$/)
     expect(sunCross(at(14, 0), false, { lat: 42.5, lon: -92.4 })!.getTime()).toBeGreaterThan(at(14, 0).getTime())
+  })
+})
+
+describe('paintings (design/tv-art/, decided 20 November 2026: C, and a channel too)', () => {
+  const painting = (id: string, w = 4, h = 3): Painting => ({ id, title: id, painter: 'A painter', year: '1889', museum: 'A museum', line: '', w, h, focus: null })
+  const set = Array.from({ length: 10 }, (_, i) => painting(`p${i}`))
+  const words = { day: '', morning: null, evening: null, facts: [['F1', 'f1'], ['F2', 'f2']], trivia: [['Q1?', 'A1']], jokes: [], quotes: [] }
+  const off = { today: false, facts: true, jokes: false, quotes: false }
+
+  it('starts off, and when on takes a turn between the photos like any card', () => {
+    expect(funCards(words, off, set, at(19, 40)).some(b => b.kind === 'art')).toBe(false)
+    const on = funCards(words, { ...off, art: true }, set, at(19, 40)).map(b => b.kind)
+    expect(on).toEqual(['fact', 'trivia', 'art', 'fact', 'art'])
+    expect(funCards(words, { ...off, art: true }, [], at(19, 40)).some(b => b.kind === 'art')).toBe(false)
+  })
+
+  it('brings the next few of the set each day, so the whole set comes round before any painting does again', () => {
+    const seen = new Set<string>()
+    for (let d = 0; d < set.length / ART_A_DAY; d++) for (const p of paintingsOfTheDay(set, new Date(2026, 10, 20 + d))) seen.add(p.id)
+    expect(seen.size).toBe(set.length)
+    expect(paintingsOfTheDay(set, at(9)).map(p => p.id)).toEqual(paintingsOfTheDay([...set].reverse(), at(21)).map(p => p.id))
+    expect(paintingsOfTheDay([], at(9))).toEqual([])
+  })
+
+  it('as a channel, holds one painting at a time and moves on every ART_HOLD', () => {
+    const t = at(19, 40).getTime()
+    const now = paintingAt(set, t)!
+    expect(now.from).toBeLessThanOrEqual(t)
+    expect(paintingAt(set, now.from + ART_HOLD - 1)!.painting.id).toBe(now.painting.id)
+    expect(paintingAt(set, now.from + ART_HOLD)!.painting.id).not.toBe(now.painting.id)
+    expect(faceFor({ playing: false, stillOn: 0, photos: 3, now: at(19, 40), notYet: false, art: true })).toBe('art')
+    expect(faceFor({ playing: true, stillOn: 0, photos: 3, now: at(19, 40), notYet: false, art: true })).toBe('playing')
+  })
+
+  it('is never cropped: hung as large as fits beside its label, in its own shape', () => {
+    for (const [w, h] of [[4, 3], [3, 4], [2, 1], [1, 1]]) {
+      const box = hang({ w, h }, 1080)
+      expect(box.w / box.h).toBeCloseTo(w / h, 1)
+      expect(box.w).toBeLessThanOrEqual(1100)
+      expect(box.y).toBeGreaterThanOrEqual(54)
+      expect(box.y + box.h).toBeLessThanOrEqual(1080 - 100)
+      expect(box.label).toBe(box.x + box.w + 90)
+    }
   })
 })

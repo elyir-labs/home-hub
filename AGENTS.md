@@ -440,6 +440,14 @@ Do not reopen these, and do not propose around them.
   read by a person before they ship, never fetched and never written by a model. Your screens on the phone holds it all.
   `restTv.ts`, `TvRest.vue`, `PhotosPage.vue`, `brain/hub/board.py`, `brain/hub/words.py`; pinned by `app/tests/restTv.test.ts`,
   `app/e2e/board.spec.ts`, `mornings.spec.ts`, `cards.spec.ts` and `brain/tests/test_board.py`.
+- **A painting is a close look, then the whole, then what it is; and a screen can show nothing but paintings** (20 November,
+  `design/tv-art/`, C and a channel too). Art is a switch beside the other cards, off to start, and What it shows gains Art,
+  one painting at a time all day. Never cropped. The set is chosen by hand from museums' public-domain collections, each
+  with one true line, listed in `brain/hub/paintings.json`; the pictures are on Elyir's own host (`site/terraform/art.tf`,
+  filled by `tools/art/prepare.py --publish`), never in this repository and never fetched from a museum by a hub. A hub
+  downloads them once when a screen turns art on, refuses bytes that are not the hash named, and frees them when no screen
+  wants art. `brain/hub/art.py`, `TvPainting.vue`; pinned by `app/tests/restTv.test.ts`, `app/e2e/art.spec.ts` and
+  `brain/tests/test_art.py`.
 - **A hub on a cable into the modem answers nobody on the internet, and its Ready offers two ways in** (19 November,
   `design/modem-cable/`, C). A link with a public address takes no new connections (`driver-layer/host/public.sh`), and
   counts as online but never as the house's network, so the hub still makes its own Wi-Fi. Ready puts that Wi-Fi's code

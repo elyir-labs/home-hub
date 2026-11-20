@@ -25,8 +25,8 @@ const SHELF = [
 ]
 
 const SCREENS = [
-  { id: 'a1b2c3d4e5f60718a1b2c3d4e5f60718', room: 'living', room_name: 'Living room', tv: true, by: 'screen', photos: true, play: 'days', shows: 'photos', notes: true, lines: true, today: true, facts: true, jokes: true, quotes: true },
-  { id: 'f0e1d2c3b4a59687f0e1d2c3b4a59687', room: 'kitchen', room_name: 'Kitchen', tv: false, by: 'screen', photos: false, play: 'days', shows: 'photos', notes: true, lines: true, today: true, facts: true, jokes: false, quotes: false },
+  { id: 'a1b2c3d4e5f60718a1b2c3d4e5f60718', room: 'living', room_name: 'Living room', tv: true, by: 'screen', photos: true, play: 'days', shows: 'photos', notes: true, lines: true, today: true, facts: true, jokes: true, quotes: true, art: true },
+  { id: 'f0e1d2c3b4a59687f0e1d2c3b4a59687', room: 'kitchen', room_name: 'Kitchen', tv: false, by: 'screen', photos: false, play: 'days', shows: 'photos', notes: true, lines: true, today: true, facts: true, jokes: false, quotes: false, art: false },
 ]
 const body = req => new Promise(done => { let raw = ''; req.on('data', c => (raw += c)); req.on('end', () => { try { done(JSON.parse(raw || '{}')) } catch { done({}) } }) })
 
@@ -91,7 +91,7 @@ export function photosRoute(req, res, p, env) {
   }
   if (p.startsWith('/photos/screens/') && req.method === 'POST') {
     const s = SCREENS.find(x => x.id === p.slice('/photos/screens/'.length))
-    body(req).then(b => { if (s && typeof b.on === 'boolean') s.photos = b.on; if (s && (b.play === 'each' || b.play === 'days')) s.play = b.play; if (s && (b.shows === 'photos' || b.shows === 'board')) s.shows = b.shows; if (s && typeof b.notes === 'boolean') s.notes = b.notes; if (s && typeof b.lines === 'boolean') s.lines = b.lines; for (const k of ['today', 'facts', 'jokes', 'quotes']) if (s && typeof b[k] === 'boolean') s[k] = b[k]; res.writeHead(s ? 200 : 404, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(s ?? { detail: 'No such screen.' })) })
+    body(req).then(b => { if (s && typeof b.on === 'boolean') s.photos = b.on; if (s && (b.play === 'each' || b.play === 'days')) s.play = b.play; if (s && ['photos', 'board', 'art'].includes(b.shows)) s.shows = b.shows; if (s && typeof b.notes === 'boolean') s.notes = b.notes; if (s && typeof b.lines === 'boolean') s.lines = b.lines; for (const k of ['today', 'facts', 'jokes', 'quotes', 'art']) if (s && typeof b[k] === 'boolean') s[k] = b[k]; res.writeHead(s ? 200 : 404, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(s ?? { detail: 'No such screen.' })) })
     return true
   }
   if (p !== '/photos' && !p.startsWith('/photos/')) return false
