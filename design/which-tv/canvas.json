@@ -7,7 +7,20 @@
   "pages": [
     {
       "id": "which-tv",
-      "name": "How the hub knows which of its screens is a TV"
+      "name": "How the hub knows which of its screens is a TV",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A, with B as a row on This screen, and C's choice of screens",
+        "board": "SaysA.dc.html"
+      }
+    },
+    {
+      "id": "which-wall",
+      "name": "A wall screen that shows photos at rest"
+    },
+    {
+      "id": "which-tv-rejected",
+      "name": "How the hub knows which of its screens is a TV: not chosen"
     }
   ],
   "artboards": [
@@ -42,12 +55,57 @@
     },
     {
       "file": "AskB.dc.html",
+      "page": "which-tv-rejected",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: asked once, on the screen, when it joins"
+    },
+    {
+      "file": "RowB.dc.html",
       "page": "which-tv",
       "x": 0,
       "y": 1500,
       "w": 1920,
       "h": 1080,
-      "title": "B: asked once, on the screen, when it joins"
+      "title": "B's question as a row on This screen, under Room"
+    },
+    {
+      "file": "WallToday.dc.html",
+      "page": "which-wall",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: the wall at rest (design/rest/, CornerF)"
+    },
+    {
+      "file": "WallA.dc.html",
+      "page": "which-wall",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Wall A: the TV's photos, at the wall's size"
+    },
+    {
+      "file": "WallB.dc.html",
+      "page": "which-wall",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "Wall B: the wall's own rest, over the photo"
+    },
+    {
+      "file": "WallC.dc.html",
+      "page": "which-wall",
+      "x": 1560,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "Wall C: the photo framed, the house on a band along the foot"
     }
   ],
   "annotations": [
@@ -77,9 +135,9 @@
     },
     {
       "id": "b",
-      "page": "which-tv",
+      "page": "which-tv-rejected",
       "x": 0,
-      "y": 2620,
+      "y": 1120,
       "w": 1920,
       "text": "B: ASKED ONCE, ON THE SCREEN, WHEN IT JOINS. Before which room it is in, a new screen asks what it is, with the panel's guess already lit so OK confirms it. A TV rests on photos and is worked with the remote; a wall screen rests on the clock. This screen gets the same question as a row, to change it later. The page then names it as in A.\n\nFOR: Right every time, including the TVs the guess misses, and it's said by whoever is standing in front of it. AGAINST: One more question in a join that is already two (the passcode, the room), for an answer that is nearly always the guess."
     },
@@ -89,15 +147,71 @@
       "x": 1040,
       "y": 880,
       "w": 390,
-      "text": "C: THE HOUSEHOLD CHOOSES WHICH SCREENS SHOW PHOTOS. The page becomes Photos, and lists the house's screens with a switch each. A TV starts on (found as in A); a wall screen starts off and shows the clock, but a household can turn its hallway into a frame too.\n\nFOR: Answers the next question too (\"can the kitchen screen show them?\") and never needs the word TV to be right. AGAINST: A setting nobody asked for yet, and it reopens what a wall screen rests on, which design/rest/ settled."
+      "text": "C: THE HOUSEHOLD CHOOSES WHICH SCREENS SHOW PHOTOS. The page becomes Photos, and lists the house's screens with a switch each. A TV starts on (found as in A); a wall screen starts off and shows the clock, but a household can turn its hallway into a frame too.\n\nFOR: Answers the next question too (\"can the kitchen screen show them?\") and never needs the word TV to be right. AGAINST: A setting nobody asked for yet, and it reopens what a wall screen rests on, which design/rest/ settled.\n\nCHOSEN WITH A (20 November): the household wants the hallway able to show photos too. A wall screen showing them is drawn on its own page, \"A wall screen that shows photos at rest\", because the wall's rest is design/rest/'s."
     },
     {
-      "id": "pick",
+      "id": "decided",
       "page": "which-tv",
       "x": 1560,
       "y": 0,
       "w": 420,
-      "text": "TO PICK\n\nA, B or C, or something else. B can also go with A: guessed silently, with the question only on This screen for the TV the guess got wrong."
+      "text": "DECIDED 20 NOVEMBER 2026 -- A, WITH B AS A ROW ON THIS SCREEN, AND C'S CHOICE OF SCREENS\n\nA screen the panel works out is a TV says so to the hub, and nobody is asked. This screen gets one row, What it is (A TV / On the wall), for the TV the guess got wrong; an answer there is kept by the hub and beats the guess from then on. The page is C's: Photos, with each of the house's screens and a switch, a TV on to start and a wall screen off. It names the TVs by their rooms. A house with no screens has no Photos row.\n\nHow a wall screen looks while it shows photos is the next page's question."
+    },
+    {
+      "id": "row",
+      "page": "which-tv",
+      "x": 0,
+      "y": 2620,
+      "w": 1920,
+      "text": "B'S QUESTION, ON THIS SCREEN. Under Room, What it is: the answer in words and the two choices, the guess lit. Choosing restarts the screen as the other kind, because a TV and a wall are worked differently from the first frame (the remote and its rows, or touch). Not asked when a screen joins."
+    },
+    {
+      "id": "lost",
+      "page": "which-tv-rejected",
+      "x": 2040,
+      "y": 0,
+      "w": 420,
+      "text": "NOT CHOSEN\n\nB as a question when a screen joins: one more question for an answer that is nearly always the guess. Kept as a row on This screen instead."
+    },
+    {
+      "id": "wall-why",
+      "page": "which-wall",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "A WALL SCREEN THAT SHOWS PHOTOS\n\nWith C, a household can switch a wall screen's photos on. The wall's rest was settled on 28 September (design/rest/, CornerF: the clock, the date, four facts and the weather in the corner), so how it looks over a photo is drawn here before it is built. Touch wakes it as today; there is no OK line."
+    },
+    {
+      "id": "wall-today",
+      "page": "which-wall",
+      "x": 0,
+      "y": 920,
+      "w": 1440,
+      "text": "TODAY. The wall at rest, from development: the sky, the clock, four facts, the weather in the corner."
+    },
+    {
+      "id": "wall-a",
+      "page": "which-wall",
+      "x": 1560,
+      "y": 920,
+      "w": 1440,
+      "text": "WALL A: THE TV'S PHOTOS, AT THE WALL'S SIZE. The resting TV's photo face as built (TvRest), scaled to 1440 x 900: the photo fills the screen, when and whose along the top, the clock bottom left, three facts bottom right. FOR: one look for photos on every screen, and nothing new to build or keep. AGAINST: the wall's four facts become three small ones, and a hallway glance reads them less well than CornerF's."
+    },
+    {
+      "id": "wall-b",
+      "page": "which-wall",
+      "x": 0,
+      "y": 2220,
+      "w": 1440,
+      "text": "WALL B: THE WALL'S OWN REST, OVER THE PHOTO. CornerF exactly, the clock, the date, the four facts and the weather in the corner, with the photo where the sky was and a soft wash behind the words. FOR: the wall still reads the same from across the hallway; only the picture behind changes. AGAINST: the words sit on the middle of the photo, so the photo is mostly the edges."
+    },
+    {
+      "id": "wall-c",
+      "page": "which-wall",
+      "x": 1560,
+      "y": 2220,
+      "w": 1440,
+      "text": "WALL C: THE PHOTO FRAMED, THE HOUSE ON A BAND. The photo fills the top four fifths untouched; a dark band along the foot holds the clock and the four facts, like a caption under a print. FOR: the photo is never covered, and nothing has to fight it for contrast. AGAINST: the clock is smaller than either A or B, and the band is a new shape for the wall.\n\nTO PICK: A, B or C, or something else."
     }
   ]
 }
