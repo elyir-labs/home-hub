@@ -6,7 +6,7 @@
 // check what is committed without drawing anything; render.mjs draws the images and writes these.
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST_BREATH, FIRST, GLYPHS, WORDS, SCAN, DRIVE_AT } from './sequence.mjs'
+import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST_BREATH, FIRST, GLYPHS, WORDS, SCAN, DRIVE_AT, MODEM } from './sequence.mjs'
 
 export const THEME = 'elyir'
 export const DIR = `/usr/share/plymouth/themes/${THEME}`
@@ -155,6 +155,21 @@ tile.SetPosition(Math.Int(ox + ${SCAN.tile.left} * s), Math.Int(oy + ${SCAN.tile
 code = Sprite(); code.SetZ(30); code.SetOpacity(0);
 scan_line = Sprite(); scan_line.SetZ(30); scan_line.SetOpacity(0);
 drive_ready_image = fit(Image("drive-ready.png"));
+
+# Ready on a cable into the modem (design/modem-cable/, C): elyir:modem lays Ready out as two answers, this hub's own
+# Wi-Fi to scan on the left and the cable's right place on the right; with no Wi-Fi to offer, the right half alone.
+modem_tile_image = fit(Image("modem-tile.png"));
+modem_ready_image = fit(Image("modem-ready.png"));
+modem_alone_image = fit(Image("modem-alone.png"));
+modem_scan_image = fit(Image("modem-scan.png"));
+or_image["join"] = fit(Image("modem-or-join.png"));
+modem_picture_image = fit(Image("modem-picture.png"));
+modem_split_image = fit(Image("modem-split.png"));
+modem_move_image = fit(Image("modem-move.png"));
+modem_alone_move_image = fit(Image("modem-alone-move.png"));
+m_picture = Sprite(); m_picture.SetZ(30); m_picture.SetOpacity(0);
+m_split = Sprite(); m_split.SetZ(30); m_split.SetOpacity(0);
+m_move = Sprite(); m_move.SetZ(30); m_move.SetOpacity(0);
 drive_scan_image = fit(Image("drive-scan.png"));
 
 # Asked on the screen at the start (design/move-to-drive/, screen-asks). elyir:drive:ask puts the question up: the house
@@ -187,6 +202,18 @@ global.field = "";
 global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0;
 global.shown_n = 0;
 global.coded = 0;
+global.modem = 0;
+global.m_two = 0;
+
+fun at_center(sprite, image, cx, top) {
+  sprite.SetImage(image);
+  sprite.SetPosition(Math.Int(ox + cx * s - image.GetWidth() / 2), Math.Int(oy + top * s), 30);
+}
+
+fun at_left(sprite, image, left, top) {
+  sprite.SetImage(image);
+  sprite.SetPosition(Math.Int(ox + left * s), Math.Int(oy + top * s), 30);
+}
 
 fun centered(sprite, image, top) {
   sprite.SetImage(image);
@@ -299,14 +326,72 @@ fun piece(image) {
 fun letters(which) {
   i = 0;
   while (i < global.n[which]) {
-    if (global.coded) { piece(global.small[global.chars[which + "-" + i]]); }
+    if (global.coded || global.modem) { piece(global.small[global.chars[which + "-" + i]]); }
     else { piece(global.glyph[global.chars[which + "-" + i]]); }
     i = i + 1;
   }
 }
 
-# Where to go next, as one line: the words and this hub's own, side by side and centered together.
+# The code on its tile: in the middle (E), or in the left column on a cable into the modem (C).
+fun place_code() {
+  if (global.modem) {
+    at_left(tile, modem_tile_image, ${MODEM.tile.left}, ${MODEM.tile.top}); tile.SetZ(29);
+    size = ${MODEM.tile.size - 2 * MODEM.tile.pad}; left = ${MODEM.tile.left + MODEM.tile.pad}; top = ${MODEM.tile.top + MODEM.tile.pad};
+  }
+  else {
+    at_left(tile, tile_image, ${SCAN.tile.left}, ${SCAN.tile.top}); tile.SetZ(29);
+    size = ${SCAN.tile.size - 2 * SCAN.tile.pad}; left = ${SCAN.tile.left + SCAN.tile.pad}; top = ${SCAN.tile.top + SCAN.tile.pad};
+  }
+  if (global.made) {
+    w = Math.Int(size * s);
+    code.SetImage(global.made.Scale(w, w));
+    code.SetPosition(Math.Int(ox + left * s), Math.Int(oy + top * s), 30);
+  }
+}
+
+# Pieces side by side, centered together on a point across the boards' space.
+fun lay(cx, top) {
+  w = 0; i = 0;
+  while (i < global.piece_n) { w = w + global.pieces[i].GetWidth(); i = i + 1; }
+  x = Math.Int(ox + cx * s - w / 2); i = 0;
+  while (i < global.piece_n) {
+    if (!global.where_sprite[i]) { global.where_sprite[i] = Sprite(); global.where_sprite[i].SetOpacity(0); }
+    global.where_sprite[i].SetImage(global.pieces[i]);
+    global.where_sprite[i].SetPosition(x, Math.Int(oy + top * s), 31);
+    x = x + global.pieces[i].GetWidth(); i = i + 1;
+  }
+  while (i < global.shown_n) { global.where_sprite[i].SetOpacity(0); i = i + 1; }
+  global.shown_n = global.piece_n;
+}
+
+fun modem_where() {
+  global.piece_n = 0;
+  if (global.n["wifi"] > 0) {
+    global.m_two = 1;
+    centered(ready, modem_ready_image, ${WORDS.scanReady.top});
+    at_center(scan_line, modem_scan_image, ${MODEM.code.center}, ${MODEM.code.top});
+    piece(or_image["join"]); letters("wifi"); piece(or_image["pass"]); letters("pass");
+    at_left(m_split, modem_split_image, ${MODEM.split.left}, ${MODEM.split.top});
+    at_left(m_picture, modem_picture_image, ${MODEM.picture.left}, ${MODEM.picture.top});
+    at_left(m_move, modem_move_image, ${MODEM.words.left}, ${MODEM.words.top});
+  }
+  else {
+    global.m_two = 0;
+    centered(ready, modem_alone_image, ${WORDS.scanReady.top});
+    at_left(m_picture, modem_picture_image, ${MODEM.alonePicture.left}, ${MODEM.alonePicture.top});
+    at_left(m_move, modem_alone_move_image, ${MODEM.aloneWords.left}, ${MODEM.aloneWords.top});
+  }
+  lay(${MODEM.code.center}, ${MODEM.or.top});
+}
+
 fun where() {
+  place_code();
+  if (global.modem) { modem_where(); return; }
+  plain_where();
+}
+
+# Where to go next, as one line: the words and this hub's own, side by side and centered together.
+fun plain_where() {
   global.piece_n = 0;
   top = ${WORDS.where.top};
   if (global.coded) {
@@ -323,17 +408,7 @@ fun where() {
     if (global.n["wifi"] > 0) { piece(where_image["wifi"]); letters("wifi"); piece(where_image["pass"]); letters("pass"); }
     else { piece(where_image["addr"]); letters("addr"); }
   }
-  w = 0; i = 0;
-  while (i < global.piece_n) { w = w + global.pieces[i].GetWidth(); i = i + 1; }
-  x = Math.Int((screen_w - w) / 2); i = 0;
-  while (i < global.piece_n) {
-    if (!global.where_sprite[i]) { global.where_sprite[i] = Sprite(); global.where_sprite[i].SetOpacity(0); }
-    global.where_sprite[i].SetImage(global.pieces[i]);
-    global.where_sprite[i].SetPosition(x, Math.Int(oy + top * s), 31);
-    x = x + global.pieces[i].GetWidth(); i = i + 1;
-  }
-  while (i < global.shown_n) { global.where_sprite[i].SetOpacity(0); i = i + 1; }
-  global.shown_n = global.piece_n;
+  lay(${SPACE.width / 2}, top);
 }
 
 fun status(text) {
@@ -343,9 +418,7 @@ ${Object.keys(FIRST).map((id) => `  if (text == "elyir:step:${id}") { step("${id
   if (text == "elyir:code") {
     made = Image("${CODE}");
     if (made && made.GetWidth() > 0) {
-      w = Math.Int(${SCAN.tile.size - 2 * SCAN.tile.pad} * s);
-      code.SetImage(made.Scale(w, w));
-      code.SetPosition(Math.Int(ox + ${SCAN.tile.left + SCAN.tile.pad} * s), Math.Int(oy + ${SCAN.tile.top + SCAN.tile.pad} * s), 30);
+      global.made = made;
       global.coded = 1;
       where();
     }
@@ -353,6 +426,8 @@ ${Object.keys(FIRST).map((id) => `  if (text == "elyir:step:${id}") { step("${id
   # Ready redrawn for a network that changed under it (say.sh end): the old words go, and the code is replaced.
   if (text == "elyir:clear") { global.field = ""; global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0; where(); }
   if (text == "elyir:nocode") { global.coded = 0; where(); }
+  if (text == "elyir:modem") { global.modem = 1; where(); }
+  if (text == "elyir:nomodem") { global.modem = 0; where(); }
   if (text == "elyir:drive:phone") { global.drive_q = 1; where(); }
   if (text == "elyir:drive:none") { global.drive_q = 0; where(); }
   if (text == "elyir:drive:ask") { global.first = 1; global.asking = 1; global.ask_at = global.frame / 50; global.entry = ""; drive_layout(); }
@@ -397,8 +472,10 @@ fun refresh() {
 
   inn = ease(ramp(t, house_in - 0.2, house_in + 0.8));
   grow = (0.96 + 0.04 * inn) * (1 + 0.18 * out);
-  # With a code, the house rises to the top and gets small (E); everything of it is moved by rise.
-  rise = hello * global.coded;
+  # With a code, or on a cable into the modem, the house rises to the top and gets small (E, C).
+  lifted = global.coded;
+  if (global.modem) { lifted = 1; }
+  rise = hello * lifted;
   askv = 0;
   if (global.done_at > 0) { askv = 1 - ease(ramp(t, global.done_at, global.done_at + 0.6)); }
   if (global.asking) { askv = ease(ramp(t, global.ask_at, global.ask_at + 0.6)); }
@@ -457,9 +534,12 @@ fun refresh() {
   i = 0;
   while (i < global.dln) { global.dl[i].SetOpacity(global.dw[i] * askv * after_house); i = i + 1; }
   ready.SetOpacity(hello * after_house);
-  tile.SetOpacity(rise * after_house);
-  code.SetOpacity(rise * after_house);
-  scan_line.SetOpacity(rise * after_house);
+  tile.SetOpacity(hello * global.coded * after_house);
+  code.SetOpacity(hello * global.coded * after_house);
+  scan_line.SetOpacity(hello * global.coded * after_house);
+  m_picture.SetOpacity(hello * global.modem * after_house);
+  m_move.SetOpacity(hello * global.modem * after_house);
+  m_split.SetOpacity(hello * global.modem * global.m_two * after_house);
   i = 0;
   while (i < global.shown_n) { global.where_sprite[i].SetOpacity(hello * after_house); i = i + 1; }
 }

@@ -13,11 +13,12 @@
 # mangle PREROUTING, ahead of Docker's NAT, so ports Docker publishes are covered as well.
 #
 # network.sh runs this every tick. Safe to run by hand.
+#
+#   public.sh          shut what is on the open internet, open what no longer is
+#   public.sh links    name those links, one a line, and change nothing
 set -uo pipefail
 CHAIN=HOME-HUB-PUBLIC
 have() { command -v "$1" >/dev/null 2>&1; }
-have iptables || exit 0
-[ "$(id -u)" = 0 ] || [ -n "${HUB_PUBLIC_ANY_USER:-}" ] || exit 0
 
 # Every link with an IPv4 address the internet routes to: not private, not shared (CGNAT), not link-local.
 public_links() {
@@ -30,6 +31,11 @@ for line in sys.stdin:
         seen.append(dev)
 print("\n".join(seen))'
 }
+
+# `public.sh links` only names them, for network.sh and the first start's Ready (startup/say.sh), as any user.
+[ "${1:-}" = links ] && { public_links; exit 0; }
+have iptables || exit 0
+[ "$(id -u)" = 0 ] || [ -n "${HUB_PUBLIC_ANY_USER:-}" ] || exit 0
 
 rules() {  # family (4|6), then each public link
   local fam="$1" dev; shift

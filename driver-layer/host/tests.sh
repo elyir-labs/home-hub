@@ -936,6 +936,7 @@ case "$*" in
   "route show default") [ -n "${ROUTE:-}" ] && echo "default via 192.168.1.1 dev $ROUTE" ;;
   "link show hubsetup0") [ -f "$ROOT/iface" ] ;;
   "-4 -o addr show dev enp3s0") [ -n "${CABLE:-}" ] && echo "2: enp3s0    inet 192.168.1.9/24 brd 192.168.1.255 scope global enp3s0" ;;
+  "-4 -o addr show scope global") [ -n "${MODEM:-}" ] && echo "2: enp3s0    inet 1.2.3.4/24 brd 1.2.3.255 scope global enp3s0" ;;
   *) exit 0 ;;
 esac
 SH
@@ -974,6 +975,11 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
     "$(cat "$data/network.setup-key") $(stat -c %a "$data/network.setup-key" 2>/dev/null || stat -f %Lp "$data/network.setup-key")" "kite-maple-41 600"
   is "...never in the picture anything can read" "$(grep -c kite-maple "$data/network.json")" "0"
   is "...with nobody on it yet" "$(field setup_phones)" "0"
+  fresh; MODEM=1 ROUTE=enp3s0 tick
+  is "a cable into the modem is online but not the house's network: its own Wi-Fi starts all the same" \
+    "$(grep -c 'con-name home-hub-setup autoconnect no' "$root/asked")" "1"
+  is "...and the hub's picture names the link on the modem" \
+    "$(python3 -c 'import json,sys; print(",".join(json.load(open(sys.argv[1])).get("modem", [])))' "$data/network.json")" "enp3s0"
   PHONES=1 tick
   is "a phone that joins it is counted, so the screen can step aside" "$(field setup_phones)" "1"
   is "its own Wi-Fi is not one of the house's choices" "$(python3 -c 'import json,sys; print(",".join(n["ssid"] for n in json.load(open(sys.argv[1]))))' "$data/network.scan")" "Bluebell,Bluebell Guest"

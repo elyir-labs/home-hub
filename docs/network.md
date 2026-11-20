@@ -172,7 +172,9 @@ route through anything, so the hub on its router is never mistaken for a hub on 
 with every door open to the internet: a NUC sat like that for five hours on 19 November 2026, its setup screen
 reachable by anyone. `host/public.sh` runs on every tick of `network.sh` and shuts any link whose IPv4 address is
 public to new connections, IPv6 included, leaving replies, DHCP and ICMP; a link on the house's network beside it
-stays open. The screen does not say so yet: Ready still shows the address, which a phone in the house cannot reach.
+stays open. Such a link is online (it finishes an install and fetches updates) but not the house's network, so
+the hub still makes its own Wi-Fi, and a first start's Ready offers both ways in: that Wi-Fi's code, and a picture of
+moving the cable to the router (`design/modem-cable/`, C). A hub with no Wi-Fi card shows the picture alone.
 
 ## Piece 6: the ones that did not follow
 

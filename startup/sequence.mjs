@@ -152,3 +152,30 @@ export const WORDS = {
   scan: { top: 673, size: 30, color: '#e6e2da' },
   or: { top: 721, size: 20, color: '#8f8b84', value: '#d9d5cd', weight: 500 },
 }
+
+// Ready on a cable into the modem (design/modem-cable/, C, decided 19 November 2026). The modem gives the hub the
+// internet but not the house, so it offers its own Wi-Fi on the left and the cable's right place on the right, and
+// whichever happens first wins. A hub with no Wi-Fi card shows the right half alone (AloneC).
+const DIM = COLOR.lamp.map((v, i) => Math.round(COLOR.unlit[i] + (v - COLOR.unlit[i]) * 0.35))
+export const MODEM = {
+  ready: 'Your hub is ready, two ways in',
+  scan: 'Scan to set it up over Wi‑Fi',
+  orJoin: 'Or join ',
+  move: 'Or move its cable to your router',
+  moveWhy: 'Phones at home can’t reach it in the modem. Once it’s moved, a new code appears here.',
+  alone: 'Plug the hub into your router',
+  aloneMove: 'Move its cable to a spare port on your router',
+  aloneWhy: 'Phones at home can’t reach it in the modem. Once it’s moved, a code to scan appears here.',
+  tile: { left: 330, top: 360, size: 240, pad: 19 },
+  code: { center: 450, top: 628 },        // the left column: the line over the Wi-Fi's name and password
+  or: { top: 672 },
+  split: { left: 700, top: 380, width: 40, height: 340 },
+  picture: { left: 780, top: 370, width: 460, height: 260 },
+  words: { left: 740, top: 628, width: 500 },
+  big: { size: 26, color: '#f1eee8' },
+  small: { size: 20, color: '#8f8b84' },
+  alonePicture: { left: 490, top: 370 },
+  aloneWords: { left: 400, top: 650, width: 640 },
+  // Modem and router, the wire between them, where the cable is (dotted) and where it goes (lit), and the hub.
+  drawing: `<svg xmlns="http://www.w3.org/2000/svg" width="460" height="260" viewBox="0 0 460 260"><g transform="translate(20 -380) scale(.92)" font-family="Instrument Sans, sans-serif" fill="none" stroke-linecap="round"><rect x="0" y="420" width="170" height="100" rx="16" stroke="#8f8b84" stroke-width="3"/><text x="85" y="477" fill="#d9d5cd" stroke="none" font-size="22" font-weight="500" text-anchor="middle">Modem</text><rect x="300" y="420" width="170" height="100" rx="16" stroke="#8f8b84" stroke-width="3"/><text x="385" y="477" fill="#d9d5cd" stroke="none" font-size="22" font-weight="500" text-anchor="middle">Router</text><path d="M170 470H300" stroke="#8f8b84" stroke-width="4"/><path d="M385 520V600" stroke="rgb(${COLOR.lamp})" stroke-width="5"/><path d="M85 520C85 610 300 640 360 625" stroke="#8f8b84" stroke-width="4" stroke-dasharray="2 12"/><text x="420" y="580" fill="rgb(${COLOR.lamp})" stroke="none" font-size="15" font-weight="500" letter-spacing="2.1" text-anchor="middle">HERE</text></g><svg x="325" y="175" width="80" height="80" viewBox="0 0 512 512" fill="none" stroke="${COLOR.ink}" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"><path d="M112 248 256 120l144 128"/><path d="M148 226v170h216V226"/><circle cx="256" cy="306" r="30" fill="rgb(${DIM})" stroke="none"/></svg></svg>`,
+}
