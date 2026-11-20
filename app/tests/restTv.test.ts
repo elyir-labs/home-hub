@@ -5,7 +5,7 @@
    which face wins, or what Bedtime lists and says, drifts from the boards. */
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
-import { atBedtime, drift, faceFor, bedtimeLine, photoLine, playingNow, playingRooms, position, beats, beatAt, dayTitle, agoLine, BEAT_FOR, stillOn,
+import { atBedtime, drift, faceFor, bedtimeLine, photoLine, playingNow, playingRooms, position, beats, beatAt, dayTitle, agoLine, BEAT_FOR, stillOn, withCards, daysTo, countWords, noteWhen, noteFrom, faceFor as face_,
   type Photo } from '../src/restTv'
 import { store } from '../src/store'
 
@@ -124,5 +124,54 @@ describe('Bedtime', () => {
 
   it('says only what it will do', () => {
     expect(bedtimeLine([{ name: 'Office', what: 'Desk lamp', kind: 'light' }])).toBe('The lights off')
+  })
+})
+
+describe('notes and countdowns between the photos (design/tv-moments/, cards A)', () => {
+  const note = (id: string, added: number, by: string | null = "Mom's phone") => ({ id, text: 'Dinner at 7', by, added, until: null })
+  const count = (id: string, next: string) => ({ id, what: "Sam's birthday", date: next, next, yearly: true, by: null, added: 0 })
+  const photos = Array.from({ length: 11 }, (_, i) => ({ id: `p${i}`, taken: null, added: 0, by: null }))
+  const ids = (b: ReturnType<typeof withCards>) => b.map(x => x.kind === 'photo' ? 'p' : x.kind === 'note' ? `n:${x.note.id}` : x.kind === 'count' ? `c:${x.count.id}` : x.kind)
+
+  it('takes a turn after every fifth photo, going through the notes and then the countdowns', () => {
+    const list = withCards(beats(photos, 'each', at(19, 40)), { notes: [note('a', 0)], countdowns: [count('b', '2026-11-23')] })
+    expect(ids(list)).toEqual(['p', 'p', 'p', 'p', 'p', 'n:a', 'p', 'p', 'p', 'p', 'p', 'c:b', 'p'])
+    expect(BEAT_FOR.note).toBe(20_000)
+  })
+
+  it('still gets one turn when there are fewer than five photos, and changes nothing when there is nothing to show', () => {
+    expect(ids(withCards(beats(photos.slice(0, 2), 'each', at(19, 40)), { notes: [note('a', 0)], countdowns: [] }))).toEqual(['p', 'p', 'n:a'])
+    expect(ids(withCards(beats(photos.slice(0, 2), 'each', at(19, 40)), { notes: [], countdowns: [] }))).toEqual(['p', 'p'])
+  })
+
+  it('goes round the photos again until every note and countdown has had a turn', () => {
+    const board = { notes: [note('a', 0), note('b', 0)], countdowns: [count('c', '2026-11-23')] }
+    expect(ids(withCards(beats(photos.slice(0, 5), 'each', at(19, 40)), board))).toEqual([
+      'p', 'p', 'p', 'p', 'p', 'n:a', 'p', 'p', 'p', 'p', 'p', 'n:b', 'p', 'p', 'p', 'p', 'p', 'c:c'])
+    expect(ids(withCards(beats(photos.slice(0, 2), 'each', at(19, 40)), board))).toEqual(['p', 'p', 'n:a', 'p', 'p', 'n:b', 'p', 'p', 'c:c'])
+  })
+
+  it('counts days in this screen\'s own calendar, and says the day under the number', () => {
+    const now = at(23, 50)   // Friday, November 20, 2026, late
+    expect([daysTo('2026-11-20', now), daysTo('2026-11-21', now), daysTo('2026-11-23', now)]).toEqual([0, 1, 3])
+    expect(countWords(count('c', '2026-11-23'), now, 'en-US')).toEqual({ big: '3', under: 'days to go · Monday' })
+    expect(countWords(count('c', '2026-11-21'), now, 'en-US')).toEqual({ big: '1', under: 'day to go · tomorrow' })
+    expect(countWords(count('c', '2026-11-20'), now, 'en-US')).toEqual({ big: 'Today', under: '' })
+    expect(countWords(count('c', '2026-12-25'), now, 'en-US').under).toBe('days to go · December 25')
+  })
+
+  it('says when a note was left the way a person would', () => {
+    const now = at(19, 40), t = (d: number, h: number) => new Date(2026, 10, d, h).getTime() / 1000
+    expect([t(20, 8), t(20, 14), t(20, 18), t(19, 21), t(19, 9), t(17, 9)].map(x => noteWhen(x, now, 'en-US')))
+      .toEqual(['this morning', 'this afternoon', 'this evening', 'last night', 'yesterday', 'on Tuesday'])
+    expect(noteFrom(note('a', t(20, 8)), now, 'en-US')).toBe("A note from Mom's phone · this morning")
+    expect(noteFrom(note('a', t(20, 8), null), now, 'en-US')).toBe('A note · this morning')
+  })
+
+  it('a screen set to the family board rests on it, after music and Bedtime', () => {
+    const base = { playing: false, stillOn: 0, photos: 3, now: at(19, 40), notYet: false, board: true }
+    expect(face_(base)).toBe('board')
+    expect(face_({ ...base, playing: true })).toBe('playing')
+    expect(face_({ ...base, stillOn: 2, now: at(23, 0) })).toBe('bedtime')
   })
 })

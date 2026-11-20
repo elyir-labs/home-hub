@@ -103,8 +103,26 @@ export function sentLine(p: Photo, now = new Date(), locale?: string): string {
 export function screenLines(s: ShownScreen): { name: string; sub: string } {
   const name = s.room_name ? (s.tv ? `${s.room_name} TV` : s.room_name) : (s.tv ? 'A TV' : 'A screen on the wall')
   const kind = s.tv ? 'A TV' : 'A screen on the wall'
-  const showing = s.photos ? (s.play === 'each' ? 'photos, one after another' : 'photos, day by day') : (s.tv ? 'the sky' : 'the clock')
+  const showing = s.shows === 'board' ? 'the family board'
+    : s.photos ? (s.play === 'each' ? 'photos, one after another' : 'photos, day by day') : (s.tv ? 'the sky' : 'the clock')
   return { name, sub: `${kind} · shows ${showing}` }
+}
+
+/** When a note comes down, in this phone's own day: the end of tonight, the end of tomorrow, or never. */
+export type Until = 'tonight' | 'tomorrow' | 'down'
+export function untilFor(u: Until, now = new Date()): number | null {
+  if (u === 'down') return null
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (u === 'tonight' ? 1 : 2))
+  return end.getTime() / 1000
+}
+
+/** A countdown named for a birthday or an anniversary comes round every year; the hub reads the name the same way. */
+export const yearly = (what: string) => /\b(birthday|anniversary)\b/i.test(what)
+
+/** A note's line on the phone: until when, and whose. */
+export function noteLine(until: number | null, by: string | null, now = new Date()): string {
+  const when = until === null ? 'until somebody takes it down' : new Date(until * 1000).getDate() === new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getDate() ? 'until tonight' : 'until tomorrow night'
+  return by ? `${when} · from ${by}` : when
 }
 
 /** Where a phone's camera is sent from the TV's code: this page, on the address the phone can reach. */

@@ -3291,6 +3291,39 @@ input:focus-visible {
   flex: 1;
   justify-content: center;
 }
+.photos-gone {
+  opacity: 0.6;
+}
+.photos-write {
+  margin-top: 10px;
+}
+.photos-tabs {
+  margin-bottom: 18px;
+}
+.photos-label {
+  display: block;
+  margin: 16px 2px 8px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.photos-field {
+  display: block;
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--edge-hi);
+  background: var(--surface-hi);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  resize: vertical;
+}
+.photos-go {
+  margin-top: 22px;
+}
+.photos-left {
+  text-align: left;
+}
 .photos-screen-text {
   flex: 1;
   min-width: 0;
@@ -3646,6 +3679,153 @@ input:focus-visible {
 .tvrest-fade-leave-to {
   opacity: 0;
   filter: blur(8px);
+}
+/* A note or a countdown taking its turn (design/tv-moments/CardsA), and the family board (BoardC) */
+.tvrest-card {
+  position: absolute;
+  inset: 0 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.tvrest-paper {
+  max-width: 1100px;
+  padding: 70px 90px;
+  border-radius: 6px;
+  font-family: var(--serif);
+  font-size: 96px;
+  line-height: 1.1;
+  color: #2b2520;
+  background: #f6efe1;
+  rotate: -1.5deg;
+  text-shadow: none;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.5);
+}
+.tvrest-card-from {
+  margin-top: 44px;
+  font-size: 26px;
+}
+.tvrest-card-cap {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.tvrest-count {
+  margin-top: 20px;
+  font-size: 300px;
+  font-weight: 300;
+  line-height: 1;
+}
+.tvrest-count.word {
+  font-family: var(--serif);
+  font-size: 180px;
+  font-weight: 400;
+}
+.tvrest-card-under {
+  font-size: 44px;
+}
+.tvrest-cardclock,
+.tvrest-boardclock {
+  position: absolute;
+  left: 96px;
+  bottom: 54px;
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+}
+.tvrest-cardclock .tvrest-time {
+  font-size: 64px;
+}
+.tvrest-boardbg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #1b2030, #11131b);
+}
+.tvrest-boardclock {
+  top: 54px;
+  bottom: auto;
+  gap: 22px;
+}
+.tvrest-boardclock .tvrest-time {
+  font-size: 96px;
+}
+.tvrest-boardnotes {
+  position: absolute;
+  left: 96px;
+  top: 230px;
+  width: 1060px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+.tvrest-paper.small {
+  max-width: none;
+  padding: 40px;
+  font-size: 54px;
+  rotate: -1.2deg;
+}
+.tvrest-paper.small.tone1 {
+  color: #1f2a2c;
+  background: #e3eef0;
+  rotate: 1deg;
+}
+.tvrest-paper.small small {
+  display: block;
+  margin-top: 20px;
+  font-family: var(--sans);
+  font-size: 20px;
+  opacity: 0.75;
+}
+.tvrest-coming {
+  grid-column: span 2;
+  padding: 34px 40px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.tvrest-coming-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 60px;
+  margin-top: 16px;
+  font-size: 34px;
+}
+.tvrest-coming-row b {
+  font-size: 64px;
+  font-weight: 300;
+}
+.tvrest-boardempty {
+  position: absolute;
+  left: 96px;
+  top: 260px;
+  width: 1000px;
+  font-family: var(--serif);
+  font-size: 64px;
+  line-height: 1.15;
+}
+.tvrest-boardphoto {
+  position: absolute;
+  right: 96px;
+  top: 230px;
+  width: 560px;
+  height: 640px;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+}
+.tvrest-boardphoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tvrest-boardsaid {
+  position: absolute;
+  right: 96px;
+  top: 884px;
+  font-size: 22px;
 }
 .tvrest-ago {
   display: flex;

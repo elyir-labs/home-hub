@@ -23,6 +23,7 @@ STATE = DATA / "screens-shown.json"
 FORGET_AFTER = 30 * 86400
 ID = re.compile(r"^[a-f0-9]{16,64}$")
 PLAYS = ("each", "days")   # one photo after another, or a day's photos together (design/tv-moments/, A and B)
+SHOWS = ("photos", "board")  # what a screen rests on: the photos, or the family board (design/tv-moments/, cards C)
 
 
 class Screens:
@@ -45,7 +46,8 @@ class Screens:
 
     def _public(self, rec: dict) -> dict:
         return {"id": rec["id"], "room": rec.get("room"), "tv": bool(rec.get("tv")), "by": rec.get("tv_by"), "photos": self.shows_photos(rec),
-                "play": rec.get("play") if rec.get("play") in PLAYS else "days"}
+                "play": rec.get("play") if rec.get("play") in PLAYS else "days",
+                "shows": rec.get("shows") if rec.get("shows") in SHOWS else "photos", "notes": rec.get("notes") is not False}
 
     def said(self, sid: str, room: str | None = None, tv: bool | None = None, by: str = "screen") -> dict:
         """What a screen says about itself. A person's answer about what it is beats the screen's own guess, always."""
@@ -59,12 +61,15 @@ class Screens:
         self._save()
         return self._public(rec)
 
-    def show(self, sid: str, on: bool | None = None, play: str | None = None) -> dict | None:
-        """What a screen shows at rest, from its page on the phone: its photos on or off, and how they play."""
+    def show(self, sid: str, on: bool | None = None, play: str | None = None, notes: bool | None = None, shows: str | None = None) -> dict | None:
+        """What a screen shows at rest, from its page on the phone: the photos or the family board, its photos on or off,
+        how they play, and whether notes and countdowns take a turn between them."""
         rec = self.items.get(sid)
         if not rec: return None
         if isinstance(on, bool): rec["photos"] = on
         if play in PLAYS: rec["play"] = play
+        if shows in SHOWS: rec["shows"] = shows
+        if isinstance(notes, bool): rec["notes"] = notes
         self._save()
         return self._public(rec)
 
