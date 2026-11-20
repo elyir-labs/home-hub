@@ -7,19 +7,55 @@
   "pages": [
     {
       "id": "moving",
-      "name": "Photos that move"
+      "name": "Photos that move",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A and B, chosen per screen",
+        "board": "DaysB.dc.html"
+      }
     },
     {
       "id": "cards",
-      "name": "Cards between the photos"
+      "name": "Cards between the photos",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A, with the family board as a choice per screen",
+        "board": "CardsA.dc.html"
+      }
     },
     {
       "id": "morning",
-      "name": "Morning and night"
+      "name": "Morning and night",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A, with the night line",
+        "board": "MorningA.dc.html"
+      }
     },
     {
       "id": "choosing",
-      "name": "Choosing it on the phone"
+      "name": "Choosing it on the phone",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A",
+        "board": "ScreenA.dc.html"
+      }
+    },
+    {
+      "id": "moving-rejected",
+      "name": "Photos that move: not chosen"
+    },
+    {
+      "id": "cards-rejected",
+      "name": "Cards between the photos: not chosen"
+    },
+    {
+      "id": "morning-rejected",
+      "name": "Morning and night: not chosen"
+    },
+    {
+      "id": "choosing-rejected",
+      "name": "Choosing it on the phone: not chosen"
     }
   ],
   "artboards": [
@@ -54,9 +90,9 @@
     },
     {
       "file": "FrameC.dc.html",
-      "page": "moving",
+      "page": "moving-rejected",
       "x": 0,
-      "y": 4500,
+      "y": 0,
       "w": 1920,
       "h": 1080,
       "title": "C: one photo at a time, framed on the wall like a print"
@@ -73,9 +109,9 @@
     },
     {
       "file": "CornerB.dc.html",
-      "page": "cards",
+      "page": "cards-rejected",
       "x": 0,
-      "y": 1500,
+      "y": 0,
       "w": 1920,
       "h": 1080,
       "title": "B: a today card in the corner, beside the photo",
@@ -102,9 +138,9 @@
     },
     {
       "file": "MorningB.dc.html",
-      "page": "morning",
+      "page": "morning-rejected",
       "x": 0,
-      "y": 1500,
+      "y": 0,
       "w": 1920,
       "h": 1080,
       "title": "B: the morning line, laid over the first photo of the day"
@@ -134,13 +170,13 @@
       "x": 520,
       "y": 0,
       "w": 390,
-      "h": 1130,
+      "h": 1330,
       "title": "A: each screen has its own list"
     },
     {
       "file": "HouseB.dc.html",
-      "page": "choosing",
-      "x": 1040,
+      "page": "choosing-rejected",
+      "x": 0,
       "y": 0,
       "w": 390,
       "h": 960,
@@ -184,9 +220,9 @@
     },
     {
       "id": "framec",
-      "page": "moving",
+      "page": "moving-rejected",
       "x": 0,
-      "y": 5620,
+      "y": 1120,
       "w": 1920,
       "text": "C: ONE PHOTO AT A TIME, FRAMED LIKE A PRINT. A white mat and a matte in the photo's own color, the clock small beside it, the facts as one line along the foot. Nearly still: it drifts against burn-in and changes every few minutes.\n\nFOR: The calmest; looks like art on the wall, not a screensaver. AGAINST: The opposite of what was asked for: it makes the screen quieter, not livelier."
     },
@@ -200,9 +236,9 @@
     },
     {
       "id": "cornerb",
-      "page": "cards",
+      "page": "cards-rejected",
       "x": 0,
-      "y": 2620,
+      "y": 1120,
       "w": 1920,
       "text": "B: A TODAY CARD IN THE CORNER. The photos never stop; one glass card in the top corner turns over between a note, a countdown and a fact. Flip it.\n\nFOR: Photos and news at once; nothing interrupts. AGAINST: A small card is a lot to read from three meters, a trivia question or a painting doesn't fit, and the card sits over every photo."
     },
@@ -224,9 +260,9 @@
     },
     {
       "id": "morningb",
-      "page": "morning",
+      "page": "morning-rejected",
       "x": 0,
-      "y": 2620,
+      "y": 1120,
       "w": 1920,
       "text": "B: THE MORNING LINE OVER THE FIRST PHOTO. The same line, laid large over the first photo of the morning, which then carries on as usual.\n\nFOR: Lighter: the morning starts with a photo and a word, not a card. AGAINST: The line competes with the photo, and there is no room for the weather in words or a note."
     },
@@ -250,14 +286,14 @@
       "id": "screena",
       "page": "choosing",
       "x": 520,
-      "y": 1170,
+      "y": 1370,
       "w": 390,
-      "text": "A: EACH SCREEN HAS ITS OWN LIST. Photos becomes Your screens; tapping a screen opens its list: photos, notes and countdowns, the house today, a fact or trivia, jokes, quotes, art; a line for the day and saying it aloud; a verse and horoscopes, off to start.\n\nFOR: The kitchen can be the family board and the TV the photos. AGAINST: Two levels where today there is one."
+      "text": "A: EACH SCREEN HAS ITS OWN LIST. Photos becomes Your screens; tapping a screen opens its list: what it shows (photos, or the family board), how the photos play (one after another, or day by day), photos, notes and countdowns, the house today, a fact or trivia, jokes, quotes, art; a line for the day and saying it aloud; a verse and horoscopes, off to start.\n\nFOR: The kitchen can be the family board and the TV the photos. AGAINST: Two levels where today there is one."
     },
     {
       "id": "houseb",
-      "page": "choosing",
-      "x": 1040,
+      "page": "choosing-rejected",
+      "x": 0,
       "y": 1000,
       "w": 390,
       "text": "B: ONE LIST FOR THE HOUSE. Which screens show photos, as today; what comes between them is one list for every screen.\n\nFOR: One page, the same everywhere. AGAINST: Every screen shows the same things, so a kitchen board (cards C) has nowhere to be chosen."
@@ -279,12 +315,20 @@
       "text": "WHY THIS EXISTS\n\n20 November 2026, after #58: the photos on the TV look still from the sofa, and a resting screen could carry more than photos: fun cards, the family's own notes and countdowns, and a word in the morning and at night. Four questions, a page each: how the photos move, what takes a turn between them, the morning and night, and choosing it all on the phone.\n\nUnder all of them, as before: nothing holds still (burn-in), every word passes the readability check, the default suits kids, and every kind of card is a switch."
     },
     {
-      "id": "pick",
+      "id": "decided",
       "page": "moving",
       "x": 2040,
       "y": 0,
       "w": 560,
-      "text": "TO PICK\n\nOne direction per page, or something else: photos (A, B, C), cards (A, B, C, or A with C as a per-screen channel), morning (A or B, with the night line either way), and the phone (A or B).\n\nMy suggestion: B's photos (A's motion with days and a year ago), cards A with the family board as a channel, the morning card A, and the phone A, since it is the only one where a kitchen can be a board and the TV the photos."
+      "text": "DECIDED 20 NOVEMBER 2026\n\nPHOTOS: A and B, and each screen chooses (How the photos play: One after another, or Day by day). Both move every photo its own way.\nCARDS: A, a card takes a turn between the photos; and the family board (C) is a choice per screen (What it shows: Photos, or The family board).\nMORNING: A, the morning card, with the evening line on Bedtime and as the last thing on the screen.\nPHONE: A, each screen has its own list, now with What it shows and How the photos play at the top.\n\nThe line about a photo running over a pair is fixed with the photos."
+    },
+    {
+      "id": "lost",
+      "page": "moving-rejected",
+      "x": 2040,
+      "y": 0,
+      "w": 420,
+      "text": "NOT CHOSEN\n\nC made the screen calmer, which is the opposite of what was asked. The corner card (cards B) was small from the sofa; the line over a photo (morning B) left no room for the weather or a note; one list for the house (phone B) had nowhere to choose the family board."
     }
   ]
 }
