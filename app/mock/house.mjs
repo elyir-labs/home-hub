@@ -645,6 +645,14 @@ export function createHouse({ env = {}, qr = null } = {}) {
       })
     }
     if (p === '/restart' && req.method === 'POST') return json(res, { rung: 'hub', seconds: 30, how_long: 'about 30 seconds' })
+    // the household's answer to whether two speakers are one pair (design/speaker-pair/, B), kept on both as the brain does
+    if (p === '/speakers/pair' && req.method === 'POST') { let raw = ''; req.on('data', c => (raw += c)); return req.on('end', () => {
+      let b = {}; try { b = JSON.parse(raw) } catch {}
+      const [x, y] = (b.speakers || []).map(id => home.rooms.flatMap(r => r.devices).find(d => d.id === id))
+      if (!x || !y) return json(res, { detail: 'No such speakers.' }, 404)
+      for (const [d, o] of [[x, y], [y, x]]) { delete d.attrs.pair; delete d.attrs.apart; if (b.pair) d.attrs.pair = o.id; else d.attrs.apart = [o.id]; push({ type: 'device', device: d }) }
+      return json(res, { pairs: [] })
+    }) }
     if (p === '/home') return json(res, home)
     if (p === '/ambient') return json(res, ambient)
     if (p === '/geo/search') {

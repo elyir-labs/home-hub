@@ -7,6 +7,10 @@
     {
       "id": "card",
       "name": "A speaker's card with a song on it"
+    },
+    {
+      "id": "card-rejected",
+      "name": "A speaker's card with a song on it: not chosen"
     }
   ],
   "artboards": [
@@ -30,7 +34,7 @@
     },
     {
       "file": "BlurB.dc.html",
-      "page": "card",
+      "page": "card-rejected",
       "x": 0,
       "y": 2200,
       "w": 820,
@@ -39,7 +43,7 @@
     },
     {
       "file": "BelowC.dc.html",
-      "page": "card",
+      "page": "card-rejected",
       "x": 0,
       "y": 3300,
       "w": 820,
@@ -74,7 +78,7 @@
     },
     {
       "id": "b",
-      "page": "card",
+      "page": "card-rejected",
       "x": 900,
       "y": 2200,
       "w": 560,
@@ -82,19 +86,19 @@
     },
     {
       "id": "c",
-      "page": "card",
+      "page": "card-rejected",
       "x": 900,
       "y": 3300,
       "w": 560,
       "text": "C: THE COVER STAYS, THE SOUNDS MOVE BELOW\n\nThe cover stays the card, sharp, with a shade across its top for the words; the sounds leave the card for a row under it.\n\nFOR: the cover is as big as today.\n\nAGAINST: a bright cover still pushes the shade dark, and the sounds are a second thing under every playing speaker."
     },
     {
-      "id": "pick",
+      "id": "decided",
       "page": "card",
       "x": -620,
       "y": 2200,
       "w": 500,
-      "text": "PICK ONE\n\nA (recommended), B, C, a mix, or something else -- describe it."
+      "text": "DECIDED 20 NOVEMBER 2026\n\nA: the cover a square beside the words, on the same cover blurred, with back, pause, next and the volume; the sounds only on a quiet speaker. The room's full-size card on the phone and the wall; the wall's Home keeps its own. Pinned by app/e2e/speaker-card.spec.ts."
     }
   ]
 }

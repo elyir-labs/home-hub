@@ -115,6 +115,7 @@ class Hub:
         self.home.kinds = dict(self.settings.get("kinds") or {})   # what the owner said things are; kept in settings so a restore brings it back with the rest of the house
         self.home.color_pinned = set(self.settings.get("color_pinned") or [])   # and which lights somebody chose a color for, rather than leaving to the house
         self.home.room_colors = {k: list(v) for k, v in (self.settings.get("room_colors") or {}).items()}
+        self.home.speaker_pairs = list(self.settings.get("speaker_pairs") or [])
         self.home.off_home = set(self.settings.get("off_home") or [])   # what is never on Home, on any screen (design/home-keep/)
         self.home.leads = dict(self.settings.get("leads") or {})   # which part of a fan-with-a-light is the tile, where the owner has said (docs/units.md)
         self.log = EventLog(DATA / "events.db")
@@ -2702,6 +2703,21 @@ def phones_code(body: dict, request: Request):
     if not hub.lock.check(str(body.get("code") or ""), who): raise HTTPException(401, "That wasn't it.")
     phone, token = hub.phones.with_code(str(body.get("name") or ""), _device_kind(request, body))
     return _with_cookie({"ok": True, "phone": hub.phones._public(phone)}, request, phone, token)
+
+
+@app.post("/speakers/pair")
+def speakers_pair(body: dict):
+    """{"speakers": [a, b], "pair": true | false}: the household's answer, once, to whether two speakers playing the same
+    song in a room are one pair (design/speaker-pair/, B). A pair is one card that plays, pauses and turns up together."""
+    hub.ready()
+    ids = [str(x) for x in (body.get("speakers") or [])]
+    if len(ids) != 2: raise HTTPException(400, "Two speakers.")
+    try: changed = hub.home.set_pair(ids[0], ids[1], bool(body.get("pair")))
+    except KeyError as e: raise HTTPException(404, str(e.args[0]))
+    except ValueError as e: raise HTTPException(400, str(e))
+    hub.settings.set(speaker_pairs=hub.home.speaker_pairs)
+    for d in changed: hub._broadcast(json.dumps({"type": "device", "device": d.__dict__}))
+    return {"pairs": hub.home.speaker_pairs}
 
 
 @app.post("/phones/plugged-in")
