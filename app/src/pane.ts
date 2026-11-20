@@ -61,7 +61,7 @@ export function reading(d: Device, unit = '°'): string {
       return !parts.length ? 'Nothing here' : !on ? 'Nothing on' : on === parts.length ? 'All on' : `${on} of ${parts.length} on`
     }
     case 'alarm': return s === 'on' ? 'Sounding' : 'Silent'
-    case 'media': return a.media_title || (s === 'playing' ? 'Playing' : s === 'paused' ? 'Paused' : s === 'off' || s === 'standby' ? 'Off' : 'Nothing playing')
+    case 'media': return a.media_title || (s === 'playing' ? 'Playing' : s === 'paused' ? 'Paused' : s === 'off' || s === 'standby' ? (a.box ? 'Asleep' : 'Off') : 'Nothing playing')
     case 'climate': return a.current_temperature != null ? `${Math.round(a.current_temperature)}${u}` : s === 'off' ? 'Off' : cap1(s)
     case 'cover': return a.current_position != null && a.current_position > 0 && a.current_position < 100
       ? `${a.current_position}% open` : s === 'open' || a.current_position === 100 ? 'Open'

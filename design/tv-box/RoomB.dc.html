@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B: the box is one thing in the room</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css"><link rel="stylesheet" href="box.css">
+<style>
+  .tvbox { width: 420px; padding: 0; display: flex; flex-direction: column; }
+  .tvbox .still { height: 120px; flex: none; }
+  .tvbox .body { padding: 16px 24px 0; }
+  .tvbox .nm { font-size: 28px; } .tvbox .st { font-size: 22px; }
+  .tvbox.on .st { color: var(--lamp); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 560px; z-index: 6; padding: 48px var(--safe-x) 0;
+           background: linear-gradient(rgba(14,16,22,.92), rgba(10,12,16,.98)); border-top: 1px solid var(--edge-hi);
+           border-radius: 40px 40px 0 0; backdrop-filter: blur(30px); transform: translateY(100%); transition: transform .3s cubic-bezier(.2,.7,.2,1); }
+  .sheet.open { transform: none; }
+  .sheet h3 { margin: 0; font-size: 44px; font-weight: 400; letter-spacing: -.02em; }
+  .sheet p { margin: 8px 0 32px; font-size: 24px; color: var(--ink-2); }
+  .shade { position: absolute; inset: 0; z-index: 5; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .shade.open { opacity: 1; }
+  .sheet .cards { flex-wrap: nowrap; }
+  .sheet #hint2 { position: absolute; left: 0; right: 0; bottom: var(--safe-y); justify-content: center; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="top"><div class="clock">8:10 PM<small>Friday, November 20</small></div>
+    <div class="who"><span class="dot"></span>Jordan and Alex are home</div></div>
+  <div class="try">Arrows move · <kbd>Enter</kbd> is OK · <kbd>Space</kbd> is Hold OK<br><kbd>Esc</kbd> is Back · <kbd>H</kbd> is Home on the box's remote</div>
+  <div class="title"><h1>Living room</h1><p id="sum">2 lights on · The Apple TV is asleep</p></div>
+  <div class="view"><div class="rows" id="rows"></div></div>
+  <div id="hint" class="keys"></div>
+  <div class="shade" id="shade"></div>
+  <div class="sheet" id="sheet">
+    <h3>Watch on the Apple TV</h3>
+    <p>The TV switches over by itself. Home on the Apple TV's remote comes back here.</p>
+    <div class="cards" id="apps"></div>
+  </div>
+</div>
+<script>
+  const I = {
+    bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>',
+    blind: '<path d="M4 4h16M5 4v11h14V4M5 8h14M5 12h14M12 15v4"/>',
+    speaker: '<rect x="6" y="3" width="12" height="18" rx="3"/><circle cx="12" cy="14" r="3"/><circle cx="12" cy="7" r="1"/>',
+    temp: '<path d="M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0z"/>',
+    film: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 9h4M17 9h4M3 15h4M17 15h4"/>',
+    spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
+    moon: '<path d="M20 14A8 8 0 1 1 10 4a6.5 6.5 0 0 0 10 10z"/>',
+    power: '<path d="M12 3v8M6.3 7.3a8 8 0 1 0 11.4 0"/>',
+    grid: '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
+  }
+  const svg = (k) => `<span class="ic"><svg viewBox="0 0 24 24">${I[k]}</svg></span>`
+  const apps = [['Netflix', '150, 45, 50'], ['Apple TV', '105, 110, 125', 'Harbor Lights'], ['YouTube', '160, 75, 60'], ['Disney+', '45, 75, 150'],
+                ['Prime Video', '40, 115, 150'], ['Max', '85, 60, 160']]
+  const here = [
+    { nm: 'Ceiling light', ic: 'bulb', v: 35, c: '214, 92, 170', light: 1 },
+    { nm: 'Floor lamp', ic: 'bulb', v: 24, c: '233, 184, 114', light: 1 },
+    { box: 1 },
+    { nm: 'Reading lamp', ic: 'bulb', v: 0, c: '233, 184, 114', light: 1, was: 60 },
+    { nm: 'Blinds', ic: 'blind', st: '70% open', v: 70, c: '185, 181, 173' },
+    { nm: 'Speaker', ic: 'speaker', st: 'Paused' },
+  ]
+  const scenes = [['Movie', 'film', 'Lights low, screen on', '#e04848'], ['Guests', 'spark', 'Lights up bright', '#3fae5a'], ['Sleep', 'moon', 'Lights and screens off', '#e8c62e'], ['All off', 'power', 'Lights and music off', '#3f6be0']]
+  const rooms = [['Kitchen', '1 light on', 1], ['Bedroom', '1 light on · Fan on', 1], ['Office', 'Quiet', 0], ['Front door', 'Locked', 0], ['Backyard', '1 light on', 1]]
+  const lightHint = (t) => `OK|${t.v ? 'Turn off' : 'Turn on'};~Hold OK|Brightness and color`
+  let last = 'Harbor Lights'
+
+  let h = '<section class="row here"><h2>In the living room</h2><div class="cards">'
+  here.forEach((t, i) => {
+    if (t.box) {
+      h += `<div class="card tvbox" data-f id="box" data-hint="OK|Back to Harbor Lights;~Hold OK|Choose an app"><div class="still"></div>
+        <div class="body"><div class="nm">Apple TV</div><div class="st" id="boxSt">Asleep · Harbor Lights</div></div></div>`
+      return
+    }
+    const on = t.light && t.v > 0
+    h += `<div class="card thing ${t.light ? 'light' : ''} ${on ? 'on' : ''}" data-f ${i === 0 ? 'data-f-start' : ''} data-i="${i}"
+      style="--c-rgb:${t.c || '233,184,114'};--c:rgb(${t.c || '233,184,114'});--v:${t.v || 0}%;--g:${on ? t.v / 100 + .3 : 0}"
+      data-hint="${t.light ? lightHint(t) : t.ic === 'speaker' ? 'OK|Play;~Hold OK|Choose what plays' : t.ic === 'blind' ? 'OK|Close;~Hold OK|How far' : 'OK|Warmer or cooler'}">
+      <div class="glow"></div>${svg(t.ic)}<div><div class="nm">${t.nm}</div><div class="st">${t.light ? (on ? `On, ${t.v}%` : 'Off') : t.st}</div></div>
+      ${t.v != null && t.ic !== 'speaker' ? '<div class="bar"><i></i></div>' : ''}</div>`
+  })
+  h += '</div></section><section class="row"><h2>Scenes here</h2><div class="cards">'
+  for (const [n, ic, s, c] of scenes) h += `<div class="card scene" data-f data-hint="OK|Start ${n}">${svg(ic)}<div><div class="nm">${n}</div><div class="st">${s}</div></div><span class="cb" style="background:${c}"></span></div>`
+  h += '</div></section><section class="row"><h2>Other rooms</h2><div class="cards">'
+  for (const [n, s, lit] of rooms) h += `<div class="card room ${lit ? 'lit' : ''}" data-f data-hint="OK|Go to the ${n.toLowerCase()}"><div class="nm">${n}</div><div class="st">${s}</div></div>`
+  h += '</div></section>'
+  const rowsEl = document.getElementById('rows'); rowsEl.innerHTML = h
+
+  let a = ''
+  apps.forEach(([n, t, st]) => { a += `<div class="card app" data-app="${n}" style="--t:${t}" data-hint="OK|Watch ${n};Back|Close"><div><div class="nm">${n}</div><div class="st">${st || '&nbsp;'}</div></div></div>` })
+  a += `<div class="card app all" data-hint="OK|Every app on the Apple TV;Back|Close">${svg('grid')}<div><div class="nm">All apps</div><div class="st">15 more</div></div></div>`
+  const appsEl = document.getElementById('apps'); appsEl.innerHTML = a
+  const sheet = document.getElementById('sheet'), shade = document.getElementById('shade'), boxCard = document.getElementById('box')
+
+  window.tvLit = (e) => {
+    if (e.closest('.sheet')) return
+    const rows = [...rowsEl.querySelectorAll('.row')], r = e.closest('.row'), n = rows.indexOf(r)
+    rows.forEach((x, i) => x.classList.toggle('gone', i < n))
+    rowsEl.style.transform = `translateY(${-r.offsetTop + 34}px)`
+  }
+  // Only one layer answers the arrows at a time: the sheet while it is up, the rows otherwise.
+  function layer(up) {
+    rowsEl.querySelectorAll('.card').forEach((e) => up ? e.removeAttribute('data-f') : e.setAttribute('data-f', ''))
+    appsEl.querySelectorAll('.card').forEach((e) => up ? e.setAttribute('data-f', '') : e.removeAttribute('data-f'))
+    sheet.classList.toggle('open', up); shade.classList.toggle('open', up)
+  }
+  function openSheet() { layer(true); const w = [...appsEl.children].find((e) => e.dataset.app === lastApp) || appsEl.children[0]; window.tvLight(w) }
+  function closeSheet() { layer(false); window.tvLight(boxCard) }
+  let lastApp = 'Apple TV'
+  function watch(app) {
+    window.tvBox.open(app, () => {
+      lastApp = app
+      if (sheet.classList.contains('open')) layer(false)
+      boxCard.classList.add('on')
+      document.getElementById('boxSt').textContent = `On · ${app}, just now`
+      boxCard.dataset.hint = `OK|Back to ${app};~Hold OK|Choose an app`
+      document.getElementById('sum').textContent = `2 lights on · The Apple TV is on, back from ${app}`
+      window.tvLight(boxCard)
+    })
+  }
+  window.tvKeys = (k, cur) => {
+    if (window.tvBox.key(k)) return true
+    if (sheet.classList.contains('open') && (k === 'Escape' || k === 'Backspace')) { closeSheet(); return true }
+    if (cur === boxCard && k === ' ') { openSheet(); return true }
+    if (k !== 'Enter') return false
+    if (cur.dataset.app) { watch(cur.dataset.app); return true }
+    if (cur === boxCard) { watch(lastApp); return true }
+    if (cur.classList.contains('light')) {
+      const t = here[+cur.dataset.i]
+      if (t.v) { t.was = t.v; t.v = 0 } else t.v = t.was || 50
+      const on = t.v > 0
+      cur.classList.toggle('on', on); cur.style.setProperty('--v', t.v + '%'); cur.style.setProperty('--g', on ? t.v / 100 + .3 : 0)
+      cur.querySelector('.st').textContent = on ? `On, ${t.v}%` : 'Off'
+      cur.dataset.hint = lightHint(t)
+      return true
+    }
+    return false
+  }
+  document.querySelector('.screen').addEventListener('click', (ev) => {
+    const e = ev.target.closest('[data-f]'); if (e?.classList.contains('f')) window.tvKeys('Enter', e)
+  })
+  boxCard.addEventListener('contextmenu', (ev) => { ev.preventDefault(); window.tvLight(boxCard); openSheet() })
+</script>
+<script src="box.js"></script>
+<script src="tv.js"></script>
+</body>
+</html>

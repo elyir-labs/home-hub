@@ -1,0 +1,13 @@
+# Hears the way back from a streaming box on the TV's HDMI, and what the TV is showing (cec-watch.py, design/tv-box/).
+[Unit]
+Description=The way back to the house through %I
+BindsTo=dev-%i.device
+After=dev-%i.device elyir-cec@%i.service
+
+[Service]
+RuntimeDirectory=elyir-cec
+RuntimeDirectoryMode=0755
+RuntimeDirectoryPreserve=yes
+ExecStart=/opt/home-hub/startup/cec-watch.py /dev/%I
+Restart=on-failure
+RestartSec=5

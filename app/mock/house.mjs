@@ -40,7 +40,10 @@ export function createHouse({ env = {}, qr = null } = {}) {
       dev('l2', 'Floor lamp', 'living', 'light', 'on', { brightness: 60, supported_color_modes: ['brightness'] }),
       dev('l3', 'Reading lamp', 'living', 'light', 'off', { supported_color_modes: ['onoff'] }),
 
-      dev('m1', 'Living room TV', 'living', 'media', 'playing', { media_title: 'The Bear', media_artist: 'Season 3, Episode 4', app_name: 'Disney+', volume_level: 0.35, entity_picture: '/x.jpg', media_position: 1421, media_duration: 3740 }),
+      dev('m1', 'Living room TV', 'living', 'media', 'playing', { media_title: 'The Bear', media_artist: 'Season 3, Episode 4', app_name: 'Disney+', volume_level: 0.35, entity_picture: '/x.jpg', media_position: 1421, media_duration: 3740,
+        // a TV with apps of its own, which the brain counts as a streaming box (hub/boxes.py, design/tv-box/)
+        box: true, apps: ['Netflix', 'Disney+', 'YouTube', 'Prime Video', 'Max', 'Apple TV', 'Hulu', 'Peacock', 'Paramount+', 'Spotify', 'Twitch', 'Plex'],
+        used_apps: ['Disney+', 'Netflix'], last_on: { title: 'The Bear', app: 'Disney+', at: Math.floor(Date.now() / 1000) - 600 } }),
       dev('s1', 'Sonos', 'living', 'media', env.MUSIC === 'quiet' ? 'idle' : 'paused', { ...(env.MUSIC === 'quiet' ? {} : { media_title: 'Blue in Green', media_artist: 'Miles Davis' }), volume_level: 0.2, music: true }),
       dev('c1', 'Blinds', 'living', 'cover', 'open', { current_position: 70 }, 'IKEA'),
       dev('t1', 'Thermostat', 'living', 'climate', 'cool', { current_temperature: 74, temperature: 71, hvac_action: 'cooling', hvac_modes: ['heat', 'cool', 'heat_cool', 'off'], fan_modes: ['on', 'auto'], fan_mode: 'auto', current_humidity: 48 }),
@@ -1234,6 +1237,10 @@ export function createHouse({ env = {}, qr = null } = {}) {
     if (action === 'sound_off') { a.sound = null; a.sound_until = null }
     if (action === 'open' || action === 'close') a.current_position = action === 'open' ? 100 : 0
     if (action === 'set' && data.position != null) { a.current_position = data.position; d.state = data.position > 0 ? 'open' : 'closed' }
+    if (action === 'app' && a.apps?.includes(data.source)) {
+      Object.assign(a, { app_name: data.source, media_title: null, media_artist: null, used_apps: [data.source, ...(a.used_apps ?? []).filter(x => x !== data.source)] })
+      d.state = 'on'
+    }
     push({ type: 'device', device: d })
   }
   function intend(room, intent) {

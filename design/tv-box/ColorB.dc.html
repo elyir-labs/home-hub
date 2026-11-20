@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B: any colored button comes back</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css"><link rel="stylesheet" href="box.css">
+</head>
+<body>
+<div class="screen">
+  <div class="top"><div class="clock">8:10 PM<small>Friday, November 20</small></div>
+    <div class="who"><span class="dot"></span>Jordan and Alex are home</div></div>
+  <div class="try">Right to Netflix, <kbd>Enter</kbd><br><kbd>R</kbd> <kbd>G</kbd> <kbd>Y</kbd> <kbd>B</kbd> are the colored buttons · <kbd>S</kbd> is sleep</div>
+  <div class="title"><h1>Living room</h1><p>2 lights on · The Apple TV is asleep</p></div>
+  <div class="view"><div class="rows" id="rows"></div></div>
+  <div id="hint" class="keys"></div>
+</div>
+<script>
+window.WAY = {
+  line: 'To come back to the house, press any colored button on the TV&rsquo;s remote: <kbd class="dot" style="background:#e5484d"></kbd><kbd class="dot" style="background:#46a758"></kbd><kbd class="dot" style="background:#f5d90a"></kbd><kbd class="dot" style="background:#3e63dd"></kbd>',
+  boxWay: 'Any colored button on the TV&rsquo;s remote <kbd class="dot" style="background:#e5484d"></kbd><kbd class="dot" style="background:#46a758"></kbd><kbd class="dot" style="background:#f5d90a"></kbd><kbd class="dot" style="background:#3e63dd"></kbd> <kbd>R</kbd><kbd>G</kbd><kbd>Y</kbd><kbd>B</kbd> or the Apple TV going to sleep<kbd>S</kbd>brings the house back',
+  keys: ['r', 'g', 'y', 'b', 'R', 'G', 'Y', 'B', 'F1', 'F2', 'F3', 'F4', 's', 'S'],
+}
+</script>
+<script src="back.js"></script>
+<script src="box.js"></script>
+<script src="tv.js"></script>
+</body>
+</html>

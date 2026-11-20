@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
 import { activity } from '../src/store'
-import { digitOf, hintFor, musicIn, nearest, okOf, onTV, pressOf, sceneFor, speakersOf, stateOf, thingsIn } from '../src/tv'
+import { appsOf, appTint, boxAsleep, boxIn, digitOf, hintFor, lastOn, leadsOf, musicIn, nearest, okOf, onTV, pressOf, sceneFor, speakersOf, stateOf, thingsIn, wayBack } from '../src/tv'
 import { stepOf } from '../src/levels'
 import { SCENES, store } from '../src/store'
 
@@ -146,5 +146,45 @@ describe('music in the TV\'s room (design/tv-music/, A and B)', () => {
   it('counts a speaker playing the same song in the room as in step, though nothing grouped them', () => {
     const left = sp('left', 'playing', { media_title: 'Drowning' }), right = sp('right', 'playing', { media_title: 'Drowning' })
     expect(speakersOf(left, room(left, right, sp('pod', 'playing', { media_title: 'Rock' }))).map(d => d.id)).toEqual(['left', 'right'])
+  })
+})
+
+/* design/tv-box/, A: a streaming box beside the TV puts a Watch row above the room; a TV with none opens on its room. */
+describe('a streaming box beside the TV', () => {
+  const apps = ['Netflix', 'YouTube', 'Disney+', 'Max', 'Hulu', 'Peacock', 'Plex', 'Twitch', 'Prime Video']
+  const box = (state = 'standby', attrs: Record<string, any> = {}) => dev('b', 'Apple TV', 'media', state, { box: true, apps, ...attrs })
+  const lamp = dev('l', 'Floor lamp', 'light', 'on')
+  const music = dev('s', 'Sonos', 'media', 'playing', { music: true, media_title: 'Dinner' })
+
+  it('leads the room with Watch, after whatever is playing here, and is not there without a box', () => {
+    expect(leadsOf(room([lamp]))).toEqual([])
+    expect(leadsOf(room([lamp, box()]))).toEqual(['watch'])
+    expect(leadsOf(room([lamp, box(), music]))).toEqual(['music', 'watch'])
+    expect(boxIn(room([dev('tv', 'TV', 'media', 'on', { source_list: ['HDMI 1'] })]))).toBeNull()   // a TV's inputs are not apps
+    expect(boxIn(room([box('on', { apps: [] })]))).toBeNull()
+  })
+  it('shows the apps the house has seen used first, then the rest as the box lists them, seven at a time', () => {
+    const { shown, more } = appsOf(box('on', { used_apps: ['Max', 'Gone', 'YouTube'] }))
+    expect(shown).toEqual(['Max', 'YouTube', 'Netflix', 'Disney+', 'Hulu', 'Peacock', 'Plex'])
+    expect(more).toEqual(['Twitch', 'Prime Video'])
+  })
+  it('says what was last on, or what is on now', () => {
+    expect(lastOn(box())).toBeNull()
+    expect(lastOn(box('standby', { last_on: { title: 'Harbor Lights', app: 'Max' } }))).toMatchObject({ label: 'Last on', title: 'Harbor Lights', where: 'In Max', app: 'Max' })
+    expect(lastOn(box('playing', { last_on: { title: null, app: 'YouTube' } }))).toMatchObject({ label: 'On now', title: 'YouTube', where: '' })
+  })
+  it('brings the house back only when the box goes to sleep, since a box does not say when Home is pressed', () => {
+    expect(boxAsleep(box('standby'))).toBe(true)
+    expect(boxAsleep(box('off'))).toBe(true)
+    expect(boxAsleep(box('idle', { app_name: null }))).toBe(false)
+    expect(boxAsleep(box('playing', { app_name: 'Netflix' }))).toBe(false)
+  })
+  it('says the way back before the TV switches: a colored button where one is heard, Input and sleep where not', () => {
+    expect(wayBack(true, 'Apple TV')).toBe('To come back to the house, press any colored button on the TV’s remote:')
+    expect(wayBack(false, 'Apple TV')).toBe('To come back to the house, press Input on the TV’s remote. When the Apple TV goes to sleep, the house comes back by itself.')
+  })
+  it('gives an app the same tint every time, from a quiet set, never a logo', () => {
+    expect(appTint('Netflix')).toBe(appTint('Netflix'))
+    expect(appTint('Netflix')).toMatch(/^\d+, \d+, \d+$/)
   })
 })

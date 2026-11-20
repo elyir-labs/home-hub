@@ -17,6 +17,8 @@ import { imageUrl, type Device } from '../api'
 import { guessNow, isDead, perform, store } from '../store'
 import Icon from '../Icon.vue'
 import DeviceArt from '../DeviceArt.vue'
+import BoxWatch from './BoxWatch.vue'
+import { isBox } from '../boxes'
 import { useSlide } from './slide'
 
 const props = defineProps<{ device: Device }>()
@@ -25,6 +27,11 @@ const dead = computed(() => isDead(props.device))
 const playing = computed(() => props.device.state === 'playing')
 const off = computed(() => props.device.state === 'off' || props.device.state === 'standby')
 const isTv = computed(() => /\b(tv|television|roku|apple tv|chromecast)\b/i.test(props.device.name))
+/* A streaming box asleep is somewhere to watch from (design/box-card/, B): its pane is the choice of what to watch.
+   Awake, it is what is playing, as any player is, with Something else to choose again. */
+const box = computed(() => isBox(props.device))
+const choosing = ref(false)
+watch(() => props.device.id, () => (choosing.value = false))
 
 const art = ref('')
 watch(() => a.value.entity_picture, p => { art.value = p ? imageUrl(props.device.id) : '' }, { immediate: true })
@@ -64,7 +71,10 @@ const stopSound = () => perform(props.device, 'sound_off', undefined, { state: '
 </script>
 
 <template>
-  <div class="rig rig-media">
+  <div class="rig rig-media" v-if="box && !dead && (off || choosing)">
+    <BoxWatch :device="device" />
+  </div>
+  <div class="rig rig-media" v-else>
     <div class="rig-art" :class="{ has: !!art }">
       <img v-if="art" :src="art" alt="" @error="art = ''" />
       <DeviceArt v-else :kind="isTv ? 'tv' : 'speaker'" :state="{ playing }" fit="slot" />
@@ -85,6 +95,7 @@ const stopSound = () => perform(props.device, 'sound_off', undefined, { state: '
         <button class="ctl" v-if="!isTv" @click="perform(device, 'previous')" aria-label="Skip back"><Icon name="prev" :size="24" /></button>
         <button class="ctl primary big" @click="toggle" :aria-label="playing ? 'Pause' : 'Play'"><Icon :name="playing ? 'pause' : 'play'" :size="30" /></button>
         <button class="ctl" v-if="!isTv" @click="perform(device, 'next')" aria-label="Skip on"><Icon name="next" :size="24" /></button>
+        <button class="button rig-else" v-if="box" @click="choosing = true">Something else</button>
       </div>
       <div class="rig-transport" v-else-if="!dead">
         <button class="ctl primary big" @click="perform(device, 'on', undefined, { state: 'idle' })" aria-label="Turn it on"><Icon name="power" :size="28" /></button>
