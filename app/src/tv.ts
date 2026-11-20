@@ -16,6 +16,7 @@ import { dimmable, lightPct, step, tempUnit } from './levels'
 import { isScreen, screenKind, type ScreenKind } from './screen'
 import { typable } from './keys'
 import { canStart, groupOf } from './music'
+import { isBox } from './boxes'
 
 /* Worked out, not told: a screen for the hub, in Chromium on Linux, that nobody can touch -- a mini PC on a
    TV. A wall screen has a touchscreen and keeps the wall. ?tv=1 forces it for previews, ?tv=0 turns it off.
@@ -64,12 +65,39 @@ export function musicIn(room: Room | null, playingOnly = false): Device | null {
   const on = room?.devices.filter(d => canStart(d) && (d.state === 'playing' || (!playingOnly && d.state === 'paused'))) ?? []
   return on.find(d => d.state === 'playing') ?? on[0] ?? null
 }
+/* While the TV's room plays, the record is the TV's home (design/tv-playing/, A): twenty seconds with no key and it
+   comes back, not the three minutes a quiet house waits, since a TV nobody is pressing keys at is a TV nobody is
+   reading. Not while a pane is open, which is somebody reading. The sheet raised over the record sinks after the same. */
+export const RECORD_AFTER = 20 * 1000
+export const restAfter = (usual: number, record: boolean, reading: boolean) => record && !reading ? RECORD_AFTER : usual
+
 export function speakersOf(d: Device, room: Room): Device[] {
   const mates = new Set((d.attrs.together as string[] | undefined) ?? [])
   // its pair, and a speaker playing the same song in step (an Apple TV playing to both HomePods): music.ts groupOf
   const group = groupOf(d, room)
   return [...group, ...room.devices.filter(x => mates.has(x.id) && !group.includes(x))]
 }
+
+/* A streaming box beside the TV (design/tv-box/, A): the hub opens an app on it and switches the TV over, and the box's
+   own remote's Home brings the house back. The brain says which players are boxes; the panel only sees one with apps. */
+export const boxIn = (room: Room | null): Device | null => room?.devices.find(isBox) ?? null
+
+/* The rows above the room's own, in order: what plays here, then Watch. A TV with no box has no Watch row, so it opens
+   on its room as it did before. */
+export type Lead = 'music' | 'watch'
+export function leadsOf(room: Room | null): Lead[] {
+  return [...(musicIn(room) ? ['music' as const] : []), ...(boxIn(room) ? ['watch' as const] : [])]
+}
+
+export { appsOf, appTint, APPS_SHOWN, boxAsleep, isBox, lastOn } from './boxes'
+
+/* What the handover says for the two seconds before the TV switches (design/tv-box/, coming back: B, falling back to A).
+   A colored button is the way back only where this screen has said it can hear one meant for the box. */
+export function wayBack(colors: boolean, box: string): string {
+  return colors ? 'To come back to the house, press any colored button on the TV’s remote:'
+    : `To come back to the house, press Input on the TV’s remote. When the ${box} goes to sleep, the house comes back by itself.`
+}
+export const HANDOVER_MS = 2200
 
 const ORDER = ['light', 'cover', 'climate', 'media', 'fan', 'switch', 'lock']
 /* Everything in the room a person can do something to, in an order that never changes with its state:

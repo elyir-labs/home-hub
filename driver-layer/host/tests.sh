@@ -597,8 +597,12 @@ remote() {
   cat > "$bin/cec-ctl" <<'FAKE'
 #!/usr/bin/env bash
 echo "cec-ctl $*" >> "$ASKED"
-if [ $# -eq 2 ]; then printf '\tDriver                   : %s\n\tPhysical Address         : 2.0.0.0\n' "$DRIVER"; fi
-case "$*" in *give-device-power-status*) echo "    pwr-state: standby (0x01)" ;; esac
+if [ $# -eq 2 ]; then printf '\tDriver                   : %s\n\tPhysical Address         : 2.0.0.0\n\tLogical Address          : 4 (Playback Device 1)\n' "$DRIVER"; fi
+case "$*" in
+  *give-device-power-status*) echo "    pwr-state: standby (0x01)" ;;
+  *"--to 8 --give-physical-addr"*) echo "    Received from Playback Device 2 (8): REPORT_PHYSICAL_ADDR (0x84): phys-addr: 3.0.0.0 prim-devtype: playback (0x04)" ;;
+  *give-physical-addr*) exit 1 ;;
+esac
 FAKE
   printf '#!/usr/bin/env bash\necho "ir-keytable $*" >> "$ASKED"\n' > "$bin/ir-keytable"; chmod +x "$bin"/*
   cec() { rm -f "$root/asked"; PATH="$bin:$PATH" ASKED="$root/asked" HUB_DRM="$root/drm" HUB_CEC_SYS="$root/cec" HUB_RC_SYS="$root/rc" \
@@ -616,6 +620,39 @@ FAKE
   is "showing the house wakes the TV, then switches it to this box" "$(grep -c -- '--image-view-on' "$root/asked") $(asked --active-source)" \
     "1 cec-ctl -d /dev/cec0 --to 15 --active-source phys-addr=2.0.0.0"
   is "...and the TV can be asked whether it is on" "$(DRIVER=x cec tv status)" "standby"
+  DRIVER=x cec tv box
+  is "switching to the streaming box asks the other player where it is, never this one, and shows that" \
+    "$(grep -c -- '--to 4 --give-physical-addr' "$root/asked") $(asked --set-stream-path)" "0 cec-ctl -d /dev/cec0 --to 15 --set-stream-path phys-addr=3.0.0.0"
+
+  # the way back from a streaming box (startup/cec-watch.py, design/tv-box/, B falling back to A)
+  local w="$root/watch"; mkdir -p "$w"
+  cat > "$w/cec-ctl" <<'FAKE'
+#!/usr/bin/env bash
+if [ $# -eq 2 ]; then printf '\tPhysical Address         : 2.0.0.0\n\tLogical Address          : 4 (Playback Device 1)\n'; exit 0; fi
+case "$3" in
+  --monitor-all) [ -n "$ALL" ] || { echo "monitor-all not supported" >&2; exit 1; } ;;
+esac
+cat "$FEED"
+FAKE
+  printf '#!/usr/bin/env bash\necho "cec.sh $*" >> "%s/shown"\n' "$w" > "$w/cec.sh"; chmod +x "$w/cec-ctl" "$w/cec.sh"
+  cat > "$w/feed" <<'FEED'
+Received from Playback Device 2 to all (8 to 15): ACTIVE_SOURCE (0x82):
+	phys-addr: 3.0.0.0
+Received from TV to Playback Device 1 (0 to 4): USER_CONTROL_PRESSED (0x44):
+	ui-cmd: F2 (Red) (0x72)
+Received from TV to Playback Device 2 (0 to 8): USER_CONTROL_PRESSED (0x44):
+	ui-cmd: Select (0x00)
+FEED
+  watch() { rm -rf "$w/state" "$w/shown"; PATH="$w:$PATH" FEED="$w/feed" ELYIR_CEC_STATE="$w/state" ELYIR_CEC_SH="$w/cec.sh" ELYIR_CEC_SETTLE=0.2 \
+    python3 "$HERE/../../startup/cec-watch.py" /dev/cec0; }
+  ALL=1 watch
+  is "the box on the TV is heard as what the TV shows, and a press meant for this unit or OK for the box changes nothing" \
+    "$(cat "$w/state/source") $(cat "$w/state/own") $(cat "$w/state/hears") $(cat "$w/shown" 2>/dev/null | wc -l | tr -d ' ')" "3.0.0.0 2.0.0.0 all 0"
+  printf 'Received from TV to Playback Device 2 (0 to 8): USER_CONTROL_PRESSED (0x44):\n\tui-cmd: F3 (Green) (0x73)\n' >> "$w/feed"
+  ALL=1 watch
+  is "a colored button meant for the box brings the house back, and the TV is showing it again" "$(cat "$w/shown") $(cat "$w/state/source")" "cec.sh tv show 2.0.0.0"
+  watch
+  is "an adapter that can't hear the whole bus says so, and the way back falls back to Input or sleep" "$(cat "$w/state/hears") $(cat "$w/shown" 2>/dev/null | wc -l | tr -d ' ')" "own 0"
   rm -rf "$root"
 }
 
@@ -1514,7 +1551,7 @@ changing() {
   at="http://127.0.0.1:$port"
   helper() {   # role, found
     PATH="$bin:$PATH" WAYLAND_DISPLAY=wayland-0 HUB_ROLE="$1" FOUND="$2" ELYIR_SCREEN_PORT=$port ELYIR_PANEL_URL='http://hub.local/?screen=1' \
-      ELYIR_TURN_FILE="$root/turn" ELYIR_SCREEN_ASK="$root/ask" ELYIR_FIND_HUB="$dir/startup/find-hub.sh" \
+      ELYIR_TURN_FILE="$root/turn" ELYIR_SCREEN_ASK="$root/ask" ELYIR_FIND_HUB="$dir/startup/find-hub.sh" ELYIR_CEC_STATE="$root/cec-state" \
       python3 "$HERE/../../startup/screen-helper.py" & pid=$!
     for _ in $(seq 1 50); do curl -s -o /dev/null "$at/this" && break; sleep 0.1; done
   }
@@ -1526,6 +1563,14 @@ changing() {
   is "a quarter turn is done and kept" "$(call /turn '{"turn": 90}') $(cat "$root/turn") $(cat "$root/randr")" "200 90 wlr-randr --output DSI-1 --transform 90"
   is "...and left for turn.sh, so the startup turns too" "$(cat "$root/ask/turn.request")" "90"
   is "...an eighth is not" "$(call /turn '{"turn": 45}')" "400"
+  printf '#!/usr/bin/env bash\necho "cec-ctl $*" >> "%s/cec"\n[ $# -eq 2 ] && printf "\\tPhysical Address : 2.0.0.0\\n"\nexit 0\n' "$root" > "$bin/cec-ctl"; chmod +x "$bin/cec-ctl"
+  is "the TV is switched back to the house over HDMI" "$(call /tv '{"show": "house"}') $(grep -c -- '--active-source phys-addr=2.0.0.0' "$root/cec")" "200 1"
+  is "...and the TV is never sent anywhere but the house or the box" "$(call /tv '{"show": "HDMI 3"}')" "400"
+  is "with nothing listening on the HDMI, what the TV shows is not known" "$(curl -s -H "Origin: $origin" "$at/tv")" '{"showing": null, "colors": false}'
+  mkdir -p "$root/cec-state"; echo 2.0.0.0 > "$root/cec-state/own"; echo 3.0.0.0 > "$root/cec-state/source"; echo all > "$root/cec-state/hears"
+  is "...the box on the TV is somewhere else, and a colored button brings the house back" "$(curl -s -H "Origin: $origin" "$at/tv")" '{"showing": "elsewhere", "colors": true}'
+  echo 2.0.0.0 > "$root/cec-state/source"
+  is "...and once it is back, the TV shows the house" "$(curl -s -H "Origin: $origin" "$at/tv")" '{"showing": "house", "colors": true}'
   is "a screen asked to show another hub, which it already does, is refused" "$(call /role '{"to": "screen"}')" "400"
   is "a screen asked to run a house leaves the one word for role.sh" "$(call /role '{"to": "hub"}') $(cat "$root/ask/role.request")" "200 hub"
   kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null
@@ -1703,9 +1748,29 @@ SH
   rm -rf "$root"
 }
 
+zigbee_kept() {
+  group "an update never costs the house its Zigbee network"
+  local root up dir; root=$(mktemp -d); up="$root/up"; dir="$root/hub"
+  mkdir -p "$up/driver-layer/zigbee2mqtt"; git init -q "$up"; git -C "$up" config user.email t@t; git -C "$up" config user.name t
+  printf 'advanced:\n  network_key: GENERATE\n' > "$up/driver-layer/zigbee2mqtt/configuration.yaml"; echo one > "$up/f"
+  git -C "$up" add -A; git -C "$up" commit -qm one; git clone -q "$up" "$dir"
+  printf 'advanced:\n  network_key:\n    - 7\n' > "$dir/driver-layer/zigbee2mqtt/configuration.yaml"   # Zigbee2MQTT made the network
+  echo two > "$up/f"; git -C "$up" commit -qam two; git -C "$dir" fetch -q origin
+  # shellcheck disable=SC2034  # DIR and CHANNEL are read by the go_to_ref pulled in by eval
+  ( export DIR="$dir" CHANNEL=branch; want_ref() { echo origin/HEAD; }   # read by install.sh's go_to_ref, loaded below
+    eval "$(sed -n '/^go_to_ref() {/,/^}/p' "$HERE/../../install.sh")"; go_to_ref >/dev/null )
+  is "the code moves on" "$(cat "$dir/f")" "two"
+  is "...and the house's network key is still in its file" "$(grep -c -- '- 7' "$dir/driver-layer/zigbee2mqtt/configuration.yaml")" "1"
+  if command -v node >/dev/null 2>&1; then
+    # its exit status, not its summary: node's test output reads differently from one version to the next
+    is "...and Zigbee2MQTT puts a reset one back before it starts" "$(node --test "$HERE/../zigbee2mqtt-keep.test.mjs" >/dev/null 2>&1 && echo ok || echo failed)" "ok"
+  fi
+  rm -rf "$root"
+}
+
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; remote; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; describing; starting_over; shutting
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; remote; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; describing; starting_over; shutting; zigbee_kept
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

@@ -71,7 +71,8 @@ export const store = reactive({
   devKey: new URLSearchParams(location.search).get('key') === '1',   // ?sheet=developer&key=1: the key form a phone opens from the wall's code
   /* Music (design/music/): each room's last plays, for the speakers' Again, and the room whose pane is open. */
   musicAgain: {} as Record<string, MusicItem[]>,
-  musicPane: (new URLSearchParams(location.search).get('music') || null) as string | null,   // ?music=living previews it
+  musicPane: (new URLSearchParams(location.search).get('music') || null) as string | null,
+  glowSetup: new URLSearchParams(location.search).get('glow') === '1',   // the light behind the TV's setup, on a TV (design/tv-glow/); ?glow=1 previews it   // ?music=living previews it
   sounds: [] as Sound[],                     // what a speaker can play: the hub's noises and the files in its sounds folder
   /* An update is happening -- this screen asked, or the hub started one in the night and said so.
      For most of it the house is entirely usable: the code, the signature and the download all happen

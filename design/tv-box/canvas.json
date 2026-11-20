@@ -1,0 +1,259 @@
+{
+  "name": "A streaming box beside the hub",
+  "areas": [
+    "Watching and listening",
+    "Wall screens"
+  ],
+  "pages": [
+    {
+      "id": "tv",
+      "name": "One TV, the box and the house",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A"
+      }
+    },
+    {
+      "id": "tv-lost",
+      "name": "One TV, the box and the house: not chosen"
+    },
+    {
+      "id": "back",
+      "name": "Coming back to the house",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "B, falling back to A"
+      }
+    },
+    {
+      "id": "back-lost",
+      "name": "Coming back to the house: not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "tv",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: the TV's home, with a box beside the hub"
+    },
+    {
+      "file": "WatchA.dc.html",
+      "page": "tv",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: Watch leads the TV's home",
+      "is_interactive": true
+    },
+    {
+      "file": "RoomB.dc.html",
+      "page": "tv-lost",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: the box is one thing in the room",
+      "is_interactive": true
+    },
+    {
+      "file": "PhoneC.dc.html",
+      "page": "tv-lost",
+      "x": 0,
+      "y": 1500,
+      "w": 390,
+      "h": 844,
+      "title": "C: the box keeps the TV, the phone is the remote",
+      "is_interactive": true
+    },
+    {
+      "file": "BackToday.dc.html",
+      "page": "back",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: the Watch row as built, and no way back"
+    },
+    {
+      "file": "InputA.dc.html",
+      "page": "back",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: Input, or the box going to sleep",
+      "is_interactive": true
+    },
+    {
+      "file": "ColorB.dc.html",
+      "page": "back",
+      "x": 0,
+      "y": 3000,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: any colored button comes back",
+      "is_interactive": true
+    },
+    {
+      "file": "PhoneBackC.dc.html",
+      "page": "back-lost",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "C: the phone brings the house back",
+      "is_interactive": true
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "tv",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026: can Apple TV, Apple Music, Spotify and the rest come into the box, so nobody is switching between boxes?\n\nThe hub can't play them itself. Netflix, Apple TV+, Disney+, Max and Prime stream in full only on devices they have certified, and the hub will never be one; in a browser on Linux they drop to low resolution or refuse to play. Spotify stays as decided on 20 October: only on speakers that have it built in. Apple Music is the same: on the HomePods and the Apple TV, never the hub.\n\nWhat it can do is drive one box behind the TV: an Apple TV, Google TV, Roku or Fire TV. Over the network the hub can wake the box, open an app on it, see what it is playing and pause it. Over HDMI it can switch the TV to the box and back. So the question is where the box goes on the TV's home (B, decided 19 November, design/living-room/) and how somebody gets back to the house."
+    },
+    {
+      "id": "today",
+      "page": "tv",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "TODAY\n\nThe TV home from 19 November (design/living-room/, B, still on its branch), on the pretend house at 9:10 PM. The room's TV is a card that plays and pauses.\n\nThe house has no word for the box behind it and no way to put it on the screen. The brain carries a player's on, off and playing, and the name of the app, and nothing that switches the TV's input or opens an app."
+    },
+    {
+      "id": "same",
+      "page": "tv",
+      "x": -620,
+      "y": 1500,
+      "w": 500,
+      "text": "THE SAME IN EVERY DIRECTION\n\nTHE TV IS ONE SCREEN. Nobody presses Input again. Choosing something on the box switches the TV over and wakes the box; Home on the box's remote, or the box going to sleep, switches the TV back to the house. Sleep and All off put the box to sleep with the lights.\n\nTHE HUB CAN'T DRAW OVER THE BOX. While the box is on the screen, the picture, menus and remote are the box's, and the hub waits behind it. A doorbell still takes the TV (design/tv-doorbell/) and gives it back.\n\nAPPS ARE THE BOX'S OWN LIST, by their names. No logos are drawn on these boards, and none go into the panel until we know we may use them.\n\nANY BOX. Apple TV, Google TV, Roku and Fire TV look the same here; the panel never branches on which. One is added on the Add page, with the code it shows on the TV typed on the wall or a phone.\n\nON THE WALL AND THE PHONE the box is the living room's TV card (design/player/, A): its picture, pause and volume, and Watch sends it to the TV.\n\nTO PROVE BEFORE IT IS PROMISED: that each kind of box tells the hub when it is back on its own home screen, and that the hub's HDMI adapter can switch this TV's input."
+    },
+    {
+      "id": "a",
+      "page": "tv",
+      "x": 2040,
+      "y": 1500,
+      "w": 560,
+      "text": "A: WATCH LEADS THE TV'S HOME\n\nThe TV opens on a row of its own above the room: what was last on, then the box's apps. OK on one switches the TV over and opens it there. Home on the box's remote brings the house back with that app still lit and saying Just now, so OK goes straight back in. The room, its scenes and the other rooms follow below, as decided.\n\nFOR: The TV is for watching, and watching is the first thing on it. Everything the household watches is one press from where the remote starts, and the box's own home screen becomes something they rarely see.\n\nAGAINST: The room moves down a row, a day after it was picked to come first. The lights are a press further away.\n\nTry it: Right to Netflix, Enter, then H."
+    },
+    {
+      "id": "b",
+      "page": "tv-lost",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "B: THE BOX IS ONE THING IN THE ROOM\n\nThe TV home stays as decided. The box is a card in the room's row, with what was last on as its picture. OK goes back to that; Hold OK brings the box's apps up over the home, and OK on one switches the TV over. Coming back, the box's card is lit and says what it was doing.\n\nFOR: Nothing decided on 19 November moves. The box is a thing in the room like a lamp, which is how the house treats everything else.\n\nAGAINST: Any app but the last one is a hold away, and a hold is the press people don't find. On a TV where watching is the point, the box sits third among the lamps.\n\nTry it: Right to Apple TV, Space for Hold OK, Enter on an app, then H."
+    },
+    {
+      "id": "c",
+      "page": "tv-lost",
+      "x": 520,
+      "y": 1500,
+      "w": 560,
+      "text": "C: THE BOX KEEPS THE TV, THE PHONE IS THE REMOTE\n\nThe TV shows the box, as it does in most homes now. The house comes up on it only when asked (Show the house on the TV) or for the doorbell. The phone becomes the one remote: what the box is playing and its pause, a pad to move around on the TV, the apps to open, and the room's lights beneath.\n\nFOR: Nothing changes for somebody who only wants to watch: the box's own home, profiles and voice search stay where they are. Everybody already has a phone in hand.\n\nAGAINST: It undoes the hub on the TV picked on 19 November. The house is an input again, which is the switching this asked to be rid of, and a guest with no phone set up gets the box and no lights.\n\nTap an app, or Show the house on the TV."
+    },
+    {
+      "id": "recommend",
+      "page": "tv",
+      "x": -620,
+      "y": 3800,
+      "w": 500,
+      "text": "RECOMMENDED: A\n\nThe question was how to stop switching between boxes, and A is the only direction where watching is where the remote already starts. The cost is smaller than it reads: on a 1080p TV the room's row is still on the first screen, right under Watch, so the lights are one press down rather than gone.\n\nB keeps yesterday's layout, but leaves every app except the last one behind a hold. C brings back the input switching this was asked to remove.\n\nA TV with no box beside it shows no Watch row, so a house without one opens on its room exactly as decided on 19 November."
+    },
+    {
+      "id": "decided",
+      "page": "tv",
+      "x": -620,
+      "y": 3000,
+      "w": 500,
+      "text": "DECIDED 20 NOVEMBER 2026 -- A\n\nThe Watch row leads the TV's home: what the box last had on, then its apps, seven at a time with the ones the house has seen used first, and All apps for the rest. OK opens an app on the box and the TV switches over by itself; once the box is back on its own home screen or asleep, the TV shows the house again, with that app still lit and saying Just now.\n\nOne thing the board did not draw: music playing in the TV's room still comes first (design/tv-music/, A), with Watch right under it. A TV with no box beside it has no Watch row and opens on its room, as decided on 19 November.\n\nB and C are kept on the page beside this one, with their cases."
+    },
+    {
+      "id": "lost",
+      "page": "tv-lost",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "NOT CHOSEN\n\nB kept the room first but left every app except the last one behind a hold. C brought back the input switching this was asked to remove. A puts watching where the remote starts, and the room's lights stay on the first screen."
+    },
+    {
+      "id": "back-why",
+      "page": "back",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\nA (decided this morning) said Home on the box's remote brings the house back. Tried on the living room TV on 20 November, it doesn't: an Apple TV says which app holds what is playing, not which is on the screen. Through Home Assistant it said nothing at all when Netflix opened or Home was pressed. Asked directly, it said Netflix once, and leaving it only showed because the HomePods' music took the slot back; the second time, nothing.\n\nWhat it does say reliably is when it goes to sleep. And once the hub's HDMI adapter is in, the hub hears the TV's own remote and can switch the TV back itself."
+    },
+    {
+      "id": "back-today",
+      "page": "back",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "TODAY\n\nThe Watch row as built, on the pretend house. OK on an app opens it on the Apple TV and the TV switches over. Coming back is the TV's Input button, and nothing on the screen says so before the hub is gone."
+    },
+    {
+      "id": "back-same",
+      "page": "back",
+      "x": -620,
+      "y": 1500,
+      "w": 500,
+      "text": "THE SAME IN EVERY DIRECTION\n\nTHE BOX GOING TO SLEEP brings the house back. It is the one thing every box reports, and Sleep and All off already put it to sleep.\n\nINPUT ON THE TV'S REMOTE always works, because it is the TV's own; when the house comes back that way, the app you left is still lit and says Just now.\n\nTHE HANDOVER. For two seconds before the TV switches, the foot of the screen says what is opening and how to come back, because once the box is on the screen the hub can't say anything. In A and B it is drawn; C keeps the hint line as it is.\n\nNo second remote. The Logitech keyboard is for working on the hub, not for a household."
+    },
+    {
+      "id": "back-a",
+      "page": "back",
+      "x": 2040,
+      "y": 1500,
+      "w": 560,
+      "text": "A: INPUT, OR THE BOX GOING TO SLEEP\n\nNothing new to learn and nothing to prove: the handover says press Input on the TV's remote, or wait for the Apple TV to sleep.\n\nFOR: It works on every TV and every box today, with or without the adapter.\n\nAGAINST: Input is a different button on every TV, and on many it opens a list to step through. Waiting for sleep can be half an hour. It is the old way back, said out loud.\n\nTry it: Right to Netflix, Enter, then I or S."
+    },
+    {
+      "id": "back-b",
+      "page": "back",
+      "x": 2040,
+      "y": 3000,
+      "w": 560,
+      "text": "B: ANY COLORED BUTTON COMES BACK\n\nAn Apple TV, a Roku and a Google TV do nothing with the four colored buttons. So while the box is on the screen, any of them brings the house back, and only that: the scene it starts on the house's own screen doesn't run on the way. The handover shows the four colors.\n\nFOR: One press on the remote already in your hand, the same press every time, on any box. On the house's screen the colors still start the scenes, as decided.\n\nAGAINST: A press has to be heard while the TV is sending it to the box, which needs the USB adapter to listen to the whole HDMI bus. To prove the day the adapter arrives; if it can't, B falls back to A. And a color means two things: the scene at home, the way home from the box.\n\nTry it: Right to Netflix, Enter, then R, G, Y or B."
+    },
+    {
+      "id": "back-c",
+      "page": "back-lost",
+      "x": 520,
+      "y": 0,
+      "w": 560,
+      "text": "C: THE PHONE BRINGS THE HOUSE BACK\n\nThe living room on the phone says what is on the TV and has one big Show the house on the TV. The TV itself says nothing new.\n\nFOR: Needs nothing proved, and works today with the adapter's Input switch.\n\nAGAINST: The phone, to get back to the house from the sofa where the remote is. A guest without the app has Input, or waiting.\n\nTap Show the house on the TV."
+    },
+    {
+      "id": "back-recommend",
+      "page": "back",
+      "x": -620,
+      "y": 3000,
+      "w": 500,
+      "text": "RECOMMENDED: B, FALLING BACK TO A\n\nB is the only answer where coming back is one press on the remote already in your hand, the same on every TV and every box. Its handover is A's with four colors instead of a sentence about Input, so if the adapter can't hear a press meant for the Apple TV, the board becomes A by changing one line, and nothing else moves.\n\nC is worth having as well, as a button on the phone's TV card, but not as the way back."
+    },
+    {
+      "id": "back-decided",
+      "page": "back",
+      "x": -620,
+      "y": 3600,
+      "w": 500,
+      "text": "DECIDED 20 NOVEMBER 2026 -- B, FALLING BACK TO A\n\nWhile a streaming box is on the TV, any colored button on the TV's remote brings the house back, where the screen's HDMI adapter can hear a press meant for the box (startup/cec-watch.py). Where it can't, the handover says Input instead, which is A. The box going to sleep brings the house back either way. Coming back, by any of them, leaves the app lit and saying Just now.\n\nTo prove when the adapter arrives: whether a Pulse-Eight hears the whole bus. C is kept on the page beside this one, with its case."
+    },
+    {
+      "id": "back-lost-why",
+      "page": "back-lost",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "NOT CHOSEN\n\nThe phone as the way back means reaching past the remote already in your hand. Its button may still come to the phone's TV card one day; it isn't the way back."
+    }
+  ]
+}

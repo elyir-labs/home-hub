@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><title>C: the record, with the room down the side</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap"><link rel="stylesheet" href="tv.css"><link rel="stylesheet" href="np.css">
+<style> .rec { left: 140px; top: 260px; gap: 50px } .rec .art { width: 420px; height: 420px } .rec .t { font-size: 64px } .rec .bar { width: 420px } .corner { display: none } </style></head>
+<body><div class="screen"><div class="blur"></div>
+  <div class="rec"><div class="art"></div><div><div class="t">Slow Evening</div><div class="a">The Larkins</div><div class="bar"><i></i></div></div></div>
+  <div class="side">
+    <span class="card k" data-f data-f-start data-hint="OK|Pause;▲ ▼|Move"><span>Pause</span><small>Next ▸</small></span>
+    <span class="card k" data-f data-hint="OK|Turn off"><span>Ceiling light</span><small>On, 35%</small></span>
+    <span class="card k" data-f data-hint="OK|Turn off"><span>Floor lamp</span><small>On, 24%</small></span>
+    <span class="card k" data-f data-hint="OK|Start Movie"><span>Movie</span><small>scene</small></span>
+    <span class="card k" data-f data-hint="OK|The whole house"><span>Other rooms</span><small>and the house</small></span>
+  </div>
+  <div class="keys" id="hint" style="position:absolute;left:var(--safe-x);bottom:var(--safe-y)"></div>
+</div><script src="tv.js"></script></body></html>

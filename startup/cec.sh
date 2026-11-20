@@ -7,7 +7,8 @@
 #
 #   cec.sh attach <tty>   the Pulse-Eight is a serial line until inputattach makes it a CEC device; runs while plugged in
 #   cec.sh claim <cec>    tells the TV this is a player called Elyir, and has its remote arrive as the panel's keys
-#   cec.sh tv on|off|show|status   wakes the TV, puts it to sleep, switches it to this box, or says whether it is on
+#   cec.sh tv on|off|show|box|status   wakes the TV, puts it to sleep, switches it to this box or to the streaming box
+#                                  beside it (design/tv-box/), or says whether it is on
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 DRM=${HUB_DRM:-/sys/class/drm}
@@ -49,8 +50,19 @@ tv() {
       pa=$(cec-ctl -d "$CEC" | sed -n 's/^[[:space:]]*Physical Address[[:space:]]*: \([0-9a-f.]*\)$/\1/p' | head -n1)
       cec-ctl -d "$CEC" --to 0 --image-view-on >/dev/null
       cec-ctl -d "$CEC" --to 15 --active-source "phys-addr=$pa" >/dev/null ;;
+    box)
+      # The other player on the TV's HDMI is the streaming box: asked where it is plugged in, then the TV is told to
+      # show it. Waking the box usually switches the TV by itself; this covers a box that was already awake.
+      local me la
+      me=$(cec-ctl -d "$CEC" | sed -n 's/^[[:space:]]*Logical Address[^:]*: \([0-9]*\).*/\1/p' | head -n1) || true
+      for la in 4 8 11; do
+        [ "$la" = "$me" ] && continue
+        pa=$(cec-ctl -d "$CEC" --to "$la" --give-physical-addr 2>/dev/null | sed -n 's/.*phys-addr: \([0-9a-f.]*\).*/\1/p' | head -n1) || true
+        if [ -n "$pa" ]; then cec-ctl -d "$CEC" --to 15 --set-stream-path "phys-addr=$pa" >/dev/null; return; fi
+      done
+      return 1 ;;
     status) cec-ctl -d "$CEC" --to 0 --give-device-power-status | sed -n 's/.*pwr-state: \(.*\) (0x.*/\1/p' | head -n1 ;;
-    *) echo "usage: $0 tv on|off|show|status" >&2; exit 2 ;;
+    *) echo "usage: $0 tv on|off|show|box|status" >&2; exit 2 ;;
   esac
 }
 
@@ -58,5 +70,5 @@ case "${1:-}" in
   attach) exec inputattach --pulse8-cec "$2" ;;
   claim) claim "$2" ;;
   tv) tv "${2:-}" ;;
-  *) echo "usage: $0 attach <tty>|claim <cec>|tv on|off|show|status" >&2; exit 2 ;;
+  *) echo "usage: $0 attach <tty>|claim <cec>|tv on|off|show|box|status" >&2; exit 2 ;;
 esac

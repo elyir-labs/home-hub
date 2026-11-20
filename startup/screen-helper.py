@@ -8,18 +8,21 @@ restart this browser or change what this unit is. This can. wall.sh starts it in
 session, beside the browser, so it runs as the screen's user, lives exactly as long as the wall does,
 and can reach the display. It listens on this unit alone and answers only the panel it was opened on.
 
-Four things, and no more:
+Five things, and no more:
 
   turn      which way up the display is drawn: 0, 90, 180 or 270, kept for the next start, and left
             for turn.sh, which turns the startup the same way
   restart   the browser, which brings the screen back in a few seconds; the house is not touched
   role      whether this unit runs the house or shows another hub's. It cannot do that itself: it
             leaves one word in a file and role.sh, as root, decides what to do with it
+  tv        which input the TV shows, over HDMI-CEC (cec.sh): this unit, or the streaming box beside
+            it (design/tv-box/, A), so nobody reaches for the TV's Input button; and, from what
+            cec-watch.py heard, which one it is showing and whether a colored button brings it back
   sleep     the TV this unit is plugged into, sent to standby over HDMI by cec.sh, after a long rest or a
             Bedtime (design/rest-tv/). Waking it is the TV's own remote; nothing here turns a TV on
 
-Nothing here takes a command from the panel. A turn is checked against four numbers and a role
-against two words, the way restart.sh checks its rungs.
+Nothing here takes a command from the panel. A turn is checked against four numbers, and a role and
+what the TV shows against two words each, the way restart.sh checks its rungs.
 """
 import json
 import os
@@ -40,6 +43,7 @@ ASK_DIR = os.environ.get("ELYIR_SCREEN_ASK", "/var/lib/elyir-screen")
 FIND_HUB = os.environ.get("ELYIR_FIND_HUB", os.path.join(HERE, "find-hub.sh"))
 CEC = os.environ.get("ELYIR_CEC_SH", os.path.join(HERE, "cec.sh"))
 ROLE = "screen" if os.environ.get("HUB_ROLE") == "screen" else "hub"
+CEC_STATE = os.environ.get("ELYIR_CEC_STATE", "/run/elyir-cec")
 
 # How each turn is said to the compositor. One place, because which way "90" goes is the display's
 # convention, not ours, and is checked on the unit itself.
@@ -90,6 +94,18 @@ def turn_to(t):
         except OSError:
             pass
     return ok
+
+
+def showing():
+    """What the TV is showing, as cec-watch.py last heard it: "house", "elsewhere", or None when nothing listens."""
+    def read(name):
+        try:
+            with open(os.path.join(CEC_STATE, name)) as f:
+                return f.read().strip()
+        except OSError:
+            return ""
+    own, source = read("own"), read("source")
+    return {"showing": ("house" if source == own else "elsewhere") if own and source else None, "colors": read("hears") == "all"}
 
 
 class Other:
@@ -163,6 +179,8 @@ class Answer(BaseHTTPRequestHandler):
     def do_GET(self):
         if not self.allowed():
             return self.reply(403)
+        if self.path == "/tv":
+            return self.reply(200, showing())
         if self.path != "/this":
             return self.reply(404)
         other = {"home": Other.home} if ROLE == "hub" and Other.url else None
@@ -184,6 +202,16 @@ class Answer(BaseHTTPRequestHandler):
             # The browser is the process that started this one; when it goes, the wall's service brings it back.
             threading.Timer(0.3, os.kill, (os.getppid(), signal.SIGTERM)).start()
             return None
+        if self.path == "/tv":
+            show = b.get("show")
+            if show not in ("house", "box"):
+                return self.reply(400, {"error": "The TV shows the house or the box."})
+            try:
+                ok = subprocess.run([os.path.join(HERE, "cec.sh"), "tv", "show" if show == "house" else "box"],
+                                    capture_output=True, timeout=10).returncode == 0
+            except (OSError, subprocess.SubprocessError):
+                ok = False
+            return self.reply(200, {"show": show}) if ok else self.reply(500, {"error": "The TV didn't answer."})
         if self.path == "/sleep":
             try:
                 done = subprocess.run([CEC, "tv", "off"], capture_output=True, timeout=10).returncode == 0

@@ -11,6 +11,7 @@ import { joinMusic, leaveMusic, playMusic } from '../api'
 import Icon from '../Icon.vue'
 import DeviceArt from '../DeviceArt.vue'
 import { useSlide } from '../panes/slide'
+import { asleepLines, isBox } from '../boxes'
 
 const props = defineProps<{ device: Device; always?: boolean }>()
 const s = computed(() => props.device.state)
@@ -27,8 +28,12 @@ const name = computed(() => {
   return mate ? namesOf([props.device, mate], d => shortName(d, r)) : shortName(props.device, r)
 })
 /* a speaker the hub can play on is never just Off: it is somewhere music can start (design/music/RoomA) */
-const title = computed(() => props.device.attrs.media_title || (playing.value ? 'Playing' : s.value === 'paused' ? 'Paused' : dead.value ? 'Not answering' : off.value && props.device.attrs.music !== true ? 'Off' : 'Nothing playing'))
-const sub = computed(() => [props.device.attrs.media_artist, props.device.attrs.app_name].filter(Boolean).join(' · '))
+/* a streaming box asleep is somewhere to watch from, not a thing to switch on (design/box-card/, B) */
+const box = computed(() => isBox(props.device))
+const asleep = computed(() => box.value && off.value && !dead.value)
+const watchFrom = () => { store.opened = props.device }
+const title = computed(() => asleep.value ? asleepLines(props.device).title : props.device.attrs.media_title || (playing.value ? 'Playing' : s.value === 'paused' ? 'Paused' : dead.value ? 'Not answering' : off.value && props.device.attrs.music !== true ? 'Off' : 'Nothing playing'))
+const sub = computed(() => asleep.value ? asleepLines(props.device).sub : [props.device.attrs.media_artist, props.device.attrs.app_name].filter(Boolean).join(' · '))
 const volume = computed(() => Math.round((props.device.attrs.volume_level ?? 0) * 100))
 /* How far through it is, for the bar the board draws beside the play button on a
    tile that has the room for one. Absent on plenty of players -- a radio stream
@@ -88,7 +93,7 @@ async function room(r: { id: string; on: boolean }) {
 </script>
 
 <template>
-  <div class="tile media wide" :class="{ on: playing, off, dead, pending, record }">
+  <div class="tile media wide" :class="{ on: playing, off, dead, pending, record, asleep }">
     <div class="media-blur" v-if="record" :style="{ backgroundImage: `url(${art})` }" aria-hidden="true"></div>
     <div class="media-art" :class="{ has: !!art }">
       <img v-if="art" :src="art" alt="" @error="art = ''" />
@@ -134,6 +139,10 @@ async function room(r: { id: string; on: boolean }) {
         <Icon name="volume" :size="16" class="vol-hi" />
       </label>
       <button class="ctl power" @click="power" aria-label="Turn off"><Icon name="power" :size="20" /></button>
+    </div>
+    <div class="media-controls" v-else-if="asleep">
+      <button class="ctl primary watch" :style="{ background: 'var(--lamp)', color: 'var(--lamp-ink)' }" @click.stop="watchFrom" aria-label="Watch"><Icon name="play" :size="20" /></button>
+      <span class="media-hint">Watch</span>
     </div>
     <div class="media-controls" v-else-if="!dead">
       <button class="ctl primary" @click="power" aria-label="Turn on"><Icon name="power" :size="22" /></button>
@@ -181,6 +190,9 @@ async function room(r: { id: string; on: boolean }) {
 .media-veil {
   display: none;
 }
+.tile.media.asleep { grid-template-columns: minmax(0, 1fr); }
+.tile.media.asleep .media-art { display: none; }
+.tile.media.asleep .media-title { color: var(--ink); }
 .media-hint {
   color: var(--muted);
   font-size: 14px;

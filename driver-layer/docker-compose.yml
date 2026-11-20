@@ -35,7 +35,10 @@ services:
       - "127.0.0.1:8080:8080"    # Zigbee2MQTT's own UI: on the hub itself only (ssh -L 8080:localhost:8080), never the Wi-Fi
     volumes:
       - ./zigbee2mqtt:/app/data
+      - ./zigbee2mqtt-keep.mjs:/app/keep.mjs:ro
       - /run/udev:/run/udev:ro
+    # the house's network, put back first if an update reset its file (zigbee2mqtt-keep.mjs); never in the way of the radio
+    entrypoint: ["sh", "-c", "node /app/keep.mjs || true; exec docker-entrypoint.sh /sbin/tini -- node index.js"]
     devices:
       - "${ZIGBEE_SERIAL:-/dev/null}:/dev/zigbee"     # a network coordinator maps /dev/null and sets the port below
     environment:
