@@ -1,0 +1,149 @@
+{
+ "name": "Ready, on a cable into the modem",
+ "areas": [
+  "First run"
+ ],
+ "reading": [
+  "decided",
+  "why",
+  "today",
+  "Today.dc.html",
+  "c",
+  "BothC.dc.html",
+  "alone",
+  "AloneC.dc.html",
+  "a",
+  "MoveA.dc.html",
+  "b",
+  "OwnWifiB.dc.html",
+  "pick"
+ ],
+ "artboards": [
+  {
+   "file": "Today.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today: a cable into the modem, and an address nobody at home can open",
+   "page": "modem-cable"
+  },
+  {
+   "file": "MoveA.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "A: move the cable",
+   "page": "modem-cable-rejected"
+  },
+  {
+   "file": "OwnWifiB.dc.html",
+   "x": 0,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "B: its own Wi-Fi instead",
+   "page": "modem-cable-rejected"
+  },
+  {
+   "file": "BothC.dc.html",
+   "x": 0,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "C: either way, side by side",
+   "page": "modem-cable"
+  },
+  {
+   "file": "AloneC.dc.html",
+   "x": 0,
+   "y": 2200,
+   "w": 1440,
+   "h": 900,
+   "title": "C, on a hub with no Wi-Fi card: the right half alone",
+   "page": "modem-cable"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "why",
+   "page": "modem-cable",
+   "x": -620,
+   "y": -700,
+   "w": 500,
+   "text": "WHY THIS EXISTS (19 NOVEMBER 2026)\n\nA NUC was flashed from the USB stick with its cable in the house's ISP modem rather than the router. The modem handed it an address on the open internet, so the hub counted itself online, skipped its own Wi-Fi, and ended the first start on Ready with a code for its web address. No phone in the house could open it: they were on the router's network and the hub was not. The page spun until it gave up, on the phone and on a laptop.\n\nSince the fix in PR #54 the hub takes no connections on such a cable, so the address on this screen is now certainly a dead end. The question is what Ready says instead. The cable is the commonest way to get here, and a house that has always had its modem and router as two boxes may not know which port is which."
+  },
+  {
+   "id": "today",
+   "page": "modem-cable",
+   "x": -620,
+   "y": 0,
+   "w": 500,
+   "text": "TODAY\n\nThe Ready the house saw: a code for the hub's address and the address to type. Both are right on a router and useless on the modem, and nothing says which this is."
+  },
+  {
+   "id": "a",
+   "page": "modem-cable-rejected",
+   "x": -620,
+   "y": 0,
+   "w": 500,
+   "text": "A: MOVE THE CABLE\n\nReady is not claimed. The screen says the one thing to do, plug the hub into the router, with a picture of where the cable is now and where it goes, because modem and router are two words a lot of people use for the same box. No code at all, since there is nothing a phone can reach yet. Once the cable is moved, Ready follows the network as it already does and the code appears.\n\nThe case: the hub ends where it is meant to be, on a cable, the most reliable way to run a house.\n\nThe cost: somebody has to go to the router. In a house where the router is in a cupboard, or the only free port is on the modem, the hub cannot be set up at all."
+  },
+  {
+   "id": "b",
+   "page": "modem-cable-rejected",
+   "x": -620,
+   "y": 1100,
+   "w": 500,
+   "text": "B: ITS OWN WI-FI INSTEAD\n\nThe hub treats a cable to the modem as no house network: it makes its own Wi-Fi and Ready shows that code, exactly as a hub with no cable does today, with one more quiet line saying why. Setup then asks which Wi-Fi is the house's and the hub joins it. The cable stays in and keeps working outward, for downloads and updates, while the house reaches the hub over its Wi-Fi.\n\nThe case: nobody has to touch a cable or know what a modem is, and it works in exactly the house that found this.\n\nThe cost: the hub lives on Wi-Fi when it could have had a cable, and the one line explaining it is easy to miss. A NUC with no Wi-Fi card cannot do this and falls back to A."
+  },
+  {
+   "id": "c",
+   "page": "modem-cable",
+   "x": -620,
+   "y": 1100,
+   "w": 500,
+   "text": "C: EITHER WAY, SIDE BY SIDE\n\nBoth answers at once, as equals: on the left, B's code to set the hub up over its own Wi-Fi now; on the right, A's picture of moving the cable. Whichever happens first wins. Scanning sets it up over Wi-Fi; moving the cable redraws Ready with the address.\n\nThe case: the person who can reach the router is told how, and the person who cannot is not stuck.\n\nThe cost: two choices on a screen that was one. It asks somebody to read before they act, at the moment the first start promised it was simply ready."
+  },
+  {
+   "id": "pick",
+   "page": "modem-cable-rejected",
+   "x": -620,
+   "y": 3300,
+   "w": 500,
+   "text": "TO PICK\n\nA, B, C, or something else -- describe it. Whichever it is, the hub's own picture of the network (network.json) gains a fact for a link it shut, so the phone's Network row can say the same thing later."
+  },
+  {
+   "id": "decided",
+   "page": "modem-cable",
+   "x": -620,
+   "y": -1400,
+   "w": 500,
+   "text": "DECIDED 19 NOVEMBER 2026\n\nC. On a cable into the modem, Ready offers both: the hub's own Wi-Fi to scan on the left, and on the right a picture of moving the cable to the router. Whichever happens first wins. The hub counts a modem cable as internet but not as the house's network, so it makes its own Wi-Fi while the cable keeps it updated. A and B are on the next page with their cases."
+  },
+  {
+   "id": "alone",
+   "page": "modem-cable",
+   "x": -620,
+   "y": 2200,
+   "w": 500,
+   "text": "C, WITH NO WI-FI CARD\n\nA mini PC without a Wi-Fi card cannot make a Wi-Fi of its own, so the left half has nothing to offer. The right half stands alone, centered, and its words lose their Or. It is A's message in C's drawing."
+  }
+ ],
+ "pages": [
+  {
+   "id": "modem-cable",
+   "name": "Ready, on a cable into the modem",
+   "decided": {
+    "on": "2026-11-19",
+    "chose": "C",
+    "board": "BothC.dc.html"
+   }
+  },
+  {
+   "id": "modem-cable-rejected",
+   "name": "Ready, on a cable into the modem: not chosen"
+  }
+ ]
+}
