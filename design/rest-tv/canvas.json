@@ -143,7 +143,7 @@
       "x": 0,
       "y": 5620,
       "w": 1920,
-      "text": "B: WHAT'S PLAYING TAKES THE SCREEN. While music plays anywhere in the house, rest becomes the music: the album's picture large, the song and the artist across the room, how far it has got, and which rooms are playing. The clock moves to the top corner and two facts stay along the foot. OK raises the speaker's band, so Pause and louder or quieter are one press. It is music's card from design/music, drawn for the sofa.\n\nFOR: It needs nothing new: the speaker already hands the hub the picture and the song. It answers the question people actually have from the sofa (\"what is this?\"). It works on every hub, a Pi included.\n\nAGAINST: It is a state, not a whole resting screen. When nothing plays, the TV needs one of the others. Pick it beside another rather than instead of one."
+      "text": "B: WHAT'S PLAYING TAKES THE SCREEN. While music plays anywhere in the house, rest becomes the music: the album's picture large, the song and the artist across the room, how far it has got, and which rooms are playing. The clock moves to the top corner and two facts stay along the foot. OK raises the speaker's band, so Pause and louder or quieter are one press. It is music's card from design/music, drawn for the sofa.\n\nFOR: It needs nothing new: the speaker already hands the hub the picture and the song. It answers the question people actually have from the sofa (\"what is this?\"). It works on every hub, a Pi included.\n\nAGAINST: It is a state, not a whole resting screen. When nothing plays, the TV needs one of the others. Pick it beside another rather than instead of one.\n\nWITH design/tv-music/ (20 November): the more specific board wins. Music playing in the TV's own room is that board's B, the record with Pause, Next and the volume on OK. This face is music playing anywhere else in the house."
     },
     {
       "id": "c",
@@ -199,7 +199,7 @@
       "x": 2040,
       "y": 1500,
       "w": 560,
-      "text": "DECIDED 20 NOVEMBER 2026 -- A, WITH C UNTIL THERE ARE PHOTOS, B WHILE MUSIC PLAYS, E AT BEDTIME\n\nA resting TV shows the household's own photos (A). Until anybody has sent one, it shows the sky as a window (C). While music plays anywhere in the house, the music takes the screen (B). From bedtime on, it offers Bedtime (E). Under all of them, nothing holds still, and the TV is sent to standby after 20 minutes at rest."
+      "text": "DECIDED 20 NOVEMBER 2026 -- A, WITH C UNTIL THERE ARE PHOTOS, B WHILE MUSIC PLAYS, E AT BEDTIME\n\nA resting TV shows the household's own photos (A). Until anybody has sent one, it shows the sky as a window (C). While music plays elsewhere in the house, the music takes the screen (B); music in the TV's own room is design/tv-music/'s record, the more specific board. From bedtime on, it offers Bedtime (E). Under all of them, nothing holds still, and the TV is sent to standby after 20 minutes at rest."
     },
     {
       "id": "lost",
