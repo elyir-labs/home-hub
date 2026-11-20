@@ -326,10 +326,14 @@ class Home:
         others = {e.get("unique_id"): e["entity_id"] for e in entities
                   if e.get("platform") != "music_assistant" and e["entity_id"].startswith("media_player.") and e.get("unique_id")}
         ids = {e["entity_id"] for e in entities}
+        # An AirPlay speaker the driver layer also has (a HomePod through the Apple TV integration) is named by its
+        # network address there, "92:20:1C:13:8D:59", and by the engine as "ap" and the same address bare.
+        macs = {re.sub(r"[^0-9a-f]", "", uid.lower()): eid for uid, eid in others.items() if re.fullmatch(r"([0-9A-Fa-f]{2}[:-]?){5}[0-9A-Fa-f]{2}", uid)}
         out = {}
         for eid, e in mine.items():
             uid = str(e.get("unique_id") or "")
-            out[eid] = others.get(uid) or (uid if uid in ids and uid not in mine else eid)
+            air = re.fullmatch(r"ap([0-9a-f]{12})", uid.lower())
+            out[eid] = others.get(uid) or (uid if uid in ids and uid not in mine else None) or (air and macs.get(air.group(1))) or eid
         return out
 
     def build(self, areas, ha_devices, entities, states):

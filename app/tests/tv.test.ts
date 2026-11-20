@@ -138,4 +138,8 @@ describe('music in the TV\'s room (design/tv-music/, A and B)', () => {
     const left = sp('left', 'playing', { together: ['right', 'kitchen1'] }), right = sp('right', 'playing')
     expect(speakersOf(left, room(left, right, sp('other', 'idle'))).map(d => d.id)).toEqual(['left', 'right'])
   })
+  it('counts a speaker playing the same song in the room as in step, though nothing grouped them', () => {
+    const left = sp('left', 'playing', { media_title: 'Drowning' }), right = sp('right', 'playing', { media_title: 'Drowning' })
+    expect(speakersOf(left, room(left, right, sp('pod', 'playing', { media_title: 'Rock' }))).map(d => d.id)).toEqual(['left', 'right'])
+  })
 })

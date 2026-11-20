@@ -61,7 +61,9 @@ export function musicIn(room: Room | null, playingOnly = false): Device | null {
 }
 export function speakersOf(d: Device, room: Room): Device[] {
   const mates = new Set((d.attrs.together as string[] | undefined) ?? [])
-  return [d, ...room.devices.filter(x => x.id !== d.id && mates.has(x.id))]
+  // a pair fed the same song from elsewhere (an Apple TV playing to both HomePods) is in step without being grouped
+  const same = (x: Device) => canStart(x) && x.state === d.state && !!d.attrs.media_title && x.attrs.media_title === d.attrs.media_title
+  return [d, ...room.devices.filter(x => x.id !== d.id && (mates.has(x.id) || same(x)))]
 }
 
 const ORDER = ['light', 'cover', 'climate', 'media', 'fan', 'switch', 'lock']
