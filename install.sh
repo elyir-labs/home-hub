@@ -117,7 +117,13 @@ go_to_ref() {
   # A reset that fails is a failed install, not a line to print past: this used to fall through to the
   # echo below, return 0, and leave a branch hub on its old checkout while update.sh reported "done".
   # Exit 1 and not a return, because the caller's 3 means "refused", and this was not refused.
+  # Zigbee2MQTT writes the house's network key into its configuration.yaml, which is in the repository with GENERATE:
+  # a bare reset put GENERATE back, and the next start made a new network that no device was on. The house's copy is
+  # kept across the reset (and zigbee2mqtt-keep.mjs puts the network back on a hub an older install.sh already reset).
+  local z2m="$DIR/driver-layer/zigbee2mqtt/configuration.yaml" kept=""
+  if [ -f "$z2m" ] && ! git -C "$DIR" diff --quiet -- "$z2m" 2>/dev/null; then kept="$(mktemp)"; cp -p "$z2m" "$kept"; fi
   git -C "$DIR" reset -q --hard "$target" || { echo "  could not move the code to $target"; exit 1; }
+  if [ -n "$kept" ]; then cp -p "$kept" "$z2m"; rm -f "$kept"; fi
   git -C "$DIR" clean -qfd -e driver-layer/
   case "$ref" in v*) VERSION="${ref#v}" ;; esac
   echo "  $CHANNEL: ${ref} — $(git -C "$DIR" log -1 --format='%h %s' | cut -c1-60)"

@@ -1,0 +1,27 @@
+/* The TV while music plays in its own room (design/tv-now-playing/). The record is TvRecord's (the resting TV's, D):
+   its own cover blurred and dimmed behind, the cover, the title and the artist. The cover is made up. */
+.blur { position: absolute; inset: -10%; background: url(cover.png) center / cover; filter: blur(70px) saturate(1.25) brightness(.42); }
+.rec { position: absolute; left: 240px; top: 220px; display: flex; gap: 70px; align-items: center; z-index: 2; transition: transform .32s, opacity .32s; }
+.rec .art { width: 520px; height: 520px; border-radius: 28px; background: url(cover.png) center / cover; box-shadow: 0 40px 100px rgba(0,0,0,.6); }
+.rec .t { font-size: 84px; font-weight: 400; letter-spacing: -.03em; line-height: 1.02; }
+.rec .a { font-size: 34px; color: var(--ink); margin-top: 18px; }
+.rec .bar { width: 520px; height: 5px; border-radius: 3px; margin-top: 40px; background: rgba(255,255,255,.18); } .rec .bar i { display: block; width: 38%; height: 100%; border-radius: 3px; background: var(--ink); }
+.corner { position: absolute; right: var(--safe-x); top: var(--safe-y); text-align: right; z-index: 2; }
+.corner .c { font-size: 56px; font-weight: 300; } .corner .d { font-size: 22px; color: var(--ink); }
+.keyline { position: absolute; right: var(--safe-x); bottom: var(--safe-y); z-index: 3; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; padding: 34px var(--safe-x) 40px; background: rgba(10,12,16,.92); border-top: 1px solid var(--edge-hi);
+         border-radius: 36px 36px 0 0; backdrop-filter: blur(30px); transform: translateY(100%); transition: transform .32s cubic-bezier(.2,.7,.2,1); }
+.screen.up .sheet { transform: none; } .screen.up .rec { transform: translateY(-150px) scale(.82); transform-origin: left top; }
+.sheet h2 { margin: 0 0 16px; font-size: 20px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.cards { display: flex; gap: 22px; margin-bottom: 30px; }
+.k { height: 96px; padding: 0 34px; display: inline-flex; align-items: center; gap: 14px; font-size: 26px; flex: none; }
+.k small { font-size: 20px; color: var(--ink-2); }
+.vol { flex: 1; display: flex; align-items: center; gap: 16px; font-size: 24px; justify-content: flex-end; }
+.vol .bar { width: 320px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.18); } .vol .bar i { display: block; width: 35%; height: 100%; background: var(--ink); border-radius: 3px; }
+.rows { position: absolute; left: 0; right: 0; top: 1080px; z-index: 3; padding: 0 var(--safe-x); transition: top .32s; }
+.screen.down .rows { top: 600px; } .screen.down .rec { transform: translateY(-120px) scale(.7); transform-origin: left top; opacity: .9; }
+.rows h2 { margin: 0 0 16px; font-size: 20px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.thing { width: 240px; height: 200px; padding: 22px; display: flex; flex-direction: column; justify-content: flex-end; flex: none; }
+.side { position: absolute; right: var(--safe-x); top: 200px; width: 520px; z-index: 3; display: flex; flex-direction: column; gap: 16px; }
+.side .k { justify-content: space-between; }
+.screen.up .keyline, .screen.down .keyline { display: none; }
