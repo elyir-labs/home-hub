@@ -1717,7 +1717,8 @@ zigbee_kept() {
   is "the code moves on" "$(cat "$dir/f")" "two"
   is "...and the house's network key is still in its file" "$(grep -c -- '- 7' "$dir/driver-layer/zigbee2mqtt/configuration.yaml")" "1"
   if command -v node >/dev/null 2>&1; then
-    is "...and Zigbee2MQTT puts a reset one back before it starts" "$(node --test "$HERE/../zigbee2mqtt-keep.test.mjs" 2>&1 | grep -c '^# fail 0')" "1"
+    # its exit status, not its summary: node's test output reads differently from one version to the next
+    is "...and Zigbee2MQTT puts a reset one back before it starts" "$(node --test "$HERE/../zigbee2mqtt-keep.test.mjs" >/dev/null 2>&1 && echo ok || echo failed)" "ok"
   fi
   rm -rf "$root"
 }
