@@ -103,7 +103,7 @@ FAINT = -60
 # is about and would put a forgotten strip back in the house at the next broker restart. The first seven
 # are every strip's; the rest are a strip controller's (docs/strip.md item 51, "what the hub would need").
 FORGET = ("status", "count", "order", "light", "fill", "white", "room",
-          "power", "board", "type", "wire",
+          "power", "board", "type", "wire", "ip",
           "run2/count", "run2/order", "run2/fill", "run2/type", "run2/wire", "run2/own", "run2/light")
 
 
@@ -652,6 +652,8 @@ class Strips:
                 # A box that has just arrived has forgotten its look: it keeps one in memory only.
                 rl = getattr(self.hub, "roofline", None)
                 if rl and id_ in rl.chips(): rl.heard_online(id_)
+                gl = getattr(self.hub, "glow", None)
+                if gl: gl.heard_online(id_)
         # WHAT THE CONTROLLER SAYS ABOUT ITSELF (docs/strip.md item 51), all of it retained and all of
         # it additive: a devkit says none of it. `power` is the one the wall reads -- why a run is dark,
         # if it is -- and each change is carried to the light it belongs to (hub/controller.py).
@@ -659,6 +661,7 @@ class Strips:
             s["power"] = controller.read(payload)
             self._told(id_)
         elif leaf == "board": s["board"] = str(payload or "").strip() or None
+        elif leaf == "ip": s["ip"] = str(payload or "").strip() or None   # where the light behind the TV sends its frames (hub/glow.py)
         elif leaf in ("type", "run2/type"):
             s.setdefault("types", {})[2 if leaf.startswith("run2/") else 1] = str(payload or "").strip() or None
         elif leaf in ("wire", "run2/wire"):
