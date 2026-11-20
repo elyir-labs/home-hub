@@ -12,8 +12,8 @@ import type { Room } from './api'
 import { imageUrl, photoUrl, qrUrl } from './api'
 import { photosPageUrl } from './photos'
 import { clockParts, restingFacts, restWeather } from './resting'
-import { drift, faceFor, loadRestPhotos, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
-  SLEEP_AFTER, beats, beatAt, dayTitle, agoLine, stillOn, type Photo, type Shape } from './restTv'
+import { countWords, drift, faceFor, loadRestPhotos, noteFrom, withCards, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
+  SLEEP_AFTER, BEAT_FOR, beats, beatAt, dayTitle, agoLine, stillOn, type Photo, type Shape } from './restTv'
 import { locale } from './lang'
 import Icon from './Icon.vue'
 
@@ -39,11 +39,22 @@ onUnmounted(() => { removeEventListener('resize', fit); clearInterval(timer); cl
 const music = computed(() => playingNow())
 const left = computed(() => stillOn())
 const listed = computed(() => (left.value.length > 6 ? left.value.slice(0, 5) : left.value))
-const face = computed(() => props.wall ? 'photos' : faceFor({ playing: !!music.value, stillOn: left.value.length, photos: rest.shows ? photos.value.length : 0,
-  now: props.now, notYet: rest.notYet === nightOf(props.now) }))
+const board = computed(() => rest.view === 'board')
+const face = computed(() => props.wall ? (board.value ? 'board' : 'photos') : faceFor({ playing: !!music.value, stillOn: left.value.length,
+  photos: rest.shows ? photos.value.length : 0, now: props.now, notYet: rest.notYet === nightOf(props.now), board: board.value }))
 watch(face, f => { if (!props.wall) rest.face = f }, { immediate: true })
 
-const current = computed(() => beatAt(beats(photos.value, rest.play, props.now), tick.value))
+const timeline = computed(() => withCards(beats(photos.value, rest.play, props.now), rest.cards ? rest.board : { notes: [], countdowns: [] }))
+const previewBeat = new URLSearchParams(location.search).get('beat')   // ?beat=note (or count, title, collage) holds the first of that kind, for a preview
+const current = computed(() => {
+  const held = previewBeat ? timeline.value.find(b => b.kind === previewBeat) : null
+  return held ? { beat: held, index: 0, from: 0, lasts: BEAT_FOR[held.kind] } : beatAt(timeline.value, tick.value)
+})
+const onCard = computed(() => beat.value?.kind === 'note' || beat.value?.kind === 'count')
+/* The family board (design/tv-moments/BoardC): the notes as paper, what is coming up, and one photo at a time beside them. */
+const boardNotes = computed(() => rest.board.notes.slice(0, 4))
+const boardCounts = computed(() => rest.board.countdowns.slice(0, 3))
+const framed = computed(() => photos.value.length && rest.shows ? photos.value[Math.floor(tick.value / BEAT_FOR.photo) % photos.value.length] : null)
 const beat = computed(() => current.value?.beat ?? null)
 const beatKey = computed(() => `${current.value?.from}`)
 const isTall = (p: Photo) => shapeOf(p, learned.value) === 'tall'
@@ -96,6 +107,21 @@ const ok = computed(() => {
               <img class="tvrest-fill tvrest-fill-dim" :src="photoUrl(beat.photos[0].id)" alt="" />
               <div class="tvrest-collage"><div v-for="p in beat.photos" :key="p.id"><img class="tvrest-move m1" :src="photoUrl(p.id)" alt="" /></div></div>
             </template>
+            <template v-else-if="beat.kind === 'note'">
+              <img v-if="photos.length" class="tvrest-fill tvrest-fill-dim" :src="photoUrl(photos[0].id)" alt="" /><div v-else class="tvrest-night"></div>
+              <div class="tvrest-card">
+                <div class="tvrest-paper">{{ beat.note.text }}</div>
+                <div class="tvrest-card-from">{{ noteFrom(beat.note, now, locale()) }}</div>
+              </div>
+            </template>
+            <template v-else-if="beat.kind === 'count'">
+              <img v-if="photos.length" class="tvrest-fill tvrest-fill-dim" :src="photoUrl(photos[photos.length - 1].id)" alt="" /><div v-else class="tvrest-night"></div>
+              <div class="tvrest-card">
+                <div class="tvrest-card-cap">{{ beat.count.what }}</div>
+                <div class="tvrest-count display" :class="{ word: countWords(beat.count, now).big === 'Today' }">{{ countWords(beat.count, now, locale()).big }}</div>
+                <div class="tvrest-card-under" v-if="countWords(beat.count, now).under">{{ countWords(beat.count, now, locale()).under }}</div>
+              </div>
+            </template>
           </div>
         </Transition>
         <div class="tvrest-scrim"></div>
@@ -110,9 +136,16 @@ const ok = computed(() => {
         <div class="tvrest-night"></div>
       </template>
 
+      <template v-else-if="face === 'board'">
+        <div class="tvrest-boardbg"></div>
+      </template>
+
       <div class="tvrest-moves" :class="{ flip: place.flip }" :style="{ translate: `${place.x}px ${place.y}px` }">
 
-        <template v-if="face === 'photos'">
+        <template v-if="face === 'photos' && onCard">
+          <div class="tvrest-cardclock"><span class="tvrest-time display">{{ time.time }}<span class="tvrest-period" v-if="time.period">{{ time.period }}</span></span><span class="tvrest-day">{{ day }}</span></div>
+        </template>
+        <template v-else-if="face === 'photos'">
           <div class="tvrest-said" v-if="said">
             <span class="tvrest-ago" v-if="beat?.kind === 'photo' && beat.ago"><Icon name="clock" :size="26" />{{ agoLine(beat.ago) }}</span>{{ photoLine(said, locale()) }}
           </div>
@@ -124,6 +157,26 @@ const ok = computed(() => {
             <div class="tvrest-fact" v-for="f in facts" :key="f.key" :class="{ live: f.live }">
               <span class="tvrest-fact-value"><Icon :name="f.icon" :size="30" />{{ f.value }}</span>
               <span class="tvrest-fact-where" v-if="f.key !== 'house'">{{ f.key === 'inside' ? 'inside' : f.where }}</span>
+            </div>
+          </div>
+        </template>
+
+        <template v-else-if="face === 'board'">
+          <div class="tvrest-boardclock"><span class="tvrest-time display">{{ time.time }}<span class="tvrest-period" v-if="time.period">{{ time.period }}</span></span><span class="tvrest-day">{{ day }}<template v-if="wx"> · {{ wx.temp }}</template></span></div>
+          <div class="tvrest-boardnotes" v-if="boardNotes.length || boardCounts.length">
+            <div class="tvrest-paper small" v-for="(n, k) in boardNotes" :key="n.id" :class="`tone${k % 2}`">{{ n.text }}<small>{{ noteFrom(n, now, locale()).replace(/^A note from /, 'From ').replace(/^A note · /, '') }}</small></div>
+            <div class="tvrest-coming" v-if="boardCounts.length">
+              <div class="tvrest-card-cap">Coming up</div>
+              <div class="tvrest-coming-row"><span v-for="c in boardCounts" :key="c.id"><b class="display">{{ countWords(c, now).big }}</b>{{ countWords(c, now).big === 'Today' ? '' : (countWords(c, now).big === '1' ? ' day' : ' days') }} · {{ c.what }}</span></div>
+            </div>
+          </div>
+          <div class="tvrest-boardempty" v-else>Nothing on the board yet. Leave a note from a phone, on Your screens.</div>
+          <div class="tvrest-boardphoto" v-if="framed"><img :src="photoUrl(framed.id)" alt="" /></div>
+          <div class="tvrest-boardsaid" v-if="framed">{{ photoLine(framed, locale()) }}</div>
+          <div class="tvrest-strip tvrest-strip-small">
+            <div class="tvrest-fact" v-for="f in facts.slice(0, 2)" :key="f.key" :class="{ live: f.live }">
+              <span class="tvrest-fact-value"><Icon :name="f.icon" :size="26" />{{ f.value }}</span>
+              <span class="tvrest-fact-where" v-if="f.key === 'lights' && f.live">{{ f.where }}</span>
             </div>
           </div>
         </template>

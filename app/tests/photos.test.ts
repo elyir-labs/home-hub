@@ -3,7 +3,7 @@
 /* Photos on the TV from a phone (design/tv-photos/, A with C, decided 20 November 2026): what a photo is redrawn
    to before it leaves, when it says it was taken, and the page's words. */
 import { describe, expect, it } from 'vitest'
-import { countLine, fitted, LONGEST, photosPageUrl, screenLines, sentLine, takenAt } from '../src/photos'
+import { countLine, fitted, LONGEST, noteLine, photosPageUrl, screenLines, sentLine, takenAt, untilFor, yearly } from '../src/photos'
 import type { Photo } from '../src/restTv'
 
 /** A JPEG's first bytes with one EXIF date in it, big-endian, laid out the way a camera writes it. */
@@ -72,5 +72,23 @@ describe('the screens on Photos (design/which-tv/, C)', () => {
     expect(screenLines(screen({ photos: false }))).toEqual({ name: 'Living room TV', sub: 'A TV · shows the sky' })
     expect(screenLines(screen({ room_name: 'Hallway', tv: false, photos: false }))).toEqual({ name: 'Hallway', sub: 'A screen on the wall · shows the clock' })
     expect(screenLines(screen({ room_name: null, tv: false })).name).toBe('A screen on the wall')
+  })
+})
+
+describe('writing a note or a countdown on a phone (design/tv-moments/WriteEvery)', () => {
+  const now = new Date(2026, 10, 20, 19, 40)
+  it('works out tonight and tomorrow in the phone\'s own day', () => {
+    expect(untilFor('tonight', now)).toBe(new Date(2026, 10, 21).getTime() / 1000)
+    expect(untilFor('tomorrow', now)).toBe(new Date(2026, 10, 22).getTime() / 1000)
+    expect(untilFor('down', now)).toBeNull()
+    expect(noteLine(untilFor('tonight', now), "Mom's phone", now)).toBe("until tonight · from Mom's phone")
+    expect(noteLine(untilFor('tomorrow', now), null, now)).toBe('until tomorrow night')
+    expect(noteLine(null, null, now)).toBe('until somebody takes it down')
+  })
+  it('knows a birthday or an anniversary comes round every year', () => {
+    expect([yearly("Sam's birthday"), yearly('Our anniversary'), yearly('The lake trip'), yearly('Birthdays party')]).toEqual([true, true, false, false])
+  })
+  it('names a screen resting on the family board', () => {
+    expect(screenLines({ id: 'a', room: 'kitchen', room_name: 'Kitchen', tv: false, by: 'screen', photos: false, shows: 'board' }).sub).toBe('A screen on the wall · shows the family board')
   })
 })

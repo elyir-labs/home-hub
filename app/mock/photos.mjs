@@ -25,12 +25,42 @@ const SHELF = [
 ]
 
 const SCREENS = [
-  { id: 'a1b2c3d4e5f60718a1b2c3d4e5f60718', room: 'living', room_name: 'Living room', tv: true, by: 'screen', photos: true, play: 'days' },
-  { id: 'f0e1d2c3b4a59687f0e1d2c3b4a59687', room: 'kitchen', room_name: 'Kitchen', tv: false, by: 'screen', photos: false, play: 'days' },
+  { id: 'a1b2c3d4e5f60718a1b2c3d4e5f60718', room: 'living', room_name: 'Living room', tv: true, by: 'screen', photos: true, play: 'days', shows: 'photos', notes: true },
+  { id: 'f0e1d2c3b4a59687f0e1d2c3b4a59687', room: 'kitchen', room_name: 'Kitchen', tv: false, by: 'screen', photos: false, play: 'days', shows: 'photos', notes: true },
 ]
 const body = req => new Promise(done => { let raw = ''; req.on('data', c => (raw += c)); req.on('end', () => { try { done(JSON.parse(raw || '{}')) } catch { done({}) } }) })
 
+/* The family board (hub/board.py): a note from this morning and one from yesterday, a birthday in three days and a day
+   out in six. What a phone leaves or takes down holds for as long as the mock runs. */
+const ymd = days => { const d = new Date(); d.setDate(d.getDate() + days); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
+const todayAt = (h, back = 0) => { const d = new Date(); d.setDate(d.getDate() - back); d.setHours(h, 10, 0, 0); return d.getTime() / 1000 }
+const BOARD = {
+  notes: [{ id: 'n1', text: 'Dinner at 7. Love, Mom', by: "Mom's phone", added: todayAt(8), until: null },
+          { id: 'n2', text: 'Piano at 4 on Saturday', by: "Dad's phone", added: todayAt(20, 1), until: null }],
+  countdowns: [{ id: 'c1', what: "Sam's birthday", date: '2014-' + ymd(3).slice(5), next: ymd(3), yearly: true, by: "Dad's phone", added: todayAt(9, 5) },
+               { id: 'c2', what: 'The lake trip', date: ymd(6), next: ymd(6), yearly: false, by: "Mom's phone", added: todayAt(9, 2) }],
+}
+
 export function photosRoute(req, res, p, env) {
+  const send = (status, b) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(b)) }
+  if (p === '/board' && req.method === 'GET') { send(200, BOARD); return true }
+  if (p === '/board/notes' && req.method === 'POST') {
+    body(req).then(b => { const n = { id: `n${Date.now()}`, text: String(b.text || '').trim(), by: 'This phone', added: Date.now() / 1000, until: b.until ?? null }
+      if (!n.text) return send(400, { detail: 'A note needs something written in it.' })
+      BOARD.notes.unshift(n); send(200, n) })
+    return true
+  }
+  if (p === '/board/countdowns' && req.method === 'POST') {
+    body(req).then(b => { const c = { id: `c${Date.now()}`, what: String(b.what || '').trim(), date: b.date, next: b.date, yearly: /\b(birthday|anniversary)\b/i.test(b.what || ''), by: 'This phone', added: Date.now() / 1000 }
+      if (!c.what || !/^\d{4}-\d{2}-\d{2}$/.test(c.date || '')) return send(400, { detail: 'A countdown needs a name and a day.' })
+      BOARD.countdowns.push(c); BOARD.countdowns.sort((a, z) => a.next.localeCompare(z.next)); send(200, c) })
+    return true
+  }
+  if (p.startsWith('/board/') && req.method === 'DELETE') {
+    const id = p.slice('/board/'.length), before = BOARD.notes.length + BOARD.countdowns.length
+    BOARD.notes = BOARD.notes.filter(n => n.id !== id); BOARD.countdowns = BOARD.countdowns.filter(c => c.id !== id)
+    send(before === BOARD.notes.length + BOARD.countdowns.length ? 404 : 200, { ok: true }); return true
+  }
   if (p === '/screens/me' && req.method === 'POST') {
     body(req).then(b => {
       const known = SCREENS.find(s => s.id === b.id)
@@ -41,7 +71,7 @@ export function photosRoute(req, res, p, env) {
   }
   if (p.startsWith('/photos/screens/') && req.method === 'POST') {
     const s = SCREENS.find(x => x.id === p.slice('/photos/screens/'.length))
-    body(req).then(b => { if (s && typeof b.on === 'boolean') s.photos = b.on; if (s && (b.play === 'each' || b.play === 'days')) s.play = b.play; res.writeHead(s ? 200 : 404, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(s ?? { detail: 'No such screen.' })) })
+    body(req).then(b => { if (s && typeof b.on === 'boolean') s.photos = b.on; if (s && (b.play === 'each' || b.play === 'days')) s.play = b.play; if (s && (b.shows === 'photos' || b.shows === 'board')) s.shows = b.shows; if (s && typeof b.notes === 'boolean') s.notes = b.notes; res.writeHead(s ? 200 : 404, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(s ?? { detail: 'No such screen.' })) })
     return true
   }
   if (p !== '/photos' && !p.startsWith('/photos/')) return false
