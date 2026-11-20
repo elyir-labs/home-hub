@@ -131,7 +131,22 @@ const tvHome = computed(() => homeRoom(rooms.value) ?? params.get('room')
 const tvRoom = computed(() => room.value ?? rooms.value.find(r => r.id === tvHome.value) ?? null)
 const tvBand = ref(false)
 /* while the TV's room plays music, the resting TV is the record and its band works the music (design/tv-music/, B) */
-const tvMusic = computed(() => tv ? musicIn(tvRoom.value, true) : null)
+/* A pause keeps the record up a while, so a song stopped for a phone call is one press from playing again rather than
+   gone from the screen; it goes once it has been paused ten minutes, or something else plays. */
+const PAUSE_HOLD = 10 * 60 * 1000
+const pausedAt = ref<{ id: string; at: number } | null>(null)
+watch(() => { const d = musicIn(tvRoom.value); return d ? `${d.id}|${d.state}` : '' }, (is, was) => {
+  const [id, state] = is.split('|'), [wid, wstate] = (was ?? '').split('|')
+  if (state === 'paused' && wstate === 'playing' && wid === id) pausedAt.value = { id, at: Date.now() }   // a pause seen happening, not one found on loading
+  else if (state !== 'paused') pausedAt.value = null
+})
+const tvMusic = computed(() => {
+  if (!tv) return null
+  const on = musicIn(tvRoom.value, true)
+  if (on) return on
+  const p = pausedAt.value, d = p && tvRoom.value?.devices.find(x => x.id === p.id)
+  return d && d.state === 'paused' && now.value.getTime() - p!.at < PAUSE_HOLD ? d : null
+})
 const toneParam = params.get('tone'), layoutParam = params.get('layout')
 
 /* The house's feel, which is what the Look page actually writes: one of three,

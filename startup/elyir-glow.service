@@ -1,0 +1,16 @@
+# The light behind the TV, following the picture through a camera (glow.py). Only once there is a
+# /etc/elyir/glow.json saying where the screen is and which strip: setting that up on the panel is still to come.
+[Unit]
+Description=The light behind the TV
+ConditionPathExists=/etc/elyir/glow.json
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 /opt/home-hub/startup/glow.py /etc/elyir/glow.json
+Restart=on-failure
+RestartSec=5
+DynamicUser=yes
+SupplementaryGroups=video
+
+[Install]
+WantedBy=multi-user.target

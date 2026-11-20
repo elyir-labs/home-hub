@@ -64,6 +64,7 @@ apt-get install -y --no-install-recommends v4l-utils ir-keytable inputattach als
   || log "could not install the CEC and sound tools; the screen is unaffected"
 install -m 0644 "$HERE/70-elyir-cec.rules" /etc/udev/rules.d/70-elyir-cec.rules
 install -m 0644 "$HERE/elyir-cec-attach@.service" "$HERE/elyir-cec@.service" "$HERE/elyir-cec-watch@.service" /etc/systemd/system/
+install -m 0644 "$HERE/elyir-glow.service" /etc/systemd/system/   # waits for /etc/elyir/glow.json before it runs
 
 log "this screen's own updates, following its hub"
 install -m 0644 "$HERE/elyir-screen-update.service" "$HERE/elyir-screen-update.timer" \
