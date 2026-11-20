@@ -12,6 +12,10 @@
     {
       "id": "join-rejected",
       "name": "A TV joining the house, with only its remote: not chosen"
+    },
+    {
+      "id": "rooms",
+      "name": "A TV in a house with many rooms"
     }
   ],
   "artboards": [
@@ -72,6 +76,35 @@
       "w": 1920,
       "h": 1080,
       "title": "C: a TV on another box asks a phone",
+      "is_interactive": true
+    },
+    {
+      "file": "TodayRooms.dc.html",
+      "page": "rooms",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: a TV in a house with fifteen rooms"
+    },
+    {
+      "file": "RoomsRowA.dc.html",
+      "page": "rooms",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: one row that slides sideways",
+      "is_interactive": true
+    },
+    {
+      "file": "RoomsFitB.dc.html",
+      "page": "rooms",
+      "x": 0,
+      "y": 3000,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: the rooms with things first, the rest as names",
       "is_interactive": true
     }
   ],
@@ -139,6 +172,38 @@
       "y": 1500,
       "w": 560,
       "text": "THE TV PLUGGED INTO THE HUB\n\nThe hub knows the request is from its own screen, so it lets the screen in without the passcode and asks only which room it is in. The same holds for a wall screen plugged into a hub: the rule is about the hub's own HDMI port, not about TVs."
+    },
+    {
+      "id": "rooms-why",
+      "page": "rooms",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026: the living room TV joined by being plugged into the hub (C, above) and asked which room it is in. The house has fifteen rooms, and the cards, five to a row, ran off the foot of the TV and under the hint. The board had drawn five rooms."
+    },
+    {
+      "id": "rooms-a",
+      "page": "rooms",
+      "x": 2040,
+      "y": 1500,
+      "w": 560,
+      "text": "A: ONE ROW THAT SLIDES SIDEWAYS\n\nThe rooms in one row that runs off the right edge, the way Other rooms does on the TV's home. Right and Left move along it, the row slides so the lit card stays in view, and a quiet line says how far along you are.\n\nFOR: the same as the rest of the TV, so the hand already knows it, and it holds any number of rooms at the same size.\n\nAGAINST: only six rooms show at once, and the room you want may be ten presses away.\n\nTry it: Right and Left."
+    },
+    {
+      "id": "rooms-b",
+      "page": "rooms",
+      "x": 2040,
+      "y": 3000,
+      "w": 560,
+      "text": "B: THE ROOMS WITH THINGS FIRST, THE REST AS NAMES\n\nThe five rooms with the most in them as cards, which is where a TV is likely to be, and every other room as a name below, all on one screen.\n\nFOR: every room is in sight at once, and the likely answer is the first row.\n\nAGAINST: a second shape on the page, and past about twenty rooms the names need a third line.\n\nTry it: the arrows move between the cards and the names."
+    },
+    {
+      "id": "rooms-pick",
+      "page": "rooms",
+      "x": -620,
+      "y": 1500,
+      "w": 500,
+      "text": "PICK ONE\n\nA, B, a mix, or something else -- describe it."
     }
   ],
   "decided": {

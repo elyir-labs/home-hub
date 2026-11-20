@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A: one row that slides sideways</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css">
+<link rel="stylesheet" href="join.css">
+<style>
+  /* the row bleeds off the right edge, as the TV's Other rooms row does, and slides so the lit card stays in view */
+  .strip { position: absolute; left: 0; right: 0; top: 600px; height: 230px; overflow: hidden; z-index: 2;
+           -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 220px, #000 calc(100% - 160px), transparent 100%); }
+  .strip .rooms { position: absolute; left: 300px; top: 30px; right: auto; flex-wrap: nowrap; transition: transform .28s ease; }
+  .count { position: absolute; left: 300px; top: 860px; font-size: 22px; color: var(--muted); z-index: 2; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="join" style="width:1200px">
+    <span class="mark"><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span>
+    <h1>Which room is this TV in?</h1>
+    <p class="lede" style="max-width:1000px">It's plugged into the hub, so it's already part of Maple Court. It opens on the room you choose.</p>
+  </div>
+  <div class="strip"><div class="rooms" id="rooms"></div></div>
+  <div class="count" id="count"></div>
+  <div class="foot"><div class="keys" id="hint"></div><span class="where">The TV plugged into the hub</span></div>
+</div>
+<script src="rooms.js"></script>
+<script>
+  const row = document.getElementById('rooms'), count = document.getElementById('count')
+  row.innerHTML = ROOMS.map((r, i) => roomCard(r, i)).join('')
+  const cards = [...row.children]
+  // the lit card keeps its place from the left once the row has started to slide, like the TV's own rows
+  window.tvLit = (e) => {
+    const i = cards.indexOf(e); if (i < 0) return
+    const step = cards[1].offsetLeft - cards[0].offsetLeft
+    row.style.transform = `translateX(${-Math.max(0, i - 3) * step}px)`
+    count.textContent = `${i + 1} of ${cards.length} rooms`
+  }
+</script>
+<script src="tv.js"></script>
+</body>
+</html>
