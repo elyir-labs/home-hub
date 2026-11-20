@@ -1,0 +1,103 @@
+{
+  "name": "Which screen is a TV",
+  "areas": [
+    "Wall screens",
+    "Watching and listening"
+  ],
+  "pages": [
+    {
+      "id": "which-tv",
+      "name": "How the hub knows which of its screens is a TV"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "which-tv",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Today: Photos on the TV says \"the TV\", and shows in every house",
+      "is_interactive": true
+    },
+    {
+      "file": "SaysA.dc.html",
+      "page": "which-tv",
+      "x": 520,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "A: the TV says so itself, and nobody is asked",
+      "is_interactive": true
+    },
+    {
+      "file": "ChooseC.dc.html",
+      "page": "which-tv",
+      "x": 1040,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "C: the household chooses which screens show photos"
+    },
+    {
+      "file": "AskB.dc.html",
+      "page": "which-tv",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: asked once, on the screen, when it joins"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "which-tv",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026: Photos on the TV shipped (design/tv-photos/, A with C), but the hub does not know which of its screens is a TV. The panel works it out on the screen itself (onTV in tv.ts: a screen for the hub, in Chromium on Linux, that nobody can touch) and keeps it to itself. So the page says \"the TV\" where the board said \"the living room TV\", and the row is on This house in a house with no TV at all.\n\nEvery direction writes it on the screen's own record at the hub, beside the room it already keeps (phones.py), so the page, People and the TV's code can all name it."
+    },
+    {
+      "id": "today",
+      "page": "which-tv",
+      "x": 0,
+      "y": 880,
+      "w": 390,
+      "text": "TODAY. Photos on the TV and This house on a phone, from development after #56. Flip between them."
+    },
+    {
+      "id": "a",
+      "page": "which-tv",
+      "x": 520,
+      "y": 880,
+      "w": 390,
+      "text": "A: THE TV SAYS SO ITSELF. A screen the panel works out is a TV tells the hub so once, when it joins and whenever it starts. Nobody is asked. The page names it by its room (\"The living room TV shows these\"), and a house with no TV has no Photos on the TV row. Flip to see that house.\n\nFOR: Nothing new to answer. The guess is the one the panel already acts on (the remote, the rows, the resting photos), so the name can't disagree with what the screen does.\n\nAGAINST: A guess is still a guess. A TV the panel doesn't recognize (a smart TV's own browser, a box with a touch screen) stays a wall screen with no way to say otherwise."
+    },
+    {
+      "id": "b",
+      "page": "which-tv",
+      "x": 0,
+      "y": 2620,
+      "w": 1920,
+      "text": "B: ASKED ONCE, ON THE SCREEN, WHEN IT JOINS. Before which room it is in, a new screen asks what it is, with the panel's guess already lit so OK confirms it. A TV rests on photos and is worked with the remote; a wall screen rests on the clock. This screen gets the same question as a row, to change it later. The page then names it as in A.\n\nFOR: Right every time, including the TVs the guess misses, and it's said by whoever is standing in front of it. AGAINST: One more question in a join that is already two (the passcode, the room), for an answer that is nearly always the guess."
+    },
+    {
+      "id": "c",
+      "page": "which-tv",
+      "x": 1040,
+      "y": 880,
+      "w": 390,
+      "text": "C: THE HOUSEHOLD CHOOSES WHICH SCREENS SHOW PHOTOS. The page becomes Photos, and lists the house's screens with a switch each. A TV starts on (found as in A); a wall screen starts off and shows the clock, but a household can turn its hallway into a frame too.\n\nFOR: Answers the next question too (\"can the kitchen screen show them?\") and never needs the word TV to be right. AGAINST: A setting nobody asked for yet, and it reopens what a wall screen rests on, which design/rest/ settled."
+    },
+    {
+      "id": "pick",
+      "page": "which-tv",
+      "x": 1560,
+      "y": 0,
+      "w": 420,
+      "text": "TO PICK\n\nA, B or C, or something else. B can also go with A: guessed silently, with the question only on This screen for the TV the guess got wrong."
+    }
+  ]
+}
