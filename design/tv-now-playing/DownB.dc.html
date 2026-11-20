@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><title>B: the record first, the room's rows a press down</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap"><link rel="stylesheet" href="tv.css"><link rel="stylesheet" href="np.css"></head>
+<body><div class="screen"><div class="blur"></div><div class="corner"><div class="c">9:10 PM</div><div class="d">Friday, November 20</div></div>
+  <div class="rec"><div class="art"></div><div><div class="t">Slow Evening</div><div class="a">The Larkins</div><div class="bar"><i></i></div></div></div>
+  <div class="keys keyline"><span><kbd>OK</kbd>Pause</span><span><kbd>▼</kbd>The living room</span></div>
+  <div class="rows">
+    <h2>In the living room</h2>
+    <div class="cards">
+      <span class="card thing" data-f data-f-start data-hint="OK|Turn off;▲|Back to the music"><span class="nm">Ceiling light</span><span class="st">On, 35%</span></span>
+      <span class="card thing" data-f data-hint="OK|Turn off;▲|Back to the music"><span class="nm">Floor lamp</span><span class="st">On, 24%</span></span>
+      <span class="card thing" data-f data-hint="OK|Open;▲|Back to the music"><span class="nm">Thermostat</span><span class="st">71° · cooling</span></span>
+      <span class="card thing" data-f data-hint="OK|Start Movie;▲|Back to the music"><span class="nm">Movie</span><span class="st">scene</span></span>
+      <span class="card thing" data-f data-hint="OK|The whole house;▲|Back to the music"><span class="nm">Other rooms</span><span class="st">and the house</span></span>
+    </div>
+    <div class="keys" id="hint" style="margin-top:30px"></div>
+  </div>
+</div>
+<script>
+  const scr = document.querySelector('.screen')
+  window.tvKeys = (key, cur, light) => {
+    if (!scr.classList.contains('down') && key === 'ArrowDown') { scr.classList.add('down'); light(document.querySelector('.rows [data-f-start]')); return true }
+    if (scr.classList.contains('down') && key === 'ArrowUp') { scr.classList.remove('down'); return true }
+    return !scr.classList.contains('down')
+  }
+</script><script src="tv.js"></script></body></html>
