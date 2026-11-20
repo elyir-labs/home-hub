@@ -8,11 +8,12 @@ import type { Device } from './api'
 import { whatsOn, cap, deviceById, done, doneLine, isActive, justDone, perform, shortName, roomOf, store } from './store'
 import Icon from './Icon.vue'
 import { isAlways } from './onhome'
+import { follows, groupOf, namesOf } from './music'
 
 /* Everything that is on across the house, each a chip that turns it off with one tap. The house line says "something is
    on in 3 rooms"; this is the something, and the tap. A door only locks here, never unlocks; a robot has no "off". */
 const MAX = 8
-const on = computed(() => whatsOn().filter(d => !isAlways(d.id)))   // what this phone keeps is in Always here (onhome.ts)
+const on = computed(() => whatsOn().filter(d => !isAlways(d.id) && !(cap(d) === 'media' && roomOf(d) && follows(d, roomOf(d)!))))   // a song on a pair of speakers is said once (design/speaker-pair/)   // what this phone keeps is in Always here (onhome.ts)
 
 /* A tapped chip does NOT leave the list. It keeps its place, says what it did and when -- "Off · just now" -- and
    tapping it again puts the thing back, which is where the undo lives; a chip going out from under the finger that
@@ -47,7 +48,10 @@ const more = computed(() => Math.max(0, on.value.length - shown.value.filter(d =
 const place = (d: Device) => roomOf(d)?.name ?? ''
 function what(d: Device): string {
   const k = cap(d)
-  if (k === 'media') return d.attrs.media_title ? `${shortName(d, roomOf(d))}, ${d.attrs.media_title}` : shortName(d, roomOf(d))
+  if (k === 'media') {
+    const r = roomOf(d), g = r ? groupOf(d, r) : [d], who = g.length > 1 ? namesOf(g, x => shortName(x, r)) : shortName(d, r)
+    return d.attrs.media_title ? `${who}, ${d.attrs.media_title}` : who
+  }
   return shortName(d, roomOf(d))
 }
 /* the action that quiets each thing, and the state to show while the house confirms it */
@@ -74,7 +78,8 @@ async function tap(d: Device) {
   /* The chip says what happened, so there is no toast to say it again -- and the chip is the undo, which
      is what a toast used to carry out of the room after six seconds. */
   const go = kept(d) ? back(d) : quiet(d)
-  if (go) await perform(d, go[0], undefined, { state: go[1] })
+  const r = roomOf(d), all = cap(d) === 'media' && r ? groupOf(d, r) : [d]
+  if (go) await Promise.all(all.map(x => perform(x, go[0], undefined, { state: go[1] })))
 }
 </script>
 

@@ -22,7 +22,9 @@ import SortView from '../SortView.vue'
 import { machinesOf } from '../machines'
 import { isCarried, onATile, sensorName } from '../units'
 import { heldIn, heldOf } from '../controller'
-import { canStart } from '../music'
+import { canStart, follows, leadOf, unanswered } from '../music'
+import PairAsk from '../PairAsk.vue'
+import { shortName } from '../store'
 
 const props = defineProps<{ room: Room }>()
 defineEmits<{ back: []; open: [id: string] }>()
@@ -38,7 +40,14 @@ const readings = computed(() => sorted.value.filter(d => isReading(d) && !onATil
    here and go back in as a cell of their own below. */
 /* ...and a fan's light, or a light's fan, rides on its partner's tile (units.ts) */
 const grouped = computed(() => machinesOf(sorted.value.filter(d => !isReading(d) && !isCarried(d, props.room))))
-const devices = computed(() => grouped.value.rest)
+/* A speaker playing in step with another leads; the other is not a card of its own (design/speaker-pair/, B with C):
+   a pair is one card for good, and one nobody has answered for yet is a line under the lead until somebody does. */
+const devices = computed(() => grouped.value.rest.filter(d => cap(d) !== 'media' || !follows(d, props.room)))
+const withs = computed(() => devices.value.filter(d => cap(d) === 'media').flatMap(lead => unanswered(lead, props.room).map(other => ({ lead, other }))))
+const asked = new Set<string>()   // asked on this visit and not answered: not again until the room is come back to
+const ask = ref<{ lead: Device; other: Device } | null>(null)
+watch(withs, (w) => { if (!ask.value) ask.value = w.find(x => !asked.has(`${x.lead.id}|${x.other.id}`)) ?? null }, { immediate: true })
+function asked_(x: { lead: Device; other: Device }) { asked.add(`${x.lead.id}|${x.other.id}`); ask.value = null }
 const machines = computed(() => grouped.value.machines)
 const machineByKey = computed(() => new Map(machines.value.map(m => [m.key, m])))
 /* The printers a household put in this room (design/printers/WorkshopB): A's tile, among the room's own
@@ -121,6 +130,7 @@ function arrange(): Cell[] {
   const ds: Cell[] = ranked
     .sort((a, b) => SIZES[b.size] - SIZES[a.size] || Number(b.doing) - Number(a.doing) || a.rank - b.rank)
     .map(c => ({ key: c.key, size: c.size, quiet: !c.doing }))
+    .flatMap(c => [c, ...withs.value.filter(w => w.lead.id === c.key).map(w => ({ key: `with:${w.other.id}`, size: 'third' as Size }))])
   if (pills.value || !scenesFor(props.room).length) return ds
   /* The scenes are a CARD among the devices rather than a bar above them. A bar
      costs 62px off the top of every room in the house before anything in the
@@ -158,7 +168,7 @@ function arrange(): Cell[] {
 const plan = ref<Cell[]>([])
 const byId = computed(() => new Map(props.room.devices.map(d => [d.id, d])))
 watch(
-  () => `${props.room.id}|${devices.value.map(d => d.id).join()}|${machines.value.map(m => m.key + m.devices.length).join()}|${printers.value.map(p => p.id).join()}|${pills.value}`,
+  () => `${props.room.id}|${devices.value.map(d => d.id).join()}|${withs.value.map(w => w.other.id).join()}|${machines.value.map(m => m.key + m.devices.length).join()}|${printers.value.map(p => p.id).join()}|${pills.value}`,
   () => (plan.value = arrange()),
   { immediate: true },
 )
@@ -223,6 +233,11 @@ onUnmounted(() => clearInterval(tick))
         </div>
         <PrinterTile v-else-if="printerByKey.get(c.key)" :printer="printerByKey.get(c.key)!" :data-size="c.size" />
         <MachineTile v-else-if="machineByKey.get(c.key)" :machine="machineByKey.get(c.key)!" :room="room" :data-size="c.size" />
+        <button v-else-if="c.key.startsWith('with:') && byId.get(c.key.slice(5))" class="tile with-tile" :data-size="c.size" @click="store.opened = byId.get(c.key.slice(5))!">
+          <span class="with-tile-ic"><Icon name="media" :size="18" /></span>
+          <span class="with-tile-text"><span class="with-tile-name">{{ shortName(byId.get(c.key.slice(5))!, room) }}</span>
+            <span class="with-tile-sub">Playing with the {{ shortName(leadOf(byId.get(c.key.slice(5))!, room), room) }}</span></span>
+        </button>
         <component v-else-if="byId.get(c.key)" :is="tile(cap(byId.get(c.key)!))" :data-size="c.size" :data-quiet="c.quiet ? '' : null" :device="byId.get(c.key)!" v-hold="() => (store.opened = byId.get(c.key)!)" />
       </template>
     </div>
@@ -235,5 +250,6 @@ onUnmounted(() => clearInterval(tick))
         <button class="button" :class="{ ghost: waiting }" @click="store.sheet = 'add'"><Icon name="plus" :size="16" /> Add something</button>
       </div>
     </div>
+    <PairAsk v-if="ask" :lead="ask.lead" :other="ask.other" :room="room" @done="asked_(ask!)" />
   </section>
 </template>

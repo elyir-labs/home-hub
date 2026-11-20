@@ -927,6 +927,8 @@ export async function claimJoin(id: string): Promise<{ state: 'waiting' | 'allow
 /** The screen plugged into the hub joins without the passcode (design/tv-join/, C). */
 export const joinPluggedIn = () => post<{ ok: boolean; phone: Phone }>('/phones/plugged-in')
 export const joinWithCode = (code: string, name: string, kind?: 'screen') => post<{ ok: boolean; phone: Phone }>('/phones/code', { code, name, kind })
+/** The household's answer: two speakers playing the same song in a room are one pair, or two (design/speaker-pair/, B). */
+export const pairSpeakers = (speakers: [string, string], pair: boolean) => post<{ pairs: unknown[] }>('/speakers/pair', { speakers, pair })
 export const placeScreen = (room: string) => post<{ room: string; phone: Phone | null }>('/phones/me/room', { room })
 export const allowPhone = (id: string, span: 'day' | 'weekend' | 'keep') => post<Phone>(`/phones/asks/${encodeURIComponent(id)}/allow`, { span })
 export async function denyPhone(id: string) { const r = await request(`/phones/asks/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (!r.ok) await fail(r) }

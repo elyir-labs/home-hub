@@ -6,7 +6,7 @@
 import { computed, ref, watch } from 'vue'
 import { imageUrl, type Device } from '../api'
 import { perform, shortName, roomOf, store, isDead, keepLeft, forgetLeft, leftOf, notify } from '../store'
-import { cardFor, type MusicItem } from '../music'
+import { cardFor, groupOf, namesOf, pairOf, type MusicItem } from '../music'
 import { joinMusic, leaveMusic, playMusic } from '../api'
 import Icon from '../Icon.vue'
 import DeviceArt from '../DeviceArt.vue'
@@ -19,7 +19,13 @@ const dead = computed(() => isDead(props.device))
 const playing = computed(() => s.value === 'playing')
 const pending = computed(() => !!store.pending[props.device.id])
 const isTv = computed(() => /\b(tv|television|roku|apple tv|chromecast)\b/i.test(props.device.name))
-const name = computed(() => shortName(props.device, roomOf(props.device)))
+/* a pair the household said yes to is one card named for both, and its buttons work the whole group (design/speaker-pair/, B) */
+const room_ = computed(() => roomOf(props.device))
+const group = computed(() => room_.value ? groupOf(props.device, room_.value) : [props.device])
+const name = computed(() => {
+  const r = room_.value, mate = r && pairOf(props.device, r)
+  return mate ? namesOf([props.device, mate], d => shortName(d, r)) : shortName(props.device, r)
+})
 /* a speaker the hub can play on is never just Off: it is somewhere music can start (design/music/RoomA) */
 const title = computed(() => props.device.attrs.media_title || (playing.value ? 'Playing' : s.value === 'paused' ? 'Paused' : dead.value ? 'Not answering' : off.value && props.device.attrs.music !== true ? 'Off' : 'Nothing playing'))
 const sub = computed(() => [props.device.attrs.media_artist, props.device.attrs.app_name].filter(Boolean).join(' · '))
@@ -42,9 +48,12 @@ const song = computed(() => !isTv.value && (playing.value || s.value === 'paused
 const record = computed(() => song.value && !!art.value)
 
 const d = () => props.device
-const toggle = () => playing.value ? perform(d(), 'pause', undefined, { state: 'paused' }) : perform(d(), 'play', undefined, { state: 'playing' })
+const toggle = () => {
+  const [act, now] = playing.value ? ['pause', 'paused'] : ['play', 'playing']   // decided once: the first guess flips playing
+  for (const x of [...group.value]) perform(x, act, undefined, { state: now })
+}
 const power = () => off.value ? perform(d(), 'on', undefined, { state: 'idle' }) : perform(d(), 'off', undefined, { state: 'off' })
-const setVolume = (pct: number) => { const v = pct / 100; perform(d(), 'volume', { volume_level: v }, { attrs: { volume_level: v } }) }
+const setVolume = (pct: number) => { const v = pct / 100; for (const x of group.value) perform(x, 'volume', { volume_level: v }, { attrs: { volume_level: v } }) }
 /* The finger drives the slider rather than the browser, the same as the pane's: a native range
    inside a card that rides a scrolling row did not follow a drag at all. What moves while it is
    held is the drawing, and the speaker hears the level once, on release. */
