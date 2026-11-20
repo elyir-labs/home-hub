@@ -27,11 +27,11 @@ class BoxTests(ApiTest):
     def box(self):
         return self.hub.home.devices["media_player.apple_tv"]
 
-    def play(self, title, app):
-        self.hub._on_event({"event_type": "state_changed", "data": {"entity_id": "media_player.apple_tv",
-            "old_state": state("media_player.apple_tv", "standby"),
-            "new_state": state("media_player.apple_tv", "playing", friendly_name="Apple TV", source_list=["Netflix", "YouTube", "Disney+"],
-                               media_title=title, app_name=app)}})
+    def play(self, title, app, kind="tvshow", eid="media_player.apple_tv"):
+        self.hub._on_event({"event_type": "state_changed", "data": {"entity_id": eid,
+            "old_state": state(eid, "standby"),
+            "new_state": state(eid, "playing", friendly_name="Apple TV", source_list=["Netflix", "YouTube", "Disney+"] if eid.endswith("apple_tv") else None,
+                               media_title=title, app_name=app, media_content_type=kind)}})
 
     def test_a_homepod_from_the_same_integration_is_a_speaker_not_a_box(self):
         self.assertNotIn("box", self.hub.home.devices["media_player.homepod"].attrs)
@@ -58,6 +58,12 @@ class BoxTests(ApiTest):
         self.assertEqual(self.client.post("/devices/media_player.apple_tv/app", json={"source": "Settings"}).status_code, 400)
         self.assertEqual(self.client.post("/devices/media_player.tv/app", json={"source": "HDMI 1"}).status_code, 400)
         self.assertEqual(self.ha.called("media_player"), [])
+
+    def test_music_through_the_box_or_a_homepod_is_not_what_was_last_on(self):
+        self.play("Soul Provider", "Music", kind="music")
+        self.play("Soul Provider", None, kind="music", eid="media_player.homepod")
+        self.assertIsNone(self.box().attrs["last_on"])
+        self.assertEqual(self.hub.settings.get("boxes") or {}, {})
 
     def test_what_the_box_plays_is_what_was_last_on_and_outlives_a_rebuild(self):
         self.play("Harbor Lights", "YouTube")

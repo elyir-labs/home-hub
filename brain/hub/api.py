@@ -567,7 +567,7 @@ class Hub:
         if part and before: old_attrs, old = dict(before.attrs), before.state
         else: old_attrs, old = (self.home._keep_attrs(before.capability, old_state.get("attributes", {})) if before else None), old_state.get("state")
         dev = self.home.apply_state(d["entity_id"], d.get("new_state"))
-        if dev and dev.id in self.home.boxes and self.home.watched.seen(dev.id, dev.state, dev.attrs, dev.attrs.get("apps") or []):
+        if dev and dev.attrs.get("box") and self.home.watched.seen(dev.id, dev.state, (d.get("new_state") or {}).get("attributes") or {}, dev.attrs.get("apps") or []):
             dev.attrs.update(self.home.watched.attrs(dev.id))
         if not dev:
             # A thing's first reading. The registry's own event set off a rebuild a second ago, and when the

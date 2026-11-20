@@ -63,8 +63,9 @@ class Watched:
         self._keep()
 
     def seen(self, eid: str, state: str, attrs: dict, apps: list[str]) -> bool:
-        """A box playing something is what was last on. Returns True when that changed."""
-        if state != "playing": return False
+        """A box playing a film or a show is what was last on. Music through it is the room's music, already first on
+        the TV, so it is not. Returns True when that changed."""
+        if state != "playing" or attrs.get("media_content_type") == "music": return False
         title, app = attrs.get("media_title") or None, attrs.get("app_name") or None
         if not title and not app: return False
         was = self.last.get(eid) or {}
