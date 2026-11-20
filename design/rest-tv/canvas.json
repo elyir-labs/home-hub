@@ -7,7 +7,16 @@
   "pages": [
     {
       "id": "rest-tv",
-      "name": "What the TV shows when nobody is watching"
+      "name": "What the TV shows when nobody is watching",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A, with C until there are photos, B while music plays and E at bedtime",
+        "board": "PhotosA.dc.html"
+      }
+    },
+    {
+      "id": "rest-tv-rejected",
+      "name": "What the TV shows when nobody is watching: not chosen"
     }
   ],
   "artboards": [
@@ -34,7 +43,7 @@
       "file": "PlayingB.dc.html",
       "page": "rest-tv",
       "x": 0,
-      "y": 3000,
+      "y": 4500,
       "w": 1920,
       "h": 1080,
       "title": "B: what's playing takes the screen"
@@ -43,7 +52,7 @@
       "file": "WindowC.dc.html",
       "page": "rest-tv",
       "x": 0,
-      "y": 4500,
+      "y": 3000,
       "w": 1920,
       "h": 1080,
       "title": "C: the sky as a window",
@@ -51,9 +60,9 @@
     },
     {
       "file": "AboveD.dc.html",
-      "page": "rest-tv",
+      "page": "rest-tv-rejected",
       "x": 0,
-      "y": 6000,
+      "y": 0,
       "w": 1920,
       "h": 1080,
       "title": "D: the house from above"
@@ -62,34 +71,34 @@
       "file": "GoodnightE.dc.html",
       "page": "rest-tv",
       "x": 0,
-      "y": 7500,
+      "y": 6000,
       "w": 1920,
       "h": 1080,
       "title": "E: winding down at night"
     },
     {
       "file": "DayF.dc.html",
-      "page": "rest-tv",
+      "page": "rest-tv-rejected",
       "x": 0,
-      "y": 9000,
+      "y": 1500,
       "w": 1920,
       "h": 1080,
       "title": "F: the day ahead"
     },
     {
       "file": "TonightG.dc.html",
-      "page": "rest-tv",
+      "page": "rest-tv-rejected",
       "x": 0,
-      "y": 10500,
+      "y": 3000,
       "w": 1920,
       "h": 1080,
       "title": "G: tonight's film (Hub Plus)"
     },
     {
       "file": "RoofH.dc.html",
-      "page": "rest-tv",
+      "page": "rest-tv-rejected",
       "x": 0,
-      "y": 12000,
+      "y": 4500,
       "w": 1920,
       "h": 1080,
       "title": "H: the roof lights, indoors"
@@ -113,14 +122,6 @@
       "text": "UNDER EVERY DIRECTION, WHICHEVER IS PICKED\n\nNOTHING STAYS PUT. On an OLED TV, a shape held in one place for weeks leaves a ghost. Every type on a resting TV drifts a few pixels each minute and swaps sides each hour. A, C and H move by nature. B, D, E, F and G need the drift.\n\nTHE TV GOES TO SLEEP. After about 20 minutes at rest with no key pressed (and right after Goodnight in E), the hub tells the TV to go to standby over HDMI, the same cable that brings the remote's keys in today (startup/cec-keys.toml). Turning the TV back on brings the hub up where it rested. A hub on a TV must never be the reason the TV was on all night.\n\nOK STILL DOES WHAT IT DOES. On every board, OK raises this room's band and Home wakes the TV, as decided in design/living-room. The line in the corner says what OK does, which changes only in B, E and G."
     },
     {
-      "id": "pick",
-      "page": "rest-tv",
-      "x": 2040,
-      "y": 1500,
-      "w": 560,
-      "text": "TO PICK\n\nName a whole screen (A, C, D, G, or Today as it is) and any moments to go with it (B, E, F, H), or something else and I'll draw it. My suggestion: A with C to fall back on before anyone has sent a photo, plus B while music plays and E at bedtime."
-    },
-    {
       "id": "today",
       "page": "rest-tv",
       "x": 0,
@@ -140,7 +141,7 @@
       "id": "b",
       "page": "rest-tv",
       "x": 0,
-      "y": 4120,
+      "y": 5620,
       "w": 1920,
       "text": "B: WHAT'S PLAYING TAKES THE SCREEN. While music plays anywhere in the house, rest becomes the music: the album's picture large, the song and the artist across the room, how far it has got, and which rooms are playing. The clock moves to the top corner and two facts stay along the foot. OK raises the speaker's band, so Pause and louder or quieter are one press. It is music's card from design/music, drawn for the sofa.\n\nFOR: It needs nothing new: the speaker already hands the hub the picture and the song. It answers the question people actually have from the sofa (\"what is this?\"). It works on every hub, a Pi included.\n\nAGAINST: It is a state, not a whole resting screen. When nothing plays, the TV needs one of the others. Pick it beside another rather than instead of one."
     },
@@ -148,15 +149,15 @@
       "id": "c",
       "page": "rest-tv",
       "x": 0,
-      "y": 5620,
+      "y": 4120,
       "w": 1920,
       "text": "C: THE SKY AS A WINDOW. The panel's own sky (sky.ts) at the TV's size and nothing else: the real sky over the house right now, sunrise and sunset at their real times, the moon at its real phase, rain when it rains, the neighbors' windows lighting up at dusk. The time and the weather sit small in the corner like a caption. The facts are gone. The house only says something when there is something to say, as one line in lamp color (flip The house says).\n\nFOR: The calmest of all, and the most like a window in a room that does not have one. The sky is already drawn for fifteen kinds of weather, so this is the least new work after B. The picture changes all day, so it never ghosts.\n\nAGAINST: It tells you the least. Somebody who wants to know whether the lights are on has to press OK. It may also feel like a nice wallpaper rather than part of the house."
     },
     {
       "id": "d",
-      "page": "rest-tv",
+      "page": "rest-tv-rejected",
       "x": 0,
-      "y": 7120,
+      "y": 1120,
       "w": 1920,
       "text": "D: THE HOUSE FROM ABOVE. A simple plan of the house, each room where it is, lit where a light is on, a lock where a door is, a note where music is playing, and \"This TV\" where you are sitting. Rooms nobody is using stay dark. It is the facts row turned into a picture: \"6 on in 5 rooms\" becomes which five.\n\nFOR: From the sofa, the question at night is \"is anything still on?\", and this answers it at a glance without reading. It is unlike anything a TV box does today.\n\nAGAINST: Somebody has to draw the plan. The hub knows rooms, not where they are, so setup gains a step (laying rooms out on a grid), and a house that skips it has no D. On a 1080p TV a large house's plan gets small. It is the most new work here."
     },
@@ -164,33 +165,49 @@
       "id": "e",
       "page": "rest-tv",
       "x": 0,
-      "y": 8620,
+      "y": 7120,
       "w": 1920,
       "text": "E: WINDING DOWN AT NIGHT. After a time the house chooses (about 10:30 PM), rest turns into the end of the day: what is still on before bed, in a short list, and one button, Goodnight, lit and ready for OK. It turns everything off, locks what is unlocked and stops the music, then the TV turns itself off with the lights. Left alone, the TV still goes off by itself after a few minutes, without touching the house.\n\nFOR: It is the one moment the TV is genuinely useful at rest: the last person up is sitting in front of it with the remote in their hand. Everything off already exists (it is a scene), so the button is not new.\n\nAGAINST: It only covers the end of the evening, so it goes on top of another direction rather than replacing one. A house that never asked for a bedtime needs a sensible default."
     },
     {
       "id": "f",
-      "page": "rest-tv",
+      "page": "rest-tv-rejected",
       "x": 0,
-      "y": 10120,
+      "y": 2620,
       "w": 1920,
       "text": "F: THE DAY AHEAD. In the morning, rest reads like the first page of a newspaper: today's weather hour by hour on the left, and what the house will do today on the right, the next routines in order, with anything from the house's calendar between them (if it has one). The facts strip stays along the foot.\n\nFOR: The routines are already known (upcoming.ts), so most of the right side costs nothing. Mornings are when a TV in a kitchen or living room gets a glance on the way out.\n\nAGAINST: It is the busiest board, and a lot of reading for a screen nobody is looking at. A calendar is an account to sign into, which the house may not have. Like E, it fits one part of the day, so it pairs with C for the rest."
     },
     {
       "id": "g",
-      "page": "rest-tv",
+      "page": "rest-tv-rejected",
       "x": 0,
-      "y": 11620,
+      "y": 4120,
       "w": 1920,
       "text": "G: TONIGHT'S FILM. Hub Plus only, since films need it. Rest shows a still from what the household is part way through, from its own films, with how far in they got and Play here lit for OK.\n\nFOR: One press from resting to watching, which is what a TV box is for.\n\nAGAINST: It is the furthest from a resting screen and the closest to an advert, even with your own films: the TV keeps asking you to watch something. It is Hub Plus only, so a Pi house needs another answer anyway. Its natural place may be the TV's home rather than its rest."
     },
     {
       "id": "h",
-      "page": "rest-tv",
+      "page": "rest-tv-rejected",
       "x": 0,
-      "y": 13120,
+      "y": 5620,
       "w": 1920,
       "text": "H: THE ROOF LIGHTS, INDOORS. While an occasion is on the roof, rest draws the front of the house with its roofline bulb by bulb, playing what the roof is playing, with the occasion's name and when it ends. The rest of the year it never appears.\n\nFOR: The roofline is the one light you can't see from inside, and this is the only place to see it without going out. It is delightful a few weeks a year.\n\nAGAINST: It is seasonal, so it is a moment inside another direction, never a choice on its own. Drawing the house's front is another thing to set up, unless one generic house is good enough."
+    },
+    {
+      "id": "decided",
+      "page": "rest-tv",
+      "x": 2040,
+      "y": 1500,
+      "w": 560,
+      "text": "DECIDED 20 NOVEMBER 2026 -- A, WITH C UNTIL THERE ARE PHOTOS, B WHILE MUSIC PLAYS, E AT BEDTIME\n\nA resting TV shows the household's own photos (A). Until anybody has sent one, it shows the sky as a window (C). While music plays anywhere in the house, the music takes the screen (B). From bedtime on, it asks Goodnight (E). Under all of them, nothing holds still, and the TV is sent to standby after 20 minutes at rest."
+    },
+    {
+      "id": "lost",
+      "page": "rest-tv-rejected",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "NOT CHOSEN\n\nD needs a plan of the house drawn at setup, and gets small on a large house. F is a lot of reading for a screen nobody is watching. G puts an advert's shape on the house's own films, and is Hub Plus only. H is seasonal, a moment rather than a screen. Kept here with their cases."
     }
   ]
 }
