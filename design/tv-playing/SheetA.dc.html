@@ -18,7 +18,7 @@
   .srow h2 { margin: 0 0 14px; font-size: 20px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
   .srow .cards { gap: 20px; align-items: center; }
   .key { height: 96px; padding: 0 34px; display: inline-flex; align-items: center; gap: 14px; font-size: 26px; flex: none; }
-  .vol { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 24px; color: var(--ink-2); }
+  .vol { margin-left: auto; gap: 16px; font-size: 24px; color: var(--ink-2); }
   .vol .pbar { width: 300px; } .vol .pbar i { width: 20%; }
   .lt { width: 236px; height: 96px; padding: 16px 20px; flex: none; display: flex; flex-direction: column; justify-content: center; }
   .lt .nm { font-size: 24px; } .lt .st { font-size: 20px; margin-top: 2px; }
@@ -37,34 +37,34 @@
 
   <div class="sheet">
     <div class="srow"><h2 style="color:var(--lamp)">Playing here</h2><div class="cards">
-      <span class="card key" data-f data-f-start data-hint="OK|Pause;▲ ▼|Louder or quieter;Back|Put it away">Pause</span>
+      <span class="card key" data-f data-f-start data-hint="OK|Pause;Back|Put it away">Pause</span>
       <span class="card key" data-f data-hint="OK|Skip this one;Back|Put it away">Next</span>
       <span class="card key" data-f data-hint="OK|Choose something else to play;Back|Put it away">Something else</span>
       <span class="card key" data-f data-hint="OK|Play it in other rooms too;Back|Put it away">Other rooms too</span>
-      <span class="vol">Volume<span class="pbar"><i></i></span>20%</span>
+      <span class="card key vol" data-f data-hint="▲ ▼|Louder or quieter;Back|Put it away">Volume<span class="pbar"><i></i></span>20%</span>
     </div></div>
     <div class="srow"><h2>In the living room</h2><div class="cards">
-      <div class="card lt light on" style="--c-rgb:233,184,114;--v:35%" data-f data-hint="OK|Turn off;▲ ▼|Brighter or dimmer;Back|Put it away"><div class="nm">Ceiling light</div><div class="st">On, 35%</div><div class="bar"><i></i></div></div>
-      <div class="card lt light on" style="--c-rgb:233,184,114;--v:24%" data-f data-hint="OK|Turn off;▲ ▼|Brighter or dimmer;Back|Put it away"><div class="nm">Floor lamp</div><div class="st">On, 24%</div><div class="bar"><i></i></div></div>
+      <div class="card lt light on" style="--c-rgb:233,184,114;--v:35%" data-f data-hint="OK|Turn off;Back|Put it away"><div class="nm">Ceiling light</div><div class="st">On, 35%</div><div class="bar"><i></i></div></div>
+      <div class="card lt light on" style="--c-rgb:233,184,114;--v:24%" data-f data-hint="OK|Turn off;Back|Put it away"><div class="nm">Floor lamp</div><div class="st">On, 24%</div><div class="bar"><i></i></div></div>
       <div class="card lt" data-f data-hint="OK|Turn on;Back|Put it away"><div class="nm">Reading lamp</div><div class="st">Off</div></div>
       <div class="card lt" data-f data-hint="OK|Close;Back|Put it away"><div class="nm">Blinds</div><div class="st">70% open</div></div>
       <div class="card lt" data-f data-hint="OK|Open it;Back|Put it away"><div class="nm">Thermostat</div><div class="st">71° · cooling</div></div>
-      <span class="card chip" data-f data-hint="●#e5484d|Or the red button;OK|Movie;Back|Put it away"><span class="dot" style="background:#e5484d"></span>Movie</span>
-      <span class="card chip" data-f data-hint="●#3e63dd|Or the blue button;OK|All off;Back|Put it away"><span class="dot" style="background:#3e63dd"></span>All off</span>
+      <span class="card chip" data-f data-hint="OK|Movie;Back|Put it away"><span class="dot" style="background:#e5484d"></span>Movie</span>
+      <span class="card chip" data-f data-hint="OK|All off;Back|Put it away"><span class="dot" style="background:#3e63dd"></span>All off</span>
     </div></div>
     <div class="srow"><h2>Other rooms</h2><div class="cards">
-      <span class="card chip room" data-f data-hint="OK|The kitchen;Back|Put it away">Kitchen <small>2 on</small></span>
-      <span class="card chip room" data-f data-hint="OK|The bedroom;Back|Put it away">Bedroom <small>Off</small></span>
-      <span class="card chip room" data-f data-hint="OK|The office;Back|Put it away">Office <small>1 on</small></span>
-      <span class="card chip room" data-f data-hint="OK|The front door;Back|Put it away">Front door <small>Locked</small></span>
-      <span class="card chip room" data-f data-hint="OK|The garage;Back|Put it away">Garage <small>Closed</small></span>
-      <span class="card chip room" data-f data-hint="OK|The backyard;Back|Put it away">Backyard <small>Off</small></span>
+      <span class="card chip room" data-f data-hint="OK|The kitchen;Back|Put it away">Kitchen <small>2 lights on</small></span>
+      <span class="card chip room" data-f data-hint="OK|The bedroom;Back|Put it away">Bedroom</span>
+      <span class="card chip room" data-f data-hint="OK|The office;Back|Put it away">Office <small>1 light on</small></span>
+      <span class="card chip room" data-f data-hint="OK|The front door;Back|Put it away">Front door</span>
+      <span class="card chip room" data-f data-hint="OK|The garage;Back|Put it away">Garage</span>
+      <span class="card chip room" data-f data-hint="OK|The backyard;Back|Put it away">Backyard</span>
     </div></div>
   </div>
   <div class="keys" id="hint" hidden></div>
 </div>
 <script>
-  // the record is home: OK raises the sheet, Back (or 20 seconds with no key, not drawn) lets it sink
+  // the record is home: OK raises the sheet on Pause, Up or Down on the volume; Back (or 20 seconds with no key, not drawn) lets it sink
   const scr = document.querySelector('.screen'), hint = document.getElementById('hint')
   window.tvKeys = (key, cur, light) => {
     if (!scr.classList.contains('up') && key === 'Enter') { scr.classList.add('up'); hint.hidden = false; light(document.querySelector('[data-f-start]')); return true }

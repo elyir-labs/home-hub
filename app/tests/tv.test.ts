@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Device, Room } from '../src/api'
 import { activity } from '../src/store'
-import { digitOf, hintFor, musicIn, nearest, okOf, onTV, pressOf, sceneFor, speakersOf, stateOf, thingsIn } from '../src/tv'
+import { digitOf, hintFor, musicIn, nearest, okOf, onTV, pressOf, RECORD_AFTER, restAfter, sceneFor, speakersOf, stateOf, thingsIn } from '../src/tv'
 import { stepOf } from '../src/levels'
 import { SCENES, store } from '../src/store'
 
@@ -152,5 +152,17 @@ describe('music in the TV\'s room (design/tv-music/, A and B)', () => {
   it('counts a speaker playing the same song in the room as in step, though nothing grouped them', () => {
     const left = sp('left', 'playing', { media_title: 'Drowning' }), right = sp('right', 'playing', { media_title: 'Drowning' })
     expect(speakersOf(left, room(left, right, sp('pod', 'playing', { media_title: 'Rock' }))).map(d => d.id)).toEqual(['left', 'right'])
+  })
+})
+
+describe('the record is the TV\'s home while its room plays (design/tv-playing/, A)', () => {
+  const usual = 3 * 60 * 1000
+  it('comes back after twenty seconds with no key, not the three minutes a quiet house waits', () => {
+    expect(RECORD_AFTER).toBe(20 * 1000)
+    expect(restAfter(usual, true, false)).toBe(RECORD_AFTER)
+    expect(restAfter(usual, false, false)).toBe(usual)
+  })
+  it('waits the usual while a pane is open, since somebody is reading it', () => {
+    expect(restAfter(usual, true, true)).toBe(usual)
   })
 })

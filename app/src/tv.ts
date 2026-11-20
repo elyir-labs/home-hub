@@ -64,6 +64,12 @@ export function musicIn(room: Room | null, playingOnly = false): Device | null {
   const on = room?.devices.filter(d => canStart(d) && (d.state === 'playing' || (!playingOnly && d.state === 'paused'))) ?? []
   return on.find(d => d.state === 'playing') ?? on[0] ?? null
 }
+/* While the TV's room plays, the record is the TV's home (design/tv-playing/, A): twenty seconds with no key and it
+   comes back, not the three minutes a quiet house waits, since a TV nobody is pressing keys at is a TV nobody is
+   reading. Not while a pane is open, which is somebody reading. The sheet raised over the record sinks after the same. */
+export const RECORD_AFTER = 20 * 1000
+export const restAfter = (usual: number, record: boolean, reading: boolean) => record && !reading ? RECORD_AFTER : usual
+
 export function speakersOf(d: Device, room: Room): Device[] {
   const mates = new Set((d.attrs.together as string[] | undefined) ?? [])
   // its pair, and a speaker playing the same song in step (an Apple TV playing to both HomePods): music.ts groupOf

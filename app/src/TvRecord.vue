@@ -3,9 +3,10 @@
   SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-/* The resting TV while its room plays music (design/tv-music/, B): the record fills the screen and the time keeps a
-   corner. OK raises the band (TvBand's music row) with Pause, Next and the volume, and Back puts it away. Behind it
-   is its own cover, blurred and dimmed, rather than the sky (design/readable-rest/, D). */
+/* The TV's home while its room plays music (design/tv-music/, B, and design/tv-playing/, A): the record fills the screen
+   and the time keeps a corner. OK raises the sheet under it (TvBand), and the record steps up and in above the sheet rather
+   than being covered; Back puts it away. Behind it is its own cover, blurred and dimmed, rather than the sky
+   (design/readable-rest/, D). */
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { imageUrl, type Device, type Room } from './api'
 
@@ -26,7 +27,7 @@ const pos = computed(() => {
 <template>
   <div class="rec-wrap">
     <div class="rec-blur" v-if="cover" :style="{ backgroundImage: `url(${cover})` }"></div>
-    <div class="rec" :style="{ zoom: scale }">
+    <div class="rec" :class="{ up: under }" :style="{ zoom: scale }">
       <div class="rec-corner"><div class="rec-time">{{ time }}<small v-if="period"> {{ period }}</small></div><div class="rec-day">{{ day }}<template v-if="temp"> · {{ temp }}</template></div></div>
       <div class="rec-main">
         <div class="rec-art"><img v-if="cover" :src="cover" alt="" /></div>
@@ -37,7 +38,7 @@ const pos = computed(() => {
           <div class="rec-bar" v-if="pos != null"><i :style="{ width: `${pos}%` }"></i></div>
         </div>
       </div>
-      <div class="rec-keys" v-if="!under"><kbd>OK</kbd>{{ d.state === 'paused' ? 'Play, next, louder' : 'Pause, next, louder' }}</div>
+      <div class="rec-keys" v-if="!under"><kbd>OK</kbd>{{ d.state === 'paused' ? 'Play' : 'Pause' }}, next, the room, the house</div>
     </div>
   </div>
 </template>
@@ -61,6 +62,11 @@ const pos = computed(() => {
 .rec-w { font-size: 26px; color: var(--ink); margin-top: 40px; }
 .rec-bar { width: 560px; height: 5px; margin-top: 40px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); }
 .rec-bar i { display: block; height: 100%; border-radius: 3px; background: var(--ink); }
+.rec-main, .rec-art, .rec-t { transition: left 0.35s ease, top 0.35s ease, gap 0.35s ease, width 0.35s ease, height 0.35s ease, font-size 0.35s ease; }
+.rec.up .rec-main { left: 96px; top: 70px; gap: 48px; }
+.rec.up .rec-art { width: 300px; height: 300px; }
+.rec.up .rec-t { font-size: 64px; }
+.rec.up .rec-bar { width: 480px; margin-top: 28px; }
 .rec-keys { position: absolute; right: 96px; bottom: 54px; display: inline-flex; gap: 10px; align-items: center; font-size: 22px; color: var(--ink); }
 .rec-keys kbd { font-family: inherit; font-size: 17px; font-weight: 600; line-height: 1; min-width: 40px; height: 36px; padding: 0 10px; display: inline-grid; place-items: center;
   border-radius: 18px; color: var(--ink); background: rgba(0, 0, 0, 0.3); border: 1px solid var(--edge-hi); }
