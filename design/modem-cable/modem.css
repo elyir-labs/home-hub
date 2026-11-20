@@ -1,0 +1,16 @@
+/* What this collection adds to the first start's sheet: the cable picture, and two answers side by side. */
+.cables { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; pointer-events: none; }
+.cables .box { fill: none; stroke: #8f8b84; stroke-width: 3; }
+.cables .name { fill: #d9d5cd; font: 500 22px 'Instrument Sans', sans-serif; text-anchor: middle; }
+.cables .sub { fill: #8f8b84; font: 400 16px 'Instrument Sans', sans-serif; text-anchor: middle; }
+.cables .wire { fill: none; stroke: #8f8b84; stroke-width: 4; stroke-linecap: round; }
+.cables .now { fill: none; stroke: #8f8b84; stroke-width: 4; stroke-dasharray: 2 12; stroke-linecap: round; }
+.cables .here { fill: none; stroke: rgb(233, 184, 114); stroke-width: 5; stroke-linecap: round; }
+.cables .tag { font: 500 15px 'Instrument Sans', sans-serif; letter-spacing: .14em; text-transform: uppercase; text-anchor: middle; }
+.col { position: absolute; text-align: center; }
+.col .big { font-size: 26px; color: #f1eee8; line-height: 1.3; }
+.col .small { margin-top: 10px; font-size: 18px; color: #8f8b84; line-height: 1.45; }
+.col .small b { color: #d9d5cd; font-weight: 500; }
+.or { position: absolute; left: 700px; width: 40px; text-align: center; font-size: 18px; color: #6f6b64; letter-spacing: .1em; text-transform: uppercase; }
+.rule { position: absolute; left: 719px; width: 1px; background: #2b2721; }
+.more { top: 772px; font-size: 18px; color: #6f6b64; }
