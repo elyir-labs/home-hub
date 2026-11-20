@@ -13,7 +13,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { Device, Room } from './api'
 import { activity, perform, scenesFor, shortName, store } from './store'
 import { levelOf, step } from './levels'
-import { coloredScenes, COLOR_OF, hintFor, hintParts, light, lit, okOf, stateOf, thingsIn } from './tv'
+import { coloredScenes, COLOR_OF, hintFor, hintParts, light, lit, louder, okOf, playPause, stateOf, thingsIn } from './tv'
 
 const props = defineProps<{ room: Room; music?: Device | null }>()
 const emit = defineEmits<{ rooms: []; open: [d: Device] }>()
@@ -37,6 +37,7 @@ function level(e: Event, d: Device) {
   else if (levelOf(d) != null) e.preventDefault()   // at the end of its level: stay on the card rather than leave the band
 }
 
+function pair(e: Event) { if (props.music && louder(props.music, props.room, (e as CustomEvent<1 | -1>).detail)) e.preventDefault(); else e.preventDefault() }
 const vol = computed(() => props.music?.attrs.volume_level != null ? Math.round(Number(props.music.attrs.volume_level) * 100) : null)
 
 const band = ref<HTMLElement | null>(null)
@@ -51,7 +52,7 @@ onUnmounted(() => window.removeEventListener('resize', fit))
       <div class="tvb-band" ref="band" data-tv-own-scroll>
         <div class="tvb-row tvb-music" v-if="music">
           <button class="tvb-key" data-tv data-tv-start :data-hint="`OK|${music.state === 'playing' ? 'Pause' : 'Play'};▲ ▼|Louder or quieter;Back|Put it away`"
-                  :data-thing="music.id" @click="ok(music)" @tv-level="level($event, music)">{{ music.state === 'playing' ? 'Pause' : 'Play' }}</button>
+                  :data-thing="music.id" @click="playPause(music, room)" @tv-level="pair($event)">{{ music.state === 'playing' ? 'Pause' : 'Play' }}</button>
           <button class="tvb-key" data-tv data-hint="OK|Skip this one;Back|Put it away" @click="perform(music, 'next')">Next</button>
           <button class="tvb-key" data-tv :data-hint="`OK|The whole ${room.name.toLowerCase()};Back|Put it away`" @click="emit('rooms')">The {{ room.name.toLowerCase() }}</button>
           <span class="tvb-vol" v-if="vol != null">Volume<span class="tvb-vol-bar"><i :style="{ width: `${vol}%` }"></i></span>{{ vol }}%</span>

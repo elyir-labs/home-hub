@@ -76,3 +76,25 @@ test('a resting TV whose room plays music shows the record, and OK raises Pause,
   await page.keyboard.press('Escape')
   await expect(page.locator('.tvb-key')).toHaveCount(0)
 })
+
+test('a pair of speakers playing the same song is one record, and OK and the volume work both', async ({ page }) => {
+  const asked: string[] = []
+  await page.route('**/devices/*/*', r => r.request().method() === 'POST'
+    ? (asked.push(new URL(r.request().url()).pathname), r.fulfill({ status: 200, body: '{}' }))
+    : r.fallback())
+  await page.route('**/home', async r => {
+    const res = await r.fetch(), home = await res.json()
+    const living = home.rooms.find((x: any) => x.id === 'living')
+    const s1 = living.devices.find((d: any) => d.id === 's1')
+    s1.state = 'playing'; s1.name = 'Left Pod'
+    living.devices.push({ ...s1, id: 's2', name: 'Right Pod', attrs: { ...s1.attrs } })
+    await r.fulfill({ response: res, json: home })
+  })
+  await page.goto('/?tv=1&room=living&at=21:10', { waitUntil: 'networkidle' })
+  await expect(page.locator('.tv-now-where')).toHaveText('Left Pod and Right Pod · 20%')
+  await expect(page.locator('.tv-title p')).not.toContainText('Blue in Green · Blue in Green')
+  await page.keyboard.press('Enter')
+  await expect.poll(() => asked.filter(a => a.endsWith('/pause')).sort()).toEqual(['/devices/s1/pause', '/devices/s2/pause'])
+  await page.keyboard.press('ArrowDown')
+  await expect.poll(() => asked.filter(a => a.endsWith('/volume')).sort()).toEqual(['/devices/s1/volume', '/devices/s2/volume'])
+})
