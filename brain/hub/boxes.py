@@ -14,8 +14,14 @@ import time
 # its apps, so it waits until there is one to try it on.
 BOXES = {"apple_tv", "roku", "androidtv", "androidtv_remote"}
 
-# Not apps: Roku lists its own home screen among its channels.
-NOT_APPS = {"Home"}
+# Not things to watch: Roku lists its own home screen among its channels, and an Apple TV lists its own store,
+# settings and search.
+NOT_APPS = {"Home", "App Store", "Settings", "Search", "Arcade", "TestFlight"}
+
+# A box lists its apps alphabetically, which puts games and odd channels first. Until the house has seen some used,
+# the ones people mostly open come first, by name only.
+WATCH_FIRST = ["Netflix", "YouTube", "Disney+", "Prime Video", "Max", "Hulu", "TV", "Apple TV", "Peacock", "Paramount+",
+               "Plex", "YouTube TV", "Sling TV", "Tubi", "Pluto TV", "ESPN", "Crunchyroll", "Music", "Spotify"]
 
 USED_KEEP = 12
 
@@ -25,7 +31,12 @@ def is_box(entity: dict) -> bool:
 
 
 def apps_of(attrs: dict) -> list[str]:
-    return [s for s in attrs.get("source_list") or [] if isinstance(s, str) and s not in NOT_APPS]
+    # Compared with its spaces tidied (an Apple TV writes "App Store" with a no-break space), but kept as the box spells
+    # it, because that spelling is what opens it.
+    plain = lambda n: " ".join(n.split())
+    apps = [n for n in dict.fromkeys(attrs.get("source_list") or []) if isinstance(n, str) and plain(n) and plain(n) not in NOT_APPS]
+    first = {n: i for i, n in enumerate(WATCH_FIRST)}
+    return sorted(apps, key=lambda n: first.get(plain(n), len(first)))
 
 
 class Watched:

@@ -298,8 +298,9 @@ class Home:
         if extra.get("fan_until", 0) > time.time(): out["fan_mode"] = "on"
         if cap.split(".")[0] == "light" and eid in self.color_pinned: out["color_pinned"] = True
         if eid in self.off_home: out["off_home"] = True
-        if eid in self.boxes:
-            out.update(box=True, apps=boxes.apps_of(a), **(self.watched.attrs(eid) if self.watched else {}))
+        # A HomePod comes through the same integration as an Apple TV, with no apps: it is a speaker, not a box.
+        if eid in self.boxes and (apps := boxes.apps_of(a)):
+            out.update(box=True, apps=apps, **(self.watched.attrs(eid) if self.watched else {}))
         return out
 
     @staticmethod

@@ -9,10 +9,13 @@ from tests.apptest import ApiTest, house, hardware, entity, state
 
 def house_with_a_box():
     areas, devices, entities, states = house()
-    devices += [hardware("hw-box", "living", "Apple TV", manufacturer="Apple"), hardware("hw-tv", "living", "TV", manufacturer="Samsung")]
-    entities += [entity("media_player.apple_tv", "hw-box", platform="apple_tv"), entity("media_player.tv", "hw-tv", platform="samsungtv")]
+    devices += [hardware("hw-box", "living", "Apple TV", manufacturer="Apple"), hardware("hw-tv", "living", "TV", manufacturer="Samsung"),
+                hardware("hw-pod", "living", "HomePod", manufacturer="Apple")]
+    entities += [entity("media_player.apple_tv", "hw-box", platform="apple_tv"), entity("media_player.tv", "hw-tv", platform="samsungtv"),
+                 entity("media_player.homepod", "hw-pod", platform="apple_tv")]
     states += [state("media_player.apple_tv", "standby", friendly_name="Apple TV", source_list=["Netflix", "YouTube", "Disney+"]),
-               state("media_player.tv", "on", friendly_name="TV", source_list=["TV", "HDMI 1", "HDMI 2"])]
+               state("media_player.tv", "on", friendly_name="TV", source_list=["TV", "HDMI 1", "HDMI 2"]),
+               state("media_player.homepod", "off", friendly_name="HomePod")]
     return areas, devices, entities, states
 
 
@@ -29,6 +32,14 @@ class BoxTests(ApiTest):
             "old_state": state("media_player.apple_tv", "standby"),
             "new_state": state("media_player.apple_tv", "playing", friendly_name="Apple TV", source_list=["Netflix", "YouTube", "Disney+"],
                                media_title=title, app_name=app)}})
+
+    def test_a_homepod_from_the_same_integration_is_a_speaker_not_a_box(self):
+        self.assertNotIn("box", self.hub.home.devices["media_player.homepod"].attrs)
+
+    def test_the_apps_people_mostly_open_come_first_and_the_box_s_own_store_and_settings_are_not_apps(self):
+        from hub.boxes import apps_of
+        got = apps_of({"source_list": ["[adult swim]", "App\u00a0Store", "Angry Birds Reloaded", "Disney+", "Netflix", "Settings", "Search", "YouTube"]})
+        self.assertEqual(got, ["Netflix", "YouTube", "Disney+", "[adult swim]", "Angry Birds Reloaded"])
 
     def test_a_box_carries_its_apps_and_a_tv_its_inputs_do_not_become_apps(self):
         self.assertEqual(self.box().attrs["apps"], ["Netflix", "YouTube", "Disney+"])
