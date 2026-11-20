@@ -16,7 +16,7 @@ Four things, and no more:
   role      whether this unit runs the house or shows another hub's. It cannot do that itself: it
             leaves one word in a file and role.sh, as root, decides what to do with it
   sleep     the TV this unit is plugged into, sent to standby over HDMI by cec.sh, after a long rest or a
-            Goodnight (design/rest-tv/). Waking it is the TV's own remote; nothing here turns a TV on
+            Bedtime (design/rest-tv/). Waking it is the TV's own remote; nothing here turns a TV on
 
 Nothing here takes a command from the panel. A turn is checked against four numbers and a role
 against two words, the way restart.sh checks its rungs.
