@@ -67,7 +67,7 @@ test('a resting TV whose room plays music shows the record, and OK raises Pause,
   })
   await page.goto('/?tv=1&room=living&at=21:10&rest=1', { waitUntil: 'networkidle' })
   await expect(page.locator('.rec-t')).toHaveText('Blue in Green')
-  await expect(page.locator('.rec-w')).toContainText('in the living room')
+  await expect(page.locator('.rec-w')).toHaveCount(0)        // the TV is in that room: which speakers and where is not said
   await expect(page.locator('.idle-time')).toHaveCount(0)
   await page.keyboard.press('Enter')
   await expect(page.locator('.tvb-key')).toHaveText(['Pause', 'Next', 'The living room'])
@@ -111,7 +111,7 @@ test('a pause keeps the record on the resting TV, saying Paused, with Play on OK
   speak({ type: 'device', device: { ...s1, state: 'paused' } })
   await page.waitForTimeout(600)
   await expect(page.locator('.rec-t')).toHaveText('Blue in Green')
-  await expect(page.locator('.rec-w')).toContainText('Paused')
+  await expect(page.locator('.rec-w')).toHaveText('Paused')
   await expect(page.locator('.rec-keys')).toContainText('Play, next, louder')
   await page.keyboard.press('Enter')
   await expect(page.locator('.tvb-key').first()).toHaveText('Play')
