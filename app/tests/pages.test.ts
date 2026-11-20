@@ -5,13 +5,13 @@ import { describe, expect, it } from 'vitest'
 import { grouped } from '../src/pages'
 
 const door = (id: any) => ({ id })
-const all = ['location', 'look', 'screen', 'routines', 'signals', 'people', 'accounts', 'things', 'printers', 'add', 'share', 'hub', 'happened', 'code', 'notes', 'power', 'developer'].map(door)
+const all = ['location', 'look', 'screen', 'routines', 'signals', 'photos', 'people', 'accounts', 'things', 'printers', 'add', 'share', 'hub', 'happened', 'code', 'notes', 'power', 'developer'].map(door)
 const names = (g: ReturnType<typeof grouped>) => g.map(x => `${x.name}: ${x.doors.map(d => d.id).join(' ')}`)
 
 describe('the doors of This house, grouped', () => {
   it('sorts every door into the four groups, in the order drawn', () => {
     expect(names(grouped(all, true))).toEqual([
-      'Every day: routines happened signals',
+      'Every day: routines happened signals photos',
       'People: people share accounts',
       'The house: location things printers power',
       'The hub and this screen: screen look hub code developer',

@@ -50,6 +50,8 @@ from .roofline import Roofline
 from .glow import Glow, GlowError
 from . import glow as glow_mod
 from .printers import Printers
+from .photos import Photos
+from .screens import Screens
 from .power import Power
 from .signals import Signals
 from . import things
@@ -147,6 +149,8 @@ class Hub:
         self.glow = Glow(self)             # the light behind the TV, following the picture (design/tv-glow/)
         self.roofline = Roofline(self)     # several strip controllers as one light outside, its evenings and its holidays
         self.printers = Printers(self)     # 3D printers on the Wi-Fi, let in at the printer and followed: hub/printers.py
+        self.photos = Photos()             # the household's own photos, for a TV at rest: design/rest-tv/
+        self.screens = Screens()           # the house's screens, which are TVs and which show photos: design/which-tv/
         self.power = Power()               # the sun on the roof, the battery and the grid: hub/power.py
         self._power_sent: tuple[float, tuple | None] = (0.0, None)
         self.net = Network(self)           # how this hub is connected, and what it hands out: docs/network.md
@@ -224,7 +228,8 @@ class Hub:
                 "location": bool(self.location), "rooms": sum(1 for r in self.home.rooms.values() if r.id != "unassigned"),
                 "devices": len(self.home.devices), "drivers": self.provision.summary(), "problems": self.provision.problems,
                 "locked": self.lock.locked, "version": self.updates.version, "update": self.updates.summary(),
-                "language": self.language, "handed_over": bool(self.settings.get("handed_over")) and not self.settings.get("setup_done")}
+                "language": self.language, "handed_over": bool(self.settings.get("handed_over")) and not self.settings.get("setup_done"),
+                "screens": len(self.screens.listed())}
 
     def _set(self, driver, reason=""):
         if (driver, reason) == (self.driver, self.reason): return
@@ -2895,6 +2900,65 @@ def _music_rooms(room: str | None) -> list[dict]:
     rooms = [hub.home.rooms[r] for r in hub.music.rooms() if r in hub.home.rooms]
     rooms.sort(key=lambda r: (r.id != room, r.name))
     return [{"id": r.id, "name": r.name, "here": r.id == room, "playing": playing.get(r.id)} for r in rooms]
+
+
+# ---------- the household's photos, for a TV at rest (design/rest-tv/, A) ----------
+@app.get("/photos")
+def photos_list():
+    return {"photos": hub.photos.list(), "screens": [_named(s) for s in hub.screens.listed()]}
+
+
+def _named(screen: dict) -> dict:
+    room = hub.home.rooms.get(screen["room"] or "")
+    return {**screen, "room_name": room.name if room else None}
+
+
+@app.post("/screens/me")
+def screens_me(body: dict):
+    """{"id", "room", "tv", "by"}: what a screen says about itself when it starts and when it rests, or, with by
+    "person", what somebody answered on This screen (design/which-tv/). Says back whether it shows photos at rest."""
+    try:
+        return _named(hub.screens.said(body.get("id"), room=body.get("room"), tv=body.get("tv"), by="person" if body.get("by") == "person" else "screen"))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/photos/screens/{screen_id}")
+def photos_screen(screen_id: str, body: dict):
+    """{"on": bool}: whether this screen shows the photos at rest, from the switch on Photos (design/which-tv/, C)."""
+    screen = hub.screens.show(screen_id, bool(body.get("on")))
+    if not screen: raise HTTPException(404, "No such screen.")
+    return _named(screen)
+
+
+@app.get("/photos/{photo_id}")
+def photos_file(photo_id: str):
+    found = hub.photos.file(photo_id)
+    if not found: raise HTTPException(404, "no such photo")
+    path, ctype = found
+    return FileResponse(path, media_type=ctype, headers={"Cache-Control": "private, max-age=31536000, immutable"})
+
+
+@app.post("/photos")
+async def photos_add(request: Request):
+    """The photo's bytes as the body, already redrawn by the phone. `X-Taken` is when it was taken, in seconds,
+    if the phone knew, and `X-Width` and `X-Height` its size. The phone's own name is who it came from."""
+    phone = hub.phones.identify(_phone_token(request))
+    try: taken = float(request.headers.get("x-taken") or "") or None
+    except ValueError: taken = None
+    try: size = (int(request.headers["x-width"]), int(request.headers["x-height"]))
+    except (KeyError, ValueError): size = None
+    try:
+        photo = hub.photos.add(await request.body(), by=(phone or {}).get("name"), taken=taken, size=size)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return photo
+
+
+@app.delete("/photos/{photo_id}")
+def photos_remove(photo_id: str):
+    if not hub.photos.remove(photo_id): raise HTTPException(404, "no such photo")
+    return {"ok": True}
 
 
 @app.get("/music")

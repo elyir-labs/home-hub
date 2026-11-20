@@ -5,7 +5,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { store } from './store'
-import { keepScreenRoom, screenRoom } from './screen'
+import { keepScreenKind, keepScreenRoom, screenId, screenRoom, type ScreenKind } from './screen'
+import { onTV } from './tv'
+import { sayScreen } from './api'
 import { pick, picked, defaultChoice } from './shade'
 import { ask, becomeRole, here, lastTurn, putBack, restartScreen, turn, turnedLine, WAYS, type Role, type Turn } from './thisScreen'
 import Icon from './Icon.vue'
@@ -28,6 +30,15 @@ async function doing(what: string, fn: () => Promise<unknown>) {
   try { await fn() } catch (e: any) { error.value = e.message } finally { busy.value = null }
 }
 const turnBy = (by: Turn) => doing('turn', () => turn(by))
+/* What it is (design/which-tv/RowB): the panel's guess until somebody answers here. A TV and a wall are worked
+   differently from the first frame -- the remote and its rows, or touch -- so an answer starts the screen again as it. */
+const kind: ScreenKind = onTV() ? 'tv' : 'wall'
+const becomeKind = (k: ScreenKind) => doing('kind', async () => {
+  if (k === kind) return
+  await sayScreen({ id: screenId(), room: screenRoom(), tv: k === 'tv', by: 'person' })
+  keepScreenKind(k)
+  location.reload()
+})
 
 const asking = ref(false)
 const chosen = ref<Role | null>(null)
@@ -62,6 +73,14 @@ const canShowOther = computed(() => here.value?.role === 'screen' || !!here.valu
         <span class="hub-k">Room</span>
         <span class="hub-v">{{ room ?? 'Not chosen yet' }}<span class="hub-sub line">{{ room ? `It opens on ${where}, and goes back to it after resting.` : 'It opens on the room you choose, and goes back to it after resting.' }}</span></span>
         <button class="button small" @click="keepScreenRoom(null)">{{ room ? 'Change' : 'Choose' }}</button>
+      </li>
+      <li>
+        <span class="hub-k">What it is</span>
+        <span class="hub-v">{{ kind === 'tv' ? 'A TV' : 'A screen on the wall' }}<span class="hub-sub line">{{ kind === 'tv' ? 'Worked from the sofa with its remote. When nobody is watching, it shows the household’s photos.' : 'Touched, up close. When nobody is using it, it shows the clock and how the house is.' }}</span></span>
+        <span class="ts-pair">
+          <button class="button small" :class="{ ghost: kind !== 'tv', busy: busy === 'kind' }" :disabled="!!busy" @click="becomeKind('tv')">A TV</button>
+          <button class="button small" :class="{ ghost: kind !== 'wall', busy: busy === 'kind' }" :disabled="!!busy" @click="becomeKind('wall')">On the wall</button>
+        </span>
       </li>
       <li>
         <span class="hub-k">Light or dark</span>

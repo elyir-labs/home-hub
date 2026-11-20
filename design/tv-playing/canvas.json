@@ -1,0 +1,121 @@
+{
+  "name": "The record first on the TV",
+  "areas": [
+    "Music",
+    "Wall screens"
+  ],
+  "pages": [
+    {
+      "id": "tv-playing",
+      "name": "While music plays in the TV's room, what is playing comes first",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "A",
+        "board": "SheetA.dc.html"
+      }
+    },
+    {
+      "id": "tv-playing-rejected",
+      "name": "While music plays in the TV's room, what is playing comes first: not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "tv-playing",
+      "x": 0,
+      "y": 0,
+      "w": 3000,
+      "h": 720,
+      "title": "Today: the rows, three minutes, then the record"
+    },
+    {
+      "file": "SheetA.dc.html",
+      "page": "tv-playing",
+      "x": 0,
+      "y": 1200,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: the record is home, and OK brings up the rest",
+      "is_interactive": true
+    },
+    {
+      "file": "SoonerB.dc.html",
+      "page": "tv-playing-rejected",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: today's two screens, twenty seconds apart",
+      "is_interactive": true
+    },
+    {
+      "file": "ShrinkC.dc.html",
+      "page": "tv-playing-rejected",
+      "x": 0,
+      "y": 1380,
+      "w": 1920,
+      "h": 1080,
+      "title": "C: the record folds into a header over the whole house",
+      "is_interactive": true
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "tv-playing",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\nAsked 20 November 2026: when something plays in the living room and the hub has the TV, the TV should be about what is playing -- the record on its own cover, the way it rests -- with one line at the foot, like OK Pause, next, louder, that brings up everything else from the bottom: the room, its controls, the other rooms.\n\nToday the record only arrives at rest, and rest waits the same three minutes with music on as without."
+    },
+    {
+      "id": "same",
+      "page": "tv-playing",
+      "x": 3120,
+      "y": 0,
+      "w": 560,
+      "text": "THE SAME IN ALL THREE\n\nOnly music in the TV's own room, and only while the hub has the TV. Music in the kitchen is the kitchen's.\n\nTwenty seconds with no key, not three minutes, while the room plays. A screen nobody is pressing keys at is a screen nobody is reading.\n\nMusic that starts while somebody is moving through the rows waits for those twenty quiet seconds; it never takes the screen from under a key.\n\nPaused, the record keeps the screen for ten minutes so Play is one press away, then the photos come back as today.\n\nHome is still the whole house, a ring at the door still takes the screen, Hold OK is still Something else, and nothing is under 22px."
+    },
+    {
+      "id": "a",
+      "page": "tv-playing",
+      "x": 2040,
+      "y": 1200,
+      "w": 560,
+      "text": "A: THE RECORD IS HOME, AND OK BRINGS UP THE REST\n\nWhile the room plays, the record is what the TV opens on and comes back to. OK raises a sheet from the foot with three short rows: Playing here (Pause, Next, Something else, Other rooms too, and the volume as a key of its own, since Up and Down move between the rows), In the living room (its lights and the colored scenes), and Other rooms. The record steps up and in above it rather than being covered. Back, or twenty seconds, lets it sink.\n\nFOR: exactly what was asked. The record never leaves the screen, and one press reaches most of what anybody does from the sofa.\n\nAGAINST: a second way to reach the room beside the rows; a thing the sheet has no room for (the blinds' level, a camera) means opening the room, which is the rows.\n\nTry it: Enter, the arrows, then Escape."
+    },
+    {
+      "id": "b",
+      "page": "tv-playing-rejected",
+      "x": 2040,
+      "y": 0,
+      "w": 560,
+      "text": "B: TODAY'S TWO SCREENS, TWENTY SECONDS APART\n\nNothing new is drawn. The rows stay the TV's home, and while the room plays they give way to the record after twenty seconds with no key instead of three minutes. The last five seconds say so in the corner, so nobody reading a card has it pulled away. On the record, OK is today's band and Home is the rows.\n\nFOR: the smallest change, and it fixes the wait, which is half of what was asked.\n\nAGAINST: every press past Pause and Next leaves the record for the rows; the record is still what you wait for, only less.\n\nTry it: wait twenty seconds, then Enter, Escape, and H for Home."
+    },
+    {
+      "id": "c",
+      "page": "tv-playing-rejected",
+      "x": 2040,
+      "y": 1380,
+      "w": 560,
+      "text": "C: THE RECORD FOLDS INTO A HEADER OVER THE WHOLE HOUSE\n\nOK folds the record into one line along the top, with Pause, Next and the volume beside it, and the TV's whole home comes up under it: the room's things at full size, its scenes, every other room. Back, or twenty seconds, unfolds it.\n\nFOR: one screen instead of two; nothing is a smaller copy of the rows.\n\nAGAINST: the record shrinks to a line the moment anybody does anything, and the screen changes completely on one press, which reads as leaving the music more than A does.\n\nTry it: Enter, the arrows, then Escape."
+    },
+    {
+      "id": "recommended",
+      "page": "tv-playing",
+      "x": -620,
+      "y": 1200,
+      "w": 500,
+      "text": "RECOMMENDED: A\n\nIt is the screen that was described, and the sheet's three rows cover what is done from a sofa while music plays: the music, the lights, another room. The record stays the biggest thing on the TV the whole time, which is the point. The rows stay for Home and for anything the sheet has no room for.\n\nCost: the sheet is a second, shorter picture of the room beside the rows, and has to stay in step with them (the same cards and words, fewer of them)."
+    },
+    {
+      "id": "decided",
+      "page": "tv-playing",
+      "x": -620,
+      "y": 1900,
+      "w": 500,
+      "text": "DECIDED 20 NOVEMBER 2026\n\nA. Built on design-tv-playing: the sheet is TvBand's while music plays, the record steps up under it (TvRecord), and twenty seconds is restAfter() in tv.ts. Up or Down on the record raises the sheet on the volume. Each row is one line the TV's width and never scrolls: with scenes the room has four places, without them six, and the last is Everything here when there are more; other rooms stop at six, then All rooms. A mouse in the sheet works it rather than waking the TV. Pinned by app/tests/tv.test.ts and app/e2e/tv-door-music.spec.ts.\n\nThe same question was drawn at the same time as design/tv-now-playing/; this is the one built."
+    }
+  ]
+}

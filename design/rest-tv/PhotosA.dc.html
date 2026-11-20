@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>A: your own photos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="rest-tv.css">
+<style>
+  .photo { position: absolute; inset: 0; }
+  .photo svg { position: absolute; inset: -2%; width: 104%; height: 104%; transform: scale(1.03) translate(-.6%, .4%); }  /* the slow pan, caught part way */
+  .scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.28), transparent 18%, transparent 58%, rgba(0,0,0,.62)); }
+  .pair { position: absolute; inset: 0; display: none; }
+  [data-show="pair"] .wide { display: none; } [data-show="pair"] .pair { display: block; }
+  .blurback { position: absolute; inset: -60px; filter: blur(60px) saturate(1.1); opacity: .75; }
+  .portrait { position: absolute; top: 54px; width: 540px; height: 720px; border-radius: 6px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+</style>
+</head>
+<body>
+<div class="screen" id="s" data-show="wide">
+  <div class="try">Show <span class="flip on" data-v="wide">A wide photo</span><span class="flip" data-v="pair">Two taken upright</span></div>
+
+  <!-- stand-ins for a household's photos, painted here so the board carries nobody's real pictures -->
+  <div class="photo wide">
+    <svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d5a8e"/><stop offset=".38" stop-color="#d98a72"/><stop offset=".6" stop-color="#f4c58b"/></linearGradient>
+        <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98a6e"/><stop offset=".5" stop-color="#5f5574"/><stop offset="1" stop-color="#2e2c44"/></linearGradient>
+        <radialGradient id="sun" cx=".62" cy=".56" r=".3"><stop offset="0" stop-color="#fff2d0"/><stop offset=".12" stop-color="#ffd99a" stop-opacity=".9"/><stop offset="1" stop-color="#ffd99a" stop-opacity="0"/></radialGradient>
+        <filter id="soft"><feGaussianBlur stdDeviation="1.4"/></filter>
+      </defs>
+      <rect width="1920" height="660" fill="url(#sk)"/>
+      <rect width="1920" height="1080" fill="url(#sun)"/>
+      <circle cx="1190" cy="600" r="46" fill="#fff1cf"/>
+      <g filter="url(#soft)">
+        <rect y="620" width="1920" height="460" fill="url(#sea)"/>
+        <path d="M1190 640 L1150 1080 L1240 1080z" fill="#ffd9a0" opacity=".35"/>
+        <path d="M0 600 C 180 520 330 540 470 590 S 700 640 760 640 L0 660z" fill="#3b3047"/>
+        <path d="M1500 640 C 1600 560 1760 520 1920 545 V660 H1500z" fill="#342b40"/>
+        <path d="M0 880 C 400 840 900 860 1920 900 V1080 H0z" fill="#c9a68a"/>
+        <path d="M0 930 C 500 905 1100 920 1920 960 V1080 H0z" fill="#a98a74"/>
+        <g fill="#2a2230"><rect x="760" y="826" width="16" height="64" rx="7"/><circle cx="768" cy="814" r="11"/><rect x="792" y="846" width="12" height="44" rx="6"/><circle cx="798" cy="836" r="9"/></g>
+      </g>
+    </svg>
+  </div>
+
+  <div class="pair">
+    <div class="blurback" style="background: linear-gradient(90deg, #c5823f, #9fb3c6 50%, #2b3150);"></div>
+    <div class="portrait" style="left:560px;">
+      <svg viewBox="0 0 600 800" width="540" height="720">
+        <defs><linearGradient id="s2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9c3d9"/><stop offset="1" stop-color="#e7dccb"/></linearGradient></defs>
+        <rect width="600" height="800" fill="url(#s2)"/>
+        <rect x="282" y="330" width="34" height="300" fill="#4a3426"/>
+        <g fill="#d27a2c"><circle cx="300" cy="300" r="170"/><circle cx="190" cy="360" r="110" fill="#c0612a"/><circle cx="410" cy="350" r="120" fill="#e0953c"/><circle cx="300" cy="190" r="110" fill="#e9a648"/></g>
+        <path d="M0 640 C 200 600 400 610 600 650 V800 H0z" fill="#7d8b4a"/>
+        <path d="M250 800 C 280 720 320 690 300 640 L330 640 C 350 700 380 740 420 800z" fill="#c7b391"/>
+        <g fill="#c0612a" opacity=".9"><circle cx="120" cy="700" r="6"/><circle cx="470" cy="730" r="5"/><circle cx="380" cy="690" r="5"/></g>
+      </svg>
+    </div>
+    <div class="portrait" style="left:1124px;">
+      <svg viewBox="0 0 600 800" width="540" height="720">
+        <defs><linearGradient id="s3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1e2440"/><stop offset=".6" stop-color="#3d4a72"/><stop offset="1" stop-color="#cdd6e6"/></linearGradient></defs>
+        <rect width="600" height="800" fill="url(#s3)"/>
+        <path d="M40 260 L180 180 L320 260 V640 H40z" fill="#2a2f45"/>
+        <path d="M320 300 L450 230 L580 300 V640 H320z" fill="#323954"/>
+        <g fill="#f3c27a"><rect x="90" y="330" width="56" height="70"/><rect x="214" y="330" width="56" height="70"/><rect x="214" y="460" width="56" height="70" opacity=".7"/><rect x="370" y="360" width="50" height="62"/><rect x="480" y="470" width="50" height="62" opacity=".8"/></g>
+        <path d="M30 262 L180 176 L330 262" fill="none" stroke="#eef2f8" stroke-width="14" stroke-linejoin="round"/>
+        <path d="M312 302 L450 226 L588 302" fill="none" stroke="#eef2f8" stroke-width="12" stroke-linejoin="round"/>
+        <path d="M0 630 C 200 610 420 620 600 640 V800 H0z" fill="#e8edf5"/>
+        <g fill="#fff" opacity=".85"><circle cx="80" cy="120" r="3"/><circle cx="210" cy="90" r="2.5"/><circle cx="470" cy="140" r="3"/><circle cx="530" cy="60" r="2"/><circle cx="350" cy="170" r="2.5"/><circle cx="120" cy="520" r="3"/><circle cx="520" cy="420" r="2.5"/></g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="scrim"></div>
+
+  <div class="shade" style="position:absolute; left:var(--safe-x); top:var(--safe-y); font-size:22px; color:var(--ink-2);">August 2025 &middot; from Sam&rsquo;s phone</div>
+
+  <div class="shade" style="position:absolute; left:var(--safe-x); bottom:calc(var(--safe-y) + 6px);">
+    <div class="display" style="font-size:132px;">7:40<span class="period">PM</span></div>
+    <div style="font-size:26px; color:var(--ink-2); margin-top:12px;">Friday, November 20 &middot; 78&deg;, partly cloudy</div>
+  </div>
+
+  <div class="strip shade" style="position:absolute; right:var(--safe-x); bottom:120px;">
+    <div class="fact"><span class="v"><svg class="i" width="30" height="30" viewBox="0 0 24 24"><path d="M4 11.2L12 4.5l8 6.7"/><path d="M6.2 12.6V19h11.6v-6.4"/></svg>Calm</span></div>
+    <div class="fact"><span class="v lamp"><svg class="i" width="30" height="30" viewBox="0 0 24 24"><circle cx="12" cy="9.5" r="5"/><path d="M9.5 16h5M10.5 19h3"/></svg>6 on</span><span class="w">in 5 rooms</span></div>
+    <div class="fact"><span class="v"><svg class="i" width="30" height="30" viewBox="0 0 24 24"><path d="M10 4.5a2 2 0 0 1 4 0v9.3a4 4 0 1 1-4 0z"/><path d="M12 11v5"/></svg>74&deg;</span><span class="w">inside</span></div>
+  </div>
+  <div class="ok shade"><kbd>OK</kbd>The living room</div>
+</div>
+<script>
+  const s = document.getElementById('s')
+  document.querySelectorAll('.flip').forEach(f => f.onclick = () => {
+    s.dataset.show = f.dataset.v
+    document.querySelectorAll('.flip').forEach(g => g.classList.toggle('on', g === f))
+  })
+</script>
+</body>
+</html>

@@ -29,7 +29,7 @@ test('a screen has a page of its own, whose line says what it is, and it turns b
 
   const pageEl = page.locator('.page-screen')
   await expect(pageEl.locator('.ts-way-name')).toHaveText(['As it is', 'Turn right', 'Turn over', 'Turn left'])
-  await expect(pageEl.locator('.hub-k')).toHaveText(['Room', 'Light or dark', 'What it does', 'Restart'])
+  await expect(pageEl.locator('.hub-k')).toHaveText(['Room', 'What it is', 'Light or dark', 'What it does', 'Restart'])
 
   await pageEl.locator('.ts-way', { hasText: 'Turn left' }).click()
   await expect(pageEl).toContainText('Turned left a moment ago.')

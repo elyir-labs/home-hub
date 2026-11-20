@@ -6,6 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from hub import backup, handover
+from hub.photos import Photos
 from hub.settings import Settings
 
 DESCRIPTIONS = {"core": {"integration": {
@@ -51,7 +52,8 @@ class Handing(unittest.TestCase):
             ha=FakeHA(), settings=self.settings, phones=phones, log=log, ready=lambda: None,
             lock=SimpleNamespace(locked=True), address=SimpleNamespace(forget=lambda who: self.forgot.append(who)),
             share=SimpleNamespace(set=lambda on=None: None), add=SimpleNamespace(_rest=lambda m, p: self.removed.append(p)),
-            home=SimpleNamespace(rooms={}, devices={}), engine=SimpleNamespace(rules=[]))
+            home=SimpleNamespace(rooms={}, devices={}), engine=SimpleNamespace(rules=[]), photos=Photos(d / "photos"))
+        self.hub.photos.add(b"\xff\xd8\xff\xe0 a photo", by="Sam's phone")
         self.h = handover.Handover(self.hub)
 
     def tearDown(self):
@@ -78,6 +80,8 @@ class Handing(unittest.TestCase):
         self.assertEqual(self.hub.phones.asks, {})
         self.assertTrue(self.hub.log.cleared)
         self.assertFalse(handover.PRINTERS.exists())
+        self.assertEqual(self.hub.photos.list(), [], "the photos sent to the TV are the people's")
+        self.assertFalse((Path(self.dir.name) / "photos").exists())
         for gone in ("pin", "owner", "home_name", "assistant", "wifi"): self.assertNotIn(gone, self.settings.data, gone)
         for kept in ("location", "kinds", "look"): self.assertIn(kept, self.settings.data, kept)
         self.assertFalse(self.settings.get("setup_done"))

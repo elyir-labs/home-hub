@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B: asked once, on the screen, when it joins</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<style>
+  * { box-sizing: border-box; } body { margin: 0; background: #07090d; font-family: "Instrument Sans", system-ui, sans-serif; color: #f1eee8; -webkit-font-smoothing: antialiased; }
+  .screen { position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: radial-gradient(120% 60% at 70% 0%, #141a27, transparent 70%), linear-gradient(#0b0e15, #090b10 70%, #0d1016); }
+  h1 { position: absolute; left: 96px; top: 150px; margin: 0; font-size: 72px; font-weight: 400; letter-spacing: -.03em; }
+  .sub { position: absolute; left: 96px; top: 250px; font-size: 30px; color: #b9b5ad; }
+  .cards { position: absolute; left: 96px; right: 96px; top: 380px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .card { height: 420px; border-radius: 28px; padding: 44px; background: rgba(26,28,34,.7); border: 1px solid rgba(255,255,255,.1); display: flex; flex-direction: column; }
+  .card.lit { box-shadow: 0 0 0 3px rgba(233,184,114,.95), 0 0 0 9px rgba(233,184,114,.18), 0 24px 60px rgba(0,0,0,.55); transform: scale(1.02); }
+  .card svg { color: #e9b872; }
+  .card b { display: block; margin-top: 30px; font-size: 48px; font-weight: 400; letter-spacing: -.02em; }
+  .card span { display: block; margin-top: 14px; font-size: 26px; line-height: 1.4; color: #b9b5ad; }
+  .card small { margin-top: auto; font-size: 22px; color: #85827b; }
+  .foot { position: absolute; left: 96px; right: 96px; bottom: 54px; display: flex; justify-content: space-between; font-size: 24px; color: #b9b5ad; }
+  kbd { font: 600 17px/1 "Instrument Sans", system-ui; display: inline-grid; place-items: center; min-width: 46px; height: 36px; padding: 0 12px; margin-right: 12px;
+        border-radius: 999px; border: 1.5px solid rgba(255,255,255,.28); background: rgba(255,255,255,.06); color: #f1eee8; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <h1>What is this screen?</h1>
+  <div class="sub">So it knows what to show when nobody is using it. You can change it later on This screen.</div>
+  <div class="cards">
+    <div class="card lit">
+      <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="12.5" rx="2"/><path d="M8 20.5h8"/></svg>
+      <b>A TV</b>
+      <span>Worked from the sofa with its remote. When nobody is watching, it shows the household's photos.</span>
+      <small>This one looks like a TV: nobody can touch it.</small>
+    </div>
+    <div class="card">
+      <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5.5" y="2.5" width="13" height="19" rx="2"/><path d="M10 18.5h4"/></svg>
+      <b>A screen on the wall</b>
+      <span>Touched, up close. When nobody is using it, it shows the clock and how the house is.</span>
+    </div>
+  </div>
+  <div class="foot"><span><kbd>OK</kbd>A TV</span><span>Left and Right choose</span></div>
+</div>
+</body>
+</html>

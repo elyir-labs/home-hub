@@ -93,7 +93,7 @@ const CORNERS = [['bottom-left', 'Bottom left'], ['top-left', 'Top left'], ['top
 .gp-frame polygon { fill: rgba(var(--lamp-rgb), 0.12); stroke: var(--lamp); stroke-width: 0.5; }
 .gp-dot { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; border: 3px solid var(--lamp);
   background: rgba(var(--lamp-rgb), 0.3); touch-action: none; cursor: grab; }
-.gp-none { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: #f1eee8; }
+.gp-none { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: #fff; }   /* over the camera frame, dark in either shade, as the camera tiles write it */
 .gp-go { width: 100%; margin-top: 16px; }
 .gp-opts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
 .gp-q { font-size: 15px; margin-right: 4px; }

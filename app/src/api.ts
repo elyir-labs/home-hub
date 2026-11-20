@@ -39,7 +39,7 @@ export type UpdateProgress = {
   moving: string[] | null   // which containers this update really recreates, once the host has looked
   notices: string[]         // ...and what a household would notice about that, where there is anything
 }
-export type Status = { driver: Driver; reason: string; setup_done: boolean; locked?: boolean; handed_over?: boolean; owner: string | null; home: string | null; location: boolean; rooms: number; devices: number; drivers: Part[]; problems?: Problem[]; version?: string; update?: Update; language?: string }
+export type Status = { screens?: number; driver: Driver; reason: string; setup_done: boolean; locked?: boolean; handed_over?: boolean; owner: string | null; home: string | null; location: boolean; rooms: number; devices: number; drivers: Part[]; problems?: Problem[]; version?: string; update?: Update; language?: string }
 /* One job on Needs a look. The brain writes every word of it, including the words on the buttons: the
    panel does not know what it is looking at, so it draws `acts` and invents nothing. `with` is what went
    quiet behind this one fault -- fix the fault and they all come back, which is why they are not lines of
@@ -802,6 +802,31 @@ export async function getSounds(): Promise<{ sounds: Sound[]; folder: string }> 
 /* Music in every room (hub/music.py, design/music/). */
 export type MusicRoom = { id: string; name: string; here: boolean; playing: string | null }
 export type MusicCatalog = { ready: boolean; again: MusicItem[]; radio: MusicItem[]; own: MusicItem[]; rooms: MusicRoom[]; again_by_room: Record<string, MusicItem[]> }
+/** The household's photos for a TV at rest, newest first (hub/photos.py, design/rest-tv/, A). */
+export async function getPhotos(): Promise<import('./restTv').Photo[]> {
+  const r = await request('/photos'); if (!r.ok) await fail(r); return (await r.json()).photos
+}
+export const photoUrl = (id: string) => apiUrl(`/photos/${encodeURIComponent(id)}`)
+/** One of the house's screens, as it said what it is (hub/screens.py, design/which-tv/). */
+export type ShownScreen = { id: string; room: string | null; room_name?: string | null; tv: boolean; by: 'screen' | 'person' | null; photos: boolean }
+export async function getPhotosPage(): Promise<{ photos: import('./restTv').Photo[]; screens: ShownScreen[] }> {
+  const r = await request('/photos'); if (!r.ok) await fail(r); return r.json()
+}
+export async function sayScreen(body: { id: string; room: string | null; tv: boolean; by: 'screen' | 'person' }): Promise<ShownScreen> {
+  const r = await request('/screens/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); if (!r.ok) await fail(r); return r.json()
+}
+export async function showOnScreen(id: string, on: boolean): Promise<ShownScreen> {
+  const r = await request(`/photos/screens/${encodeURIComponent(id)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ on }) }); if (!r.ok) await fail(r); return r.json()
+}
+/** One photo, already redrawn on the phone (photos.ts): its size and when it was taken travel beside it. */
+export async function sendPhoto(p: { blob: Blob; w: number; h: number; taken: number | null }): Promise<import('./restTv').Photo> {
+  const headers: Record<string, string> = { 'Content-Type': 'image/jpeg', 'X-Width': String(p.w), 'X-Height': String(p.h) }
+  if (p.taken) headers['X-Taken'] = String(Math.round(p.taken))
+  const r = await request('/photos', { method: 'POST', headers, body: p.blob }); if (!r.ok) await fail(r); return r.json()
+}
+export async function removePhoto(id: string) {
+  const r = await request(`/photos/${encodeURIComponent(id)}`, { method: 'DELETE' }); if (!r.ok) await fail(r)
+}
 export async function getMusic(room?: string | null): Promise<MusicCatalog> {
   const r = await request(`/music${room ? `?room=${encodeURIComponent(room)}` : ''}`); if (!r.ok) await fail(r); return r.json()
 }
