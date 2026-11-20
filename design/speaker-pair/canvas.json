@@ -1,0 +1,101 @@
+{
+  "name": "Two speakers, one song",
+  "areas": [
+    "Music"
+  ],
+  "pages": [
+    {
+      "id": "pair",
+      "name": "Two speakers in a room playing the same song"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "pair",
+      "x": 0,
+      "y": 0,
+      "w": 820,
+      "h": 844,
+      "title": "Today: both HomePods playing one song, on a phone"
+    },
+    {
+      "file": "TogetherA.dc.html",
+      "page": "pair",
+      "x": 0,
+      "y": 1100,
+      "w": 390,
+      "h": 844,
+      "title": "A: one card while they play together",
+      "is_interactive": false
+    },
+    {
+      "file": "PairB.dc.html",
+      "page": "pair",
+      "x": 0,
+      "y": 2200,
+      "w": 820,
+      "h": 844,
+      "title": "B: asked once, a pair from then on"
+    },
+    {
+      "file": "LeadC.dc.html",
+      "page": "pair",
+      "x": 0,
+      "y": 3300,
+      "w": 390,
+      "h": 844,
+      "title": "C: one card leads, the other is a line under it"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "pair",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026: the Apple TV playing to both HomePods in the living room, and the phone showed the song twice, as two whole cards each with its own Pause, and twice again on Home. The TV already folds them (design/tv-music/): a speaker in the same room playing the same song is counted as playing with it. This is the same question for the phone and the wall."
+    },
+    {
+      "id": "a",
+      "page": "pair",
+      "x": 900,
+      "y": 1100,
+      "w": 560,
+      "text": "A: ONE CARD WHILE THEY PLAY TOGETHER\n\nNothing to set up: two speakers in one room with the same song are one card, named for both, and its Pause and volume work both -- the TV's rule, everywhere. When they play different things, or one stops, they are two cards again.\n\nFOR: no question to answer, and the TV and the phone agree.\n\nAGAINST: the card changes shape when the music starts and stops, and a quiet pair is still two cards."
+    },
+    {
+      "id": "b",
+      "page": "pair",
+      "x": 1700,
+      "y": 2200,
+      "w": 560,
+      "text": "B: ASKED ONCE, A PAIR FROM THEN ON\n\nThe first time two speakers in a room play the same song, the house asks once whether they are one pair, the way a second strip is asked if it is part of the same light. Said yes, they are one card for good, playing or quiet, and music is sent to both. It can be split later from the card.\n\nFOR: the house learns how the household thinks of them, and a quiet pair is one card too.\n\nAGAINST: one more question, asked on a phone at a moment when somebody wanted to listen."
+    },
+    {
+      "id": "c",
+      "page": "pair",
+      "x": 900,
+      "y": 3300,
+      "w": 560,
+      "text": "C: ONE CARD LEADS, THE OTHER IS A LINE\n\nThe first keeps its card; the other shrinks to a line under it saying it is playing with the first, and comes back as a card when it plays something else.\n\nFOR: both stay visible as the two speakers they are.\n\nAGAINST: still two places to press, and Pause on the card stops only one."
+    },
+    {
+      "id": "same",
+      "page": "pair",
+      "x": -620,
+      "y": 1100,
+      "w": 500,
+      "text": "IN EVERY DIRECTION\n\nThe card's name no longer sits under the song's title (a fault of the shipped card, fixed whichever wins). Home's On right now says the song once."
+    },
+    {
+      "id": "pick",
+      "page": "pair",
+      "x": -620,
+      "y": 2200,
+      "w": 500,
+      "text": "PICK ONE\n\nA, B or C, a mix, or something else -- describe it."
+    }
+  ]
+}
