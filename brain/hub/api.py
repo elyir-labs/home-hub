@@ -48,6 +48,7 @@ from .bridge import Bridges
 from .strip import Strips, StripError
 from .roofline import Roofline
 from .glow import Glow, GlowError
+from . import glow as glow_mod
 from .printers import Printers
 from .power import Power
 from .signals import Signals
@@ -2711,6 +2712,34 @@ def glow_get(room: str | None = None):
     sends its frames. The target carries the strip's key: only the house's own screens get this far."""
     return {"glow": {k: v for k, v in hub.glow.state().items() if k != "key"}, "choices": hub.glow.choices(room),
             "target": hub.glow.target()}
+
+
+@app.get("/glow/still")
+def glow_still():
+    """What the hub's camera sees, for marking where the TV is on a phone (design/tv-glow/, B). Only the house's own
+    phones get this far, and nothing is kept: it is taken when asked and handed straight over."""
+    try: data, ctype = glow_mod.helper("/still")
+    except Exception: raise HTTPException(503, "The hub's camera isn't answering.")
+    return Response(content=data, media_type=ctype or "image/png", headers={"Cache-Control": "no-store"})
+
+
+@app.post("/glow/corners")
+def glow_corners(body: dict):
+    """{"corners": [[x, y] x4], "start"?, "first"?, "bottom"?}: where the TV is in the camera's view, and the way the
+    strip runs when it is said. From the TV finding itself (A) or a phone marking it (B)."""
+    try: return hub.glow.save(body.get("corners") or [], body.get("start"), body.get("first"), bool(body.get("bottom")))
+    except GlowError as e: raise HTTPException(409, str(e))
+    except ValueError as e: raise HTTPException(400, str(e))
+    except Exception: raise HTTPException(503, "The hub's camera isn't answering.")
+
+
+@app.post("/glow/chase")
+def glow_chase(body: dict):
+    """The strip runs a light from its start, so a phone can say which way it goes; {"stop": true} ends it."""
+    try: hub.glow.chase(bool(body.get("stop")))
+    except GlowError as e: raise HTTPException(409, str(e))
+    except Exception: raise HTTPException(503, "The hub's camera isn't answering.")
+    return {"ok": True}
 
 
 @app.post("/glow")

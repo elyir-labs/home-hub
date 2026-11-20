@@ -81,3 +81,30 @@ class Choosing(unittest.TestCase):
         g = Glow(Hub())
         self.assertEqual(g.choices("living_room"), [{"strip": "ab12", "run": 0, "light": "light.behind_tv", "name": "Behind the TV", "lights": 120, "reachable": True}])
         self.assertEqual(g.choices("kitchen"), [])
+
+
+class Saving(unittest.TestCase):
+    """Where the screen is, from the TV or a phone, passed to the camera's helper with the strip's key and count."""
+    def setUp(self):
+        import hub.glow as g
+        self.sent = []
+        self.real, g.helper = g.helper, lambda path, body=None, timeout=15: (self.sent.append((path, body)) or (b'{"path": ["left-up"]}', "application/json"))
+        self.addCleanup(setattr, g, "helper", self.real)
+        self.hub = Hub(); self.glow = Glow(self.hub)
+        asyncio.run(self.glow.follow("ab12"))
+        self.SQ = [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]]
+
+    def test_the_first_time_says_which_way_the_strip_runs(self):
+        with self.assertRaises(ValueError): self.glow.save(self.SQ)
+        self.glow.save(self.SQ, "bottom-left", "up", False)
+        path, body = self.sent[-1]
+        self.assertEqual((path, body["start"], body["lights"], body["target"]["host"]), ("/save", "bottom-left", 120, "192.168.1.57"))
+        self.assertTrue(self.hub.settings["glow"]["set"])
+
+    def test_marking_it_again_on_a_phone_needs_only_the_corners(self):
+        self.glow.save(self.SQ, "bottom-left", "up")
+        self.glow.save([[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]])
+        self.assertNotIn("start", self.sent[-1][1])
+
+    def test_corners_off_the_picture_are_refused(self):
+        with self.assertRaises(ValueError): self.glow.save([[0, 0], [2, 0], [1, 1], [0, 1]], "bottom-left", "up")

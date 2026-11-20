@@ -143,14 +143,16 @@ class Helper(unittest.TestCase):
 
     def ask(self, path, body=None, origin="http://localhost"):
         import json, urllib.request, urllib.error
+        headers = {"Content-Type": "application/json", **({"Origin": origin} if origin else {})}
         req = urllib.request.Request(self.url + path, data=None if body is None else json.dumps(body).encode(),
-                                     headers={"Origin": origin, "Content-Type": "application/json"}, method="GET" if body is None else "POST")
+                                     headers=headers, method="GET" if body is None else "POST")
         try:
             with urllib.request.urlopen(req, timeout=15) as r: return r.status, json.loads(r.read())
         except urllib.error.HTTPError as e: return e.code, None
 
-    def test_only_the_panel_is_answered(self):
+    def test_only_the_panel_and_the_brain_are_answered(self):
         self.assertEqual(self.ask("/glow", origin="http://evil.example")[0], 403)
+        self.assertEqual(self.ask("/glow", origin=None)[0], 200)      # the brain, beside it on this machine
         self.assertEqual(self.ask("/glow")[1], {"camera": True, "set": False} if not os.path.exists(glow.STATE) else {"camera": True, "set": True})
 
     @unittest.skipUnless(shutil.which("ffmpeg"), "needs ffmpeg")
@@ -165,6 +167,24 @@ class Helper(unittest.TestCase):
         import json
         kept = json.load(open(glow.STATE))
         self.assertEqual((kept["lights"], kept["strip"]["key"]), (glow.MOST, "0011223344556677"))
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "needs ffmpeg")
+    def test_a_phone_is_shown_what_the_camera_sees_as_a_picture(self):
+        import urllib.request
+        with urllib.request.urlopen(urllib.request.Request(self.url + "/still"), timeout=15) as r:
+            png = r.read()
+            self.assertEqual(r.headers["Content-Type"], "image/png")
+        self.assertEqual(png[:8], b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(int.from_bytes(png[16:20], "big"), glow.SW)
+
+    def test_marking_the_screen_again_keeps_the_way_the_strip_runs(self):
+        target = {"host": "127.0.0.1", "port": 9, "key": "0011223344556677", "run": 0}
+        self.ask("/save", {"corners": SQUARE, "start": "bottom-right", "first": "up", "target": target})
+        moved = [[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]]
+        code, out = self.ask("/save", {"corners": moved, "target": target})
+        self.assertEqual((code, out["path"]), (200, ["right-up", "top-left", "left-down"]))
+        import json
+        self.assertEqual(json.load(open(glow.STATE))["corners"], moved)
 
     def test_the_moving_light_reaches_the_strip(self):
         strip = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); strip.bind(("127.0.0.1", 0)); strip.settimeout(3)
