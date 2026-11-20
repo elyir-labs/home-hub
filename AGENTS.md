@@ -393,7 +393,7 @@ Do not reopen these, and do not propose around them.
   `driver-layer/host/tests.sh`.
 - **The screen plugged into the hub is already in the house; a TV on another box asks the phones and takes the
   passcode from its remote** (20 November, `design/tv-join/`, C with A's numbers and B's pad). The hub knows its own
-  screen (`from_screen`), so it joins without the passcode, holds no keys, and is asked only its room; on a TV, OK on a
+  screen (`from_screen`), so it joins without the passcode, holds no keys, and is asked only its room; on a TV the rooms are one row that slides sideways, however many, and OK on a
   room is the answer. A TV on another box asks every phone as it comes up, and meanwhile the passcode goes in with the
   remote's numbers or a pad the arrows move on. The digits are never a press anywhere else, so the colors are F1 to F4
   over CEC. A TV never shows the upside-down pill. `Join.vue`, `ScreenRoom.vue`, `/phones/plugged-in`; pinned by

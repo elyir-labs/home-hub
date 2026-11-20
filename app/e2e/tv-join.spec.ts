@@ -67,6 +67,27 @@ test("the TV plugged into the hub is already in, and OK on a room is the answer"
   await expect(page.locator('.tv-title h1')).toHaveText(first!)
 })
 
+test('the rooms are one row that slides, so the lit room is always on the TV however many there are', async ({ page }) => {
+  let joined = false
+  await page.route('**/phones/me', r => r.fulfill({ json: joined ? { ...ME, paired: true } : { ...ME, plugged_in: true } }))
+  await page.route('**/phones/plugged-in', r => { joined = true; return r.fulfill({ json: { ok: true, phone: { ...SCREEN, how: 'plugged in' } } }) })
+  await page.goto('/?screen=1&tv=1&join=1&at=21:10', { waitUntil: 'networkidle' })
+  const rooms = page.locator('.tvr-room')
+  const n = await rooms.count()
+  expect(n).toBeGreaterThan(5)
+  for (let i = 0; i < n; i++) {
+    if (i) await page.keyboard.press('ArrowRight')
+    await expect(lit(page)).toHaveText(await rooms.nth(i).textContent() ?? '')
+    await expect(page.locator('.tvr-count')).toHaveText(`${i + 1} of ${n} rooms`)
+    await expect.poll(async () => { const b = (await lit(page).boundingBox())!; return b.x >= 0 && b.x + b.width <= 1920 }).toBe(true)
+  }
+  // one row, never a second line (the lit card is lifted, so it is left out of the measure)
+  const tops = await page.locator('.tvr-room:not([data-lit])').evaluateAll(es => new Set(es.map(e => Math.round(e.getBoundingClientRect().top))).size)
+  expect(tops).toBe(1)
+  await page.keyboard.press('ArrowLeft')
+  await expect(lit(page)).toHaveText(await rooms.nth(n - 2).textContent() ?? '')
+})
+
 test('a question that fills the screen never rests under the clock', async ({ page }) => {
   let joined = false
   await page.clock.install()

@@ -16,6 +16,10 @@
     {
       "id": "rooms",
       "name": "A TV in a house with many rooms"
+    },
+    {
+      "id": "rooms-rejected",
+      "name": "A TV in a house with many rooms: not chosen"
     }
   ],
   "artboards": [
@@ -99,9 +103,9 @@
     },
     {
       "file": "RoomsFitB.dc.html",
-      "page": "rooms",
+      "page": "rooms-rejected",
       "x": 0,
-      "y": 3000,
+      "y": 0,
       "w": 1920,
       "h": 1080,
       "title": "B: the rooms with things first, the rest as names",
@@ -191,19 +195,19 @@
     },
     {
       "id": "rooms-b",
-      "page": "rooms",
+      "page": "rooms-rejected",
       "x": 2040,
-      "y": 3000,
+      "y": 0,
       "w": 560,
       "text": "B: THE ROOMS WITH THINGS FIRST, THE REST AS NAMES\n\nThe five rooms with the most in them as cards, which is where a TV is likely to be, and every other room as a name below, all on one screen.\n\nFOR: every room is in sight at once, and the likely answer is the first row.\n\nAGAINST: a second shape on the page, and past about twenty rooms the names need a third line.\n\nTry it: the arrows move between the cards and the names."
     },
     {
-      "id": "rooms-pick",
+      "id": "rooms-decided",
       "page": "rooms",
       "x": -620,
       "y": 1500,
       "w": 500,
-      "text": "PICK ONE\n\nA, B, a mix, or something else -- describe it."
+      "text": "DECIDED 20 NOVEMBER 2026\n\nA: one row that slides sideways, the same as Other rooms on the TV's home. Every room is the same size however many there are, and the line under the row says how far along you are."
     }
   ],
   "decided": {

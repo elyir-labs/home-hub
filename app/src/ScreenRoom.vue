@@ -3,7 +3,7 @@
   SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { addRoom, placeScreen, type Phone, type Room } from './api'
 import { keepScreenRoom, openOn, roomLine } from './screen'
 import Icon from './Icon.vue'
@@ -25,7 +25,9 @@ async function name() {
   try { const r = await addRoom(n); picked.value = r.id; naming.value = false; fresh.value = '' } catch (e: any) { error.value = e.message }
   busy.value = false
 }
-/* On a TV (design/tv-join/, C) OK on a room is the answer, and there is no naming one: a remote cannot type it. */
+/* On a TV (design/tv-join/, C) OK on a room is the answer, and there is no naming one: a remote cannot type it.
+   The rooms are one row that slides sideways, as Other rooms does on the TV's home (RoomsRowA): the lit card keeps
+   the fourth place from the left once the row has started to move, however many rooms the house has. */
 const tv = onTV()
 const plugged = computed(() => props.screens.some(p => p.me && p.how === 'plugged in'))
 const hint = computed(() => hintParts(lit.value?.dataset.hint ?? ''))
@@ -34,6 +36,14 @@ const fit = () => (scale.value = Math.min(innerWidth / 1920, innerHeight / 1080)
 onMounted(() => { if (tv) { fit(); window.addEventListener('resize', fit); light(roomsEl.value?.querySelector<HTMLElement>('[data-tv-start]') ?? null) } })
 onUnmounted(() => { if (tv) window.removeEventListener('resize', fit) })
 function place(id: string) { picked.value = id; done() }
+const at = ref(0), slide = ref(0)
+watch(lit, (e) => {
+  const cards = [...(roomsEl.value?.children ?? [])] as HTMLElement[]
+  const i = e ? cards.indexOf(e) : -1
+  if (i < 0) return
+  at.value = i
+  slide.value = cards.length > 1 ? Math.max(0, i - 3) * (cards[1].offsetLeft - cards[0].offsetLeft) : 0
+})
 
 async function done() {
   if (!picked.value || busy.value) return
@@ -45,19 +55,22 @@ async function done() {
 
 <template>
   <main v-if="tv && choices.length" class="tvr-wrap screen-room">
-    <div class="tvr" :style="{ zoom: scale }">
+    <div class="tvr" :style="{ zoom: scale }" data-tv-own-scroll>
       <div class="tvr-ask">
         <span class="tvr-mark"><Icon name="home" :size="40" /></span>
         <h1>Which room is this TV in?</h1>
         <p class="tvr-lede">{{ plugged ? `It's plugged into the hub, so it's already part of ${home}. ` : '' }}It opens on the room you choose.</p>
         <p class="tvr-error">{{ busy ? 'Opening…' : error }}</p>
       </div>
-      <div class="tvr-rooms" ref="roomsEl">
+      <div class="tvr-strip">
+      <div class="tvr-rooms" ref="roomsEl" :style="{ transform: `translateX(${-slide}px)` }">
         <button v-for="(r, i) in choices" :key="r.id" class="tvr-room" data-tv :data-tv-start="i === 0 ? '' : undefined"
                 :data-hint="`OK|${openOn(r.name)}`" @click="place(r.id)">
           <span class="tvr-nm">{{ r.name }}</span><span class="tvr-st">{{ roomLine(r, screens) }}</span>
         </button>
       </div>
+      </div>
+      <p class="tvr-count" v-if="choices.length > 5">{{ at + 1 }} of {{ choices.length }} rooms</p>
       <div class="tvr-hint" aria-live="polite"><span v-for="(h, i) in hint" :key="i">{{ h.before }}<kbd v-for="k in h.keys" :key="k">{{ k }}</kbd>{{ h.words }}</span></div>
     </div>
   </main>
@@ -102,8 +115,11 @@ async function done() {
 .tvr h1 { margin: 36px 0 0; font-size: 80px; font-weight: 400; letter-spacing: -0.03em; line-height: 1.02; }
 .tvr-lede { margin: 26px 0 0; font-size: 30px; line-height: 1.35; color: var(--ink-2); max-width: 1000px; }
 .tvr-error { margin: 14px 0 0; font-size: 26px; color: var(--ink-2); min-height: 34px; }
-.tvr-rooms { position: absolute; left: 300px; right: var(--safe-x); top: 560px; display: flex; flex-wrap: wrap; gap: 28px; }
-.tvr-room { width: 250px; height: 170px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; text-align: left;
+.tvr-strip { position: absolute; left: 0; right: 0; top: 600px; height: 230px; overflow: hidden;
+              mask-image: linear-gradient(90deg, transparent 0, #000 220px, #000 calc(100% - 160px), transparent 100%); }
+.tvr-rooms { position: absolute; left: 300px; top: 30px; display: flex; gap: 28px; transition: transform 0.28s ease; }
+.tvr-count { position: absolute; left: 300px; top: 860px; margin: 0; font-size: 22px; color: var(--muted); }
+.tvr-room { flex: none; width: 250px; height: 170px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; text-align: left;
             font: inherit; color: inherit; cursor: pointer; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--edge); }
 .tvr-nm { font-size: 28px; font-weight: 500; }
 .tvr-st { font-size: 22px; color: var(--ink-2); }
