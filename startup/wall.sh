@@ -143,6 +143,9 @@ speaker() {
     "$card" "$dev" "$card" > "$rc"
 }
 
+# Ubuntu 24.04's cage (0.1, so the x86 image's) is older than the one the wall was built on, and has two faults.
+old_cage() { cage -v 2>&1 | grep -q 'version 0\.1\.'; }
+
 browser() {
   local b
   for b in chromium chromium-browser; do command -v "$b" >/dev/null 2>&1 && { echo "$b"; return; }; done
@@ -171,20 +174,24 @@ case "${1:-}" in
     hidden_cursor
     speaker || true
     # cage runs this script again inside itself, so the display can be scaled before the browser starts.
+    # An old cage crashes on its way out, whenever the screen is stopped; as the service's main process that crash
+    # is a failure, whose splash handling (OnFailure) cancels a restart. There it runs under this script, which a
+    # stop ends cleanly.
+    if old_cage; then cage -- "$0" browse "${ELYIR_SCALE:-}"; exit; fi
     exec cage -- "$0" browse "${ELYIR_SCALE:-}" ;;
   browse)
     # The scale is set on the display, not in the browser: Chromium on Wayland draws a forced scale under 1 into a
     # corner of the screen, while a scaled output is simply a bigger screen to it.
     # It is worked out here, inside cage, because only the compositor knows how big the glass is.
-    # Cage before 0.2 (Ubuntu 24.04's, so the x86 image's) aborts the moment an output is changed while it runs, a
-    # wlroots assertion in wlr_scene_output_layout_add_output. There the browser scales itself instead, through
+    # An old cage aborts the moment an output is changed while it runs, a wlroots assertion in
+    # wlr_scene_output_layout_add_output. There the browser scales itself instead, through
     # Xwayland, since a forced scale on Wayland draws into a corner at any size; and the glass is not turned: a TV
     # hangs the right way up.
     scale=""
     while read -r out m mm; do
       [ "$m" = - ] && m=$(mode)
       s=${2:-$(fit "$m" "$mm")}
-      if cage -v 2>&1 | grep -q 'version 0\.1\.'; then scale=$s
+      if old_cage; then scale=$s
       else wlr-randr --output "$out" --scale "$s" --transform "$(transform)" || true; fi
     done < <(wlr-randr 2>/dev/null | outputs)
     awk -v s="${scale:-0}" 'BEGIN { exit !(s + 0 > 1) }' && set -- "$1" "" "--force-device-scale-factor=$scale" x11
