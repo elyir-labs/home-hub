@@ -431,6 +431,15 @@ Do not reopen these, and do not propose around them.
   `photos.ts`, `brain/hub/photos.py`, `brain/hub/screens.py`, `screen-helper.py`'s `/sleep`; pinned by
   `app/tests/restTv.test.ts`, `app/tests/photos.test.ts`, `app/e2e/rest-tv.spec.ts`, `app/e2e/photos.spec.ts`,
   `app/e2e/which-tv.spec.ts`, `brain/tests/test_photos.py` and `brain/tests/test_screens.py`.
+- **Between the photos, the house's own moments, each a switch per screen** (20 November, `design/tv-moments/`: photos A and
+  B chosen per screen, cards A with the family board per screen, the morning card A, each screen's own list). Photos move
+  each their own way, one after another or a day at a time after its title, with one from this day in an earlier year
+  first. A note, a countdown, the house today, a fact or a trivia question (OK for the answer), a joke or a quote takes a
+  turn after every fifth photo; a screen can rest on the family board instead. The first rest after first light is the
+  morning card; Bedtime carries the evening's line and ends on it. The words are plain files in `brain/hub/words/`,
+  read by a person before they ship, never fetched and never written by a model. Your screens on the phone holds it all.
+  `restTv.ts`, `TvRest.vue`, `PhotosPage.vue`, `brain/hub/board.py`, `brain/hub/words.py`; pinned by `app/tests/restTv.test.ts`,
+  `app/e2e/board.spec.ts`, `mornings.spec.ts`, `cards.spec.ts` and `brain/tests/test_board.py`.
 - **A hub on a cable into the modem answers nobody on the internet, and its Ready offers two ways in** (19 November,
   `design/modem-cable/`, C). A link with a public address takes no new connections (`driver-layer/host/public.sh`), and
   counts as online but never as the house's network, so the hub still makes its own Wi-Fi. Ready puts that Wi-Fi's code

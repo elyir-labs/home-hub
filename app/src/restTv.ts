@@ -13,7 +13,8 @@
  * weeks -- and after a long rest the TV is sent to standby, so a hub is never the reason it was on all night.
  */
 import { reactive } from 'vue'
-import { getBoard, getPhotos, getWords, sayScreen, type BoardNote, type Countdown, type Device, type MorningLine } from './api'
+import { getBoard, getPhotos, getWords, sayScreen, type BoardNote, type Countdown, type DayWords, type Device, type MorningLine } from './api'
+import { moonPhase, sunGuess, sunPosition } from './sun'
 import { isScreen, keepScreenKind, screenId, screenKind, screenRoom } from './screen'
 import { tvGuess } from './tv'
 import { cap, HOUSE_SCENES, isDead, roomOf, runScene, store } from './store'
@@ -25,7 +26,7 @@ export type Shape = 'wide' | 'tall'
 export type StillOn = { name: string; what: string; kind: 'light' | 'music' | 'door' }
 
 export const SLEEP_AFTER = 20 * 60 * 1000     // at rest this long with no key pressed, the TV goes to standby
-export const BEAT_FOR = { photo: 18_000, title: 7_000, collage: 12_000, note: 20_000, count: 15_000 }   // design/tv-moments/: a photo every 18 seconds
+export const BEAT_FOR = { photo: 18_000, title: 7_000, collage: 12_000, note: 20_000, count: 15_000, day: 15_000, fact: 18_000, trivia: 20_000, joke: 15_000, quote: 15_000 }   // design/tv-moments/: a photo every 18 seconds
 export const CARD_EVERY = 5   // a note or a countdown takes a turn after this many photos (design/tv-moments/, cards A)
 export const MOVES = 4                       // the ways a photo can move: in, across, out, up; each photo keeps its own
 const BEDTIME_FROM = 22 * 60 + 30             // 10:30 PM, until
@@ -92,6 +93,8 @@ export type Beat =
   | { kind: 'collage'; photos: Photo[] }
   | { kind: 'note'; note: BoardNote }
   | { kind: 'count'; count: Countdown }
+  | { kind: 'day' }
+  | { kind: 'fact' | 'trivia' | 'joke' | 'quote'; first: string; second: string }
 
 const when = (p: Photo) => new Date((p.taken ?? p.added) * 1000)
 const moveOf = (id: string) => [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % MOVES
@@ -144,8 +147,8 @@ export function dayTitle(b: Extract<Beat, { kind: 'title' }>, locale?: string): 
 
 /** The photos with a note or a countdown taking a turn after every CARD_EVERY photos (one per round when there are
     fewer), the photos going round again until every note and countdown has had its turn once. */
-export function withCards(list: Beat[], board: { notes: BoardNote[]; countdowns: Countdown[] }): Beat[] {
-  const cards: Beat[] = [...board.notes.map(note => ({ kind: 'note', note }) as Beat), ...board.countdowns.map(count => ({ kind: 'count', count }) as Beat)]
+export function withCards(list: Beat[], board: { notes: BoardNote[]; countdowns: Countdown[] }, fun: Beat[] = []): Beat[] {
+  const cards: Beat[] = [...board.notes.map(note => ({ kind: 'note', note }) as Beat), ...board.countdowns.map(count => ({ kind: 'count', count }) as Beat), ...fun]
   if (!cards.length) return list
   const few = list.filter(b => b.kind === 'photo').length < CARD_EVERY
   if (!list.some(b => b.kind === 'photo')) return cards
@@ -159,6 +162,42 @@ export function withCards(list: Beat[], board: { notes: BoardNote[]; countdowns:
     if (few) out.push(cards[next++])
   }
   return out
+}
+
+/** The day's fun cards, in the order they take their turns, as this screen has them switched on (design/tv-moments/,
+    cards A and ScreenA): the house today, then the day's facts and questions, a joke and a quote, mixed. */
+export function funCards(words: DayWords, on: { today: boolean; facts: boolean; jokes: boolean; quotes: boolean }): Beat[] {
+  const of = (kind: 'fact' | 'trivia' | 'joke' | 'quote', rows?: string[][]) => (rows ?? []).filter(r => r[0] && r[1]).map(([first, second]) => ({ kind, first, second }) as Beat)
+  const facts = on.facts ? of('fact', words.facts) : [], trivia = on.facts ? of('trivia', words.trivia) : []
+  const jokes = on.jokes ? of('joke', words.jokes) : [], quotes = on.quotes ? of('quote', words.quotes) : []
+  const out: Beat[] = on.today ? [{ kind: 'day' }] : []
+  for (let i = 0; i < Math.max(facts.length, trivia.length, jokes.length, quotes.length); i++) out.push(...[facts[i], trivia[i], jokes[i], quotes[i]].filter(Boolean))
+  return out
+}
+
+/** When the sun next crosses the horizon after `from`, going up or down, found by stepping through the day. */
+export function sunCross(from: Date, rising: boolean, where: { lat: number; lon: number } | null): Date | null {
+  const el = (d: Date) => (where ? sunPosition(d, where.lat, where.lon) : sunGuess(d)).elevation
+  let prev = el(from)
+  for (let m = 5; m <= 24 * 60; m += 5) {
+    const at = new Date(from.getTime() + m * 60_000), now = el(at)
+    if (rising ? prev < -0.833 && now >= -0.833 : prev >= -0.833 && now < -0.833) return at
+    prev = now
+  }
+  return null
+}
+
+const MOON = (p: number) => p < 0.03 || p > 0.97 ? 'A new moon tonight' : Math.abs(p - 0.5) < 0.03 ? 'A full moon tonight'
+  : Math.abs(p - 0.25) < 0.03 || Math.abs(p - 0.75) < 0.03 ? 'A half moon tonight' : p < 0.5 ? 'A growing moon tonight' : 'A shrinking moon tonight'
+
+/** The house today (design/tv-moments/CardsA): when the sun next sets or rises, what tonight brings, and the moon. All
+    of it is what the hub already knows: the sky from the house's own place, and its forecast. */
+export function houseToday(now: Date, where: { lat: number; lon: number } | null, tonight: { low: number | null; frost: number; change: string }, clock: (d: Date) => string):
+  { lines: string[]; under: string } {
+  const sets = sunCross(now, false, where), rises = sunCross(now, true, where)
+  const sun = sets && (!rises || sets < rises) ? `The sun sets at ${clock(sets)}.` : rises ? `The sun rises at ${clock(rises)}${rises.getDate() !== now.getDate() ? ' tomorrow' : ''}.` : ''
+  const night = tonight.low != null && tonight.low <= tonight.frost ? 'Frost likely tonight.' : tonight.change ? `${tonight.change}.` : tonight.low != null ? `Down to ${Math.round(tonight.low)}° tonight.` : ''
+  return { lines: [sun, night].filter(Boolean), under: MOON(moonPhase(now)) }
 }
 
 /** How many days until a countdown's day, counted in this screen's own calendar. */
@@ -234,7 +273,8 @@ export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s 
     Back was pressed on Bedtime, which then leaves the TV to its photos until the next evening. */
 export const rest = reactive({ face: 'window' as Face, notYet: '', photos: [] as Photo[], photosKnown: false, shows: true, play: 'days' as Play,
   view: 'photos' as 'photos' | 'board', cards: true, board: { notes: [], countdowns: [] } as { notes: BoardNote[]; countdowns: Countdown[]; mornings?: MorningLine[] },
-  lines: true, words: { day: '', morning: null as string | null, evening: null as string | null }, morningSeen: '', goodnight: '' })
+  lines: true, words: { day: '', morning: null, evening: null } as DayWords, morningSeen: '', goodnight: '',
+  fun: { today: true, facts: true, jokes: false, quotes: false }, beat: '' as string, beatKey: '', revealed: '' })
 
 /** The household's photos, read when a screen starts and each time it rests. A hub that cannot say leaves it on the sky. */
 export async function loadRestBoard() {
@@ -267,6 +307,7 @@ export async function reportScreen(nowTv: boolean) {
     rest.view = me.shows === 'board' ? 'board' : 'photos'
     rest.cards = me.notes !== false
     rest.lines = me.lines !== false
+    rest.fun = { today: me.today !== false, facts: me.facts !== false, jokes: me.jokes === true, quotes: me.quotes === true }
     if (me.by === 'person' && !said) { keepScreenKind(me.tv ? 'tv' : 'wall'); if (me.tv !== nowTv) location.reload() }
   } catch { /* an older hub, or none reachable: the screen keeps its own guess and its photos */ }
 }

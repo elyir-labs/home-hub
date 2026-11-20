@@ -24,6 +24,8 @@ FORGET_AFTER = 30 * 86400
 ID = re.compile(r"^[a-f0-9]{16,64}$")
 PLAYS = ("each", "days")   # one photo after another, or a day's photos together (design/tv-moments/, A and B)
 SHOWS = ("photos", "board")  # what a screen rests on: the photos, or the family board (design/tv-moments/, cards C)
+# the cards that may take a turn between the photos (design/tv-moments/ScreenA), and whether each starts on
+CARDS = {"today": True, "facts": True, "jokes": False, "quotes": False}
 
 
 class Screens:
@@ -48,7 +50,8 @@ class Screens:
         return {"id": rec["id"], "room": rec.get("room"), "tv": bool(rec.get("tv")), "by": rec.get("tv_by"), "photos": self.shows_photos(rec),
                 "play": rec.get("play") if rec.get("play") in PLAYS else "days",
                 "shows": rec.get("shows") if rec.get("shows") in SHOWS else "photos", "notes": rec.get("notes") is not False,
-                "lines": rec.get("lines") is not False}
+                "lines": rec.get("lines") is not False,
+                **{k: rec.get(k) if isinstance(rec.get(k), bool) else on for k, on in CARDS.items()}}
 
     def said(self, sid: str, room: str | None = None, tv: bool | None = None, by: str = "screen") -> dict:
         """What a screen says about itself. A person's answer about what it is beats the screen's own guess, always."""
@@ -63,7 +66,7 @@ class Screens:
         return self._public(rec)
 
     def show(self, sid: str, on: bool | None = None, play: str | None = None, notes: bool | None = None, shows: str | None = None,
-             lines: bool | None = None) -> dict | None:
+             lines: bool | None = None, cards: dict | None = None) -> dict | None:
         """What a screen shows at rest, from its page on the phone: the photos or the family board, its photos on or off,
         how they play, and whether notes and countdowns take a turn between them."""
         rec = self.items.get(sid)
@@ -73,6 +76,8 @@ class Screens:
         if shows in SHOWS: rec["shows"] = shows
         if isinstance(notes, bool): rec["notes"] = notes
         if isinstance(lines, bool): rec["lines"] = lines
+        for k, on in (cards or {}).items():
+            if k in CARDS and isinstance(on, bool): rec[k] = on
         self._save()
         return self._public(rec)
 

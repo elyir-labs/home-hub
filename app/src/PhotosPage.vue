@@ -89,12 +89,20 @@ async function picked(e: Event) {
   if (!failed) notify(files.length === 1 ? 'The photo is on the TV.' : `${files.length} photos are on the TV.`)
 }
 
-async function setScreen(s: ShownScreen, set: { on?: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board'; notes?: boolean; lines?: boolean }) {
+/* The day's cards each screen may show between its photos (design/tv-moments/ScreenA); jokes and quotes start off. */
+const FUN = [
+  { key: 'today', name: 'The house today', sub: 'Sunset, frost, the moon', on: true },
+  { key: 'facts', name: 'A fact or a trivia question', sub: 'One every few photos', on: true },
+  { key: 'jokes', name: 'Jokes', sub: 'Picked to suit kids', on: false },
+  { key: 'quotes', name: 'Quotes', sub: 'Short lines from long ago', on: false },
+] as const
+const funOn = (s: ShownScreen, k: (typeof FUN)[number]['key'], start: boolean) => (s[k] ?? start) === true
+async function setScreen(s: ShownScreen, set: { on?: boolean; play?: 'each' | 'days'; shows?: 'photos' | 'board'; notes?: boolean; lines?: boolean; today?: boolean; facts?: boolean; jokes?: boolean; quotes?: boolean }) {
   if (switching.value) return
   switching.value = s.id
   try {
     const now = await showOnScreen(s.id, set)
-    screens.value = screens.value.map(x => x.id === s.id ? { ...x, photos: now.photos, play: now.play, shows: now.shows, notes: now.notes, lines: now.lines } : x)
+    screens.value = screens.value.map(x => x.id === s.id ? { ...x, ...now } : x)
     if (screen.value?.id === s.id) screen.value = screens.value.find(x => x.id === s.id) ?? null
   } catch (e: any) { notify(e.message, 'error') }
   switching.value = ''
@@ -137,6 +145,12 @@ async function takeOff(p: Photo) {
         <span class="photos-screen-text"><b>Notes and countdowns</b><span>Left from your phones, between the photos</span></span>
         <button class="photos-switch" role="switch" :aria-checked="screen.notes !== false" aria-label="Notes and countdowns" :class="{ on: screen.notes !== false, busy: switching === screen.id }" @click="setScreen(screen, { notes: screen.notes === false })"></button>
       </li>
+      <template v-if="screen.shows !== 'board'">
+        <li v-for="f in FUN" :key="f.key">
+          <span class="photos-screen-text"><b>{{ f.name }}</b><span>{{ f.sub }}</span></span>
+          <button class="photos-switch" role="switch" :aria-checked="funOn(screen, f.key, f.on)" :aria-label="f.name" :class="{ on: funOn(screen, f.key, f.on), busy: switching === screen.id }" @click="setScreen(screen, { [f.key]: !funOn(screen, f.key, f.on) })"></button>
+        </li>
+      </template>
       <li>
         <span class="photos-screen-text"><b>A line for the day</b><span>Encouragement in the morning, rest at night</span></span>
         <button class="photos-switch" role="switch" :aria-checked="screen.lines !== false" aria-label="A line for the day" :class="{ on: screen.lines !== false, busy: switching === screen.id }" @click="setScreen(screen, { lines: screen.lines === false })"></button>

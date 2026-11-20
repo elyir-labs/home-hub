@@ -25,8 +25,8 @@ const SHELF = [
 ]
 
 const SCREENS = [
-  { id: 'a1b2c3d4e5f60718a1b2c3d4e5f60718', room: 'living', room_name: 'Living room', tv: true, by: 'screen', photos: true, play: 'days', shows: 'photos', notes: true, lines: true },
-  { id: 'f0e1d2c3b4a59687f0e1d2c3b4a59687', room: 'kitchen', room_name: 'Kitchen', tv: false, by: 'screen', photos: false, play: 'days', shows: 'photos', notes: true, lines: true },
+  { id: 'a1b2c3d4e5f60718a1b2c3d4e5f60718', room: 'living', room_name: 'Living room', tv: true, by: 'screen', photos: true, play: 'days', shows: 'photos', notes: true, lines: true, today: true, facts: true, jokes: true, quotes: true },
+  { id: 'f0e1d2c3b4a59687f0e1d2c3b4a59687', room: 'kitchen', room_name: 'Kitchen', tv: false, by: 'screen', photos: false, play: 'days', shows: 'photos', notes: true, lines: true, today: true, facts: true, jokes: false, quotes: false },
 ]
 const body = req => new Promise(done => { let raw = ''; req.on('data', c => (raw += c)); req.on('end', () => { try { done(JSON.parse(raw || '{}')) } catch { done({}) } }) })
 
@@ -45,6 +45,10 @@ const BOARD = {
 const WORDS = {
   morning: ["You don't have to do it all today. Just the next thing.", 'Start small. Small things add up by evening.', 'If today gets hard, it won\'t stay hard all day.'],
   evening: ['Rest well. You did enough today.', 'Hang up the day like a coat by the door.', 'The moon has the night shift. You can rest.'],
+  facts: [['Octopuses have three hearts', 'Two pump blood through the gills, and the third sends it around the body.'], ['Venus spins the opposite way from most planets', 'Seen from Venus, the Sun would rise in the west and set in the east.']],
+  trivia: [['Which planet spins on its side?', 'Uranus'], ['What is a baby owl called?', 'An owlet']],
+  jokes: [['What do you call a dinosaur that knows lots of words?', 'A thesaurus.']],
+  quotes: [['Well done is better than well said.', 'Benjamin Franklin']],
 }
 
 export function photosRoute(req, res, p, env) {
@@ -58,7 +62,7 @@ export function photosRoute(req, res, p, env) {
   }
   if (p === '/words/today') {
     const day = new URL(req.url, 'http://x').searchParams.get('day') || '', n = Math.floor(Date.parse(day) / 86400000) || 0
-    send(200, { day, morning: WORDS.morning[n % 3], evening: WORDS.evening[n % 3] }); return true
+    send(200, { day, morning: WORDS.morning[n % 3], evening: WORDS.evening[n % 3], facts: WORDS.facts, trivia: WORDS.trivia, jokes: WORDS.jokes, quotes: WORDS.quotes }); return true
   }
   if (p === '/board/mornings' && req.method === 'POST') {
     body(req).then(b => { const m = { id: `m${Date.now()}`, text: String(b.text || '').trim(), day: b.day, by: 'This phone', added: Date.now() / 1000 }
@@ -87,7 +91,7 @@ export function photosRoute(req, res, p, env) {
   }
   if (p.startsWith('/photos/screens/') && req.method === 'POST') {
     const s = SCREENS.find(x => x.id === p.slice('/photos/screens/'.length))
-    body(req).then(b => { if (s && typeof b.on === 'boolean') s.photos = b.on; if (s && (b.play === 'each' || b.play === 'days')) s.play = b.play; if (s && (b.shows === 'photos' || b.shows === 'board')) s.shows = b.shows; if (s && typeof b.notes === 'boolean') s.notes = b.notes; if (s && typeof b.lines === 'boolean') s.lines = b.lines; res.writeHead(s ? 200 : 404, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(s ?? { detail: 'No such screen.' })) })
+    body(req).then(b => { if (s && typeof b.on === 'boolean') s.photos = b.on; if (s && (b.play === 'each' || b.play === 'days')) s.play = b.play; if (s && (b.shows === 'photos' || b.shows === 'board')) s.shows = b.shows; if (s && typeof b.notes === 'boolean') s.notes = b.notes; if (s && typeof b.lines === 'boolean') s.lines = b.lines; for (const k of ['today', 'facts', 'jokes', 'quotes']) if (s && typeof b[k] === 'boolean') s[k] = b[k]; res.writeHead(s ? 200 : 404, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(s ?? { detail: 'No such screen.' })) })
     return true
   }
   if (p !== '/photos' && !p.startsWith('/photos/')) return false

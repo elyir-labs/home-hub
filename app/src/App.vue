@@ -312,6 +312,7 @@ function remote(p: Press): boolean {
   }
   if (!idle.value) return false
   if (tvBand.value) { if (p === 'home') { wake(); return true } return false }
+  if (p === 'ok' && rest.face === 'photos' && (rest.beat === 'trivia' || rest.beat === 'joke') && rest.revealed !== rest.beatKey) { rest.revealed = rest.beatKey; return true }   // OK is the answer
   if (rest.face === 'morning') rest.morningSeen = localDay(shown.value)   // a key on the morning card is somebody up; it goes back to the photos
   if (!tvMusic.value && rest.face === 'bedtime' && p === 'ok') { bedtime(); return true }
   if (!tvMusic.value && rest.face === 'bedtime' && p === 'back') { rest.notYet = nightOf(shown.value); return true }
