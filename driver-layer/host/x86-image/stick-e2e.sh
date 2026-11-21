@@ -18,6 +18,8 @@
 #   C  a move from a try: the drive starts as that house with no overlay, and the try on the stick is emptied
 set -uo pipefail
 IMG="$(readlink -f "${1:?the image}")"; W="$(mkdir -p "${2:-e2e}" && readlink -f "${2:-e2e}")"
+# KVM on the runner; E2E_ACCEL=tcg anywhere without it, slowly.
+ACCEL="${E2E_ACCEL:-kvm}"
 CODE="${OVMF_CODE:-/usr/share/OVMF/OVMF_CODE_4M.fd}"; VARS="${OVMF_VARS:-/usr/share/OVMF/OVMF_VARS_4M.fd}"
 SERIAL=E2EDRIVE01
 PASS=0; FAIL=0
@@ -30,7 +32,11 @@ done_with() { set +e; for m in "$W"/mnt/*; do mountpoint -q "$m" && umount "$m";
 trap done_with EXIT
 mkdir -p "$W/mnt/a" "$W/mnt/b" "$W/logs"
 
-attach() { local l; l="$(losetup -fP --show ${2:+-r} "$1")"; LOOPS+=("$l"); udevadm settle 2>/dev/null; echo "$l"; }
+attach() {
+  local l i=0; l="$(losetup -fP --show ${2:+-r} "$1")"; LOOPS+=("$l"); udevadm settle 2>/dev/null
+  until [ -b "${l}p1" ] || [ "$i" -ge 50 ]; do sleep 0.1; i=$((i + 1)); done
+  echo "$l"
+}
 detach() { losetup -d "$1"; }
 bylabel() { local p; for p in "$1"p*; do [ "$(blkid -o value -s LABEL "$p")" = "$2" ] && { echo "$p"; return; }; done; }
 # A partition's bytes, read straight from the stick's image file.
@@ -65,6 +71,9 @@ mount LABEL=E2ECTL "$C" 2>/dev/null || exit 0
 cd "$C" || exit 0
 { date +%s; findmnt -no FSTYPE,SOURCE /; /opt/home-hub/driver-layer/host/try.sh status; } > boot.log 2>&1
 rm -f next; bash ./step.sh > step.log 2>&1; echo "rc=$?" >> step.log
+{ cat /proc/cmdline; findmnt -rno TARGET,SOURCE,FSTYPE,OPTIONS; dmesg; } > system.log 2>&1
+journalctl -b --no-pager -o short-monotonic > journal.log 2>&1
+journalctl -b -1 --no-pager -o short-monotonic -n 300 > journal-before.log 2>&1
 next="$(cat next 2>/dev/null || echo poweroff)"
 cd /; sync; umount "$C"
 systemctl "$next"
@@ -87,7 +96,7 @@ umount "$R"
 # The kernel's and systemd's messages on the serial port, for the log of each start.
 B="$(bylabel "$L" BOOT)"
 if [ -n "$B" ]; then
-  mount "$B" "$W/mnt/a"; sed -i -E '/^\s*linux\s/ s/ quiet//; /^\s*linux\s/ s/$/ console=tty1 console=ttyS0,115200/' "$W/mnt/a/grub/grub.cfg"; umount "$W/mnt/a"
+  mount "$B" "$W/mnt/a"; sed -i -E '/^\s*linux\s/ s/ (quiet|loglevel=3)//g; /^\s*linux\s/ s/$/ console=tty1 console=ttyS0,115200 systemd.show_status=1/' "$W/mnt/a/grub/grub.cfg"; umount "$W/mnt/a"
 fi
 detach "$L"
 
@@ -104,7 +113,7 @@ except Exception: print("none")' "$W/logs/$1/boot.log" "$2"; }
 start() {
   local name="$1" stick="$2" drive="$3" args=()
   # shellcheck disable=SC2054
-  args=(-enable-kvm -machine q35,i8042=off -cpu host -m 3072 -smp 2 -display none -no-reboot
+  args=(-accel "$ACCEL" -machine q35,i8042=off -cpu "$([ "$ACCEL" = kvm ] && echo host || echo max)" -m 3072 -smp 2 -display none -no-reboot
         -drive "if=pflash,format=raw,readonly=on,file=$CODE" -drive "if=pflash,format=raw,file=$W/vars.fd"
         -device qemu-xhci,id=xhci -nic user,model=virtio-net-pci -drive "if=virtio,format=raw,file=$W/ctl.img"
         -serial "file:$W/logs/$name.serial")
@@ -122,6 +131,7 @@ others() { echo "$(hash_part "$W/stick.img" 15) $(hash_part "$W/stick.img" 16)";
 T=/opt/home-hub/driver-layer/host/try.sh
 
 # --------------------------------------------------------------------------------- A: an empty drive
+a() {
 say "A: an empty drive is moved onto at the very start, and the stick stays as flashed"
 fresh_stick; rm -f "$W/drive.img"; truncate -s 20G "$W/drive.img"
 before="$(P1)"; boot_before="$(others)"
@@ -142,11 +152,19 @@ start A2 - 0
 is "the drive starts on its own, as an ordinary system" "$(got A2 fstype) $(got A2 label) $(got A2 overlay-run)" "ext4 hub-root "
 is "...and knows it is not the stick" "$(field A2 stick)" "false"
 
+}
+
+# A drive with somebody else's filesystem on it.
+used_drive() {
+  rm -f "$W/drive.img"; truncate -s 20G "$W/drive.img"
+  printf 'label: gpt\nstart=2048, type=L\n' | sfdisk -q "$W/drive.img"
+  local dl; dl="$(attach "$W/drive.img")"; mkfs.ext4 -q -L somebody-else "${dl}p1"; detach "$dl"
+}
+
 # ------------------------------------------------------------- B: a try, a restart, and Start over
+b() {
 say "B: a drive with something on it: a try is made, kept across a restart, and Start over leaves no trace"
-fresh_stick; rm -f "$W/drive.img"; truncate -s 20G "$W/drive.img"
-printf 'label: gpt\nstart=2048, type=L\n' | sfdisk -q "$W/drive.img"
-dl="$(attach "$W/drive.img")"; mkfs.ext4 -q -L somebody-else "${dl}p1"; detach "$dl"
+fresh_stick; used_drive
 before="$(P1)"
 step <<S
 $T status > before.json
@@ -193,8 +211,13 @@ is "...and after the restart, no trace: no file, no image, no try" "$(got B4 lef
 is "...the try's partition is empty" "$(try_holds "$W/stick.img")" ""
 is "the stick's system is still as flashed" "$(P1)" "$before"
 
+}
+
 # ---------------------------------------------------------------------------- C: a try put on the drive
+c() {
 say "C: a move from a try: the drive starts as that house, without an overlay, and the try on the stick is emptied"
+fresh_stick; used_drive
+before="$(P1)"
 step <<S
 $T make; echo \$? > make.rc; echo reboot > next
 S
@@ -229,6 +252,9 @@ is "the drive starts as an ordinary system, no overlay" "$(got C4 fstype) $(got 
 is "...as that house: its file, its container image and its machine id" "$(got C4 house) $(got C4 images) $([ "$(got C4 machine-id)" = "$(got C2 machine-id)" ] && echo same)" "the-house 1 same"
 is "...and with the stick still in, the try left on it is emptied for good" "$(try_holds "$W/stick.img")" ""
 is "the stick's system, after all of it, is as flashed" "$(P1)" "$before"
+}
+
+for s in ${E2E_ONLY:-a b c}; do "$s"; done
 
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

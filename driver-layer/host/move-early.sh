@@ -141,7 +141,9 @@ fi
 
 log "moving the system from the stick onto $TARGET"
 [ -x "$DIR/startup/say.sh" ] && "$DIR/startup/say.sh" step moving
-quiet() { for m in /boot/efi /boot /; do mountpoint -q "$m" && mount -o "remount,$1" "$m"; done; }
+# Under a try the stick's own partitions are already read-only and / is an overlay, which the kernel refuses to make
+# read-only while a file is open for writing; and nothing may make the boot partitions writable after the copy.
+quiet() { [ -e "${HUB_TRY_RUN:-/run/home-hub-try}/state" ] && return 0; for m in /boot/efi /boot /; do mountpoint -q "$m" && mount -o "remount,$1" "$m"; done; }
 if quiet ro; then
   TMPDIR=/run "$DIR/driver-layer/host/move-to-drive.sh" "$ROOT_DISK" "$TARGET"; ok=$?
 else

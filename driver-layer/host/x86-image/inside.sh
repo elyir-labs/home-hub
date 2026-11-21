@@ -77,10 +77,11 @@ systemctl enable docker avahi-daemon NetworkManager home-hub-firstboot home-hub-
 # runs on an overlay over its system, set up in the initramfs (try-root.sh), and the mark below is what tells that
 # script this root is the stick's. A tag cut before the try existed boots as before.
 T=/opt/home-hub/driver-layer/host
-if [ -f "$T/try.sh" ] && [ -f "$T/x86-image/try-root.sh" ]; then
+if [ -f "$T/try.sh" ] && [ -f "$T/x86-image/try-root.sh" ] && [ -f "$T/x86-image/try-premount.sh" ]; then
   chmod +x "$T/try.sh"
   install -m 755 "$T/x86-image/try-hook.sh" /etc/initramfs-tools/hooks/home-hub-try
   install -m 755 "$T/x86-image/try-root.sh" /etc/initramfs-tools/scripts/init-bottom/home-hub-try
+  install -m 755 "$T/x86-image/try-premount.sh" /etc/initramfs-tools/scripts/local-premount/home-hub-try
   echo "This root is the USB stick's own: it starts read-only under a try (driver-layer/host/x86-image/try-root.sh)." > /etc/home-hub-stick
   for u in home-hub-try.service home-hub-try.timer; do install -m 644 "$T/$u" "/etc/systemd/system/$u"; done
   systemctl enable home-hub-try.service home-hub-try.timer

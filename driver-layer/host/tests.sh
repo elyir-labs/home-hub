@@ -1709,6 +1709,11 @@ SH
   is "a drive the stick was copied onto: an ordinary start, nothing mounted" "$(asked 'mount') $([ -d "$root/run/hht" ] && echo made || echo none)" "0 none"
   UNMARKED=1 start
   is "...and so is a root without the stick's mark" "$(asked 'mount')" "0"
+
+  # Before the root is mounted: the initramfs's own check would write the stick's superblock.
+  premount() { rm -f "$root/param.conf"; HUB_PATH="$bin:$PATH" FAKES="$root" ROOT="$1" HUB_PARAM_CONF="$root/param.conf" sh "$HERE/x86-image/try-premount.sh"; cat "$root/param.conf" 2>/dev/null; }
+  is "the stick's system is never checked before it is mounted" "$(premount /dev/sda1)" "fastboot=y"
+  is "...a drive copy is, as before" "$(LABEL=hub-root premount /dev/sda1)" ""
   rm -rf "${root:?}"
 }
 
