@@ -40,6 +40,9 @@ export default defineConfig({
      that mock was started to serve, so pass BASE when more than one branch is in play. */
   webServer: process.env.BASE ? undefined : {
     command: 'node mock/brain.mjs',
+    // The mock dates the board's notes and countdowns by its own clock; on a CI box in UTC that is already tomorrow
+    // for six hours of every Chicago evening, and "in 3 days" reads "in 4 days".
+    env: { TZ: 'America/Chicago' },
     url: 'http://localhost:8399/',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,

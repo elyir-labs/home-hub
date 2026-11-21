@@ -1,0 +1,72 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Temitope Adeyeri -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Direction C: a weighted dial that lives on a side table and is turned, not pointed. -->
+<html lang="en"><head><meta charset="utf-8"><title>C / The dial: it lives on the table, and you turn it</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="remote.css"></head><body><main class="board">
+<div class="eyebrow">Elyir / Our own remote / direction C</div>
+<h1>C / The dial: it lives on the table, and you turn it</h1>
+<p class="sub">A heavy round dial that stays where it is put, on the dish that charges it. The whole top turns and presses. Turning moves along the room's things, and a press picks one so turning sets its level. With the TV off, turning dims the room. It is never lost down the sofa.</p>
+<div class="grid">
+<section class="drawing"><svg viewBox="0 0 520 650" role="img" aria-label="The dial, from above and from the side, to scale">
+<defs>
+ <radialGradient id="top" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#f7f4ef"/><stop offset=".8" stop-color="#e3ddd1"/><stop offset="1" stop-color="#d3ccbe"/></radialGradient>
+ <linearGradient id="crown" x1="0" x2="1"><stop offset="0" stop-color="#2c2f33"/><stop offset=".45" stop-color="#4c5157"/><stop offset="1" stop-color="#25282b"/></linearGradient>
+ <linearGradient id="base" x1="0" x2="1"><stop offset="0" stop-color="#d9d3c6"/><stop offset=".45" stop-color="#f1eee8"/><stop offset="1" stop-color="#cfc8ba"/></linearGradient>
+ <radialGradient id="key" cx=".4" cy=".35"><stop offset="0" stop-color="#fbfaf7"/><stop offset="1" stop-color="#ddd7cb"/></radialGradient>
+ <radialGradient id="pool"><stop offset="0" stop-color="rgb(233,184,114)" stop-opacity=".55"/><stop offset="1" stop-color="rgb(233,184,114)" stop-opacity="0"/></radialGradient>
+ <filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#5a5040" flood-opacity=".28"/></filter>
+</defs>
+<text x="24" y="30" font-size="15" font-weight="600">From above and from the side, to scale</text>
+<!-- 64 mm across at 3.4 px/mm -->
+<circle cx="150" cy="200" r="109" fill="url(#crown)" filter="url(#sh)"/>
+<g stroke="#62676d" stroke-width="1.4" id="knurl"></g>
+<circle cx="150" cy="200" r="94" fill="url(#top)" stroke="#bdb5a5"/>
+<g fill="#8b8579" id="holes"></g>
+<path d="M150 120 v12" stroke="#25282b" stroke-width="3" stroke-linecap="round"/>
+<path d="M28 91 v218 M23 91 h10 M23 309 h10" stroke="#a39d8c"/><text class="dim" x="20" y="200" transform="rotate(-90 20 200)" text-anchor="middle">64 mm</text>
+<!-- side: 32 mm tall, the top 14 mm turns -->
+<ellipse cx="150" cy="528" rx="150" ry="16" fill="url(#pool)"/>
+<rect x="41" y="414" width="218" height="48" rx="14" fill="url(#crown)" filter="url(#sh)"/>
+<g stroke="#62676d" stroke-width="1.2" id="knurl2"></g>
+<path d="M44 460 h212 v52 c0 8-6 12-14 12 h-184 c-8 0-14-4-14-12z" fill="url(#base)" stroke="#bdb5a5"/>
+<path d="M60 523 h180" stroke="rgb(233,184,114)" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+<rect x="96" y="482" width="34" height="14" rx="7" fill="url(#key)" stroke="#bdb5a5"/>
+<rect x="170" y="482" width="34" height="14" rx="7" fill="url(#key)" stroke="#bdb5a5"/>
+<text class="dim" x="113" y="512" text-anchor="middle">Back</text><text class="dim" x="187" y="512" text-anchor="middle">Talk</text>
+<path d="M30 548 h240" stroke="#c9c1b1"/>
+<path d="M28 414 v110 M23 414 h10 M23 524 h10" stroke="#a39d8c"/><text class="dim" x="20" y="469" transform="rotate(-90 20 469)" text-anchor="middle">32 mm</text>
+<text class="dim" x="150" y="572" text-anchor="middle">side, standing on its dish</text>
+<path class="lead" d="M259 168 H300"/><text class="lbl" x="306" y="150"><tspan class="b">The top turns.</tspan><tspan x="306" dy="17">Along the room's things,</tspan><tspan x="306" dy="17">or, after a press, brighter,</tspan><tspan x="306" dy="17">dimmer and louder</tspan></text>
+<path class="lead" d="M200 230 H300"/><text class="lbl" x="306" y="236"><tspan class="b">Press the top: OK.</tspan><tspan x="306" dy="17">Holding it does what a long</tspan><tspan x="306" dy="17">press does on the wall</tspan></text>
+<path class="lead" d="M204 489 C240 489 270 440 300 410"/><text class="lbl" x="306" y="398"><tspan class="b">Back, and Hold to talk,</tspan><tspan x="306" dy="17">on the side that does not turn</tspan></text>
+<path class="lead" d="M240 521 C270 521 280 470 300 466"/><text class="lbl" x="306" y="460"><tspan class="b">The light is underneath.</tspan><tspan x="306" dy="17">A faint glow on the table,</tspan><tspan x="306" dy="17">so it is found in the dark,</tspan><tspan x="306" dy="17">and the same glow listening</tspan></text>
+</svg>
+<script>
+const ns = 'http://www.w3.org/2000/svg', add = (g, d) => { const p = document.createElementNS(ns, 'path'); p.setAttribute('d', d); g.appendChild(p) }
+const k = document.getElementById('knurl')
+for (let i = 0; i < 72; i++) { const a = i / 72 * Math.PI * 2, c = Math.cos(a), s = Math.sin(a); add(k, `M${150 + c * 98} ${200 + s * 98} L${150 + c * 107} ${200 + s * 107}`) }
+const k2 = document.getElementById('knurl2')
+for (let x = 50; x < 252; x += 6) add(k2, `M${x} 418 v40`)
+const h = document.getElementById('holes')
+for (const [x, y] of [[0, 0], [-7, 0], [7, 0], [-3.5, -6], [3.5, -6], [-3.5, 6], [3.5, 6]]) { const c = document.createElementNS(ns, 'circle'); c.setAttribute('cx', 150 + x); c.setAttribute('cy', 200 + y); c.setAttribute('r', 1.6); h.appendChild(c) }
+</script></section>
+<div class="right">
+<div class="moments">
+ <div><div class="when">TV off, late</div><div class="pic" style="--glow:.32;--shade:.55"><div class="lamp"></div><div class="pole"></div><div class="shade"></div><div class="tv"></div><div class="sofa"></div><div class="tag">Living room <b>30%</b></div></div>
+  <p class="cap"><b>Turn the top</b> and the lamps in the room it is in dim. A press turns them off. No screen needed.</p></div>
+ <div><div class="when">A film on</div><div class="pic film"><div class="scrim"></div><div class="row"><div class="hd">Living room <small>Turn to move · press to set</small></div>
+  <div class="cards"><div class="c">Floor lamp<em>40%</em><i style="--v:40%"></i></div><div class="c lit">Ceiling<em>Off</em><i></i></div><div class="c">Blinds<em>Down</em><i></i></div></div></div></div>
+  <p class="cap"><b>Turning walks along the row.</b> A press picks the lit one and turning then sets it. A streaming box's grid of apps is walked one step at a time.</p></div>
+ <div><div class="when">On the side table</div><div class="pic"><div class="tv"></div><div class="sofa"></div><div style="position:absolute;left:68%;bottom:34px;width:46px;height:12px;border-radius:50%;background:radial-gradient(rgba(233,184,114,.7),transparent 70%)"></div><div style="position:absolute;left:calc(68% + 12px);bottom:40px;width:22px;height:10px;border-radius:5px 5px 3px 3px;background:#2a2c30"></div></div>
+  <p class="cap"><b>It stays where it lives</b>, charging on its dish with a faint glow under it. It works as a bedroom's own control, with no TV at all.</p></div>
+</div>
+<div class="cases">
+ <section class="card"><span class="tagc">For it</span><ul><li>Turning is the most natural way to say how much. Dimming feels like a real dimmer.</li><li>Never lost, never flat: it lives on its dish. A second one is a room's control by the bed.</li></ul></section>
+ <section class="card"><span class="tagc against">Against it</span><ul><li>No arrows. Walking a streaming box's grid of apps by turning is slow, so for watching it is the weakest.</li><li>Turning means two things, moving or setting, and a press switches between them. That has to be learned.</li><li>It does not point, and it is not for a lap.</li></ul></section>
+ <section class="card"><span class="tagc asks">To find out</span><ul><li>How heavy it must be not to slide when turned with one finger.</li><li>Whether turning reads as left and right on an Apple TV well enough to use.</li></ul></section>
+</div>
+</div></div>
+<div class="foot">Drawn at 3.4 px to the millimeter. Charges on its dish through two contacts underneath. Every direction knows which room it is in, wakes when it is picked up, and can be found by asking.</div>
+</main></body></html>

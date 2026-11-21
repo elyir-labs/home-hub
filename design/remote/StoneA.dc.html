@@ -1,0 +1,70 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Temitope Adeyeri -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Direction A: a pebble with four things on it; the rest is said aloud. -->
+<html lang="en"><head><meta charset="utf-8"><title>A / The stone: four things to press, and the rest said aloud</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="remote.css"></head><body><main class="board">
+<div class="eyebrow">Elyir / Our own remote / direction A</div>
+<h1>A / The stone: four things to press, and the rest said aloud</h1>
+<p class="sub">A smooth pebble that sits on the coffee table and fills a palm. A ring that turns, a pad in its middle that tilts to move and presses for OK, Home below, and a key on top to talk. Scenes and anything else are said, not pressed. It is the least like a remote, and the least to learn.</p>
+<div class="grid">
+<section class="drawing"><svg viewBox="0 0 520 650" role="img" aria-label="The stone remote, from above and from the side, to scale">
+<defs>
+ <radialGradient id="body" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#f6f3ee"/><stop offset=".7" stop-color="#e6e1d6"/><stop offset="1" stop-color="#d3ccbe"/></radialGradient>
+ <linearGradient id="side" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f0ea"/><stop offset="1" stop-color="#cfc8ba"/></linearGradient>
+ <radialGradient id="ring" cx=".4" cy=".35"><stop offset="0" stop-color="#4a4f54"/><stop offset="1" stop-color="#25282b"/></radialGradient>
+ <radialGradient id="key" cx=".4" cy=".35"><stop offset="0" stop-color="#fbfaf7"/><stop offset="1" stop-color="#ddd7cb"/></radialGradient>
+ <radialGradient id="glow"><stop offset="0" stop-color="rgb(233,184,114)" stop-opacity=".9"/><stop offset="1" stop-color="rgb(233,184,114)" stop-opacity="0"/></radialGradient>
+ <filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#5a5040" flood-opacity=".28"/></filter>
+</defs>
+<text x="24" y="30" font-size="15" font-weight="600">From above and from the side, to scale</text>
+<!-- 96 x 66 mm at 3.4 px/mm; top at y 70 -->
+<rect x="52" y="70" width="224" height="326" rx="112" ry="150" fill="url(#body)" stroke="#bdb5a5" filter="url(#sh)"/>
+<circle cx="164" cy="104" r="14" fill="url(#glow)"/><circle cx="164" cy="104" r="4.5" fill="rgb(233,184,114)"/>
+<rect x="143.5" y="124.5" width="41" height="20" rx="10" fill="url(#key)" stroke="#c9c1b1"/>
+<path d="M161 128.5 h6 v7 a3 3 0 0 1 -6 0z M157.5 134.5 a6.5 6.5 0 0 0 13 0 M164 141 v2" stroke="#4a4f54" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<circle cx="164" cy="240" r="78" fill="url(#ring)"/>
+<g stroke="#5d6368" stroke-width="1.2" id="ticks"></g>
+<circle cx="164" cy="240" r="52" fill="url(#key)" stroke="#bdb5a5"/>
+<g fill="none" stroke="#7d827e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M158 202 l6 -6 l6 6"/><path d="M158 278 l6 6 l6 -6"/><path d="M126 234 l-6 6 l6 6"/><path d="M202 234 l6 6 l-6 6"/></g>
+<text x="164" y="245" font-size="14" font-weight="600" text-anchor="middle" fill="#5a5f5c">OK</text>
+<circle cx="164" cy="349" r="17" fill="url(#key)" stroke="#c9c1b1"/>
+<path d="M156.5 350 l7.5 -6.5 l7.5 6.5 M158.5 348.5 v7.5 h11 v-7.5" stroke="#4a4f54" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M30 70 v326 M25 70 h10 M25 396 h10" stroke="#a39d8c"/><text class="dim" x="22" y="233" transform="rotate(-90 22 233)" text-anchor="middle">96 mm</text>
+<path d="M52 418 h224 M52 413 v10 M276 413 v10" stroke="#a39d8c"/><text class="dim" x="164" y="436" text-anchor="middle">66 mm</text>
+<!-- side: 24 mm at its thickest, flat underneath so it sits still -->
+<path d="M62 562 h306 c10 0 12-12 7-22 C360 505 300 480 215 480 C130 480 70 505 55 540 c-5 10-3 22 7 22z" fill="url(#side)" stroke="#bdb5a5" filter="url(#sh)"/>
+<path d="M182 482 c12-4 52-4 64 0" stroke="#25282b" stroke-width="5" stroke-linecap="round" fill="none"/>
+<path d="M392 480 v82 M387 480 h10 M387 562 h10" stroke="#a39d8c"/><text class="dim" x="404" y="525">24 mm</text>
+<text class="dim" x="215" y="590" text-anchor="middle">side, flat underneath so it sits still on a table</text>
+<path class="lead" d="M174 104 H294"/><text class="lbl" x="300" y="99"><tspan class="b">A light.</tspan><tspan x="300" dy="17">Breathes while it listens,</tspan><tspan x="300" dy="17">blinks once for done</tspan></text>
+<path class="lead" d="M184 134 L230 134 L294 156"/><text class="lbl" x="300" y="160"><tspan class="b">Hold to talk.</tspan><tspan x="300" dy="17">Scenes are said</tspan></text>
+<path class="lead" d="M240 222 H294"/><text class="lbl" x="300" y="218"><tspan class="b">The ring turns,</tspan><tspan x="300" dy="17">a click a step, for brighter,</tspan><tspan x="300" dy="17">dimmer and louder</tspan></text>
+<path class="lead" d="M206 268 L250 282 H294"/><text class="lbl" x="300" y="278"><tspan class="b">The pad tilts</tspan><tspan x="300" dy="17">to move around the screen,</tspan><tspan x="300" dy="17">and presses for OK</tspan></text>
+<path class="lead" d="M181 349 H294"/><text class="lbl" x="300" y="344"><tspan class="b">Home.</tspan><tspan x="300" dy="17">Brings the room up, and a</tspan><tspan x="300" dy="17">second press puts it away</tspan></text>
+</svg>
+<script>
+const g = document.getElementById('ticks'), N = 40
+for (let i = 0; i < N; i++) { const a = i / N * Math.PI * 2, c = Math.cos(a), s = Math.sin(a)
+  const l = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  l.setAttribute('d', `M${164 + c * 66} ${240 + s * 66} L${164 + c * 75} ${240 + s * 75}`); g.appendChild(l) }
+</script></section>
+<div class="right">
+<div class="moments">
+ <div><div class="when">TV off, late</div><div class="pic" style="--glow:.32;--shade:.55"><div class="lamp"></div><div class="pole"></div><div class="shade"></div><div class="tv"></div><div class="sofa"></div><div class="tag">Living room <b>30%</b></div></div>
+  <p class="cap"><b>Turn the ring</b> and the lamps in the room it is in dim. Pressing OK turns them off. No screen needed.</p></div>
+ <div><div class="when">A film on</div><div class="pic film"><div class="scrim"></div><div class="row"><div class="hd">Living room <small>Home again to hide</small></div>
+  <div class="cards"><div class="c lit" style="--v:40%">Floor lamp<em>40%</em><i></i></div><div class="c">Ceiling<em>Off</em><i></i></div><div class="c">Blinds<em>Down</em><i></i></div></div></div></div>
+  <p class="cap"><b>Home</b> brings the room up over the picture and a second press puts it away. There is no Back key, so Home does both.</p></div>
+ <div><div class="when">Holding the top key</div><div class="pic"><div class="tv"></div><div class="sofa"></div><div class="said"><span class="q">“Movie in here”</span><b>Living room set for a movie</b></div></div>
+  <p class="cap"><b>Scenes are said.</b> The same sentences the house already understands when typed. With the TV off, the light blinks once for done.</p></div>
+</div>
+<div class="cases">
+ <section class="card"><span class="tagc">For it</span><ul><li>Four things to press, all findable without looking. A guest can use it in a second.</li><li>It is an object for the coffee table, not a gadget. Nobody has one like it.</li></ul></section>
+ <section class="card"><span class="tagc against">Against it</span><ul><li>Scenes need a voice. A quiet house, or someone who would rather not talk to it, gets them only on the TV.</li><li>No Back or Play key, which a streaming box's own screens lean on. Home and a held OK stand in for them.</li><li>A pebble does not point.</li></ul></section>
+ <section class="card"><span class="tagc asks">To find out</span><ul><li>Whether a 46 mm ring is comfortable under one thumb while the stone is held.</li><li>Whether Home doing two jobs is learned in a day or keeps catching people out.</li></ul></section>
+</div>
+</div></div>
+<div class="foot">Drawn at 3.4 px to the millimeter. Charges on a USB-C cable or a small dish. Every direction knows which room it is in, wakes when it is picked up, and can be found by asking.</div>
+</main></body></html>

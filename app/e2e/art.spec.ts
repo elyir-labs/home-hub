@@ -34,7 +34,7 @@ test.describe('on the TV', () => {
     /* where the look and the label are at four moments of the story, read in the page rather than from a screenshot */
     await page.evaluate(() => document.getAnimations().forEach(a => a.pause()))
     const story = []
-    for (const ms of [1_000, 7_000, 13_500, 16_000]) {
+    for (const ms of [500, 1_800, 7_200, 9_500]) {
       await page.evaluate(t => document.getAnimations().forEach(a => { a.currentTime = t }), ms)
       story.push(await page.evaluate(() => ({
         scale: Math.round(new DOMMatrix(getComputedStyle(document.querySelector('.tvrest-painting-look')!).transform).a * 10) / 10,
@@ -58,6 +58,18 @@ test.describe('on the TV', () => {
     await expect(page.locator('.tvrest-plaque-title')).toHaveText(/Wheat Field with Cypresses|A Harbor/)
     await expect(page.locator('.tvrest-cardclock .tvrest-time')).toBeVisible()
     await expect(page.locator('.tvrest-slide')).toHaveCount(0)
+  })
+
+  test('a painting that has been up for minutes still opens close when the screen comes to rest', async ({ page }) => {
+    await house(page, { shows: 'art', art: false })
+    await page.goto('/?tv=1&screen=1&room=living&rest=1&at=19:46', { waitUntil: 'networkidle' })
+    await expect(page.locator('.tvrest')).toHaveAttribute('data-face', 'art')
+    await page.evaluate(() => document.getAnimations().forEach(a => { a.pause(); a.currentTime = 1_000 }))
+    const look = await page.evaluate(() => ({
+      scale: Math.round(new DOMMatrix(getComputedStyle(document.querySelector('.tvrest-painting-look')!).transform).a * 10) / 10,
+      label: Number(getComputedStyle(document.querySelector('.tvrest-plaque')!).opacity),
+    }))
+    expect(look).toEqual({ scale: 2.6, label: 0 })
   })
 
   test('a screen set to art that has no paintings yet keeps to its photos', async ({ page }) => {
