@@ -128,6 +128,16 @@ start() {
 }
 fresh_stick() { cp --sparse=always "$W/base.img" "$W/stick.img"; truncate -s 16G "$W/stick.img"; cp "$VARS" "$W/vars.fd"; }
 P1() { hash_part "$W/stick.img" 1; }
+# When the stick's system is not as flashed, say how: how many bytes, the first few offsets, and the superblock fields
+# that differ (mount count and times say who mounted it writable; the free counts say what was written).
+as_flashed() {
+  local now; now="$(P1)"; is "$1" "$now" "$before"
+  [ "$now" = "$before" ] && return
+  local a b; a="$(attach "$W/base.img" ro)"; b="$(attach "$W/stick.img" ro)"
+  echo "   | bytes that differ: $(cmp -l "${a}p1" "${b}p1" 2>/dev/null | wc -l); the first: $(cmp -l "${a}p1" "${b}p1" 2>/dev/null | head -5 | awk '{printf "%s ", $1 - 1}')"
+  diff <(dumpe2fs -h "${a}p1" 2>/dev/null) <(dumpe2fs -h "${b}p1" 2>/dev/null) | grep '^[<>]' | sed 's/^/   | /' | head -30
+  detach "$b"; detach "$a"
+}
 others() { echo "$(hash_part "$W/stick.img" 15) $(hash_part "$W/stick.img" 16)"; }
 
 T=/opt/home-hub/driver-layer/host/try.sh
@@ -142,7 +152,7 @@ echo "not moved" > not-moved; echo poweroff > next
 S
 start A1 0 1
 is "the start moved before anything else ran" "$(got A1 not-moved)" ""
-is "the stick's system is byte for byte as flashed" "$(P1)" "$before"
+as_flashed "the stick's system is byte for byte as flashed"
 [ "$(others)" = "$boot_before" ] && ok "the stick's boot partitions too" || echo "  note the stick's boot partitions changed ($boot_before -> $(others)); not the system, but worth a look"
 is "the stick holds no try" "$(has_try "$W/stick.img")" "False"
 dl="$(attach "$W/drive.img" ro)"; is "the drive holds the system, as hub-root" "$([ -n "$(bylabel "$dl" hub-root)" ] && echo yes)" "yes"; detach "$dl"
@@ -175,7 +185,7 @@ echo poweroff > next
 S
 start B1 0 1
 is "a fresh stick beside a drive with something on it makes a try first, and restarts onto it" "$(restarted_first B1)" "yes"
-is "the stick's system is unchanged by making it" "$(P1)" "$before"
+as_flashed "the stick's system is unchanged by making it"
 is "...the try has its own partition, after the system" "$(has_try "$W/stick.img")" "True"
 step <<S
 echo kept-by-the-try > /var/lib/home-hub/e2e-proof
@@ -212,7 +222,7 @@ S
 start B5 0 1
 is "...which holds no trace of the old one: no file, no image" "$(got B5 left)|$(got B5 images)|$(field B5 active)" "|0|true"
 is "...and is newer than it" "$(python3 -c 'import sys; print("newer" if int(sys.argv[1] or 0) > int(sys.argv[2] or 0) else "not newer")' "$(field B5 made)" "$(field B2 made)")" "newer"
-is "the stick's system is still as flashed" "$(P1)" "$before"
+as_flashed "the stick's system is still as flashed"
 
 }
 
@@ -241,7 +251,7 @@ echo "not moved" > not-moved; echo poweroff > next
 S
 start C3 0 1
 is "the move happens at the very start of the next" "$(got C3 not-moved)" ""
-is "the stick's system is unchanged by the move" "$(P1)" "$before"
+as_flashed "the stick's system is unchanged by the move"
 is "the try on the stick is emptied: nothing of the house is used from it again" "$(try_holds "$W/stick.img" | tr ' ' '\n' | grep -x -E 'made|clear' | tr '\n' ' ')" "clear "
 step <<S
 findmnt -no FSTYPE / > fstype; [ -e /run/home-hub-try ] && echo yes > overlay-run
@@ -254,7 +264,7 @@ start C4 1 0
 is "the drive starts as an ordinary system, no overlay" "$(got C4 fstype) $(got C4 overlay-run)" "ext4 "
 is "...as that house: its file, its container image and its machine id" "$(got C4 house) $(got C4 images) $([ "$(got C4 machine-id)" = "$(got C2 machine-id)" ] && echo same)" "the-house 1 same"
 is "...and with the stick still in, the try left on it is emptied for good" "$(try_holds "$W/stick.img")" ""
-is "the stick's system, after all of it, is as flashed" "$(P1)" "$before"
+as_flashed "the stick's system, after all of it, is as flashed"
 }
 
 for s in ${E2E_ONLY:-a b c}; do "$s"; done
