@@ -164,7 +164,8 @@ class Developer:
             k.update(name=k["name"] or (f"{user} on GitHub" if user else k["type"]), added=int(time.time()), source=source)
             w["keys"].append(k); have.add(k["fingerprint"])
         if len(w["keys"]) > MAX_KEYS: raise ValueError(f"That would be more than {MAX_KEYS} keys.")
-        self._want(w["on"], w["keys"])
+        # The page says adding a key is how SSH is turned on, and has no other switch for it while it is off.
+        self._want(True, w["keys"])
         return self.summary()
 
     def remove_key(self, fingerprint: str) -> dict:

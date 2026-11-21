@@ -825,11 +825,16 @@ exit 0
 SH
   printf '#!/usr/bin/env bash\ncase "$1" in -lf) read -r l; case "$l" in *SHORT*) echo "2048 SHA256:x (RSA)" ;; *) echo "3072 SHA256:x (RSA)" ;; esac ;; esac\nexit 0\n' > "$bin/ssh-keygen"
   printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/chown"
+  printf '#!/usr/bin/env bash\n[ -f "$ROOT/users/$1" ]\n' > "$bin/id"
+  printf '#!/usr/bin/env bash\necho "useradd $*" >> "$ROOT/asked"; touch "$ROOT/users/${@: -1}"\n' > "$bin/useradd"
+  printf '#!/usr/bin/env bash\necho "usermod $*" >> "$ROOT/asked"\n' > "$bin/usermod"
+  printf '#!/usr/bin/env bash\n[ "$2" = docker ] || [ "$2" = sudo ]\n' > "$bin/getent"
   chmod +x "$bin"/*
+  mkdir -p "$root/users"; touch "$root/users/pi"
   run() {
     rm -f "$root/asked"
-    PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_CONF=/dev/null HUB_SSH_USER=pi HUB_KEYS_DIR="$root/keys" \
-      HUB_SSHD_CONF="$root/sshd/10-home-hub.conf" "$HERE/developer.sh" >/dev/null 2>&1
+    PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_CONF=/dev/null HUB_SSH_USER="${SSH_AS:-pi}" HUB_KEYS_DIR="$root/keys" \
+      HUB_SSHD_CONF="$root/sshd/10-home-hub.conf" HUB_SUDOERS_DIR="$root/sudoers" "$HERE/developer.sh" >/dev/null 2>&1
   }
   says() { python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); print(d["on"], len(d["keys"]), d["user"])' "$data/ssh.json"; }
   asked() { grep -c "$1" "$root/asked" 2>/dev/null || true; }
@@ -857,6 +862,7 @@ SH
     "$(grep -c -e '^PasswordAuthentication no' -e '^KbdInteractiveAuthentication no' -e "^AuthorizedKeysFile .ssh/authorized_keys $root/keys/%u.keys" "$root/sshd/10-home-hub.conf")" "3"
   is "...the server is started" "$(asked 'enable --now ssh')" "1"
   is "...and ssh.json says so" "$(says)" "True 1 pi"
+  is "...as a user that was already there" "$(asked useradd)" "0"
   printf '{"on": true, "keys": ["ssh-rsa AAAASHORT"]}\n' > "$data/ssh.request"; run
   is "on with no key it would take: off, rather than open to nobody in particular" "$(says) $(asked 'disable --now ssh')" "False 0 pi 1"
   printf '{"on": true, "keys": ["%s"]}\n' "$key" > "$data/ssh.request"; run
@@ -864,6 +870,15 @@ SH
   is "off: the server stops and the file is emptied" "$(says) $(wc -c < "$root/keys/pi.keys" | tr -d ' ')" "False 0 pi 0"
   touch "$root/ssh-on"; run
   is "a server somebody started some other way is reported as on" "$(says)" "True 0 pi"
+  rm -f "$root/ssh-on"
+  printf '{"on": true, "keys": ["%s"]}\n' "$key" > "$data/ssh.request"; SSH_AS=hub run
+  is "a computer flashed with no user gets one to sign in as, not locked" \
+    "$(asked 'useradd --create-home --shell /bin/bash hub') $(asked "usermod -p \\* hub") $(says)" "1 1 True 1 hub"
+  is "...in the groups it has, docker and sudo here, and sudo without a password, as pi has" \
+    "$(grep -o 'usermod -aG [a-z]* hub' "$root/asked" | tr '\n' ' ')$(cat "$root/sudoers/90-home-hub-hub")" \
+    "usermod -aG sudo hub usermod -aG docker hub hub ALL=(ALL) NOPASSWD:ALL"
+  printf '{"on": false, "keys": []}\n' > "$data/ssh.request"; SSH_AS=nobody run
+  is "...and turning it off makes nobody" "$(asked useradd)" "0"
   rm -rf "$root"
 }
 

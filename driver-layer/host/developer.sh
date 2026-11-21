@@ -47,6 +47,17 @@ ssh_user() {
   [ -n "${HUB_SSH_USER:-}" ] && { echo "$HUB_SSH_USER"; return; }
   getent passwd 1000 2>/dev/null | cut -d: -f1 | grep . || echo pi
 }
+SUDOERS_DIR="${HUB_SUDOERS_DIR:-/etc/sudoers.d}"
+# A Pi is flashed with its user; the PC image has none, so the first key to sign in makes one, able to do what pi can.
+# '*' rather than useradd's '!': no password either way, but a locked account is refused a key too.
+make_user() {
+  id "$1" >/dev/null 2>&1 && return 0
+  useradd --create-home --shell /bin/bash "$1" || { log "could not make $1 to sign in as"; return 1; }
+  usermod -p '*' "$1"
+  local g; for g in sudo adm docker systemd-journal; do getent group "$g" >/dev/null 2>&1 && usermod -aG "$g" "$1"; done
+  mkdir -p "$SUDOERS_DIR"; printf '%s ALL=(ALL) NOPASSWD:ALL\n' "$1" > "$SUDOERS_DIR/90-home-hub-$1"; chmod 0440 "$SUDOERS_DIR/90-home-hub-$1"
+  log "made $1 to sign in as"
+}
 ssh_unit() { systemctl list-unit-files ssh.service >/dev/null 2>&1 && echo ssh || echo sshd; }
 
 follow() {
@@ -82,6 +93,7 @@ let_in() {
   if [ "${want:-off}" = on ]; then printf '%s\n' "${good[@]}" > "$KEYS_DIR/$user.keys"; else : > "$KEYS_DIR/$user.keys"; fi
   chown root:root "$KEYS_DIR/$user.keys" 2>/dev/null; chmod 0644 "$KEYS_DIR/$user.keys"
   if [ "${want:-off}" = on ]; then
+    make_user "$user"
     mkdir -p "$(dirname "$SSHD_CONF")"
     cat > "$SSHD_CONF" <<EOF
 # Written by home-hub's host/developer.sh when SSH was turned on from This hub. Keys only.

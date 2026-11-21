@@ -97,7 +97,7 @@ class SSH(DeveloperTest):
         d = self.client.post("/developer/ssh/keys", json={"keys": [ed25519()], "source": "pasted"}).json()
         self.assertEqual([(k["name"], k["type"], k["source"]) for k in d["ssh"]["keys"]], [("jordan@laptop", "ssh-ed25519", "pasted")])
         self.assertTrue(d["ssh"]["keys"][0]["fingerprint"].startswith("SHA256:"))
-        self.assertEqual(self.read("ssh.request")["on"], False)
+        self.assertEqual(self.read("ssh.request")["on"], True)
         self.assertEqual(self.read("ssh.request")["keys"], [ed25519()])
 
     def test_the_same_key_twice_is_one_key(self):
