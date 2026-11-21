@@ -1711,11 +1711,13 @@ SH
   is "...and so is a root without the stick's mark" "$(asked 'mount')" "0"
 
   # Before the root is mounted: the initramfs's own check would write the stick's superblock.
-  premount() { rm -f "$root/param.conf"; HUB_PATH="$bin:$PATH" FAKES="$root" HUB_DEV="$root/dev" ROOT="$1" HUB_PARAM_CONF="$root/param.conf" sh "$HERE/x86-image/try-premount.sh"; cat "$root/param.conf" 2>/dev/null; }
+  premount() { rm -f "$root/param.conf"; HUB_PATH="$bin:$PATH" FAKES="$root" HUB_DEV="$root/dev" HUB_ROOT_WAIT=3 ROOT="$1" HUB_PARAM_CONF="$root/param.conf" sh "$HERE/x86-image/try-premount.sh"; cat "$root/param.conf" 2>/dev/null; }
   # A real blkid for these: -U finds the stick's system by its UUID, and the label is probed with -p.
   cat > "$bin/blkid" <<'SH'
 #!/bin/sh
-case "$1" in -U) [ "$2" = 5913-stick ] && echo /dev/sda1; exit 0 ;; esac
+# A stick found late answers -U only from its third asking.
+case "$1" in -U) n=$(( $(cat "$FAKES/asks" 2>/dev/null || echo 0) + 1 )); echo "$n" > "$FAKES/asks"
+  [ "$2" = 5913-stick ] && [ "$n" -ge "${LATE:-1}" ] && echo /dev/sda1; exit 0 ;; esac
 for a in "$@"; do last="$a"; done
 [ "$last" = /dev/sda1 ] && echo "${LABEL:-cloudimg-rootfs}"
 exit 0
@@ -1727,6 +1729,8 @@ SH
   rm -f "$root/asked"
   is "...when the kernel names it by its UUID, as it does" "$(premount UUID=5913-stick) $(asked 'blockdev --setro /dev/sda1')" "fastboot=y 1"
   is "...and a UUID that is nothing here is left alone" "$(premount UUID=other)" ""
+  rm -f "$root/asks"
+  is "...waiting for a stick that is found a moment later" "$(LATE=3 premount UUID=5913-stick)" "fastboot=y"
   rm -f "$root/asked"
   is "...a drive copy is checked and written, as before" "$(LABEL=hub-root premount /dev/sda1) $(asked blockdev)" " 0"
   rm -rf "${root:?}"
