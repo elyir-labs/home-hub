@@ -12,13 +12,18 @@ PREREQ=""
 case "${1:-}" in prereqs) echo "$PREREQ"; exit 0 ;; esac
 
 PATH="${HUB_PATH:-/usr/sbin:/usr/bin:/sbin:/bin}"
+# The kernel names the root by UUID, and here it is not yet a device path. blkid's cache did not always know it this
+# early (on most starts, as it turned out), so udev's link comes first and a direct probe second.
+DEV="${HUB_DEV:-/dev}"
+by() { link="$(readlink -f "$DEV/disk/$1/$2" 2>/dev/null)"; if [ -b "$link" ]; then echo "$link"; else blkid "$3" "$2" 2>/dev/null; fi; }
 case "${ROOT:-}" in
   /dev/*) dev="$ROOT" ;;
-  ?*) dev="$(blkid -l -o device -t "$ROOT" 2>/dev/null)" ;;
+  UUID=*) dev="$(by by-uuid "${ROOT#UUID=}" -U)" ;;
+  LABEL=*) dev="$(by by-label "${ROOT#LABEL=}" -L)" ;;
   *) dev="" ;;
 esac
 say() { echo "home-hub: $*" > /dev/kmsg 2>/dev/null || true; }
-[ -n "$dev" ] && [ "$(blkid -o value -s LABEL "$dev" 2>/dev/null)" = cloudimg-rootfs ] || { say "premount: ${ROOT:-no root} is not the stick's system"; exit 0; }
+[ -n "$dev" ] && [ "$(blkid -p -o value -s LABEL "$dev" 2>/dev/null)" = cloudimg-rootfs ] || { say "premount: ${ROOT:-no root} is not the stick's system"; exit 0; }
 blockdev --setro "$dev" || say "the stick's system could not be made read-only"
 echo "fastboot=y" >> "${HUB_PARAM_CONF:-/conf/param.conf}"
 say "premount: the stick's system ($dev) is read-only and not checked"
