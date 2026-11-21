@@ -185,7 +185,7 @@ const ok = computed(() => {
                 <div class="tvrest-card-sub" v-if="beat.kind === 'quote' || revealed">{{ beat.second }}</div>
               </div>
             </template>
-            <TvPainting v-else-if="beat.kind === 'art'" :painting="beat.painting" :from="current?.from ?? tick" :tall="tall" />
+            <TvPainting v-else-if="beat.kind === 'art'" :painting="beat.painting" :tall="tall" />
             <template v-else-if="beat.kind === 'count'">
               <img v-if="photos.length" class="tvrest-fill tvrest-fill-dim" :src="photoUrl(photos[photos.length - 1].id)" alt="" /><div v-else class="tvrest-night"></div>
               <div class="tvrest-card">
@@ -213,7 +213,7 @@ const ok = computed(() => {
       </template>
 
       <template v-else-if="face === 'art' && gallery">
-        <TvPainting :key="gallery.painting.id" :painting="gallery.painting" :from="gallery.from" :tall="tall" :drift="place" />
+        <TvPainting :key="gallery.painting.id" :painting="gallery.painting" :tall="tall" :drift="place" />
       </template>
 
       <template v-else-if="face === 'morning'">

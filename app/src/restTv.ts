@@ -28,9 +28,9 @@ export type StillOn = { name: string; what: string; kind: 'light' | 'music' | 'd
 export const SLEEP_AFTER = 20 * 60 * 1000     // at rest this long with no key pressed, the TV goes to standby
 export const BEAT_FOR = { photo: 18_000, title: 7_000, collage: 12_000, note: 20_000, count: 15_000, day: 15_000, fact: 18_000, trivia: 20_000, joke: 15_000, quote: 15_000, art: 25_000 }   // design/tv-moments/: a photo every 18 seconds
 export const CARD_EVERY = 5   // a note or a countdown takes a turn after this many photos (design/tv-moments/, cards A)
-/* A painting opens close on one part, pulls back to the whole, and only then says what it is: ART_LOOK in all, 8
+/* A painting opens close on one part, pulls back to the whole, and only then says what it is: ART_LOOK in all, 2
    seconds close and 5 pulling back (design/tv-art/StoryC). As a channel, each stays ART_HOLD before the next. */
-export const ART_LOOK = 13_000
+export const ART_LOOK = 7_000
 export const ART_HOLD = 10 * 60_000
 export const ART_A_DAY = 2
 export const MOVES = 4                       // the ways a photo can move: in, across, out, up; each photo keeps its own

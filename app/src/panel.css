@@ -3733,8 +3733,8 @@ input:focus-visible {
 .tvrest-card-under {
   font-size: 44px;
 }
-/* A painting (design/tv-art/StoryC): close on one part, then the whole, then its label. The look's 61.5% is 8 of
-   ART_LOOK's 13 seconds held close, in restTv.ts. */
+/* A painting (design/tv-art/StoryC): close on one part, then the whole, then its label. The look's 28.6% is 2 of
+   ART_LOOK's 7 seconds held close, in restTv.ts. */
 .tvrest-gallery {
   position: absolute;
   inset: 0;
@@ -3757,7 +3757,7 @@ input:focus-visible {
 }
 @keyframes tvrest-look {
   0%,
-  61.5% {
+  28.6% {
     transform: scale(2.6);
   }
   100% {
