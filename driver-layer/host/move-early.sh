@@ -144,8 +144,10 @@ log "moving the system from the stick onto $TARGET"
 # Under a try the stick's own partitions are already read-only and / is an overlay, which the kernel refuses to make
 # read-only while a file is open for writing; and nothing may make the boot partitions writable after the copy.
 quiet() { [ -e "${HUB_TRY_RUN:-/run/home-hub-try}/state" ] && return 0; for m in /boot/efi /boot /; do mountpoint -q "$m" && mount -o "remount,$1" "$m"; done; }
+# What the copy said, kept with the try when it fails, for the phone and for us: in /run first, since / may be read-only.
+MOVE_LOG="${HUB_MOVE_LOG:-/run/home-hub-move.log}"
 if quiet ro; then
-  TMPDIR=/run "$DIR/driver-layer/host/move-to-drive.sh" "$ROOT_DISK" "$TARGET"; ok=$?
+  TMPDIR=/run "$DIR/driver-layer/host/move-to-drive.sh" "$ROOT_DISK" "$TARGET" 2>&1 | tee -a "$MOVE_LOG"; ok=${PIPESTATUS[0]}
 else
   ok=1; log "could not make the disk read-only to copy it"
 fi
@@ -157,8 +159,23 @@ if [ "$ok" -eq 0 ]; then
   boot_next gone; boot_next drive "$TARGET"
   sync; systemctl --no-block reboot 2>/dev/null || reboot
 else
+  mkdir -p "$VAR"; cp "$MOVE_LOG" "$VAR/move.log" 2>/dev/null
   [ -n "$ASKED" ] && echo "The hub couldn't move onto the drive, so it's still running from the USB stick. Nothing on the drive was changed until the copy started." > "$VAR/move.failed"
   log "could not move to $TARGET; carrying on from the stick"
-  try_is present || make_try trying
+  # Somebody who just typed erase is asked whether to try again (design/move-to-drive/, after-move: B). Again is the
+  # phone's own request, kept with the try, so the copy starts over at the very start of a clean restart.
+  answer=""
+  [ -n "$ASKED" ] && keyboard_now && answer="$(say ask failed AC "$(describe "$TARGET")")"
+  [ -n "$ASKED" ] && log "asked at the keyboard after the move failed: ${answer:-no answer}"
+  if [ "$answer" = again ]; then
+    python3 -c 'import json, sys; print(json.dumps({"disk": sys.argv[1], "serial": sys.argv[2]}))' \
+      "$TARGET" "$(lsblk -dno SERIAL "/dev/$TARGET" 2>/dev/null | tr -d ' ')" > "$VAR/move.request"
+    boot_next stick "$ROOT_DISK"
+    if try_is present || "$TRY_SH" make; then restart; fi
+    log "could not keep the request across a restart; carrying on from the stick"
+    rm -f "$VAR/move.request"
+  fi
+  try_is present || make_try failed
+  say step failed; hold
   boot_next stick "$ROOT_DISK"
 fi

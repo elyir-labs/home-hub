@@ -1184,7 +1184,7 @@ SH
   early() {
     rm -f "$root/asked"; printf 'HUB_IMAGE=x86\n%s\n' "${EXTRA:-}" > "$root/conf"; echo 0 > "$sys/sda/removable"
     PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" HUB_INPUT="$root/${INPUT:-buttons}" \
-      HUB_KEYBOARD_WAIT=0 HUB_SAY_HOLD=0 "$HERE/move-early.sh" >/dev/null 2>&1
+      HUB_KEYBOARD_WAIT=0 HUB_SAY_HOLD=0 HUB_MOVE_LOG="$root/move-run.log" "$HERE/move-early.sh" >/dev/null 2>&1
   }
   ask() { printf '{"disk": "nvme0n1", "serial": "%s"}\n' "${1:-S6P7NS0T}" > "$var/move.request"; }
   asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
@@ -1221,7 +1221,7 @@ SH
   ask; TRAN=nvme ROOTDEV=/dev/nvme0n1p1 early
   is "already on the drive: nothing moves, and a request copied over with it is dropped" "$(asked '^move ') $([ -f "$var/move.request" ] && echo kept || echo gone)" "0 gone"
   printf 'HUB_IMAGE=\n' > "$root/conf"; rm -f "$root/asked"
-  PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" "$HERE/move-early.sh" >/dev/null 2>&1
+  PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" HUB_MOVE_LOG="$root/move-run.log" "$HERE/move-early.sh" >/dev/null 2>&1
   is "anywhere but the x86 image, it does nothing at all" "$(asked '.')" "0"
   rm -rf "$root"
 }
@@ -1233,7 +1233,7 @@ asking_first() {
   local root dir bin sys var; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"; var="$root/var"
   mkdir -p "$dir/driver-layer/host" "$dir/startup" "$bin" "$sys/sda" "$var"
   printf '#!/usr/bin/env bash\necho "move $*" >> "%s/asked"\n[ -z "${MOVE_FAILS:-}" ]\n' "$root" > "$dir/driver-layer/host/move-to-drive.sh"
-  printf '#!/usr/bin/env bash\necho "say $*" >> "%s/asked"\n[ "$1" = ask ] && echo "${ANSWER:-}"\nexit 0\n' "$root" > "$dir/startup/say.sh"
+  printf '#!/usr/bin/env bash\necho "say $*" >> "%s/asked"\n[ "$1" = ask ] && { [ "$2" = failed ] && echo "${AGAIN:-}" || echo "${ANSWER:-}"; }\nexit 0\n' "$root" > "$dir/startup/say.sh"
   printf '#!/usr/bin/env bash\necho "try $*" >> "%s/asked"\n[ "$1" = status ] && { [ -n "${TRYJ:-}" ] && echo "$TRYJ" || echo "{}"; }\nexit 0\n' "$root" > "$dir/driver-layer/host/try.sh"
   printf '#!/usr/bin/env bash\necho "describe $*" >> "%s/asked"\necho "{\\"name\\": \\"$2\\"}"\n' "$root" > "$dir/driver-layer/host/drive.sh"
   printf '#!/usr/bin/env bash\necho "boot-next $*" >> "%s/asked"\n' "$root" > "$dir/driver-layer/host/boot-next.sh"
@@ -1259,7 +1259,7 @@ SH
   early() {
     rm -f "$root/asked"; printf 'HUB_IMAGE=x86\n' > "$root/conf"; echo 0 > "$sys/sda/removable"
     PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" HUB_INPUT="$root/${INPUT:-keyboard}" \
-      HUB_KEYBOARD_WAIT=0 HUB_SAY_HOLD=0 "$HERE/move-early.sh" >/dev/null 2>&1
+      HUB_KEYBOARD_WAIT=0 HUB_SAY_HOLD=0 HUB_MOVE_LOG="$root/move-run.log" "$HERE/move-early.sh" >/dev/null 2>&1
   }
   asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
   told() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])' "$var/drive.screen" "$1" 2>/dev/null || echo none; }
@@ -1273,6 +1273,11 @@ SH
   is "...and the restart is the new hub on the drive, even with the stick left in" "$(asked '^boot-next drive nvme0n1$')" "1"
   fresh; ANSWER=erase MOVE_FAILS=1 early
   is "erase typed and the copy failed: said, and it carries on in a try, coming back to the stick after a restart" "$([ -s "$var/move.failed" ] && echo said) $(asked '^try make$') $(asked '^boot-next stick sda$')" "said 1 1"
+  is "...the screen says the move failed, never that a try was picked, and asks whoever typed erase" "$(asked '^say step failed$') $(asked '^say step trying$') $(asked '^say ask failed AC ')" "1 0 1"
+  is "...and what the copy said is kept with the try" "$([ -f "$var/move.log" ] && echo kept)" "kept"
+  fresh; rm -f "$var/move.request"; ANSWER=erase MOVE_FAILS=1 AGAIN=again early
+  is "Try again: the drive is asked for again, kept in a new try, and it restarts to copy afresh" "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["disk"])' "$var/move.request" 2>/dev/null) $(asked '^try make$') $(asked 'systemctl --no-block reboot') $(asked '^say step failed$')" "nvme0n1 1 1 0"
+  rm -f "$var/move.request"
   fresh; ANSWER=try early
   is "Try picked: the drive is kept, nothing moves, a try is made, and the screen says so" "$(asked '^move ') $(told answer) $(asked '^try make$') $(asked '^say step trying$')" "0 keep 1 1"
   is "...and it restarts onto the try, coming back to the stick" "$(asked 'systemctl --no-block reboot') $(asked '^boot-next stick sda$')" "1 1"

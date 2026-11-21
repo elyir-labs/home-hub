@@ -493,7 +493,7 @@
       "w": 1440,
       "h": 900,
       "title": "A: said before the restart",
-      "page": "after-move"
+      "page": "after-move-rejected"
     },
     {
       "file": "DoneB-1.dc.html",
@@ -502,7 +502,7 @@
       "w": 1440,
       "h": 900,
       "title": "B1: waits for the stick to come out",
-      "page": "after-move"
+      "page": "after-move-rejected"
     },
     {
       "file": "DoneB-2.dc.html",
@@ -511,7 +511,7 @@
       "w": 1440,
       "h": 900,
       "title": "B2: the stick taken out",
-      "page": "after-move"
+      "page": "after-move-rejected"
     },
     {
       "file": "DoneC-1.dc.html",
@@ -781,7 +781,7 @@
       "x": -620,
       "y": 3900,
       "w": 500,
-      "text": "WHEN IT DIDN'T\n\nA: said plainly, then it carries on from the stick as a try, as it does today, and the phone says what happened. The drive is called partly written rather than unchanged.\n\nB: asked, when somebody is at the keyboard (they just typed erase, so they usually are): Try again, or Carry on from the USB stick. With no answer it does A. Without a keyboard (the phone asked for the move) it is A.\n\nEither way the reason is kept on the stick, so the phone, and we, can read why."
+      "text": "WHEN IT DIDN'T\n\nA: said plainly, then it carries on from the stick as a try, as it does today, and the phone says what happened. It no longer says the drive is unchanged.\n\nB: asked, when somebody is at the keyboard (they just typed erase, so they usually are): Try again, or Carry on from the USB stick. With no answer it does A. Without a keyboard (the phone asked for the move) it is A.\n\nEither way the reason is kept on the stick, so the phone, and we, can read why."
     },
     {
       "id": "rec-am",
@@ -790,6 +790,22 @@
       "y": 2600,
       "w": 500,
       "text": "RECOMMENDED\n\nC for when it worked: only the drive that started can say it is done, so it is never said wrongly, and the stick is told to come out while somebody is watching the first start.\n\nB for when it didn't, falling back to A without a keyboard.\n\nOr something else: describe it."
+    },
+    {
+      "id": "rejected-am",
+      "page": "after-move-rejected",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "NOT CHOSEN (21 NOVEMBER 2026)\n\nA said the hub was on the drive before anything had proved the drive starts; the living room NUC's drive, left half-copied, would have been told it was done. B waited on a person to take the stick out, and said it just as early. C was chosen: only a drive that started says it."
+    },
+    {
+      "id": "decided-am",
+      "page": "after-move",
+      "x": 3120,
+      "y": 3900,
+      "w": 500,
+      "text": "DECIDED 21 NOVEMBER 2026\n\nC when it worked: the drive says it on its own first start, while the stick is in. B when it didn't: asked of whoever typed erase, Try again or Carry on from the USB stick; with no answer or no keyboard, A's words. FailA-1 is drawn as built, one quiet line."
     }
   ],
   "pages": [
@@ -835,7 +851,16 @@
     },
     {
       "id": "after-move",
-      "name": "After the move: done, or not"
+      "name": "After the move: done, or not",
+      "decided": {
+        "on": "2026-11-21",
+        "chose": "C when it worked; B when it didn't, with A when nobody is at the keyboard",
+        "board": "DoneC-1.dc.html"
+      }
+    },
+    {
+      "id": "after-move-rejected",
+      "name": "After the move, done or not: not chosen"
     }
   ]
 }

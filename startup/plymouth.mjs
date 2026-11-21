@@ -6,7 +6,7 @@
 // check what is committed without drawing anything; render.mjs draws the images and writes these.
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST_BREATH, FIRST, GLYPHS, WORDS, SCAN, ASK, ASK_AT, MODEM } from './sequence.mjs'
+import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST_BREATH, FIRST, GLYPHS, WORDS, SCAN, ASK, ASK_AT, MODEM, ON_DRIVE } from './sequence.mjs'
 
 export const THEME = 'elyir'
 export const DIR = `/usr/share/plymouth/themes/${THEME}`
@@ -144,6 +144,10 @@ where_image["pass"] = fit(Image("where-password.png"));
 line = Sprite(); line.SetZ(30); line.SetOpacity(0);
 quiet = Sprite(); quiet.SetZ(30); quiet.SetOpacity(0);
 ready = Sprite(ready_image); ready.SetZ(30); ready.SetOpacity(0);
+# The first start of a hub just moved onto its drive, with the stick still in (after-move, C): elyir:stick:in and :out.
+on_drive_image = fit(Image("on-drive.png"));
+on_drive = Sprite(on_drive_image); on_drive.SetZ(30); on_drive.SetOpacity(0);
+on_drive.SetPosition(Math.Int((screen_w - on_drive_image.GetWidth()) / 2), Math.Int(oy + ${ON_DRIVE.top} * s), 30);
 ready.SetPosition(Math.Int((screen_w - ready_image.GetWidth()) / 2), Math.Int(oy + ${WORDS.ready.top} * s), 30);
 
 # Ready with a code to scan (E): elyir:code says startup/say.sh has left this hub's code where CODE points. The house
@@ -470,6 +474,8 @@ ${Object.keys(FIRST).map((id) => `  if (text == "elyir:step:${id}") { step("${id
   if (text == "elyir:nomodem") { global.modem = 0; where(); }
   if (text == "elyir:drive:phone") { global.drive_q = 1; where(); }
   if (text == "elyir:drive:none") { global.drive_q = 0; where(); }
+  if (text == "elyir:stick:in") { global.stick_in = 1; }
+  if (text == "elyir:stick:out") { global.stick_in = 0; }
 ${KINDS.map((k) => `  if (text == "elyir:ask:${k}") { global.kind = "${k}"; global.optn = 0; global.pick = 0; global.page = "choose"; global.n["dtyped"] = 0; global.first = 1; if (!global.asking) { global.asking = 1; global.ask_at = global.frame / 50; } ask_layout(); }`).join('\n')}
 ${KINDS.flatMap((k) => ASK.kinds[k].options.map((o) => `  if (text == "elyir:opt:${k}:${o.key}") { global.opt[global.optn] = "${o.key}"; global.optn = global.optn + 1; ask_layout(); }`)).join('\n')}
 ${[0, 1, 2, 3].map((i) => `  if (text == "elyir:pick:${i}") { global.pick = ${i}; ask_layout(); }`).join('\n')}
@@ -580,6 +586,7 @@ fun refresh() {
   i = 0;
   while (i < global.dln) { global.dl[i].SetOpacity(global.dw[i] * askv * after_house); i = i + 1; }
   ready.SetOpacity(hello * after_house);
+  on_drive.SetOpacity(global.stick_in * after_house * (1 - out));
   tile.SetOpacity(hello * global.coded * after_house);
   code.SetOpacity(hello * global.coded * after_house);
   scan_line.SetOpacity(hello * global.coded * after_house);

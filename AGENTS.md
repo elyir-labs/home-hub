@@ -346,6 +346,11 @@ Do not reopen these, and do not propose around them.
   is read-only before anything mounts it (`x86-image/try-premount.sh`, `try-root.sh`, `host/try.sh`); a move takes the
   try along and empties it. Pinned by the `trying`, `stick_root` and `growing` groups and by `x86-image/stick-e2e.sh`,
   which starts the image as a USB stick beside a drive on every change to it.
+  **Done is said by the drive; a failed move says so** (21 November, `design/move-to-drive/`, after-move: C, and B).
+  A hub just moved onto its drive starts there even with the stick left in, and its first start says the stick can
+  come out while it is still plugged in. A move that stops asks whoever typed erase to try again or carry on from the
+  stick, never saying the drive is unchanged, and keeps what the copy said with the try. Pinned by
+  `startup/startup.test.mjs`, the `moving_in` group and the stick e2e's D.
 - **Leaving a house: erasing is on The hub, handing over is on People** (1 November, `design/leaving/`, B). Start over
   is the last row of The hub: behind the passcode, refused outright on a hub with none, only in the house, and a hold.
   It erases everything that is the house, keeps what is the unit's (what it updates from, its name on the network, its

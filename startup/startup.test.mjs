@@ -7,7 +7,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
-import { NAME, HOUSE, TIME, BREATH, FIRST_BREATH, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, ASK, ASK_AT, MODEM } from './sequence.mjs'
+import { NAME, HOUSE, TIME, BREATH, FIRST_BREATH, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, ASK, ASK_AT, MODEM, ON_DRIVE } from './sequence.mjs'
 import { json } from './json.mjs'
 import { THEME, NAME_FRAMES, CODE, fingerprint, themeFile, timingSh, script } from './plymouth.mjs'
 
@@ -112,7 +112,7 @@ test('a first start never shows the slow sentence, and a step is only ever one t
 const move = (f) => read(new URL(`../design/move-to-drive/${f}`, import.meta.url))
 const text = (html, cls) => [...html.matchAll(new RegExp(`class="${cls}"[^>]*>(.*?)</div>`, 'g'))].map((m) => m[1])
 const css = (html, cls, prop) => +html.match(new RegExp(`class="${cls}" style="[^"]*${prop}: (\\d+)px`))[1]
-const boards = { drive: 'BuiltDrive-1', here: 'BuiltHere-1', away: 'BuiltAway-1', hub: 'BuiltHub-1' }
+const boards = { drive: 'BuiltDrive-1', here: 'BuiltHere-1', away: 'BuiltAway-1', hub: 'BuiltHub-1', failed: 'FailB-1' }
 
 test('each question says what its board says, with the safe answer lit, where the board puts it', () => {
   const sheet = move('screen.css') + move('try.css')
@@ -159,7 +159,7 @@ test('erase is typed into a box that is there, and starting over is said plainly
 })
 
 test('a try, starting over, and the hub on the drive say what the boards say; Ready while the phone has the question too', () => {
-  for (const [id, f] of [['trying', 'StepTrying-1'], ['unasked', 'StepUnasked-1'], ['clearing', 'StepClearing-1'], ['todrive', 'StepToDrive-1']]) {
+  for (const [id, f] of [['trying', 'StepTrying-1'], ['unasked', 'StepUnasked-1'], ['clearing', 'StepClearing-1'], ['todrive', 'StepToDrive-1'], ['failed', 'FailA-1']]) {
     assert.deepEqual(said(move(`${f}.dc.html`), 'line'), [FIRST[id].line])
     assert.deepEqual(said(move(`${f}.dc.html`), 'quiet'), [FIRST[id].quiet])
   }
@@ -232,4 +232,16 @@ test('Ready on a cable into the modem is where C puts it, and says what C says',
   const sc = script()
   for (const s of ['modem', 'nomodem']) assert.match(sc, new RegExp(`"elyir:${s}"`))
   for (const f of ['modem-picture.png', 'modem-split.png', 'modem-move.png', 'modem-alone-move.png', 'modem-tile.png']) assert.match(sc, new RegExp(`Image\\("${f}"\\)`))
+})
+
+test('a hub just moved onto its drive says the stick can come out, as the board puts it, only while the stick is in', () => {
+  const c1 = move('DoneC-1.dc.html'), c2 = move('DoneC-2.dc.html')
+  assert.deepEqual(text(c1, 'notice'), [ON_DRIVE.line])
+  assert.equal(css(c1, 'notice', 'top'), ON_DRIVE.top)
+  assert.deepEqual(text(c2, 'notice'), [])
+  const sc = script()
+  assert.match(sc, /"elyir:stick:in"/); assert.match(sc, /"elyir:stick:out"/)
+  assert.ok(existsSync(theme('on-drive.png')))
+  const say = read(new URL('say.sh', import.meta.url))
+  assert.match(say, /tell "elyir:stick:\$now"/)
 })

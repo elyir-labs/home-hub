@@ -16,6 +16,7 @@
 #                       here (C D S)   carry | move | over   a try made on this computer
 #                       away (N B)     new | bring           a try from another computer
 #                       hub (H T R)    drive | try | erase   a hub already on the drive
+#                       failed (A C)   again | carry         a move onto the drive that stopped partway
 #                     exits 3 with no splash to ask on
 set -uo pipefail
 # Letters, not bytes: spelling a · or a ’ a byte at a time sends the splash halves it has no picture for. Early in a
@@ -29,6 +30,7 @@ READY_URL=${ELYIR_READY_URL:-http://localhost/alive}
 DRIVE_URL=${ELYIR_DRIVE_URL:-${READY_URL%/alive}/drive}
 CODE_DIR="${ELYIR_CODE_DIR:-/run/elyir}"    # where the splash looks for the code (CODE in startup/plymouth.mjs)
 
+MOVED="${HUB_MOVED:-/var/lib/home-hub/moved}"
 up() { command -v plymouth >/dev/null 2>&1 && plymouth --ping 2>/dev/null; }
 tell() { plymouth update --status="$1" 2>/dev/null || true; }
 # This hub's own words go a character at a time: Plymouth's scripts can read a string no other way.
@@ -105,6 +107,22 @@ draw() {
   fi
 }
 
+# The first start of a hub a stick just moved onto this drive, while the stick is still in (design/move-to-drive/,
+# after-move: C): our stick is a USB disk whose system keeps the label it was flashed with; the drive's is hub-root.
+stick_plugged() {
+  local d
+  for d in $(lsblk -dnro NAME,TRAN 2>/dev/null | awk '$2 == "usb" {print $1}'); do
+    lsblk -nro LABEL "/dev/$d" 2>/dev/null | grep -qx cloudimg-rootfs && return 0
+  done
+  return 1
+}
+stick_said=""
+follow_stick() {
+  [ -e "$MOVED" ] || return 0
+  local now=out; stick_plugged && now=in
+  [ "$now" = "$stick_said" ] || { tell "elyir:stick:$now"; stick_said="$now"; }
+}
+
 # The drive in the words the card and the warning use (design/move-to-drive/, KeysA-1 and KeysA-2): its name and size,
 # what is on it, how much and since when, and what erasing it loses. Sizes and ages as the phone's drive.ts says them.
 drive_words() {
@@ -128,6 +146,10 @@ else: lost = system or files or "everything on it"
 if sys.argv[2:] == ["hub"]:
     print("A hub on this computer\u2019s drive")
     print(f"{model} · {size(d.get("bytes") or 0)}")
+elif sys.argv[2:] == ["failed"]:
+    print(f"{model} · {size(d.get("bytes") or 0)}")
+    print("Partly written")
+    rest = " · it won\u2019t start by itself"
 else:
     print(f"{model} · {size(d.get("bytes") or 0)}")
     print((system or "Something the hub can\u2019t read") + (", with a hub on it" if hub else ""))
@@ -163,13 +185,14 @@ case "${1:-}" in
     up && tell "elyir:step:preparing" ;;
   end)
     [ -e "$FIRST" ] || exec "$HERE/wall.sh" wait
-    until curl -fs -m 2 -o /dev/null "$READY_URL"; do sleep 1; done
+    until curl -fs -m 2 -o /dev/null "$READY_URL"; do follow_stick; sleep 1; done
     up || exit 0
     tell "elyir:step:starting"
     # Ready follows the network for as long as it is on screen: a cable plugged in after it was drawn turns the
     # Wi-Fi's code into the address, and a name avahi changed (another hub already has hub.local) is redrawn.
     shown=""
     while up; do
+      follow_stick
       now="$(where_now)"
       if [ "$now" != "$shown" ]; then
         [ -n "$shown" ] && tell "elyir:clear"
@@ -182,7 +205,7 @@ case "${1:-}" in
   ask)
     up || exit 3
     kind="${2:-}"; letters="${3:-}"; drive="${4:-}"; try="${5:-}"
-    case "$kind" in drive) safe=T; wait=120 ;; here) safe=C; wait=30 ;; away) safe=B; wait=120 ;; hub) safe=H; wait=120 ;;
+    case "$kind" in drive) safe=T; wait=120 ;; here) safe=C; wait=30 ;; away) safe=B; wait=120 ;; hub) safe=H; wait=120 ;; failed) safe=A; wait=120 ;;
       *) echo "say.sh: no question called $kind" >&2; exit 2 ;; esac
     [ -n "$letters" ] || exit 2
     wait="${ELYIR_ASK_FOR:-$wait}"
@@ -224,6 +247,8 @@ case "${1:-}" in
         away:N) answer=new ;;
         away:B) answer=bring ;;
         hub:H) answer=drive ;;
+        failed:A) answer=again ;;
+        failed:C) answer=carry ;;
       esac
     }
     back() { to_page choose; }

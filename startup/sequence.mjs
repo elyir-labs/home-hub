@@ -83,7 +83,11 @@ export const FIRST = {
   unasked: { line: 'Starting a try from the USB stick', quiet: 'No answer, so the drive stays as it is. It restarts once, and your phone asks about the drive.' },
   clearing: { line: 'Starting over', quiet: 'Clearing the try from the USB stick. It restarts once.' },
   todrive: { line: 'Starting the hub on the drive', quiet: 'It restarts into it. The USB stick can stay in.' },
+  failed: { line: 'The hub couldn’t be put on the drive', quiet: 'It carries on from the USB stick, and your phone says what happened.' },
 }
+// On the first start of a hub a stick has just moved onto its drive, while that stick is still plugged in
+// (design/move-to-drive/, after-move: C, 21 November 2026). Only a drive that started can say it, so it is never said wrongly.
+export const ON_DRIVE = { line: 'The hub is on this computer’s drive. You can take out the USB stick.', top: 64, size: 21, color: '#e9b872' }
 export const FIRST_BREATH = { period: 2.4, low: 0.45, blend: 1.5 }
 
 // The end of a first start on a screen that is not a wall: where to go next. The address, the Wi-Fi's name and
@@ -150,6 +154,15 @@ export const ASK = {
         { key: 'H', text: 'Start the hub on the drive', small: 'Restarts into it. The stick can stay in.' },
         { key: 'T', text: 'Try a new one from the USB stick', small: 'The drive and its hub stay as they are.' },
         { key: 'R', text: 'Replace it with a new hub', small: 'Erases the drive and its house. You’ll type erase next.' },
+      ],
+    },
+    // A move that stopped partway (after-move: B, 21 November 2026), asked only of somebody who just typed erase.
+    failed: {
+      title: 'The hub couldn’t be put on the drive', card: 'drive', safe: 'A', wait: 120,
+      foot: 'With no answer in 2 minutes, it carries on from the USB stick, and your phone says what happened.',
+      options: [
+        { key: 'A', text: 'Try again', small: 'Starts the copy over. The stick restarts first.' },
+        { key: 'C', text: 'Carry on from the USB stick', small: 'As a try. Put it on the drive later.' },
       ],
     },
   },
