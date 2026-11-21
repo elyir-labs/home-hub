@@ -6,7 +6,7 @@
 // check what is committed without drawing anything; render.mjs draws the images and writes these.
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST_BREATH, FIRST, GLYPHS, WORDS, SCAN, DRIVE_AT, MODEM } from './sequence.mjs'
+import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST_BREATH, FIRST, GLYPHS, WORDS, SCAN, ASK, ASK_AT, MODEM } from './sequence.mjs'
 
 export const THEME = 'elyir'
 export const DIR = `/usr/share/plymouth/themes/${THEME}`
@@ -47,6 +47,11 @@ export const smallFile = (c) => `q-${c.charCodeAt(0)}.png`
 // The drive's own words on the question at the start (design/move-to-drive/, screen-asks), one set per place on it.
 export const DRIVE_SETS = { m: 'model', s: 'system', r: 'rest', w: 'warn', t: 'entry' }
 export const driveFile = (set, c) => `${set}-${c.charCodeAt(0)}.png`
+// An answer's card, highlighted (1) or not (0).
+export const optionFile = (kind, key, on) => `ask-${kind}-${key}-${on}.png`
+const KINDS = Object.keys(ASK.kinds)
+const A = ASK_AT
+const STEP = A.choices.height + A.choices.gap
 // Where startup/say.sh leaves this hub's code, reached from the theme's folder: Plymouth only opens images relative to it.
 export const CODE = '../../../../../run/elyir/code.png'
 const quote = (c) => (c === '"' || c === '\\' ? '\\' + c : c)
@@ -172,21 +177,31 @@ m_split = Sprite(); m_split.SetZ(30); m_split.SetOpacity(0);
 m_move = Sprite(); m_move.SetZ(30); m_move.SetOpacity(0);
 drive_scan_image = fit(Image("drive-scan.png"));
 
-# Asked on the screen at the start (design/move-to-drive/, screen-asks). elyir:drive:ask puts the question up: the house
-# small at the top, the drive named on its card, and the two keys. Its words come as fields like the Wi-Fi's (elyir:dmodel,
-# dsys, drest, dwarn, then a character at a time), and what is typed comes from Plymouth's own question, whose entry the
-# script reads a letter at a time (Plymouth 24, the x86 image's). elyir:drive:done takes it down.
+# Asked on the screen at the start (design/move-to-drive/: screen-asks, keys-2, stick-try). elyir:ask:<kind> puts a
+# question up: the house small at the top, a card, and the answers, added in order by elyir:opt:<kind>:<letter>.
+# elyir:pick:<n> moves the highlight and elyir:page:<choose|erase|over> turns to the box for erase or to starting over.
+# The card's words come as fields like the Wi-Fi's (elyir:dmodel, dsys, drest, then a character at a time), the erase
+# page's drive card as its own (emodel, esys, erest, dwarn), so turning to it redraws nothing, and so does what is typed
+# (elyir:dtyped): say.sh reads the keys (keys.py) and the splash only draws. elyir:ask:done ends it.
 ${[...GLYPHS].map((c) => `global.cc["${quote(c)}"] = "${c.charCodeAt(0)}";`).join(' ')}
-global.dfield["dmodel"] = "m"; global.dfield["dsys"] = "s"; global.dfield["drest"] = "r"; global.dfield["dwarn"] = "w";
-drive_ask_image = fit(Image("drive-ask.png"));
-drive_sure_image = fit(Image("drive-sure.png"));
-drive_undone_image = fit(Image("drive-undone.png"));
-drive_foot_image = fit(Image("drive-foot.png"));
+global.dfield["dmodel"] = "m"; global.dfield["dsys"] = "s"; global.dfield["drest"] = "r"; global.dfield["dwarn"] = "w"; global.dfield["dtyped"] = "t";
+global.dfield["emodel"] = "m"; global.dfield["esys"] = "s"; global.dfield["erest"] = "r";
 drive_card_image = fit(Image("drive-card.png"));
-drive_keys_image = fit(Image("drive-keys.png"));
+home_card_image = fit(Image("home-card.png"));
+${KINDS.map((k) => `ask_title["${k}"] = fit(Image("ask-${k}-title.png")); ask_foot["${k}"] = fit(Image("ask-${k}-foot.png")); ask_card["${k}"] = ${ASK.kinds[k].card === 'drive' ? 'drive_card_image' : 'home_card_image'};`).join('\n')}
+ask_hint_image = fit(Image("ask-hint.png"));
+drive_sure_image = fit(Image("drive-sure.png"));
+drive_type_image = fit(Image("drive-type.png"));
+drive_hold_image = fit(Image("drive-hold.png"));
+drive_undone_image = fit(Image("drive-undone.png"));
 drive_sure_keys_image = fit(Image("drive-sure-keys.png"));
+drive_back_key_image = fit(Image("drive-back-key.png"));
 drive_entry_image = fit(Image("drive-entry.png"));
 drive_caret_image = fit(Image("drive-caret.png"));
+over_title_image = fit(Image("over-title.png"));
+over_warn_image = fit(Image("over-warn.png"));
+over_keys_image = fit(Image("over-keys.png"));
+global.kind = "drive"; global.page = "choose"; global.optn = 0; global.pick = 0; global.n["dtyped"] = 0;
 global.dln = 0;
 
 global.frame = 0;
@@ -266,46 +281,71 @@ fun dadd(set, field) {
   }
 }
 
-fun drive_layout() {
+# An answer's picture is loaded the first time it is shown.
+fun option_image(i, on) {
+  key = global.kind + "-" + global.opt[i] + "-" + on;
+  if (!global.oi[key]) { global.oi[key] = fit(Image("ask-" + key + ".png")); }
+  return global.oi[key];
+}
+
+fun ask_layout() {
   if (!global.d_title) {
-    global.d_title = dreg(Sprite()) + 1; global.d_card = dreg(Sprite()) + 1; global.d_keys = dreg(Sprite()) + 1;
-    global.d_foot = dreg(Sprite()) + 1; global.d_entry = dreg(Sprite()) + 1; global.d_caret = dreg(Sprite()) + 1;
-    global.d_undone = dreg(Sprite()) + 1; global.d_sure = dreg(Sprite()) + 1;
+    global.d_title = dreg(Sprite()) + 1; global.d_card = dreg(Sprite()) + 1; global.d_hint = dreg(Sprite()) + 1;
+    global.d_foot = dreg(Sprite()) + 1; global.d_type = dreg(Sprite()) + 1; global.d_entry = dreg(Sprite()) + 1;
+    global.d_hold = dreg(Sprite()) + 1; global.d_caret = dreg(Sprite()) + 1; global.d_undone = dreg(Sprite()) + 1;
+    global.d_keys = dreg(Sprite()) + 1;
+    i = 0; while (i < 4) { global.d_o[i] = dreg(Sprite()) + 1; i = i + 1; }
   }
-  e = global.entry;
-  st = 0;
-  if (e != "") { st = 1; }
-  if (e == "erase" || e == "Erase" || e == "ERASE") { st = 2; }
   i = 0; while (i < global.dln) { global.dw[i] = 0; i = i + 1; }
-  if (st == 2) { dat(global.d_title - 1, drive_sure_image, -1, ${DRIVE_AT.title.top}); }
-  else { dat(global.d_title - 1, drive_ask_image, -1, ${DRIVE_AT.title.top}); }
-  dat(global.d_card - 1, drive_card_image, ${DRIVE_AT.card.left}, ${DRIVE_AT.card.top});
-  global.rpn = 0; dadd("m", "dmodel"); drow("model", ${DRIVE_AT.model.left}, ${DRIVE_AT.model.top});
-  global.rpn = 0; dadd("s", "dsys"); dadd("r", "drest"); drow("system", ${DRIVE_AT.system.left}, ${DRIVE_AT.system.top});
-  if (st == 0) { dat(global.d_keys - 1, drive_keys_image, ${DRIVE_AT.keys.left}, ${DRIVE_AT.keys.top}); }
-  if (st != 2) { dat(global.d_foot - 1, drive_foot_image, -1, ${DRIVE_AT.foot.top}); }
-  if (st != 0) {
-    dat(global.d_entry - 1, drive_entry_image, ${DRIVE_AT.entry.left}, ${DRIVE_AT.entry.top});
-    global.rpn = 0; i = 0;
-    while (i < e.Length()) {
-      g = dglyph("t", e.CharAt(i));
+  card = ask_card[global.kind];
+  if (global.page == "erase") { card = drive_card_image; }
+  if (global.page == "over") { card = home_card_image; }
+  dat(global.d_card - 1, card, ${A.card.left}, ${A.card.top});
+  f = "d";
+  if (global.page == "erase") { f = "e"; }
+  global.rpn = 0; dadd("m", f + "model"); drow("model", ${A.model.left}, ${A.model.top});
+  global.rpn = 0; dadd("s", f + "sys"); dadd("r", f + "rest"); drow("system", ${A.system.left}, ${A.system.top});
+  if (global.page == "choose") {
+    dat(global.d_title - 1, ask_title[global.kind], -1, ${A.title.top});
+    i = 0;
+    while (i < global.optn) {
+      on = 0;
+      if (i == global.pick) { on = 1; }
+      dat(global.d_o[i] - 1, option_image(i, on), ${A.choices.left}, ${A.choices.top} + i * ${STEP});
+      i = i + 1;
+    }
+    dat(global.d_hint - 1, ask_hint_image, -1, ${A.choices.top + A.hint.below} + global.optn * ${STEP});
+    dat(global.d_foot - 1, ask_foot[global.kind], -1, ${A.foot.top});
+  }
+  if (global.page == "erase") {
+    dat(global.d_title - 1, drive_sure_image, -1, ${A.title.top});
+    dat(global.d_type - 1, drive_type_image, -1, ${A.type.top});
+    dat(global.d_entry - 1, drive_entry_image, ${A.entry.left}, ${A.entry.top});
+    e = ""; global.rpn = 0; i = 0;
+    while (i < global.n["dtyped"]) {
+      ch = global.chars["dtyped-" + i]; e = e + ch;
+      g = dglyph("t", ch);
       if (g) { global.rp[global.rpn] = g; global.rpn = global.rpn + 1; }
       i = i + 1;
     }
-    right = drow("typed", -1, ${DRIVE_AT.entry.text});
+    right = drow("typed", -1, ${A.entry.text});
+    if (global.n["dtyped"] == 0) {
+      dat(global.d_hold - 1, drive_hold_image, -1, ${A.entry.text});
+      right = (screen_w - drive_hold_image.GetWidth()) / 2;
+    }
     global.dl[global.d_caret - 1].SetImage(drive_caret_image);
-    global.dl[global.d_caret - 1].SetPosition(Math.Int(right + ${DRIVE_AT.caret.gap} * s), Math.Int(oy + ${DRIVE_AT.caret.top} * s), 32);
+    global.dl[global.d_caret - 1].SetPosition(Math.Int(right + ${A.caret.gap} * s), Math.Int(oy + ${A.caret.top} * s), 32);
     global.dw[global.d_caret - 1] = 1;
+    global.rpn = 0; dadd("w", "dwarn"); drow("warn", -1, ${A.warn.top});
+    dat(global.d_undone - 1, drive_undone_image, -1, ${n(A.warn.top + A.warn.step)});
+    if (e == "erase") { dat(global.d_keys - 1, drive_sure_keys_image, ${A.keys.left}, ${A.keys.top}); }
+    else { dat(global.d_keys - 1, drive_back_key_image, ${A.keys.left}, ${A.keys.top}); }
   }
-  if (st == 2) {
-    global.rpn = 0; dadd("w", "dwarn"); drow("warn", -1, ${DRIVE_AT.warn.top});
-    dat(global.d_undone - 1, drive_undone_image, -1, ${n(DRIVE_AT.warn.top + DRIVE_AT.warn.step)});
-    dat(global.d_sure - 1, drive_sure_keys_image, ${DRIVE_AT.sureKeys.left}, ${DRIVE_AT.sureKeys.top});
+  if (global.page == "over") {
+    dat(global.d_title - 1, over_title_image, -1, ${A.title.top});
+    dat(global.d_type - 1, over_warn_image, -1, ${A.overWarn.top});
+    dat(global.d_keys - 1, over_keys_image, ${A.overKeys.left}, ${A.overKeys.top});
   }
-}
-
-fun question(prompt, entry) {
-  if (global.asking) { global.entry = entry; drive_layout(); }
 }
 
 fun step(id) {
@@ -430,13 +470,19 @@ ${Object.keys(FIRST).map((id) => `  if (text == "elyir:step:${id}") { step("${id
   if (text == "elyir:nomodem") { global.modem = 0; where(); }
   if (text == "elyir:drive:phone") { global.drive_q = 1; where(); }
   if (text == "elyir:drive:none") { global.drive_q = 0; where(); }
-  if (text == "elyir:drive:ask") { global.first = 1; global.asking = 1; global.ask_at = global.frame / 50; global.entry = ""; drive_layout(); }
-  if (text == "elyir:drive:again") { global.entry = ""; drive_layout(); }
-  if (text == "elyir:drive:done") { global.asking = 0; global.done_at = global.frame / 50; }
+${KINDS.map((k) => `  if (text == "elyir:ask:${k}") { global.kind = "${k}"; global.optn = 0; global.pick = 0; global.page = "choose"; global.n["dtyped"] = 0; global.first = 1; if (!global.asking) { global.asking = 1; global.ask_at = global.frame / 50; } ask_layout(); }`).join('\n')}
+${KINDS.flatMap((k) => ASK.kinds[k].options.map((o) => `  if (text == "elyir:opt:${k}:${o.key}") { global.opt[global.optn] = "${o.key}"; global.optn = global.optn + 1; ask_layout(); }`)).join('\n')}
+${[0, 1, 2, 3].map((i) => `  if (text == "elyir:pick:${i}") { global.pick = ${i}; ask_layout(); }`).join('\n')}
+${['choose', 'erase', 'over'].map((p) => `  if (text == "elyir:page:${p}") { global.page = "${p}"; ask_layout(); }`).join('\n')}
+  if (text == "elyir:ask:done") { global.asking = 0; global.done_at = global.frame / 50; }
+  if (text == "elyir:dtyped") { global.field = "dtyped"; global.n["dtyped"] = 0; ask_layout(); }
   if (text == "elyir:dmodel") { global.field = "dmodel"; global.n["dmodel"] = 0; }
   if (text == "elyir:dsys") { global.field = "dsys"; global.n["dsys"] = 0; }
   if (text == "elyir:drest") { global.field = "drest"; global.n["drest"] = 0; }
   if (text == "elyir:dwarn") { global.field = "dwarn"; global.n["dwarn"] = 0; }
+  if (text == "elyir:emodel") { global.field = "emodel"; global.n["emodel"] = 0; }
+  if (text == "elyir:esys") { global.field = "esys"; global.n["esys"] = 0; }
+  if (text == "elyir:erest") { global.field = "erest"; global.n["erest"] = 0; }
   if (text == "elyir:addr") { global.field = "addr"; global.n["addr"] = 0; }
   if (text == "elyir:wifi") { global.field = "wifi"; global.n["wifi"] = 0; }
   if (text == "elyir:pass") { global.field = "pass"; global.n["pass"] = 0; }
@@ -445,7 +491,7 @@ ${Object.keys(FIRST).map((id) => `  if (text == "elyir:step:${id}") { step("${id
   if (c && global.field != "") {
     global.chars[global.field + "-" + global.n[global.field]] = c;
     global.n[global.field] = global.n[global.field] + 1;
-    if (global.dfield[global.field]) { drive_layout(); } else { where(); }
+    if (global.dfield[global.field]) { ask_layout(); } else { where(); }
   }
 }
 
@@ -545,7 +591,6 @@ fun refresh() {
 }
 
 Plymouth.SetUpdateStatusFunction(status);
-Plymouth.SetDisplayQuestionFunction(question);
 Plymouth.SetRefreshFunction(refresh);
 `
 }

@@ -37,7 +37,7 @@ rm -rf /var/lib/snapd /snap /var/snap /var/cache/snapd
 KERNEL=linux-image-generic-hwe-24.04
 apt-get update
 apt-get install -y --no-install-recommends "$KERNEL" linux-firmware wireless-regdb network-manager wpasupplicant \
-  iw dnsmasq-base avahi-daemon git curl ca-certificates python3 cloud-guest-utils efibootmgr dosfstools uuid-runtime
+  iw dnsmasq-base avahi-daemon git curl ca-certificates python3 cloud-guest-utils efibootmgr dosfstools uuid-runtime rsync e2fsprogs
 # One kernel: the newest generic one just installed. The cloud image's own and every header package go, because
 # nothing on a hub builds a kernel module. And the extras that only make sense in somebody's cloud. Only what is
 # installed is named, because apt refuses a whole purge over one name it does not know.
@@ -72,6 +72,26 @@ chmod +x /opt/home-hub/install.sh /opt/home-hub/driver-layer/radios.sh /opt/home
 chmod +x /opt/home-hub/driver-layer/host/move-early.sh /opt/home-hub/driver-layer/host/drive.sh
 for u in home-hub-firstboot.service home-hub-move.service; do install -m 644 "/opt/home-hub/driver-layer/host/$u" "/etc/systemd/system/$u"; done
 systemctl enable docker avahi-daemon NetworkManager home-hub-firstboot home-hub-move
+
+# The stick is an installer that can hold one try, never a hub (design/move-to-drive/, stick-try): a start from it
+# runs on an overlay over its system, set up in the initramfs (try-root.sh), and the mark below is what tells that
+# script this root is the stick's. A tag cut before the try existed boots as before.
+T=/opt/home-hub/driver-layer/host
+if [ -f "$T/try.sh" ] && [ -f "$T/x86-image/try-root.sh" ] && [ -f "$T/x86-image/try-premount.sh" ]; then
+  chmod +x "$T/try.sh"
+  install -m 755 "$T/x86-image/try-hook.sh" /etc/initramfs-tools/hooks/home-hub-try
+  install -m 755 "$T/x86-image/try-root.sh" /etc/initramfs-tools/scripts/init-bottom/home-hub-try
+  install -m 755 "$T/x86-image/try-premount.sh" /etc/initramfs-tools/scripts/local-premount/home-hub-try
+  echo "This root is the USB stick's own: it starts read-only under a try (driver-layer/host/x86-image/try-root.sh)." > /etc/home-hub-stick
+  for u in home-hub-try.service home-hub-try.timer; do install -m 644 "$T/$u" "/etc/systemd/system/$u"; done
+  systemctl enable home-hub-try.service home-hub-try.timer
+  # What would write the stick's boot partitions, or trim its free blocks, doesn't run on a start from the stick.
+  for u in fstrim.service apt-daily-upgrade.service grub-initrd-fallback.service; do
+    mkdir -p "/etc/systemd/system/$u.d"
+    printf '[Unit]\nConditionPathExists=!/run/home-hub-try/state\n' > "/etc/systemd/system/$u.d/home-hub-stick.conf"
+  done
+  update-initramfs -u -k all
+fi
 
 # The cloud image sends the kernel's and systemd's messages to a serial port, which a cloud VM has and a NUC does not:
 # the screen stays on the boot loader's last line until the login prompt, and writing to a port nobody is listening

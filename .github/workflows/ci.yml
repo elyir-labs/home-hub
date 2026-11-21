@@ -260,6 +260,11 @@ jobs:
         driver-layer/host/move-early.sh
         driver-layer/host/drive.sh
         driver-layer/host/boot-next.sh
+        driver-layer/host/try.sh
+        driver-layer/host/move-to-drive.sh
+        driver-layer/host/x86-image/try-root.sh
+        driver-layer/host/x86-image/try-hook.sh
+        driver-layer/host/x86-image/stick-e2e.sh
         driver-layer/host/tests.sh
         driver-layer/caddy/tests.sh
         driver-layer/host/pi-image/stage-hub/prerun.sh

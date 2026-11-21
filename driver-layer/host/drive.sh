@@ -22,6 +22,8 @@ CONF="${HUB_CONF:-/etc/home-hub.conf}"; VAR="${HUB_VAR:-/var/lib/home-hub}"
 SYS_BLOCK="${HUB_SYS_BLOCK:-/sys/block}"; PEEK="${HUB_PEEK:-/run/home-hub-peek}"
 IMAGE="$(sed -n 's/^HUB_IMAGE=//p' "$CONF" 2>/dev/null | tail -1 | tr -d '"')"
 ROOT_DISK="$(lsblk -no PKNAME "$(findmnt -no SOURCE /)" 2>/dev/null | head -1)"
+# On the stick the root is an overlay, which names no disk of its own; try.sh knows the stick's.
+[ -n "$ROOT_DISK" ] || ROOT_DISK="$("$DIR/driver-layer/host/try.sh" status 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("disk") or "")' 2>/dev/null)"
 
 on_stick() { [ "$(lsblk -dno TRAN "/dev/$1" 2>/dev/null)" = usb ] || [ "$(cat "$SYS_BLOCK/$1/removable" 2>/dev/null)" = 1 ]; }
 internal() { lsblk -dno NAME,TRAN,TYPE 2>/dev/null | awk -v r="$ROOT_DISK" '$3=="disk" && $1!=r && ($2=="nvme"||$2=="sata"||$2=="ata") {print $1}'; }

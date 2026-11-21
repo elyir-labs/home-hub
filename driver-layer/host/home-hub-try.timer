@@ -1,0 +1,10 @@
+# How recently the stick's try was used, for the question asked when a try is found (design/move-to-drive/, stick-try).
+[Unit]
+Description=Home Hub: the USB stick's try, every hour
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=1h
+
+[Install]
+WantedBy=timers.target

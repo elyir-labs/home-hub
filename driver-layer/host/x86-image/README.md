@@ -10,23 +10,40 @@ to itself. An image downloaded from a CI run (rather than a release) comes insid
 the writer the `.img.xz` inside, because neither app looks inside a zip for a second layer of compression. Plug the
 stick into the NUC with nothing else, and power it on.
 
+**The stick is an installer that can hold one try, never a hub** (`design/move-to-drive/`, stick-try). A start from
+the stick never writes the stick's own system: in the initramfs (`try-root.sh`, installed by `inside.sh`) its root
+becomes an overlay, the stick's system read-only underneath and on top either memory, gone at the next start, or the
+*try*, a partition of its own (labeled `hub-try`) in the stick's free space after the system. Docker's and
+containerd's data sit on the try's own filesystem, because their layers can't sit on an overlay. The stick's boot
+partitions are mounted read-only too, so a kernel update never lands on a stick, and fstrim and the automatic upgrades
+don't run there. Nothing ever falls back to the stick's system read-write: a try that won't open means memory, and if
+even that fails the start stops.
+
 - With an **empty internal drive**, the hub moves itself there at the start of its first boot, before anything has
-  written to the disk (`host/move-early.sh`, `host/move-to-drive.sh`), and restarts from the drive. The stick is never
-  written, so the same one sets up the next hub: plug it into the next NUC and power on. The copy gets its own disk
+  written to the disk (`host/move-early.sh`, `host/move-to-drive.sh`), and restarts from the drive. The stick stays as
+  flashed, so the same one sets up the next hub: plug it into the next NUC and power on. The copy gets its own disk
   ids, labels and machine id, so it is never confused with the stick, and the firmware is told to start from the
-  drive. Firmware that starts from any USB stick regardless finds its hub already on the drive and turns the computer
-  off: take the stick out and switch it back on.
+  drive. The copy is labeled `hub-root` and loses the stick's mark (`/etc/home-hub-stick`), so it starts as an
+  ordinary system, never an overlay.
 - With **anything on the internal drive** (Windows, an old install), nothing on it is touched until somebody says so.
-  With a keyboard plugged in, the first start asks on the screen before anything is written (`design/move-to-drive/`,
-  screen-asks): the drive named, with what is on it, type *erase* to put the hub there or Enter to keep it and run
-  from the stick. Erasing shows what is lost and waits for Enter; Backspace goes back. With no keyboard, or no answer
-  in 2 minutes, the screen says the phone will ask, and first run opens on the same question there: erase on the
-  typed word *erase*, or keep. Either answer is asked once. Keep is an answer, and the first row on This hub offers the
-  move again, on a hold, behind the passcode. `HUB_AUTO_INTERNAL=0` in `/etc/home-hub.conf` keeps a hub on its stick
-  even when the drive is empty.
+  The start runs on memory and makes a try there (`host/try.sh make`), so what the household sets up from then on is
+  kept on the stick's try, bound to this computer by its firmware's id (and by its drives' serials when the firmware
+  gives none). With a keyboard plugged in, the first start asks on the screen before anything is written (screen-asks):
+  type *erase* to put the hub on the drive, or keep it. With no keyboard, the phone asks. `HUB_AUTO_INTERNAL=0` in
+  `/etc/home-hub.conf` keeps a hub on its stick even when the drive is empty.
+- **Putting a try on the drive** copies the system and the try's changes onto the drive as one ordinary system, the
+  house's machine id and Docker's data included, then empties the try on the stick. A house is never left on a stick
+  once it is somewhere else: the drive empties the stick's try for good on its first start if the stick is still in
+  (`try.sh tidy`), and the stick does it itself at its next start otherwise.
+- **Start over** on a try (`try.sh clear`) empties it, at the very start of the next boot, before anything reads it.
+  The partition stays; the stick is otherwise as flashed.
 - **While it runs from the stick**, every start asks the firmware for the stick again on the next start (BootNext,
   `host/boot-next.sh`), so a restart comes back to the hub rather than to what was on the drive. The firmware's own
   boot order is never changed: take the stick out and the computer starts its old system as before.
+
+`host/try.sh status` says all of this in one line of JSON (on the stick, on a try, a try present, made on this
+computer, when made and last used, and the stick's disk). `x86-image/stick-e2e.sh` starts the built image in QEMU as a
+USB stick beside a drive and proves it, on every pull request that changes how the image or the move is built.
 
 Then it is the same as every hub: with a cable it is at `http://hub.local`; without one it offers a Wi‑Fi of its own,
 named on its label (docs/network.md, piece 5). The image carries the brain, the front door and the broker, so the
