@@ -14,7 +14,7 @@ terraform {
 }
 
 # The token comes from CLOUDFLARE_API_TOKEN in the environment: never a variable, never in state, never in this
-# repository. It needs Account > Cloudflare Pages > Edit, Account > D1 > Edit, Account > Account API Tokens > Edit (to
+# repository. It needs Account > Cloudflare Pages > Edit, Account > D1 > Edit, Account > Workers R2 Storage > Edit (art.tf), Account > Account API Tokens > Edit (to
 # make the deploy workflow's token) and Zone > DNS > Edit on elyir.com.
 provider "cloudflare" {}
 

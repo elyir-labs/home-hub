@@ -9,14 +9,25 @@ forgets it was following when it does. The strip says its own address on `strip/
 """
 import json
 import logging
+import os
 import secrets
+import urllib.request
 
 log = logging.getLogger("hub.glow")
 PORT = 21325
+HELPER = os.environ.get("GLOW_HELPER", "http://127.0.0.1:8397")   # startup/glow.py, beside the camera on this machine
 
 
 class GlowError(Exception):
     pass
+
+
+def helper(path: str, body: dict | None = None, timeout: float = 15):
+    """Ask the camera's helper on this machine. The brain is on the host's network, so this is the machine itself."""
+    req = urllib.request.Request(HELPER + path, data=None if body is None else json.dumps(body).encode(),
+                                 headers={"Content-Type": "application/json"}, method="GET" if body is None else "POST")
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read(), r.headers.get("Content-Type", "")
 
 
 class Glow:
@@ -60,6 +71,28 @@ class Glow:
         self.hub.settings.set(glow=g)
         await self._arm(g)
         return {"glow": g, "target": self.target()}
+
+    def lights(self) -> int:
+        g = self.state()
+        return next((c["lights"] for c in self.choices(None) if c["strip"] == g.get("strip") and c["run"] == g.get("run", 0)), 48)
+
+    def save(self, corners: list, start: str | None = None, first: str | None = None, bottom: bool = False) -> dict:
+        """Where the screen is (from the TV finding itself, or marked on a phone), and the way the strip runs if it was
+        said; kept by the helper, which follows from them. The house remembers that it is set up."""
+        t = self.target()
+        if not t: raise GlowError("The light behind the TV isn't answering on the Wi-Fi.")
+        if len(corners) != 4 or not all(len(c) == 2 and all(0 <= v <= 1 for v in c) for c in corners): raise ValueError("Four corners.")
+        body = {"corners": corners, "target": t, "lights": self.lights()}
+        if start: body.update(start=start, first=first, bottom=bool(bottom))
+        elif not self.state().get("set"): raise ValueError("Say which way the strip runs the first time.")
+        out = json.loads(helper("/save", body)[0])
+        g = self.state(); g["set"] = True; self.hub.settings.set(glow=g)
+        return out
+
+    def chase(self, stop: bool = False):
+        t = self.target()
+        if not t: raise GlowError("The light behind the TV isn't answering on the Wi-Fi.")
+        helper("/chase", {"stop": True} if stop else {"target": t, "lights": self.lights()})
 
     async def stop(self) -> dict:
         g = self.state()

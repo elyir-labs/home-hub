@@ -1,0 +1,147 @@
+{
+  "name": "Art between the photos",
+  "areas": [
+    "Wall screens",
+    "Watching and listening"
+  ],
+  "pages": [
+    {
+      "id": "tv-art",
+      "name": "How a painting looks on the TV, and where it comes from",
+      "decided": {
+        "on": "2026-11-20",
+        "chose": "C, and a channel too",
+        "board": "StoryC.dc.html"
+      }
+    },
+    {
+      "id": "tv-art-rejected",
+      "name": "How a painting looks on the TV, and where it comes from: not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "page": "tv-art",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "Today: the cards between the photos, with no art"
+    },
+    {
+      "file": "GalleryA.dc.html",
+      "page": "tv-art-rejected",
+      "x": 0,
+      "y": 1500,
+      "w": 1920,
+      "h": 1080,
+      "title": "A: a painting hung on a wall, with its label beside it"
+    },
+    {
+      "file": "FillB.dc.html",
+      "page": "tv-art-rejected",
+      "x": 0,
+      "y": 3000,
+      "w": 1920,
+      "h": 1080,
+      "title": "B: the painting fills the screen and moves like a photo",
+      "is_interactive": true
+    },
+    {
+      "file": "StoryC.dc.html",
+      "page": "tv-art",
+      "x": 0,
+      "y": 4500,
+      "w": 1920,
+      "h": 1080,
+      "title": "C: a close look at one part, then the whole, then what it is",
+      "is_interactive": true
+    },
+    {
+      "file": "PhoneToday.dc.html",
+      "page": "tv-art",
+      "x": 2040,
+      "y": 1500,
+      "w": 390,
+      "h": 1100,
+      "title": "Today: a screen's page, with no switch for art"
+    },
+    {
+      "file": "PhoneEvery.dc.html",
+      "page": "tv-art",
+      "x": 2560,
+      "y": 1500,
+      "w": 390,
+      "h": 844,
+      "title": "Every direction: art on a screen's page",
+      "is_interactive": true
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "tv-art",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n20 November 2026: the cards between the photos are built (design/tv-moments/), and art was asked for and left for later because it is the one card that costs every hub a download. These boards ask how a painting should look on the TV, and whether art is a card between the photos or also something a screen can show all day.\n\nThe paintings drawn here are stand-ins. The real card shows the museum's own photograph of the painting."
+    },
+    {
+      "id": "where",
+      "page": "tv-art",
+      "x": 2040,
+      "y": 0,
+      "w": 900,
+      "text": "WHERE THE PAINTINGS COME FROM, IN EVERY DIRECTION\n\nA set we choose by hand, about 60 to start, from museums that give their public-domain collections away for any use (the Met, the Art Institute of Chicago, the Rijksmuseum, the National Gallery of Art). We prepare each at the TV's size once, with its title, painter, year and one true line about it, checked like the words.\n\nThey are hosted on Elyir's own Cloudflare (made by Terraform, like everything we run) and the hub downloads them once, about 25 MB, the first time any screen turns art on; turning it off on every screen frees the room. Never in this repository, which every hub clones whole, and never fetched by the hub from a museum, which would be a new outside service and would tell it who is looking."
+    },
+    {
+      "id": "today",
+      "page": "tv-art",
+      "x": 0,
+      "y": 1120,
+      "w": 1920,
+      "text": "TODAY. A fact card between the photos (development after #66, ?beat=fact). Every kind of card has a switch on a screen's page; there is no art."
+    },
+    {
+      "id": "a",
+      "page": "tv-art-rejected",
+      "x": 0,
+      "y": 2620,
+      "w": 1920,
+      "text": "A: HUNG ON A WALL. The painting framed on a warm wall, lit from above, with a museum's paper label beside it: title, painter, year, and that it is public domain. Still, apart from the drift every resting screen has.\n\nFOR: Reads as art, not a screensaver, and the label teaches something. AGAINST: The painting is smaller than the screen, and a still card next to moving photos is a change of pace."
+    },
+    {
+      "id": "b",
+      "page": "tv-art-rejected",
+      "x": 0,
+      "y": 4120,
+      "w": 1920,
+      "text": "B: FILLS THE SCREEN AND MOVES LIKE A PHOTO. The painting takes the whole screen and gets one of the photos' slow moves; its title and painter sit at the top, where a photo's line does.\n\nFOR: The biggest the painting can be, and it fits the slideshow's rhythm. AGAINST: A painting's shape is rarely the TV's, so the edges are cropped, and a crop changes a painting in a way it doesn't change a holiday photo."
+    },
+    {
+      "id": "c",
+      "page": "tv-art",
+      "x": 0,
+      "y": 5620,
+      "w": 1920,
+      "text": "C: A CLOSE LOOK, THEN THE WHOLE, THEN WHAT IT IS. The card opens close on one part of the painting (the brushwork of the cypress), pulls back to the whole painting uncropped, and only then says what it is, with one line about it.\n\nFOR: Shows the thing people walk past in a museum, the brushwork, and the whole painting without cropping it. AGAINST: A little story each time, which takes longer (about 25 seconds), and the close-up point has to be chosen for every painting."
+    },
+    {
+      "id": "phone",
+      "page": "tv-art",
+      "x": 2040,
+      "y": 2640,
+      "w": 910,
+      "text": "EVERY DIRECTION, ON THE PHONE. Art is a switch beside the other cards, off to start because of the download, saying how many and from where. Flip to \"A channel too\" to see the other question: What it shows could gain Art, a screen showing one painting at a time all day with the clock small beside it, for a hallway screen that wants to be a frame."
+    },
+    {
+      "id": "pick",
+      "page": "tv-art",
+      "x": 2040,
+      "y": 3600,
+      "w": 910,
+      "text": "DECIDED 20 NOVEMBER 2026\n\nC, and a channel too. Each painting opens close on one part, pulls back to the whole uncropped, then says what it is. Art is a switch beside the other cards on a screen's page, and What it shows gains Art, for a screen that wants to be a frame all day.\n\nA and B are kept, with their cases, on the page after this one."
+    }
+  ]
+}

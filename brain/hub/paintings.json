@@ -1,0 +1,1144 @@
+{
+ "paintings": [
+  {
+   "id": "a-sunday-on-la-grande-jatte-1884",
+   "title": "A Sunday on La Grande Jatte — 1884",
+   "painter": "Georges Seurat",
+   "year": "1884–86",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/27992",
+   "source": "https://www.artic.edu/iiif/2/2d484387-2509-5e8e-2c43-22f9981972eb/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1607,
+   "line": "Up close, the people and trees dissolve into tiny dots; Seurat painted the border later, in 1888–89.",
+   "file": "369c1f4b2c367a138daf.jpg",
+   "sha256": "369c1f4b2c367a138dafd3f26863a03b62d3870c40c981682dafdee747569a88",
+   "bytes": 739999,
+   "focus": [
+    0.55,
+    0.36
+   ]
+  },
+  {
+   "id": "a-scene-on-the-ice",
+   "title": "A Scene on the Ice",
+   "painter": "Hendrick Avercamp",
+   "year": "about 1625",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.50721.html",
+   "source": "https://api.nga.gov/iiif/af3e7276-2f9f-47ab-92dd-4a79b4aa9178/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1218,
+   "line": "Dozens of skaters crowd a frozen river; Avercamp signed it with his joined initials, HA.",
+   "file": "9919328c402ca166de46.jpg",
+   "sha256": "9919328c402ca166de4641aaf82339b9b7521bb4c23e6214a2fdf73d1fefb5f6",
+   "bytes": 406631,
+   "focus": [
+    0.71,
+    0.78
+   ]
+  },
+  {
+   "id": "a-monumental-portrait-of-a-monkey",
+   "title": "A Monumental Portrait of a Monkey",
+   "painter": "Attributed to the Stipple Master",
+   "year": "about 1705–1710",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/210511",
+   "source": "https://www.artic.edu/iiif/2/4c44ca9b-ed2f-154a-2d2e-c3f25ff9e7a2/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1968,
+   "line": "An inscription on the back names this bearded, long-fingered monkey: Husaini.",
+   "file": "63da99cbb39957fc88f1.jpg",
+   "sha256": "63da99cbb39957fc88f1f97e44571f74fb7b1923d39f3a0fa23e6370c12d111d",
+   "bytes": 556624,
+   "focus": [
+    0.21,
+    0.79
+   ]
+  },
+  {
+   "id": "the-japanese-footbridge",
+   "title": "The Japanese Footbridge",
+   "painter": "Claude Monet",
+   "year": "1899",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.74796.html",
+   "source": "https://api.nga.gov/iiif/0b9cefb5-1ee4-401a-8154-8d4039191a28/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1935,
+   "line": "Water lilies and a footbridge at Giverny; Monet signed it in the corner with '99' for 1899.",
+   "file": "7b7dd74046f8ec52cb73.jpg",
+   "sha256": "7b7dd74046f8ec52cb73cb004be91aa546b77c421a26db01941a3304c6fe7b5f",
+   "bytes": 1322601,
+   "focus": [
+    0.35,
+    0.62
+   ]
+  },
+  {
+   "id": "portrait-of-a-boy",
+   "title": "Portrait of a Boy",
+   "painter": "Biagio d'Antonio",
+   "year": "about 1476/1480",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.320.html",
+   "source": "https://api.nga.gov/iiif/1e63614c-3a9d-4b84-9841-198e08fcef97/full/full/0/default.jpg",
+   "w": 2080,
+   "h": 2400,
+   "line": "A curly-haired boy in a red-orange coat, with a calm landscape of rolling hills behind him.",
+   "file": "3aa7be1e62cb46b923f7.jpg",
+   "sha256": "3aa7be1e62cb46b923f7364f6003b29c716e5e9d109ad73a6a1440601fa9cf46",
+   "bytes": 931910,
+   "focus": [
+    0.81,
+    0.32
+   ]
+  },
+  {
+   "id": "landscape-in-the-style-of-ancient-masters-after-gao-kegong",
+   "title": "Landscape in the Style of Ancient Masters: after Gao Kegong",
+   "painter": "Lan Ying",
+   "year": "first half of 17th century",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/8209",
+   "source": "https://www.artic.edu/iiif/2/2b5927a7-6a01-62bc-081a-6d0d1f9e3b7d/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1865,
+   "line": "From an album where Lan Ying painted landscapes in the styles of earlier masters, here Gao Kegong.",
+   "file": "691823d2345723977160.jpg",
+   "sha256": "691823d234572397716002b921bd64a776c016fe11158251bb4aac64e429e745",
+   "bytes": 548295,
+   "focus": [
+    0.54,
+    0.66
+   ]
+  },
+  {
+   "id": "little-girl-in-a-blue-armchair",
+   "title": "Little Girl in a Blue Armchair",
+   "painter": "Mary Cassatt",
+   "year": "1878",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.61368.html",
+   "source": "https://api.nga.gov/iiif/6dc9ca49-ea8c-4314-985a-ba2cfc3965cd/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1608,
+   "line": "A girl and a small brown dog sit in matching sky-blue armchairs.",
+   "file": "dd77ed69ae0e3cd06a69.jpg",
+   "sha256": "dd77ed69ae0e3cd06a692db66b08f76376ef450880763f86b07fb8edb040035d",
+   "bytes": 597512,
+   "focus": [
+    0.75,
+    0.42
+   ]
+  },
+  {
+   "id": "the-watermill-with-the-great-red-roof",
+   "title": "The Watermill with the Great Red Roof",
+   "painter": "Meindert Hobbema",
+   "year": "about 1665",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/869",
+   "source": "https://www.artic.edu/iiif/2/237c25a2-6051-a8e7-1610-a01938d4deab/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1770,
+   "line": "Hobbema painted watermills more than 30 times, borrowing the idea from his teacher, Jacob van Ruisdael.",
+   "file": "6a900915a5022207edf6.jpg",
+   "sha256": "6a900915a5022207edf64aa3af5cb2a83418fa03d2d345d636892edafb98978f",
+   "bytes": 579320,
+   "focus": [
+    0.53,
+    0.62
+   ]
+  },
+  {
+   "id": "cattleya-orchid-and-three-hummingbirds",
+   "title": "Cattleya Orchid and Three Hummingbirds",
+   "painter": "Martin Johnson Heade",
+   "year": "1871",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.61244.html",
+   "source": "https://api.nga.gov/iiif/0dde1c3c-6c08-431d-85e2-7288c2c93f26/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1822,
+   "line": "Three hummingbirds gather around a nest beside a pink and purple orchid.",
+   "file": "5893a2a9def8240a0176.jpg",
+   "sha256": "5893a2a9def8240a0176074d6e96f112c2d320c03a6fd3d17cf100eeb0ef53a2",
+   "bytes": 762843,
+   "focus": [
+    0.54,
+    0.81
+   ]
+  },
+  {
+   "id": "autumn-maples-with-poem-slips",
+   "title": "Autumn Maples with Poem Slips",
+   "painter": "Tosa Mitsuoki",
+   "year": "about 1675",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/127644",
+   "source": "https://www.artic.edu/iiif/2/86e919b9-d366-b3ca-d26f-4c16880474a3/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1190,
+   "line": "Slips of poetry tied to a red maple flutter in the breeze after the party of courtiers has gone.",
+   "file": "ea5f9933df566a8e4d1d.jpg",
+   "sha256": "ea5f9933df566a8e4d1d76cd70b551abef859bdf08cf06f15f39ffdbbcaf7e9b",
+   "bytes": 460901,
+   "focus": [
+    0.24,
+    0.32
+   ]
+  },
+  {
+   "id": "the-square-of-saint-marks-venice",
+   "title": "The Square of Saint Mark's, Venice",
+   "painter": "Canaletto",
+   "year": "1742/1744",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.32588.html",
+   "source": "https://api.nga.gov/iiif/c25be5bf-4592-4102-a908-17082b19542d/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1777,
+   "line": "Look at lower left for A.C.F.: Antonio Canal Fecit, Latin for \"Antonio Canal made it.\"",
+   "file": "f5fad316fe6abbfe0f8a.jpg",
+   "sha256": "f5fad316fe6abbfe0f8a90c0ef11259631e804f89b1ac16332b21f4258242792",
+   "bytes": 739506,
+   "focus": [
+    0.2,
+    0.7
+   ]
+  },
+  {
+   "id": "raspberries",
+   "title": "Raspberries",
+   "painter": "Lilly Martin Spencer",
+   "year": "about 1859",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.137693.html",
+   "source": "https://api.nga.gov/iiif/a1bcc83a-d79f-4390-8884-95cd75ab6862/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1846,
+   "line": "Ripe raspberries on an oval canvas, possibly painted in 1859 for a woman in Brooklyn.",
+   "file": "96e393decc47e63b5ea2.jpg",
+   "sha256": "96e393decc47e63b5ea22b8a7edc229ece3265ae6899e82f870b36df14b950a0",
+   "bytes": 572100,
+   "focus": [
+    0.34,
+    0.56
+   ]
+  },
+  {
+   "id": "two-sisters-on-the-terrace",
+   "title": "Two Sisters (On the Terrace)",
+   "painter": "Pierre-Auguste Renoir",
+   "year": "1881",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/14655",
+   "source": "https://www.artic.edu/iiif/2/3a608f55-d76e-fa96-d0b1-0789fbc48f1e/full/3000,/0/default.jpg",
+   "w": 1934,
+   "h": 2400,
+   "line": "The girls were not really sisters: Renoir paid two unrelated models to pose for it.",
+   "file": "d6bec412b96a20d74b7c.jpg",
+   "sha256": "d6bec412b96a20d74b7c1f4565617d5917c5edc5882237e456920a188764d8c4",
+   "bytes": 880815,
+   "focus": [
+    0.19,
+    0.75
+   ]
+  },
+  {
+   "id": "keelmen-heaving-in-coals-by-moonlight",
+   "title": "Keelmen Heaving in Coals by Moonlight",
+   "painter": "Joseph Mallord William Turner",
+   "year": "1835",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.1225.html",
+   "source": "https://api.nga.gov/iiif/c1e33e8d-ffe4-4d20-a267-87ffcf94f7ce/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1782,
+   "line": "Moonlight over ships on the River Tyne; Turner put his initials, JMWT, on a buoy at lower left.",
+   "file": "8cb3da99c2162183eb53.jpg",
+   "sha256": "8cb3da99c2162183eb53ff30f661e573cf150d0cd0360166623976b8d38cd6c6",
+   "bytes": 628260,
+   "focus": [
+    0.33,
+    0.19
+   ]
+  },
+  {
+   "id": "woman-with-female-servant-in-a-palace-garden",
+   "title": "Woman with Female Servant in a Palace Garden",
+   "painter": "An unknown painter in China",
+   "year": "late 14th/15th century",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/110824",
+   "source": "https://www.artic.edu/iiif/2/d613eb1a-6b0a-3c66-31b1-87867b76e054/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 2386,
+   "line": "A woman and her servant in a palace garden, painted in ink and colors on silk over 500 years ago.",
+   "file": "228e035d3dc6c615d17e.jpg",
+   "sha256": "228e035d3dc6c615d17e5bc38ce0cac22a166c49edf38265ca5faf914d0b7513",
+   "bytes": 1012281,
+   "focus": [
+    0.65,
+    0.59
+   ]
+  },
+  {
+   "id": "the-jolly-flatboatmen",
+   "title": "The Jolly Flatboatmen",
+   "painter": "George Caleb Bingham",
+   "year": "1846",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.75206.html",
+   "source": "https://api.nga.gov/iiif/f2c2ef49-269b-4527-98d9-a2a0c09b742e/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1896,
+   "line": "When the American Art-Union bought it in 1846, it was called Dance on the Flat boat.",
+   "file": "01a5b273bb0a5ca30832.jpg",
+   "sha256": "01a5b273bb0a5ca30832343103fdd3f2502c057852bb08aabf3d554efc02747f",
+   "bytes": 537703,
+   "focus": [
+    0.53,
+    0.58
+   ]
+  },
+  {
+   "id": "fish-and-plants",
+   "title": "Fish and Plants",
+   "painter": "Ikeda Keisen",
+   "year": "1908",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/191599",
+   "source": "https://www.artic.edu/iiif/2/a2aeb590-3672-ef26-e96d-c41936952e47/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1206,
+   "line": "More than 30 kinds of fish and 80 kinds of plants, based on sketches by the artist's father.",
+   "file": "3d74ccad6253d09d079c.jpg",
+   "sha256": "3d74ccad6253d09d079c1d11e1e0a1d88d29afd7ac111260335226c77cd5f03e",
+   "bytes": 556693,
+   "focus": [
+    0.47,
+    0.2
+   ]
+  },
+  {
+   "id": "ginevra-de-benci",
+   "title": "Ginevra de' Benci",
+   "painter": "Leonardo da Vinci",
+   "year": "about 1474/1478",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.50724.html",
+   "source": "https://api.nga.gov/iiif/8f29e3c9-a289-4d53-abf0-31a66e9e98fa/full/full/0/default.jpg",
+   "w": 2327,
+   "h": 2400,
+   "line": "Ginevra de' Benci sits before a spiky bush, with a landscape stretching far into the distance.",
+   "file": "20aa0699fc1c324d0a55.jpg",
+   "sha256": "20aa0699fc1c324d0a55da45ddb836dbdd48eee1c434dced1c638dd47c34f7be",
+   "bytes": 932802,
+   "focus": [
+    0.81,
+    0.45
+   ]
+  },
+  {
+   "id": "palmer-river",
+   "title": "Palmer River",
+   "painter": "Edward Mitchell Bannister",
+   "year": "1885",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.204911.html",
+   "source": "https://api.nga.gov/iiif/4213b1a0-1c20-48e6-add3-63973d82c62f/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1672,
+   "line": "Tall trees and a grassy bank along the Palmer River, signed and dated 1885 at lower left.",
+   "file": "9e7925497f44a59829bf.jpg",
+   "sha256": "9e7925497f44a59829bfcc8fe3a338efb5b9c6e05f87db92b1d77df887d77928",
+   "bytes": 625723,
+   "focus": [
+    0.31,
+    0.74
+   ]
+  },
+  {
+   "id": "paris-street-rainy-day",
+   "title": "Paris Street; Rainy Day",
+   "painter": "Gustave Caillebotte",
+   "year": "1877",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/20684",
+   "source": "https://www.artic.edu/iiif/2/f8fd76e9-c396-5678-36ed-6a348c904d27/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1863,
+   "line": "Caillebotte's largest painting shows a busy Paris crossing a short walk from his home.",
+   "file": "22676bc2ded6c4539608.jpg",
+   "sha256": "22676bc2ded6c4539608473378e3767aef86cf8063948ea6f5e2fd61ccf15dc6",
+   "bytes": 537723,
+   "focus": [
+    0.53,
+    0.53
+   ]
+  },
+  {
+   "id": "still-life-with-a-basket-of-peaches-and-grapes",
+   "title": "Still Life with a Basket of Peaches and Grapes",
+   "painter": "Louise Moillon",
+   "year": "1636",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.229850.html",
+   "source": "https://api.nga.gov/iiif/e9a83a37-249e-4fe8-9df8-e4b4702734c7/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1562,
+   "line": "Louise Moillon signed and dated it in 1636; it may once have belonged to King Charles I of England.",
+   "file": "2bf56776fa0b674d6913.jpg",
+   "sha256": "2bf56776fa0b674d69138a35600354c0e24b08c13b54662bf4465873a50068ec",
+   "bytes": 488207,
+   "focus": [
+    0.34,
+    0.43
+   ]
+  },
+  {
+   "id": "maharao-guman-singh-riding-an-elephant-in-procession",
+   "title": "Maharao Guman Singh Riding an Elephant in Procession",
+   "painter": "An unknown painter in Kota, India",
+   "year": "1770",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/191323",
+   "source": "https://www.artic.edu/iiif/2/47b69449-fb3e-9e81-d32d-210b751b71fb/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1705,
+   "line": "Maharao Guman Singh of Kota rides an elephant in procession; the picture is dated 1770.",
+   "file": "f07f62fb3580c766a78b.jpg",
+   "sha256": "f07f62fb3580c766a78b171995964a8096dc002f6efde632293f4fbd36afedce",
+   "bytes": 730657,
+   "focus": [
+    0.23,
+    0.57
+   ]
+  },
+  {
+   "id": "breezing-up-a-fair-wind",
+   "title": "Breezing Up (A Fair Wind)",
+   "painter": "Winslow Homer",
+   "year": "1873–1876",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.30228.html",
+   "source": "https://api.nga.gov/iiif/406b5d56-d196-4bb0-b2e0-5a2f6fd52d0a/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1511,
+   "line": "A man and three boys lean back as their small sailboat tips in the wind.",
+   "file": "213f1339c126c352254b.jpg",
+   "sha256": "213f1339c126c352254b2a4ce69d48b00d0217f907a9af0d43315eaad97c6553",
+   "bytes": 566595,
+   "focus": [
+    0.25,
+    0.67
+   ]
+  },
+  {
+   "id": "the-family-concert",
+   "title": "The Family Concert",
+   "painter": "Jan Steen",
+   "year": "1666",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/561",
+   "source": "https://www.artic.edu/iiif/2/7f1ea423-7538-3bc7-3d4a-0766522ab62f/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 2064,
+   "line": "The boy in front plays a cello with a pipe instead of a bow, and breaks a string.",
+   "file": "3cc635d0218f91f1f553.jpg",
+   "sha256": "3cc635d0218f91f1f55378bd193eba27bf75cc95f1172b590039df1649bf670d",
+   "bytes": 498996,
+   "focus": [
+    0.33,
+    0.47
+   ]
+  },
+  {
+   "id": "niagara",
+   "title": "Niagara",
+   "painter": "Frederic Edwin Church",
+   "year": "1857",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.166436.html",
+   "source": "https://api.nga.gov/iiif/4d6a4fa1-db74-4586-a753-9951bc5945a3/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1114,
+   "line": "Look for a thin rainbow glinting in the mist above the horseshoe-shaped falls.",
+   "file": "68660488d6bcd842a131.jpg",
+   "sha256": "68660488d6bcd842a131fff4f8172bd43d6e7e823e80be314c489cfd82bff589",
+   "bytes": 366974,
+   "focus": [
+    0.8,
+    0.67
+   ]
+  },
+  {
+   "id": "young-girl-reading",
+   "title": "Young Girl Reading",
+   "painter": "Jean Honoré Fragonard",
+   "year": "about 1769",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.46303.html",
+   "source": "https://api.nga.gov/iiif/2476ae10-777c-43af-b48c-a6bc141aecac/full/full/0/default.jpg",
+   "w": 1909,
+   "h": 2400,
+   "line": "A young woman in a golden-yellow dress, edged with lace, reads a small book.",
+   "file": "b557b3abfa4be1b27380.jpg",
+   "sha256": "b557b3abfa4be1b27380e54d9d30f1294153a2f7b7e90deed9833d426fffaf5f",
+   "bytes": 667239,
+   "focus": [
+    0.28,
+    0.63
+   ]
+  },
+  {
+   "id": "mount-langya",
+   "title": "Mount Langya",
+   "painter": "Dong Bangda",
+   "year": "18th century",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/142521",
+   "source": "https://www.artic.edu/iiif/2/320e3939-3005-cc38-6448-6942b5ec4f08/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1122,
+   "line": "Mount Langya, painted in ink on a folding fan of gold-flecked paper.",
+   "file": "6f76e8713d627c4190de.jpg",
+   "sha256": "6f76e8713d627c4190ded88d0d5d4355443efcd292b913cf022579518a4eb9d1",
+   "bytes": 337679,
+   "focus": [
+    0.72,
+    0.59
+   ]
+  },
+  {
+   "id": "self-portrait",
+   "title": "Self-Portrait",
+   "painter": "Judith Leyster",
+   "year": "about 1630",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.37003.html",
+   "source": "https://api.nga.gov/iiif/440fe0d2-b4ca-4afc-a33e-2d4683ece38f/full/full/0/default.jpg",
+   "w": 2102,
+   "h": 2400,
+   "line": "Judith Leyster turns from her easel, brush in hand; on the canvas, a man plays the violin.",
+   "file": "f7dc60a27e26ff41e01a.jpg",
+   "sha256": "f7dc60a27e26ff41e01a6e8346e9d9508787da29396299071030896a69f5938b",
+   "bytes": 896543,
+   "focus": [
+    0.22,
+    0.48
+   ]
+  },
+  {
+   "id": "the-home-of-the-heron",
+   "title": "The Home of the Heron",
+   "painter": "George Inness",
+   "year": "1893",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/64724",
+   "source": "https://www.artic.edu/iiif/2/0f2d999d-0173-2935-a6d0-0175bb97b2a9/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1571,
+   "line": "Inness painted this hazy Florida scene near the end of his career; find the lone heron.",
+   "file": "478cf1e8883c713e8286.jpg",
+   "sha256": "478cf1e8883c713e8286e009bfaeea6cb402375d4784e87ab82ca07c3b306ad4",
+   "bytes": 439142,
+   "focus": [
+    0.46,
+    0.47
+   ]
+  },
+  {
+   "id": "the-marketplace-in-bergen-op-zoom",
+   "title": "The Marketplace in Bergen op Zoom",
+   "painter": "Attributed to Abel Grimmer",
+   "year": "probably 1590 and 1597",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.57418.html",
+   "source": "https://api.nga.gov/iiif/a74f2aea-2c0f-4215-a8b1-894a8cb3997a/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1868,
+   "line": "Dated 1590 on a house and 1597 at lower left: a busy market square in the town of Bergen op Zoom.",
+   "file": "13eeee40ea3e72006f95.jpg",
+   "sha256": "13eeee40ea3e72006f95082d7170bb253bd32c9c14abeef002bbc11c45558d98",
+   "bytes": 662794,
+   "focus": [
+    0.53,
+    0.77
+   ]
+  },
+  {
+   "id": "baskets-with-flowers-of-the-four-seasons",
+   "title": "Baskets with Flowers of the Four Seasons",
+   "painter": "An unknown painter in Japan",
+   "year": "19th century",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/140604",
+   "source": "https://www.artic.edu/iiif/2/37f720f3-f598-44b1-1765-aeca941f009a/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1212,
+   "line": "Flowers from all four seasons fill baskets on this six-panel screen, painted with ink, colors and gold.",
+   "file": "fb5a897b483348094765.jpg",
+   "sha256": "fb5a897b48334809476510ca685f484f1fec54beeffba46907de0dd8a50ce2cf",
+   "bytes": 621606,
+   "focus": [
+    0.67,
+    0.41
+   ]
+  },
+  {
+   "id": "tropical-forest-with-monkeys",
+   "title": "Tropical Forest with Monkeys",
+   "painter": "Henri Rousseau",
+   "year": "1910",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.61253.html",
+   "source": "https://api.nga.gov/iiif/95f1ff73-c4e9-45d4-ae3a-79837c4926d8/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1917,
+   "line": "Count the monkeys: five of them rest and play among giant jungle leaves.",
+   "file": "687724239e0c6e7e6cfe.jpg",
+   "sha256": "687724239e0c6e7e6cfe95574e180939e072e5ecea4b1c1df266749e49b06509",
+   "bytes": 768643,
+   "focus": [
+    0.19,
+    0.23
+   ]
+  },
+  {
+   "id": "the-railway",
+   "title": "The Railway",
+   "painter": "Edouard Manet",
+   "year": "1873",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.43624.html",
+   "source": "https://api.nga.gov/iiif/57b84473-f6f3-4bab-ad88-344bb4d56fb7/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1948,
+   "line": "A woman holds a sleeping puppy and a book while a girl faces the iron railings by the railroad.",
+   "file": "4edeaee141c848704f59.jpg",
+   "sha256": "4edeaee141c848704f59d5fe177f89d4a3dbe231246952a098c875f6c0dd9d81",
+   "bytes": 760858,
+   "focus": [
+    0.19,
+    0.21
+   ]
+  },
+  {
+   "id": "venetian-glass-workers",
+   "title": "Venetian Glass Workers",
+   "painter": "John Singer Sargent",
+   "year": "1880–82",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/110761",
+   "source": "https://www.artic.edu/iiif/2/8cdc812d-5db0-63a1-8579-eb64fc6884ca/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1541,
+   "line": "Workers in a Venice shop sort canes of glass that will be cut into beads for jewelry.",
+   "file": "06cafb6c43d1ede7120e.jpg",
+   "sha256": "06cafb6c43d1ede7120e9138b64e1cb4af779b1a10a333dfc87783b0ce57ddf0",
+   "bytes": 300931,
+   "focus": [
+    0.81,
+    0.8
+   ]
+  },
+  {
+   "id": "wivenhoe-park-essex",
+   "title": "Wivenhoe Park, Essex",
+   "painter": "John Constable",
+   "year": "1816",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.1147.html",
+   "source": "https://api.nga.gov/iiif/c49fa4a0-1e3a-4038-b7dd-ad9036146e73/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1300,
+   "line": "Constable painted this English estate, cows and all, for its owner, Major-General Francis Slater Rebow.",
+   "file": "a92515e5a7287720b5d2.jpg",
+   "sha256": "a92515e5a7287720b5d2d02a5872ef1f116dafdd4c3f903e9abacc749ac1edca",
+   "bytes": 468760,
+   "focus": [
+    0.27,
+    0.65
+   ]
+  },
+  {
+   "id": "the-infant-krishna-spirited-away-by-vasudev",
+   "title": "The Infant Krishna Spirited Away by Vasudev",
+   "painter": "An unknown painter in northern India",
+   "year": "about 1520–1530",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/131908",
+   "source": "https://www.artic.edu/iiif/2/26e28c6e-0006-e69d-0f7c-4889f3324724/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1824,
+   "line": "A page from a book of Krishna's story, painted near Delhi and Agra about 500 years ago.",
+   "file": "f981a65a1b8feb12aebd.jpg",
+   "sha256": "f981a65a1b8feb12aebd8b72ae73dd121a2c4353013647d32b6d262b406caabf",
+   "bytes": 901215,
+   "focus": [
+    0.73,
+    0.26
+   ]
+  },
+  {
+   "id": "the-maas-at-dordrecht",
+   "title": "The Maas at Dordrecht",
+   "painter": "Aelbert Cuyp",
+   "year": "about 1650",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.576.html",
+   "source": "https://api.nga.gov/iiif/317eb85d-cb70-4408-837b-bcaff6de5f85/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1619,
+   "line": "Ships with flags crowd the river; Cuyp signed his name on the side of the ship at right.",
+   "file": "1daac2ec41df99a7de6a.jpg",
+   "sha256": "1daac2ec41df99a7de6aa5bcf2d9c4170836f302c21d8b669bfed0da82d7478c",
+   "bytes": 509230,
+   "focus": [
+    0.74,
+    0.74
+   ]
+  },
+  {
+   "id": "soap-bubbles",
+   "title": "Soap Bubbles",
+   "painter": "Jean Siméon Chardin",
+   "year": "probably 1733/1734",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.994.html",
+   "source": "https://api.nga.gov/iiif/4e9f8ae3-d333-487c-8120-adeb9d4c84e9/full/full/0/default.jpg",
+   "w": 1944,
+   "h": 2400,
+   "line": "A young man leans on a stone window ledge and blows a big soap bubble through a long straw.",
+   "file": "fef002905733247c943e.jpg",
+   "sha256": "fef002905733247c943ed314fc96df0caefec89812aa2b7d4a088d3034ae023a",
+   "bytes": 546932,
+   "focus": [
+    0.45,
+    0.52
+   ]
+  },
+  {
+   "id": "the-beach-at-sainte-adresse",
+   "title": "The Beach at Sainte-Adresse",
+   "painter": "Claude Monet",
+   "year": "1867",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/14598",
+   "source": "https://www.artic.edu/iiif/2/95be2572-b53d-8e7b-abc9-10eb48d4fa5d/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1774,
+   "line": "Monet painted this beach near Le Havre in 1867; find the couple looking through a telescope.",
+   "file": "7e4a226b30a5886a78e0.jpg",
+   "sha256": "7e4a226b30a5886a78e05a87ba6d1d83d9be343dd7d7877d4667959dfb3f9838",
+   "bytes": 583437,
+   "focus": [
+    0.19,
+    0.73
+   ]
+  },
+  {
+   "id": "the-marquise-de-pezay-and-the-marquise-de-rouge-with-her-sons-alexis-and-adrien",
+   "title": "The Marquise de Pezay, and the Marquise de Rougé with Her Sons Alexis and Adrien",
+   "painter": "Élisabeth-Louise Vigée Le Brun",
+   "year": "1787",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.50215.html",
+   "source": "https://api.nga.gov/iiif/12aab9ab-9927-40a5-b2fe-9737d1a37f05/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1893,
+   "line": "The Marquise de Rougé kept this portrait, and it passed to her son Adrien, who is in it too.",
+   "file": "2f5682ab71f11107342b.jpg",
+   "sha256": "2f5682ab71f11107342b90f1889b3d868f9e7d5f37e12d15770a21a12e403696",
+   "bytes": 564512,
+   "focus": [
+    0.4,
+    0.34
+   ]
+  },
+  {
+   "id": "the-seine",
+   "title": "The Seine",
+   "painter": "Henry Ossawa Tanner",
+   "year": "about 1902",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.52624.html",
+   "source": "https://api.nga.gov/iiif/ed0b70d3-a43b-4a00-89ac-657b7e396689/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1707,
+   "line": "Tanner gave this small twilight view of the Seine in Paris to his friend, a Philadelphia photographer.",
+   "file": "208000510fbb5db28c50.jpg",
+   "sha256": "208000510fbb5db28c505ad858d042ba37347a8bd85ed1c0139897320164eff4",
+   "bytes": 695509,
+   "focus": [
+    0.73,
+    0.71
+   ]
+  },
+  {
+   "id": "geese-on-a-riverbank",
+   "title": "Geese on a Riverbank",
+   "painter": "Shen Kai",
+   "year": "1750",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/212492",
+   "source": "https://www.artic.edu/iiif/2/b66abd16-8bea-b0e1-1857-384e3285510a/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1914,
+   "line": "Bought in China by a Japanese collector, it was later remounted in the Japanese style.",
+   "file": "58f40cd32a30820feedd.jpg",
+   "sha256": "58f40cd32a30820feeddbe878f93e73675b60a70cda688ba6f3983a4ca760658",
+   "bytes": 439317,
+   "focus": [
+    0.19,
+    0.77
+   ]
+  },
+  {
+   "id": "boulevard-des-italiens-morning-sunlight",
+   "title": "Boulevard des Italiens, Morning, Sunlight",
+   "painter": "Camille Pissarro",
+   "year": "1897",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.46673.html",
+   "source": "https://api.nga.gov/iiif/1921981a-82c4-46ee-8cec-185aa18e2538/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1919,
+   "line": "We look down on a Paris boulevard full of people and horse-drawn carriages in the morning sun.",
+   "file": "ad07cb0a2b41c694c034.jpg",
+   "sha256": "ad07cb0a2b41c694c034b5fd9995b642bb00cdc931dabb1c2b3785e55f740ee4",
+   "bytes": 1362858,
+   "focus": [
+    0.55,
+    0.54
+   ]
+  },
+  {
+   "id": "study-for-the-horse-fair",
+   "title": "Study for The Horse Fair",
+   "painter": "Rosa Bonheur",
+   "year": "about 1850",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/93781",
+   "source": "https://www.artic.edu/iiif/2/f5c621e6-755e-c2e7-e087-d0dae0ed9ea0/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1178,
+   "line": "Rosa Bonheur painted this oil study while planning her painting The Horse Fair.",
+   "file": "d5c43ef99c325447fb46.jpg",
+   "sha256": "d5c43ef99c325447fb46c1d42d0c56e3ecd7cbbce07648c9ea5d54e2b3fe1d71",
+   "bytes": 362371,
+   "focus": [
+    0.38,
+    0.62
+   ]
+  },
+  {
+   "id": "woman-and-child-in-a-courtyard",
+   "title": "Woman and Child in a Courtyard",
+   "painter": "Pieter de Hooch",
+   "year": "1658/1660",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.1173.html",
+   "source": "https://api.nga.gov/iiif/383f16c8-9e6c-4565-bfa4-1017989c6310/full/full/0/default.jpg",
+   "w": 2160,
+   "h": 2400,
+   "line": "The child holds a bird cage; de Hooch signed his name on the trough at lower left.",
+   "file": "b72f6971812cfbfd9949.jpg",
+   "sha256": "b72f6971812cfbfd99490c6094b8b4ae1adda2c45f1056e1137da1ba5c31a7b8",
+   "bytes": 763001,
+   "focus": [
+    0.49,
+    0.51
+   ]
+  },
+  {
+   "id": "school-of-fish",
+   "title": "School of Fish",
+   "painter": "Soga Shōhaku",
+   "year": "mid- to late 18th century",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/45753",
+   "source": "https://www.artic.edu/iiif/2/1a553c42-b76c-eb08-52e2-7bc343838eea/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1688,
+   "line": "A school of salmon loops toward us, then shrinks into the distance to show its speed.",
+   "file": "438d0055edfb47982e7e.jpg",
+   "sha256": "438d0055edfb47982e7ea7dca7b92c13da8cd8b4b005dad6df49707a00fb0a9b",
+   "bytes": 518502,
+   "focus": [
+    0.81,
+    0.8
+   ]
+  },
+  {
+   "id": "lake-lucerne",
+   "title": "Lake Lucerne",
+   "painter": "Albert Bierstadt",
+   "year": "1858",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.71503.html",
+   "source": "https://api.nga.gov/iiif/5f1692b3-d8ed-4a65-a4f5-281387550c8d/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1433,
+   "line": "Bierstadt's ten-foot-wide view of Lake Lucerne in Switzerland, signed and dated 1858.",
+   "file": "6873feb6323b7310287c.jpg",
+   "sha256": "6873feb6323b7310287c31dce698b78ab76f3c477c5df41ea7fe3cef145e1082",
+   "bytes": 383361,
+   "focus": [
+    0.28,
+    0.81
+   ]
+  },
+  {
+   "id": "the-childs-bath",
+   "title": "The Child's Bath",
+   "painter": "Mary Cassatt",
+   "year": "1893",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/111442",
+   "source": "https://www.artic.edu/iiif/2/3b885ae0-4d46-5fe4-d70a-00474827f02c/full/3000,/0/default.jpg",
+   "w": 1582,
+   "h": 2400,
+   "line": "Seen from above and full of patterns, it shows Cassatt's interest in Japanese art.",
+   "file": "e86c4108b0b1e80284d5.jpg",
+   "sha256": "e86c4108b0b1e80284d54e4428dd2e7218a805246099a3173944294905b5ab8c",
+   "bytes": 531917,
+   "focus": [
+    0.33,
+    0.39
+   ]
+  },
+  {
+   "id": "still-life-with-flowers-surrounded-by-insects-and-a-snail",
+   "title": "Still Life with Flowers Surrounded by Insects and a Snail",
+   "painter": "Clara Peeters",
+   "year": "about 1610",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.217102.html",
+   "source": "https://api.nga.gov/iiif/27f9e698-03e7-4502-87dc-dfe5f3cf7619/full/full/0/default.jpg",
+   "w": 1968,
+   "h": 2400,
+   "line": "Painted on copper only about 6½ inches tall, with eight insects and a snail around the flowers.",
+   "file": "09775ae558dbe8c55ac3.jpg",
+   "sha256": "09775ae558dbe8c55ac331b57da88f5d2cc4cba7c880a3035ce960c34e02f94c",
+   "bytes": 959755,
+   "focus": [
+    0.43,
+    0.4
+   ]
+  },
+  {
+   "id": "the-bay-of-marseille-seen-from-lestaque",
+   "title": "The Bay of Marseille, Seen from L'Estaque",
+   "painter": "Paul Cezanne",
+   "year": "about 1885",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/16487",
+   "source": "https://www.artic.edu/iiif/2/d4ca6321-8656-3d3f-a362-2ee297b2b813/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1923,
+   "line": "Cézanne compared this view of the sea to a playing card, with its simple shapes and colors.",
+   "file": "9631eff1a246f4bee8fd.jpg",
+   "sha256": "9631eff1a246f4bee8fd30f0813381e77a0ae3edf7df14e54171b69029b05930",
+   "bytes": 574292,
+   "focus": [
+    0.23,
+    0.81
+   ]
+  },
+  {
+   "id": "family-group",
+   "title": "Family Group",
+   "painter": "Joshua Johnson",
+   "year": "about 1800",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.59883.html",
+   "source": "https://api.nga.gov/iiif/82c66b94-b12c-4951-9e11-d8d6956291b0/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1562,
+   "line": "A mother, father and three children; the mother holds a folded paper in her lap.",
+   "file": "009ef0f16ab3bf01a581.jpg",
+   "sha256": "009ef0f16ab3bf01a5812c293c9aeb3aedb0ccacf044af1460e8e4fd0a5d7874",
+   "bytes": 478212,
+   "focus": [
+    0.19,
+    0.7
+   ]
+  },
+  {
+   "id": "the-gathering-at-the-orchid-pavilion",
+   "title": "The Gathering at the Orchid Pavilion",
+   "painter": "Attributed to Tang Yin",
+   "year": "15th–16th century",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/43148",
+   "source": "https://www.artic.edu/iiif/2/19a1413d-52f9-519e-22e6-d9ed9c5b6dfb/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1128,
+   "line": "The Gathering at the Orchid Pavilion, painted in ink and color on a folding fan of gold paper.",
+   "file": "e20bd66c6c19ebae1051.jpg",
+   "sha256": "e20bd66c6c19ebae1051316e2aa6a7b40caf9a4e54b4a4de36ee444cc51a0a02",
+   "bytes": 448309,
+   "focus": [
+    0.57,
+    0.55
+   ]
+  },
+  {
+   "id": "the-harbor-at-lorient",
+   "title": "The Harbor at Lorient",
+   "painter": "Berthe Morisot",
+   "year": "1869",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.52192.html",
+   "source": "https://api.nga.gov/iiif/bf6c7c73-82e8-4ef7-8ac8-71920c8eb2b9/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1423,
+   "line": "Berthe Morisot gave this harbor view to her fellow painter Édouard Manet in 1869.",
+   "file": "959e1d5a472f65212e2b.jpg",
+   "sha256": "959e1d5a472f65212e2b48311413dd43e3caa9f2d27cedf1ee73a06ee86de198",
+   "bytes": 653553,
+   "focus": [
+    0.19,
+    0.51
+   ]
+  },
+  {
+   "id": "the-bedroom",
+   "title": "The Bedroom",
+   "painter": "Vincent van Gogh",
+   "year": "1889",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/28560",
+   "source": "https://www.artic.edu/iiif/2/6644829f-f292-c5c4-a73c-0356a6fdbf0d/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1878,
+   "line": "Van Gogh's own bedroom in Arles; this is the second of three versions he painted.",
+   "file": "4dbc58bf2bb19428fd90.jpg",
+   "sha256": "4dbc58bf2bb19428fd90ca5ba6f8963c7f50964039a89e4847b6535a42ccda2e",
+   "bytes": 835356,
+   "focus": [
+    0.26,
+    0.27
+   ]
+  },
+  {
+   "id": "the-rest-on-the-flight-into-egypt",
+   "title": "The Rest on the Flight into Egypt",
+   "painter": "Gerard David",
+   "year": "about 1510",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.50.html",
+   "source": "https://api.nga.gov/iiif/a4fca2ec-d54a-4508-9347-856d4bce46c3/full/full/0/default.jpg",
+   "w": 2350,
+   "h": 2400,
+   "line": "Mary holds out green grapes for Jesus while a donkey nibbles grass behind a tree.",
+   "file": "baba070d32ac4604b115.jpg",
+   "sha256": "baba070d32ac4604b11569b303f0cc5ce891900a68ec74b579331c141f40427d",
+   "bytes": 1029331,
+   "focus": [
+    0.31,
+    0.28
+   ]
+  },
+  {
+   "id": "the-song-of-the-lark",
+   "title": "The Song of the Lark",
+   "painter": "Jules Breton",
+   "year": "1884",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/94841",
+   "source": "https://www.artic.edu/iiif/2/48b2de88-ba73-8e19-f448-d1cef4a1c847/full/3000,/0/default.jpg",
+   "w": 1850,
+   "h": 2400,
+   "line": "A peasant girl stops working to listen to a lark singing, as the sun rises behind her.",
+   "file": "892a35f6c079c7a28abf.jpg",
+   "sha256": "892a35f6c079c7a28abfabb053bd47fde0f114db8a47cf13cf466971e9f134fc",
+   "bytes": 481063,
+   "focus": [
+    0.19,
+    0.69
+   ]
+  },
+  {
+   "id": "lumber-schooners-at-evening-on-penobscot-bay",
+   "title": "Lumber Schooners at Evening on Penobscot Bay",
+   "painter": "Fitz Henry Lane",
+   "year": "1863",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.57611.html",
+   "source": "https://api.nga.gov/iiif/bb495b04-4887-4089-973c-c8ee58f8aad4/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1535,
+   "line": "A schooner loaded with lumber at sunset on Penobscot Bay in Maine, signed and dated 1863.",
+   "file": "0e959db84fcd9272dac2.jpg",
+   "sha256": "0e959db84fcd9272dac200b46eadbe49e180b3d5cea920a158d947f30030151e",
+   "bytes": 329042,
+   "focus": [
+    0.62,
+    0.81
+   ]
+  },
+  {
+   "id": "at-the-rivers-bend-on-the-river-ii",
+   "title": "At the River's Bend (On the River II)",
+   "painter": "Lilla Cabot Perry",
+   "year": "1895",
+   "museum": "Art Institute of Chicago",
+   "record": "https://www.artic.edu/artworks/256797",
+   "source": "https://www.artic.edu/iiif/2/6744270e-1f05-e07c-18a9-ea06f180a8fb/full/3000,/0/default.jpg",
+   "w": 2400,
+   "h": 1936,
+   "line": "Perry's daughter Edith posed by the Epte River at Giverny, where Perry spent summers near Monet.",
+   "file": "fd4f909053920c8c95a5.jpg",
+   "sha256": "fd4f909053920c8c95a5860eb05b945632efe805ef7e6be323a1f263726d853e",
+   "bytes": 757660,
+   "focus": [
+    0.28,
+    0.81
+   ]
+  },
+  {
+   "id": "a-lady-writing",
+   "title": "A Lady Writing",
+   "painter": "Johannes Vermeer",
+   "year": "about 1665",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.46437.html",
+   "source": "https://api.nga.gov/iiif/ea55879e-57f1-494d-9043-6dedb384bdc8/full/full/0/default.jpg",
+   "w": 2101,
+   "h": 2400,
+   "line": "Vermeer's signature, IVMEER, is on the frame of the picture hanging behind her.",
+   "file": "79eba1ce7810d8ab490c.jpg",
+   "sha256": "79eba1ce7810d8ab490c4c56354b94de02b0062a3c7f31efa903dc36bf9ecf57",
+   "bytes": 545214,
+   "focus": [
+    0.5,
+    0.54
+   ]
+  },
+  {
+   "id": "the-cornell-farm",
+   "title": "The Cornell Farm",
+   "painter": "Edward Hicks",
+   "year": "1848",
+   "museum": "National Gallery of Art",
+   "record": "https://www.nga.gov/collection/art-object-page.50261.html",
+   "source": "https://api.nga.gov/iiif/230d8d65-5bec-485e-8db6-95ce06ad2812/full/full/0/default.jpg",
+   "w": 2400,
+   "h": 1798,
+   "line": "Its painted caption says this Pennsylvania farm's animals won a prize on October 12, 1848.",
+   "file": "f9507c1a3c317df0941a.jpg",
+   "sha256": "f9507c1a3c317df0941aaf7a8ca71cf7b336552d3dbac5338d4fd38a73ecd2ad",
+   "bytes": 682730,
+   "focus": [
+    0.2,
+    0.81
+   ]
+  }
+ ]
+}

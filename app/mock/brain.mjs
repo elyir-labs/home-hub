@@ -10,6 +10,7 @@ import crypto from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { createHouse } from './house.mjs'
+import { artRoute } from './art.mjs'
 
 const DIST = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 const PORT = Number(process.env.PORT || 8399)
@@ -37,6 +38,7 @@ const server = http.createServer((req, res) => {
   const chunks = []
   req.on('data', c => chunks.push(c))
   req.on('end', async () => {
+    if (artRoute(req, res)) return
     const answer = await house.handle({ method: req.method, url: req.url, headers: req.headers, body: Buffer.concat(chunks).toString() })
     if (!answer.pass) { res.writeHead(answer.status, answer.headers); return res.end(answer.body) }
     for (const [k, v] of Object.entries(answer.headers)) res.setHeader(k, v)

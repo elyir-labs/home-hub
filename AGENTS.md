@@ -420,6 +420,34 @@ Do not reopen these, and do not propose around them.
   sleeping box's card says Asleep, what was last on and Watch, in the TV card's own place; Watch opens its pane, the same
   choice as the TV's row (`panes/BoxWatch.vue`, `app/src/boxes.ts`), and the TV's screen follows an app opened there. Pinned by `brain/tests/test_boxes.py`,
   `app/tests/tv.test.ts`, `app/tests/boxes.test.ts`, `app/e2e/tv-box.spec.ts`, `app/e2e/box-card.spec.ts` and the `remote` and `changing` groups in `driver-layer/host/tests.sh`.
+- **A TV at rest shows the household's photos, and the household picks which screens show them** (20 November,
+  `design/rest-tv/`, A with C, B and E; `design/tv-photos/`, A with C; `design/which-tv/`, A with B's row, C's screens
+  and Wall A). Resting, a TV shows the photos sent from phones on Photos (This house, under Every day), the sky with a
+  code that opens Photos while there are none, the music while a speaker elsewhere plays (music in its own room is
+  the record above), and Bedtime from 10:30 PM while anything is still on. Nothing holds still, and after 20 minutes
+  it goes to standby over HDMI. Photos stay on the hub's drive and go with Moving out. A screen says whether it is a
+  TV, This screen's What it is beats the guess, and each screen has a switch on Photos: a TV starts on, a wall screen
+  off, and a wall switched on rests on the TV's photo face at its own size. `TvRest.vue`, `restTv.ts`, `PhotosPage.vue`,
+  `photos.ts`, `brain/hub/photos.py`, `brain/hub/screens.py`, `screen-helper.py`'s `/sleep`; pinned by
+  `app/tests/restTv.test.ts`, `app/tests/photos.test.ts`, `app/e2e/rest-tv.spec.ts`, `app/e2e/photos.spec.ts`,
+  `app/e2e/which-tv.spec.ts`, `brain/tests/test_photos.py` and `brain/tests/test_screens.py`.
+- **Between the photos, the house's own moments, each a switch per screen** (20 November, `design/tv-moments/`: photos A and
+  B chosen per screen, cards A with the family board per screen, the morning card A, each screen's own list). Photos move
+  each their own way, one after another or a day at a time after its title, with one from this day in an earlier year
+  first. A note, a countdown, the house today, a fact or a trivia question (OK for the answer), a joke or a quote takes a
+  turn after every fifth photo; a screen can rest on the family board instead. The first rest after first light is the
+  morning card; Bedtime carries the evening's line and ends on it. The words are plain files in `brain/hub/words/`,
+  read by a person before they ship, never fetched and never written by a model. Your screens on the phone holds it all.
+  `restTv.ts`, `TvRest.vue`, `PhotosPage.vue`, `brain/hub/board.py`, `brain/hub/words.py`; pinned by `app/tests/restTv.test.ts`,
+  `app/e2e/board.spec.ts`, `mornings.spec.ts`, `cards.spec.ts` and `brain/tests/test_board.py`.
+- **A painting is a close look, then the whole, then what it is; and a screen can show nothing but paintings** (20 November,
+  `design/tv-art/`, C and a channel too). Art is a switch beside the other cards, off to start, and What it shows gains Art,
+  one painting at a time all day. Never cropped. The set is chosen by hand from museums' public-domain collections, each
+  with one true line, listed in `brain/hub/paintings.json`; the pictures are on Elyir's own host (`site/terraform/art.tf`,
+  filled by `tools/art/prepare.py --publish`), never in this repository and never fetched from a museum by a hub. A hub
+  downloads them once when a screen turns art on, refuses bytes that are not the hash named, and frees them when no screen
+  wants art. `brain/hub/art.py`, `TvPainting.vue`; pinned by `app/tests/restTv.test.ts`, `app/e2e/art.spec.ts` and
+  `brain/tests/test_art.py`.
 - **A hub on a cable into the modem answers nobody on the internet, and its Ready offers two ways in** (19 November,
   `design/modem-cable/`, C). A link with a public address takes no new connections (`driver-layer/host/public.sh`), and
   counts as online but never as the house's network, so the hub still makes its own Wi-Fi. Ready puts that Wi-Fi's code

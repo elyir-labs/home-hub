@@ -1,0 +1,20 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Every direction: art on a screen's page</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap"><link rel="stylesheet" href="phone.css">
+<style>.screenrow { padding: 10px 14px; } .phone { height: 844px; } h1 { font-size: 30px; }
+  body[data-as="card"] .as-channel { display: none !important; }
+  .seg span { cursor: default; }</style></head>
+<body data-as="card"><div class="phone"><div class="status-bar"><span>7:40 PM</span><span class="r"><i style="height: 5px"></i><i style="height: 7px"></i><i style="height: 9px"></i><i style="height: 11px"></i></span></div>
+  <div class="col" style="top:62px;"><div class="back"><svg class="i" width="18" height="18" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Your screens</div><h1>Living room TV</h1>
+    <div class="screenrow as-channel" style="display:block; margin-top:14px;"><div class="t"><b>What it shows</b><span>Art shows one painting at a time, all day, with the clock small beside it</span></div>
+      <div class="seg" style="margin-top:10px;"><span>Photos</span><span>The family board</span><span class="on">Art</span></div></div>
+    <div class="group">Between the photos</div>
+    <div class="screenrow"><div class="t"><b>Notes and countdowns</b><span>Left from your phones</span></div><span class="switch on"></span></div><div class="screenrow"><div class="t"><b>The house today</b><span>Sunset, frost, the moon</span></div><span class="switch on"></span></div><div class="screenrow"><div class="t"><b>A fact or a trivia question</b><span>One every few photos</span></div><span class="switch on"></span></div>
+    <div class="as-card"><div class="screenrow"><div class="t"><b>Art</b><span>A painting every few photos &middot; 60 from museums&rsquo; free collections</span></div><span class="switch on"></span></div></div>
+    <div class="screenrow"><div class="t"><b>Jokes</b><span>Picked to suit kids</span></div><span class="switch"></span></div>
+    <p class="foot" style="margin-top:14px;">The first time any screen turns art on, the hub downloads the paintings once, about 25 MB. Turning art off everywhere frees the room again.</p>
+  </div><div class="home-ind"></div>
+  <div class="flips"><div class="flipset"><span>Art as</span><span class="flip on" data-g="as" data-to="card">A card</span><span class="flip" data-g="as" data-to="channel">A channel too</span></div></div>
+</div>
+<script>document.querySelectorAll(".flip").forEach(f => f.addEventListener("click", () => { document.body.dataset[f.dataset.g] = f.dataset.to; document.querySelectorAll(".flip[data-g=\"" + f.dataset.g + "\"]").forEach(g => g.classList.toggle("on", g === f)) }))</script>
+</body></html>

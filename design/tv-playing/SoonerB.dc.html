@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>B: today's two screens, twenty seconds apart while music plays</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css"><link rel="stylesheet" href="music.css"><link rel="stylesheet" href="rec.css">
+<style>
+  .awake, .rest { position: absolute; inset: 0; }
+  .screen:not(.resting) .rest, .screen.resting .awake { display: none; }
+  .now { width: 820px; height: 230px; padding: 24px; display: flex; gap: 28px; align-items: stretch; flex: none; }
+  .now .art { width: 182px; height: 182px; }
+  .now .body { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+  .now .nm { font-size: 34px; } .now .st { font-size: 24px; }
+  .now .where { font-size: 22px; color: var(--muted); }
+  .pill { width: 260px; height: 230px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; flex: none; }
+  .soon { position: absolute; right: var(--safe-x); top: var(--safe-y); z-index: 3; display: flex; gap: 14px; align-items: center; font-size: 22px; color: var(--ink-2); }
+  .soon .ring2 { width: 34px; height: 34px; border-radius: 50%; background: conic-gradient(var(--lamp) var(--p, 0%), rgba(255,255,255,.12) 0); -webkit-mask: radial-gradient(circle, transparent 11px, #000 12px); }
+  .band { position: absolute; left: var(--safe-x); right: var(--safe-x); bottom: 110px; height: 130px; z-index: 4; display: none; align-items: center; gap: 24px;
+          padding: 0 24px; border-radius: var(--r-lg); background: rgba(14,16,20,.92); border: 1px solid var(--edge-hi); }
+  .band .b { height: 84px; padding: 0 30px; display: inline-flex; align-items: center; gap: 12px; font-size: 26px; }
+  .band .vol { flex: 1; display: flex; align-items: center; gap: 16px; font-size: 24px; color: var(--ink-2); justify-content: flex-end; }
+  .band .vol .pbar { width: 300px; } .band .vol .pbar i { width: 20%; }
+  .screen.resting.up .band { display: flex; } .screen.up .hintrest { display: none; }
+  .screen.resting:not(.up) #hint { display: none; } #hint { z-index: 5; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="awake">
+    <div class="top"><div class="clock">9:10 PM<small>Friday, November 20</small></div></div>
+    <div class="soon"><span class="ring2"></span><span id="left"></span></div>
+    <div class="title"><h1>Living room</h1><p>2 lights on · Late Light on the Speaker</p></div>
+    <div class="row" style="top:320px"><h2 style="color:var(--lamp)">Playing here</h2>
+      <div class="cards">
+        <div class="card now" data-f data-f-start data-hint="OK|Pause;▲ ▼|Louder or quieter;~Hold OK|Something else">
+          <div class="art"></div>
+          <div class="body"><div><div class="nm">Late Light</div><div class="st">The Quiet Hours</div></div>
+            <div class="where">Speaker · 20%</div><div class="pbar"><i></i></div></div>
+        </div>
+        <div class="card pill" data-f data-hint="OK|Skip this one"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 5l10 7-10 7zM18 5v14"/></svg></div><div><div class="nm">Next</div><div class="st">Skip this one</div></div></div>
+        <div class="card pill" data-f data-hint="OK|Play it in other rooms too"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div><div class="nm">Other rooms</div><div class="st">Only here now</div></div></div>
+      </div></div>
+    <div class="row" style="top:660px"><h2>In the living room</h2>
+      <div class="cards">
+        <div class="card thing light on" style="--c-rgb:233,184,114;--v:35%" data-f data-hint="OK|Turn off;▲ ▼|Brighter or dimmer"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg></div><div><div class="nm">Ceiling light</div><div class="st">On, 35%</div></div><div class="bar"><i></i></div></div>
+        <div class="card thing light on" style="--c-rgb:233,184,114;--v:24%" data-f data-hint="OK|Turn off;▲ ▼|Brighter or dimmer"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg></div><div><div class="nm">Floor lamp</div><div class="st">On, 24%</div></div><div class="bar"><i></i></div></div>
+        <div class="card thing" data-f data-hint="OK|Turn on"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg></div><div><div class="nm">Reading lamp</div><div class="st">Off</div></div></div>
+        <div class="card thing" data-f data-hint="OK|Close"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16"/></svg></div><div><div class="nm">Blinds</div><div class="st">70% open</div></div></div>
+        <div class="card thing" data-f data-hint="OK|Open it"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 7l14 10M19 7L5 17"/></svg></div><div><div class="nm">Thermostat</div><div class="st">71° · cooling</div></div></div>
+      </div></div>
+  </div>
+  <div class="rest">
+    <div class="cover-bg"></div>
+    <div class="corner"><div class="c">9:10<small>PM</small></div><div class="d">Friday, November 20 · 78°</div></div>
+    <div class="rec"><div class="art"></div>
+      <div><div class="t">Late Light</div><div class="a">The Quiet Hours</div><div class="w">On the Speaker</div><div class="pbar"><i></i></div></div></div>
+    <div class="keys hintrest"><span><kbd>OK</kbd>Pause, next, louder</span><span><kbd>Home</kbd>The house</span></div>
+    <div class="band">
+      <span class="card b" data-f data-band data-hint="OK|Pause;▲ ▼|Louder or quieter;Back|Put it away">Pause</span>
+      <span class="card b" data-f data-hint="OK|Skip this one;Back|Put it away">Next</span>
+      <span class="card b" data-f data-hint="OK|The whole living room;Back|Put it away">The living room</span>
+      <span class="vol">Volume<span class="pbar"><i></i></span>20%</span>
+    </div>
+  </div>
+  <div class="keys" id="hint"></div>
+</div>
+<script>
+  // awake: any key starts the twenty seconds again; the last five say so, and then the record comes back. On the record OK raises today's
+  // band, and Home (H here) wakes to the rows.
+  const scr = document.querySelector('.screen'), left = document.getElementById('left'), ring = document.querySelector('.ring2')
+  const WAIT = 20
+  let last = Date.now()
+  setInterval(() => {
+    if (scr.classList.contains('resting')) return
+    const s = Math.max(0, WAIT - Math.floor((Date.now() - last) / 1000))
+    left.textContent = `Back to Late Light in ${s}`; ring.style.setProperty('--p', `${(1 - s / 5) * 100}%`)
+    document.querySelector('.soon').style.visibility = s <= 5 ? 'visible' : 'hidden'   // said only in the last five seconds
+    if (!s) scr.classList.add('resting')
+  }, 250)
+  window.tvKeys = (key, cur, light) => {
+    last = Date.now()
+    const resting = scr.classList.contains('resting'), up = scr.classList.contains('up')
+    if (!resting) return false
+    if (key === 'h' || key === 'Home') { scr.classList.remove('resting', 'up'); light(document.querySelector('[data-f-start]')); return true }
+    if (!up && key === 'Enter') { scr.classList.add('up'); light(document.querySelector('[data-band]')); return true }
+    if (up && (key === 'Escape' || key === 'Backspace')) { scr.classList.remove('up'); return true }
+    return !up
+  }
+</script>
+<script src="tv.js"></script>
+</body>
+</html>

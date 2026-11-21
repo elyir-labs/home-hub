@@ -67,6 +67,7 @@
   --sans:
     'Instrument Sans Variable', 'Instrument Sans', -apple-system, 'SF Pro Text',
     'Segoe UI', system-ui, sans-serif;
+  --serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .shell[data-ambient='dawn'] {
@@ -3211,30 +3212,1142 @@ input:focus-visible {
   opacity: 0.25;
   transition: opacity 0.3s ease;
 }
-.idle-remote {
-  position: absolute;
-  right: 5%;
-  bottom: 5%;
-  display: inline-flex;
-  gap: 10px;
+/* ---------- Photos on the TV, on This house (design/tv-photos/PageA, PhotosPage.vue) ---------- */
+.photos-input {
+  display: none;
+}
+.photos-add {
+  width: 100%;
+  justify-content: center;
+  gap: 8px;
+}
+.photos-count {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 20px 2px 8px;
+}
+.photos-count b {
+  font-weight: 500;
+}
+.photos-count span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.photos-screens {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.photos-screens li {
+  display: flex;
   align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--edge);
+}
+.photos-screens li + li {
+  margin-top: 6px;
+}
+.photos-screens li:has(.photos-screen-open) {
+  padding: 0;
+}
+.photos-screen-open {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.photos-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.photos-screen-title {
+  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+.photos-screens li.photos-play-row {
+  flex-wrap: wrap;
+}
+.photos-play {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.photos-play .button {
+  flex: 1;
+  justify-content: center;
+}
+.photos-gone {
+  opacity: 0.6;
+}
+.photos-write {
+  margin-top: 10px;
+}
+.photos-morning-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+.photos-tabs {
+  margin-bottom: 18px;
+}
+.photos-label {
+  display: block;
+  margin: 16px 2px 8px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.photos-field {
+  display: block;
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--edge-hi);
+  background: var(--surface-hi);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  resize: vertical;
+}
+.photos-go {
+  margin-top: 22px;
+}
+.photos-left {
+  text-align: left;
+}
+.photos-screen-text {
+  flex: 1;
+  min-width: 0;
+}
+.photos-screen-text b {
+  display: block;
+  font-weight: 500;
+}
+.photos-screen-text span {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+.photos-switch {
+  position: relative;
+  flex: none;
+  width: 46px;
+  height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--surface-hi);
+  border: 1px solid var(--edge-hi);
+}
+.photos-switch::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink-2);
+  transition: left 0.18s ease;
+}
+.photos-switch.on {
+  background: var(--lamp);
+  border-color: transparent;
+}
+.photos-switch.on::after {
+  left: 21px;
+  background: var(--lamp-ink);
+}
+.photos-switch.busy {
+  opacity: 0.6;
+}
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 4px;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.photos-cell {
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+.photos-cell img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photos-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(5, 6, 8, 0.55);
+}
+.photos-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 81;
+  width: min(480px, 100%);
+  translate: -50% 0;
+  padding: 18px 18px calc(30px + env(safe-area-inset-bottom));
+  border-radius: 26px 26px 0 0;
+  background: var(--bg-2);
+  border-top: 1px solid var(--edge-hi);
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.5);
+}
+.photos-sheet-head {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+.photos-sheet-head img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+}
+.photos-sheet-head b {
+  display: block;
+  font-size: 17px;
+  font-weight: 500;
+}
+.photos-sheet-head span {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.photos-off {
+  width: 100%;
+  margin-top: 20px;
+  justify-content: center;
+}
+.photos-foot {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+/* C: a TV with no photos asks for some, with a code that opens Photos on the TV on a phone */
+.tvrest-ask {
+  position: absolute;
+  right: 96px;
+  top: 50%;
+  translate: 0 -50%;
+  width: 620px;
+  padding: 40px 44px;
+  border-radius: 28px;
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 32px;
+  align-items: center;
+  text-shadow: none;
+  background: rgba(18, 19, 24, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+}
+.tvrest-ask h2 {
+  margin: 0;
+  font-size: 44px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.tvrest-ask p {
+  margin: 16px 0 0;
+  font-size: 24px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+.tvrest-ask img {
+  width: 220px;
+  height: 220px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #fff;
+}
+
+/* ---------- a TV at rest (design/rest-tv/, TvRest.vue): drawn at 1920x1080 as the boards are, and scaled ---------- */
+.tvrest-fit {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.tvrest {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  flex: none;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  color: var(--ink);
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.55);
+}
+.tvrest-moves {
+  position: absolute;
+  inset: 0;
+  transition: translate 2s ease;
+}
+.tvrest-time {
+  font-weight: 300;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.tvrest-period {
+  font-size: 0.3em;
+  font-weight: 400;
+  letter-spacing: 0;
+  margin-left: 0.1em;
+}
+.tvrest-day {
+  font-size: 26px;
+  color: var(--ink);
+}
+.tvrest-ok,
+.tvrest-back {
+  position: absolute;
+  right: 96px;
+  bottom: 54px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 24px;
+  color: var(--ink-2);
+}
+.tvrest-back {
+  right: auto;
+  left: 96px;
+}
+.tvrest-ok kbd,
+.tvrest-back kbd {
+  font: 600 17px/1 var(--sans);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  display: inline-grid;
+  place-items: center;
+  min-width: 46px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* The photos (design/tv-moments/, A and B): each moves its own way for as long as it is up, an upright one stands
+   alone over a blurred, enlarged copy of itself, and a day of photos opens on its title and three of them together. */
+.tvrest-slide {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+}
+.tvrest-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tvrest-move {
+  animation-duration: var(--beat, 18s);
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
+}
+.tvrest-move.m0 {
+  animation-name: tvrest-in;
+  transform-origin: 62% 56%;
+}
+.tvrest-move.m1 {
+  animation-name: tvrest-across;
+}
+.tvrest-move.m2 {
+  animation-name: tvrest-out;
+}
+.tvrest-move.m3 {
+  animation-name: tvrest-up;
+}
+@keyframes tvrest-in {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.16); }
+}
+@keyframes tvrest-across {
+  from { transform: scale(1.14) translateX(3.5%); }
+  to { transform: scale(1.14) translateX(-3.5%); }
+}
+@keyframes tvrest-out {
+  from { transform: scale(1.18); }
+  to { transform: scale(1.03); }
+}
+@keyframes tvrest-up {
+  from { transform: scale(1.12) translateY(2.5%); }
+  to { transform: scale(1.12) translateY(-2.5%); }
+}
+.tvrest-fill {
+  position: absolute;
+  inset: -80px;
+  width: calc(100% + 160px);
+  height: calc(100% + 160px);
+  object-fit: cover;
+  filter: blur(50px) saturate(1.1);
+  opacity: 0.8;
+}
+.tvrest-fill-dim {
+  filter: blur(50px) brightness(0.5);
+  opacity: 1;
+}
+.tvrest-tall {
+  position: absolute;
+  left: 50%;
+  top: 54px;
+  width: 540px;
+  height: 720px;
+  translate: -50% 0;
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+.tvrest-tall img,
+.tvrest-collage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tvrest-daytitle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 160px 120px;
+  text-align: center;
+}
+.tvrest-daytitle-day {
+  font-family: var(--serif);
+  font-size: 128px;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+}
+.tvrest-daytitle-sub {
+  margin-top: 26px;
+  font-size: 30px;
+}
+.tvrest-collage {
+  position: absolute;
+  inset: 54px 96px 250px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 14px;
+}
+.tvrest-collage > div {
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.tvrest-collage > div:first-child {
+  grid-row: span 2;
+}
+.tvrest-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent 20%, transparent 52%, rgba(0, 0, 0, 0.72));
+}
+.tvrest-fade-enter-active,
+.tvrest-fade-leave-active {
+  transition: opacity 2s ease, filter 2s ease;
+}
+.tvrest-fade-enter-from,
+.tvrest-fade-leave-to {
+  opacity: 0;
+  filter: blur(8px);
+}
+/* A note or a countdown taking its turn (design/tv-moments/CardsA), and the family board (BoardC) */
+.tvrest-card {
+  position: absolute;
+  inset: 0 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.tvrest-paper {
+  max-width: 1100px;
+  padding: 70px 90px;
+  border-radius: 6px;
+  font-family: var(--serif);
+  font-size: 96px;
+  line-height: 1.1;
+  color: #2b2520;
+  background: #f6efe1;
+  rotate: -1.5deg;
+  text-shadow: none;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.5);
+}
+.tvrest-card-from {
+  margin-top: 44px;
+  font-size: 26px;
+}
+.tvrest-card-cap {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.tvrest-count {
+  margin-top: 20px;
+  font-size: 300px;
+  font-weight: 300;
+  line-height: 1;
+}
+.tvrest-count.word {
+  font-family: var(--serif);
+  font-size: 180px;
+  font-weight: 400;
+}
+.tvrest-card-under {
+  font-size: 44px;
+}
+/* A painting (design/tv-art/StoryC): close on one part, then the whole, then its label. The look's 61.5% is 8 of
+   ART_LOOK's 13 seconds held close, in restTv.ts. */
+.tvrest-gallery {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 70% at 30% 45%, #1d1a17, #0e0d0c);
+}
+.tvrest-painting {
+  position: absolute;
+  overflow: hidden;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.6);
+  transition: translate 2s ease;
+}
+.tvrest-painting-look {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation-name: tvrest-look;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
+}
+@keyframes tvrest-look {
+  0%,
+  61.5% {
+    transform: scale(2.6);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.tvrest-plaque {
+  position: absolute;
+  top: 0;
+  right: 96px;
+  bottom: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  animation: tvrest-plaque 1.6s ease both;
+  transition: translate 2s ease;
+}
+@keyframes tvrest-plaque {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.tvrest-plaque .tvrest-card-cap {
+  color: var(--ink-2);
+}
+.tvrest-plaque-title {
+  margin-top: 14px;
+  font-family: var(--serif);
+  font-size: 68px;
+  line-height: 1.05;
+}
+.tvrest-plaque-by {
+  margin-top: 12px;
+  font-size: 28px;
+}
+.tvrest-plaque-line {
+  margin-top: 22px;
+  max-width: 560px;
+  font-size: 26px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+.tvrest-plaque-from {
+  margin-top: 22px;
+  font-size: 20px;
+  color: var(--ink-2);
+}
+.tvrest-cardclock,
+.tvrest-boardclock {
+  position: absolute;
+  left: 96px;
+  bottom: 54px;
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+}
+.tvrest-cardclock .tvrest-time {
+  font-size: 64px;
+}
+.tvrest-boardbg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #1b2030, #11131b);
+}
+.tvrest-boardclock {
+  top: 54px;
+  bottom: auto;
+  gap: 22px;
+}
+.tvrest-boardclock .tvrest-time {
+  font-size: 96px;
+}
+.tvrest-boardnotes {
+  position: absolute;
+  left: 96px;
+  top: 230px;
+  width: 1060px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+.tvrest-paper.small {
+  max-width: none;
+  padding: 40px;
+  font-size: 54px;
+  rotate: -1.2deg;
+}
+.tvrest-paper.small.tone1 {
+  color: #1f2a2c;
+  background: #e3eef0;
+  rotate: 1deg;
+}
+.tvrest-paper.small small {
+  display: block;
+  margin-top: 20px;
+  font-family: var(--sans);
+  font-size: 20px;
+  opacity: 0.75;
+}
+.tvrest-coming {
+  grid-column: span 2;
+  padding: 34px 40px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.tvrest-coming-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 60px;
+  margin-top: 16px;
+  font-size: 34px;
+}
+.tvrest-coming-row b {
+  font-size: 64px;
+  font-weight: 300;
+}
+.tvrest-boardempty {
+  position: absolute;
+  left: 96px;
+  top: 260px;
+  width: 1000px;
+  font-family: var(--serif);
+  font-size: 64px;
+  line-height: 1.15;
+}
+.tvrest-boardphoto {
+  position: absolute;
+  right: 96px;
+  top: 230px;
+  width: 560px;
+  height: 640px;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+}
+.tvrest-boardphoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tvrest-boardsaid {
+  position: absolute;
+  right: 96px;
+  top: 884px;
+  font-size: 22px;
+}
+/* The morning card (design/tv-moments/MorningA) and the last word after Bedtime (NightC) */
+.tvrest-dawn {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(12, 14, 22, 0.32), rgba(12, 14, 22, 0.32)),
+    linear-gradient(transparent 50%, rgba(10, 12, 20, 0.62) 82%),
+    radial-gradient(50% 40% at 75% 95%, rgba(255, 214, 170, 0.4), transparent 70%),
+    linear-gradient(180deg, #3b4f7d 0%, #7f8fb8 45%, #e3b9a7 80%, #f3cfa3 100%);
+}
+.tvrest-black {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+.tvrest-morning {
+  position: absolute;
+  left: 160px;
+  top: 150px;
+  width: 1200px;
+}
+.tvrest-morning-line {
+  margin-top: 30px;
+  font-family: var(--serif);
+  font-size: 120px;
+  line-height: 1.05;
+}
+.tvrest-morning .tvrest-card-from {
+  margin-top: 24px;
+  font-size: 30px;
+}
+.tvrest-morning-foot {
+  position: absolute;
+  left: 160px;
+  bottom: 150px;
+  display: flex;
+  gap: 80px;
+  font-size: 30px;
+}
+.tvrest-card-cap.small {
+  margin-bottom: 10px;
+  font-size: 22px;
+}
+.tvrest-morning-next {
+  margin-top: 6px;
+  font-size: 24px;
+}
+.tvrest-goodnight {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 200px;
+  text-align: center;
+  animation: tvrest-settle 1.6s ease both;
+}
+.tvrest-goodnight-line {
+  font-family: var(--serif);
+  font-size: 110px;
+  line-height: 1.1;
+}
+.tvrest-goodnight-foot {
+  margin-top: 50px;
+  font-size: 26px;
+  color: var(--ink-2);
+}
+@keyframes tvrest-settle {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.tvrest-evening {
+  margin-top: 70px;
+  font-family: var(--serif);
+  font-size: 60px;
+  line-height: 1.15;
+}
+/* The day's fun cards (design/tv-moments/CardsA): the house today, a fact, a question, a joke, a quote */
+.tvrest-stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0.6;
+  background-image:
+    radial-gradient(1.6px 1.6px at 12% 18%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.4px 1.4px at 38% 9%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.6px 1.6px at 63% 22%, rgba(255, 255, 255, 0.65), transparent),
+    radial-gradient(1.3px 1.3px at 84% 14%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1.3px 1.3px at 27% 34%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1.5px 1.5px at 91% 41%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1.2px 1.2px at 5% 52%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1.2px 1.2px at 72% 6%, rgba(255, 255, 255, 0.6), transparent);
+}
+.tvrest-card-big {
+  margin-top: 30px;
+  font-family: var(--serif);
+  font-size: 104px;
+  line-height: 1.08;
+}
+.tvrest-card-big.tvrest-quote {
+  font-size: 120px;
+  font-style: italic;
+}
+.tvrest-card-sub {
+  margin-top: 36px;
+  font-size: 34px;
+  line-height: 1.35;
+}
+.tvrest-answer {
+  font-family: var(--serif);
+  font-size: 72px;
+  color: var(--lamp);
+  animation: tvrest-settle 0.8s ease both;
+}
+.tvrest-ago {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 30px;
+  color: var(--lamp);
+}
+.tvrest-said {
+  position: absolute;
+  left: 96px;
+  top: 54px;
+  font-size: 22px;
+  color: var(--ink);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.75);
+}
+.tvrest-clock-corner {
+  position: absolute;
+  left: 96px;
+  bottom: 60px;
+}
+.tvrest-clock-corner .tvrest-time {
+  font-size: 132px;
+}
+.tvrest-clock-corner .tvrest-day {
+  margin-top: 12px;
+}
+.tvrest-strip {
+  position: absolute;
+  right: 96px;
+  bottom: 120px;
+  display: flex;
+  align-items: center;
+}
+.tvrest-moves.flip .tvrest-clock-corner {
+  left: auto;
+  right: 96px;
+  bottom: 120px;
+  text-align: right;
+}
+.tvrest-moves.flip .tvrest-strip:not(.tvrest-strip-small) {
+  right: auto;
+  left: 96px;
+  bottom: 60px;
+}
+.tvrest-moves.flip .tvrest-said {
+  left: auto;
+  right: 96px;
+}
+.tvrest-fact {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 0 30px;
+  white-space: nowrap;
+}
+.tvrest-fact:first-child {
+  padding-left: 0;
+}
+.tvrest-fact + .tvrest-fact {
+  border-left: 1px solid rgba(255, 255, 255, 0.22);
+}
+.tvrest-fact-value {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 34px;
+  letter-spacing: -0.02em;
+}
+.tvrest-fact.live .tvrest-fact-value {
+  color: var(--lamp);
+}
+.tvrest-fact-where {
   font-size: 22px;
   color: var(--ink);
 }
-.idle-remote kbd {
-  font-family: inherit;
-  font-size: 17px;
-  font-weight: 600;
-  line-height: 1;
-  min-width: 40px;
-  height: 36px;
-  padding: 0 10px;
-  display: inline-grid;
+
+/* C: the sky as a window. The sky is the panel's own (Sky.vue) behind; this is only its caption. */
+.tvrest-caption {
+  position: absolute;
+  left: 96px;
+  bottom: 54px;
+}
+.tvrest-caption .tvrest-time {
+  font-size: 88px;
+}
+.tvrest-caption .tvrest-day {
+  margin-top: 12px;
+}
+.tvrest-alert {
+  position: absolute;
+  left: 96px;
+  top: 54px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 30px;
+  color: var(--lamp);
+}
+
+/* B: what is playing takes the screen while it plays. */
+.tvrest-wash {
+  position: absolute;
+  inset: -120px;
+  background:
+    radial-gradient(40% 50% at 25% 45%, rgba(var(--lamp-rgb), 0.18), transparent 70%),
+    #0d1420 center / cover no-repeat;
+  filter: blur(90px) saturate(1.15);
+  opacity: 0.8;
+}
+.tvrest-dim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(8, 10, 14, 0.15), rgba(8, 10, 14, 0.55) 65%);
+}
+.tvrest-art {
+  position: absolute;
+  left: 196px;
+  top: 230px;
+  width: 620px;
+  height: 620px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
   place-items: center;
-  border-radius: 18px;
+  color: var(--ink-2);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+}
+.tvrest-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tvrest-song {
+  position: absolute;
+  left: 900px;
+  top: 300px;
+  width: 860px;
+}
+.tvrest-where {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 24px;
+  color: var(--ink-2);
+}
+.tvrest-title {
+  margin-top: 22px;
+  font-size: 104px;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tvrest-artist {
+  margin-top: 16px;
+  font-size: 40px;
+  color: var(--ink-2);
+}
+.tvrest-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 54px;
+  font-size: 22px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.tvrest-bar i {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.18);
+}
+.tvrest-bar b {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--ink);
+}
+.tvrest-rooms {
+  display: flex;
+  gap: 14px;
+  margin-top: 44px;
+}
+.tvrest-rooms span {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 54px;
+  padding: 0 22px;
+  border-radius: 999px;
+  font-size: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.tvrest-clock-top {
+  position: absolute;
+  right: 96px;
+  top: 54px;
+  display: flex;
+  align-items: baseline;
+  gap: 26px;
+}
+.tvrest-clock-top .tvrest-time {
+  font-size: 64px;
+}
+.tvrest-strip-small {
+  right: auto;
+  left: 196px;
+  bottom: 54px;
+}
+.tvrest-strip-small .tvrest-fact-value {
+  font-size: 28px;
+}
+
+/* E: winding down. What is still on, and one button for the night. */
+.tvrest-night {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 50% at 30% 100%, #1a1830, transparent 70%), #08090e;
+}
+.tvrest-clock-left {
+  right: auto;
+  left: 96px;
+}
+.tvrest-clock-left .tvrest-time {
+  font-size: 80px;
+  color: var(--ink-2);
+}
+.tvrest-clock-left .tvrest-day {
+  color: var(--muted);
+}
+.tvrest-left {
+  position: absolute;
+  left: 96px;
+  top: 270px;
+  width: 820px;
+}
+.tvrest-left h2 {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+.tvrest-left ul {
+  list-style: none;
+  margin: 34px 0 0;
+  padding: 0;
+}
+.tvrest-left li {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 0;
+  font-size: 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.tvrest-left li small {
+  margin-left: auto;
+  font-size: 24px;
+  color: var(--ink-2);
+}
+.tvrest-left li i {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--lamp);
+  box-shadow: 0 0 14px rgba(var(--lamp-rgb), 0.7);
+}
+.tvrest-left li i.door {
+  background: var(--danger);
+  box-shadow: 0 0 14px rgba(var(--danger-rgb), 0.6);
+}
+.tvrest-left li.tvrest-more {
+  color: var(--ink-2);
+  border-bottom: 0;
+}
+.tvrest-left li i.music {
+  background: var(--ink-2);
+  box-shadow: none;
+}
+.tvrest-bed {
+  position: absolute;
+  left: 1060px;
+  top: 330px;
+  width: 760px;
+}
+.tvrest-go {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 30px 40px;
+  border-radius: 28px;
+  color: var(--lamp);
+  background: rgba(var(--surface-rgb), 0.8);
+  box-shadow: 0 0 0 3px rgba(var(--lamp-rgb), 0.95), 0 0 0 9px rgba(var(--lamp-rgb), 0.18), 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+.tvrest-go b {
+  display: block;
+  font-size: 48px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--edge-hi);
+}
+.tvrest-go small {
+  display: block;
+  margin-top: 6px;
+  font-size: 24px;
+  color: var(--ink-2);
+}
+.tvrest-sleeps {
+  margin-top: 28px;
+  font-size: 24px;
+  color: var(--ink-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tvrest-move { animation: none; }
+  .tvrest-moves { transition: none; }
 }
 
 /* Where the TV's remote is: light, not a line -- a lamp-colored rim and a small lift (design/living-room/) */
@@ -15674,7 +16787,8 @@ html[data-wall] [data-moving] *::after {
 
 /* Somebody at the door on a TV: the door's own keys are the ones said along the foot (design/tv-doorbell/, A) */
 .shell[data-ringing] .tv-hint,
-.shell[data-ringing] .idle-remote {
+.shell[data-ringing] .tvrest-ok,
+.shell[data-ringing] .tvrest-back {
   visibility: hidden;
 }
 
@@ -15718,4 +16832,21 @@ html[data-wall] [data-moving] *::after {
 .with-tile-sub {
   font-size: 13.5px;
   color: var(--ink-2);
+}
+
+/* the strip behind the TV, and its switch to follow the picture (design/tv-glow/) */
+.glow-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+.glow-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.glow-where {
+  margin-top: 8px;
 }

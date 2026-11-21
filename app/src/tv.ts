@@ -13,18 +13,23 @@ import { shallowRef } from 'vue'
 import type { Device, Room } from './api'
 import { cap, doneLine, done, isActive, isDead, PASSIVE, perform, SCENES, type Scene } from './store'
 import { dimmable, lightPct, step, tempUnit } from './levels'
-import { isScreen } from './screen'
+import { isScreen, screenKind, type ScreenKind } from './screen'
 import { typable } from './keys'
 import { canStart, groupOf } from './music'
 import { isBox } from './boxes'
 
 /* Worked out, not told: a screen for the hub, in Chromium on Linux, that nobody can touch -- a mini PC on a
-   TV. A wall screen has a touchscreen and keeps the wall. ?tv=1 forces it for previews, ?tv=0 turns it off. */
-export function onTV(search = location.search, ua = navigator.userAgent, screen = isScreen(search), touch = navigator.maxTouchPoints): boolean {
+   TV. A wall screen has a touchscreen and keeps the wall. ?tv=1 forces it for previews, ?tv=0 turns it off.
+   What somebody answered on This screen beats the guess (design/which-tv/, B's row). */
+export function tvGuess(ua = navigator.userAgent, screen = isScreen(), touch = navigator.maxTouchPoints): boolean {
+  return screen && /\bLinux\b/.test(ua) && !/Android|CrOS/.test(ua) && touch === 0
+}
+export function onTV(search = location.search, ua = navigator.userAgent, screen = isScreen(search), touch = navigator.maxTouchPoints, said: ScreenKind | null = screenKind()): boolean {
   const asked = new URLSearchParams(search).get('tv')
   if (asked === '1') return true
   if (asked === '0') return false
-  return screen && /\bLinux\b/.test(ua) && !/Android|CrOS/.test(ua) && touch === 0
+  if (screen && said) return said === 'tv'
+  return tvGuess(ua, screen, touch)
 }
 
 export type Press = 'up' | 'down' | 'left' | 'right' | 'ok' | 'back' | 'home' | Color
@@ -60,6 +65,12 @@ export function musicIn(room: Room | null, playingOnly = false): Device | null {
   const on = room?.devices.filter(d => canStart(d) && (d.state === 'playing' || (!playingOnly && d.state === 'paused'))) ?? []
   return on.find(d => d.state === 'playing') ?? on[0] ?? null
 }
+/* While the TV's room plays, the record is the TV's home (design/tv-playing/, A): twenty seconds with no key and it
+   comes back, not the three minutes a quiet house waits, since a TV nobody is pressing keys at is a TV nobody is
+   reading. Not while a pane is open, which is somebody reading. The sheet raised over the record sinks after the same. */
+export const RECORD_AFTER = 20 * 1000
+export const restAfter = (usual: number, record: boolean, reading: boolean) => record && !reading ? RECORD_AFTER : usual
+
 export function speakersOf(d: Device, room: Room): Device[] {
   const mates = new Set((d.attrs.together as string[] | undefined) ?? [])
   // its pair, and a speaker playing the same song in step (an Apple TV playing to both HomePods): music.ts groupOf

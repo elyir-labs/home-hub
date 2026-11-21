@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /* The pages of This house, and the store.sheet values that open the panel on
    one of them. 'house' is the panel's own front page. See HousePanel.vue. */
-export type PageId = 'house' | 'location' | 'look' | 'screen' | 'routines' | 'signals' | 'people' | 'accounts' | 'things' | 'printers' | 'add' | 'share' | 'hub' | 'code' | 'notes' | 'happened' | 'changes' | 'developer'
-export const PAGES: PageId[] = ['house', 'location', 'look', 'screen', 'routines', 'signals', 'people', 'accounts', 'things', 'printers', 'add', 'share', 'hub', 'code', 'notes', 'happened', 'changes', 'developer']
+export type PageId = 'house' | 'location' | 'look' | 'screen' | 'routines' | 'signals' | 'photos' | 'people' | 'accounts' | 'things' | 'printers' | 'add' | 'share' | 'hub' | 'code' | 'notes' | 'happened' | 'changes' | 'developer'
+export const PAGES: PageId[] = ['house', 'location', 'look', 'screen', 'routines', 'signals', 'photos', 'people', 'accounts', 'things', 'printers', 'add', 'share', 'hub', 'code', 'notes', 'happened', 'changes', 'developer']
 /* 'changes' has no door of its own: it is reached from inside What happened, and the door for that
    one stays lit while it is open. LIT says which door a page belongs to where it is not itself one. */
 export const LIT: Partial<Record<PageId, PageId>> = { changes: 'happened' }
@@ -16,7 +16,7 @@ export const isPage = (v: unknown): v is PageId => (PAGES as unknown[]).includes
    that is not a wall has no This screen, so its last group is only the hub's. */
 type DoorId = PageId | 'power'
 const GROUPS: { name: string; doors: DoorId[] }[] = [
-  { name: 'Every day', doors: ['routines', 'happened', 'signals'] },
+  { name: 'Every day', doors: ['routines', 'happened', 'signals', 'photos'] },
   { name: 'People', doors: ['people', 'share', 'accounts'] },
   { name: 'The house', doors: ['location', 'things', 'printers', 'power'] },
   { name: 'The hub and this screen', doors: ['screen', 'look', 'hub', 'code', 'developer'] },

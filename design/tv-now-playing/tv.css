@@ -1,0 +1,64 @@
+/* The house on a TV across the room, at the TV's own 1920x1080. The values are the shipped panel's
+   (panel.css .tile, .bento-card, the dock), as every-screen/every.css copied them; only the sizes are
+   the sofa's: about three meters away, so nothing a person must read is under 22px, and everything
+   sits inside the 5% a TV may crop from its edges. tv.js moves the highlight with the arrow keys. */
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #07090d; }
+body {
+  font-family: "Instrument Sans", -apple-system, "SF Pro Text", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased; color: #f1eee8;
+  --surface: rgba(26,28,34,.7); --edge: rgba(255,255,255,.1); --edge-hi: rgba(255,255,255,.2);
+  --ink: #f1eee8; --ink-2: #b9b5ad; --muted: #85827b;
+  --lamp-rgb: 233, 184, 114; --lamp: rgb(var(--lamp-rgb)); --lamp-ink: #2a1c07;
+  --live-rgb: 116, 198, 157; --live: rgb(var(--live-rgb));
+  --r-lg: 28px; --r-md: 20px; --r-sm: 14px;
+  --safe-x: 96px; --safe-y: 54px;
+}
+.screen:focus, .shot:focus { outline: none; }
+.screen { position: relative; width: 1920px; height: 1080px; overflow: hidden; outline: none;
+  background: radial-gradient(120% 60% at 70% 0%, #141a27, transparent 70%), linear-gradient(#0b0e15, #090b10 70%, #0d1016); }
+.screen::before { content: ""; position: absolute; inset: 0; opacity: .5; pointer-events: none;
+  background-image: radial-gradient(1.5px 1.5px at 12% 18%, #fff8, transparent), radial-gradient(1.5px 1.5px at 38% 9%, #fff6, transparent),
+    radial-gradient(1.5px 1.5px at 63% 22%, #fff7, transparent), radial-gradient(1.5px 1.5px at 84% 14%, #fff5, transparent),
+    radial-gradient(1.5px 1.5px at 27% 34%, #fff4, transparent), radial-gradient(1.5px 1.5px at 91% 41%, #fff4, transparent); }
+
+/* ---- a screenshot of the shipped panel, shown at the TV's size ---- */
+.shot { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+.shot > img { display: block; width: 1920px; height: 1080px; }
+.ruler { position: absolute; left: 24px; right: 24px; bottom: 0; transform: translateY(100%); padding: 10px 0;
+         font-size: 18px; color: var(--ink-2); }
+.why-tag { position: absolute; z-index: 5; padding: 10px 16px; border-radius: 12px; font-size: 20px; line-height: 1.3;
+           background: rgba(10,12,16,.86); border: 1px solid rgba(var(--lamp-rgb), .55); color: var(--ink); max-width: 360px;
+           box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+.why-tag b { color: var(--lamp); font-weight: 600; }
+
+/* ---- the highlight: where the remote is. Light, not a line: a lamp-colored rim and a lift ---- */
+[data-f] { transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease; }
+[data-f].f { transform: scale(1.045); z-index: 3;
+  box-shadow: 0 0 0 3px rgba(var(--lamp-rgb), .95), 0 0 0 9px rgba(var(--lamp-rgb), .18), 0 24px 60px rgba(0,0,0,.55); }
+.ring { position: absolute; border-radius: 24px; pointer-events: auto; cursor: pointer; }
+.ring.f { transform: none;
+  box-shadow: 0 0 0 4px rgba(var(--lamp-rgb), .95), 0 0 0 12px rgba(var(--lamp-rgb), .2), 0 0 60px rgba(var(--lamp-rgb), .25); }
+
+/* ---- what the keys do, for whatever is lit ---- */
+.keys { display: flex; gap: 28px; align-items: center; font-size: 22px; color: var(--ink-2); white-space: nowrap; }
+.keys span { display: inline-flex; gap: 10px; align-items: center; }
+.keys kbd { font: 600 17px/1 "Instrument Sans", system-ui, sans-serif; letter-spacing: .04em; color: var(--ink);
+  min-width: 40px; height: 36px; padding: 0 10px; display: inline-grid; place-items: center; border-radius: 18px;
+  background: rgba(255,255,255,.1); border: 1px solid var(--edge-hi); }
+.keys kbd.dot { min-width: 22px; width: 22px; height: 22px; padding: 0; border: 0; }
+
+/* ---- shared card ---- */
+.card { position: relative; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--edge);
+        overflow: hidden; backdrop-filter: blur(24px); }
+.card .nm { font-size: 28px; font-weight: 500; letter-spacing: -.005em; }
+.card .st { font-size: 22px; color: var(--ink-2); margin-top: 4px; }
+.card.on .st { color: var(--c, var(--lamp)); }
+.card .bar { position: absolute; left: 24px; right: 24px; bottom: 22px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.12); }
+.card .bar i { display: block; height: 100%; border-radius: 3px; background: var(--c, var(--lamp)); width: var(--v, 0%); transition: width .15s; }
+.card .ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: rgba(255,255,255,.08); }
+.card .ic svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.card.on .ic { background: var(--c, var(--lamp)); color: #1a1208; }
+.card.light.on { background: linear-gradient(160deg, rgba(var(--c-rgb), .55), rgba(var(--c-rgb), .14) 60%, rgba(20,22,28,.8)); border-color: rgba(var(--c-rgb), .5); }
+.card .glow { position: absolute; inset: auto -30% -50% auto; width: 90%; height: 90%; border-radius: 50%; pointer-events: none;
+              background: radial-gradient(closest-side, rgba(var(--c-rgb, 233,184,114), calc(var(--g, 0) * .55)), transparent); }

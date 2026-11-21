@@ -31,17 +31,21 @@ rm -rf /usr/share/man/* /usr/share/info/* /usr/share/doc/*/[!c]* 2>/dev/null || 
 apt-get purge -y snapd || true
 rm -rf /var/lib/snapd /snap /var/snap /var/cache/snapd
 
+# The hardware-enablement kernel, not the release's own: Hub Plus is an N100/N150, and 24.04's first kernel (6.8)
+# has no driver for the N150's graphics, which leaves it with no video encoder, no HDMI sound and the firmware's
+# picture only. The HWE kernel follows each newer Ubuntu release's, so newer mini PCs keep working.
+KERNEL=linux-image-generic-hwe-24.04
 apt-get update
-apt-get install -y --no-install-recommends linux-image-generic linux-firmware wireless-regdb network-manager wpasupplicant \
+apt-get install -y --no-install-recommends "$KERNEL" linux-firmware wireless-regdb network-manager wpasupplicant \
   iw dnsmasq-base avahi-daemon git curl ca-certificates python3 cloud-guest-utils efibootmgr dosfstools uuid-runtime
 # One kernel: the newest generic one just installed. The cloud image's own and every header package go, because
 # nothing on a hub builds a kernel module. And the extras that only make sense in somebody's cloud. Only what is
 # installed is named, because apt refuses a whole purge over one name it does not know.
-NEW="$(dpkg-query -W -f='${Depends}' linux-image-generic | grep -o 'linux-image-[0-9][^ ,]*' | head -1 | sed 's/^linux-image-//')"
+NEW="$(dpkg-query -W -f='${Depends}' "$KERNEL" | grep -o 'linux-image-[0-9][^ ,]*' | head -1 | sed 's/^linux-image-//')"
 [ -n "$NEW" ] || { echo "no generic kernel installed"; exit 1; }
 GONE="$(dpkg-query -W -f='${Package} ${db:Status-Status}\n' 'linux-image-*' 'linux-modules-*' 'linux-headers-*' 'linux-virtual' \
           lxd-installer open-vm-tools multipath-tools landscape-common byobu sosreport 2>/dev/null \
-        | awk '$2=="installed"{print $1}' | grep -v -x -e "linux-image-$NEW" -e "linux-modules-$NEW" -e "linux-modules-extra-$NEW" -e linux-image-generic || true)"
+        | awk '$2=="installed"{print $1}' | grep -v -x -e "linux-image-$NEW" -e "linux-modules-$NEW" -e "linux-modules-extra-$NEW" -e "$KERNEL" || true)"
 # shellcheck disable=SC2086
 [ -z "$GONE" ] || apt-get purge -y $GONE
 apt-get autoremove -y --purge || true

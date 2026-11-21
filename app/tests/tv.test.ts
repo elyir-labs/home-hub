@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import type { Device, Room } from '../src/api'
 import { activity } from '../src/store'
-import { appsOf, appTint, boxAsleep, boxIn, boxKeyOf, digitOf, hintFor, installRemote, keyName, keySender, lastOn, leadsOf, musicIn, nearest, okOf, onTV, passTo, pressOf, sceneFor, speakersOf, stateOf, thingsIn, wayBack } from '../src/tv'
+import { appsOf, appTint, boxAsleep, boxIn, boxKeyOf, digitOf, hintFor, installRemote, keyName, keySender, lastOn, leadsOf, musicIn, nearest, okOf, onTV, passTo, pressOf, RECORD_AFTER, restAfter, sceneFor, speakersOf, stateOf, thingsIn, wayBack } from '../src/tv'
 import { stepOf } from '../src/levels'
 import { SCENES, store } from '../src/store'
 
@@ -26,6 +26,12 @@ describe('which screen is a TV', () => {
   it('can be forced either way for a preview', () => {
     expect(onTV('?tv=1', 'Mac', false, 5)).toBe(true)
     expect(onTV('?tv=0', linux, true, 0)).toBe(false)
+  })
+  it('is what somebody answered on This screen, over the guess, and only on a screen (design/which-tv/, B\'s row)', () => {
+    expect(onTV('', linux, true, 10, 'tv')).toBe(true)      // a touchscreen somebody says is a TV
+    expect(onTV('', linux, true, 0, 'wall')).toBe(false)    // a TV-looking box somebody says is on the wall
+    expect(onTV('', linux, false, 0, 'tv')).toBe(false)     // a laptop keeps no such answer
+    expect(onTV('?tv=0', linux, true, 0, 'tv')).toBe(false) // a preview still wins
   })
 })
 
@@ -255,5 +261,17 @@ describe('counting which keys of a remote get pressed', () => {
     field.remove()
     off()
     expect(pressed.mock.calls).toEqual([['ArrowLeft', 'house']])
+  })
+})
+
+describe('the record is the TV\'s home while its room plays (design/tv-playing/, A)', () => {
+  const usual = 3 * 60 * 1000
+  it('comes back after twenty seconds with no key, not the three minutes a quiet house waits', () => {
+    expect(RECORD_AFTER).toBe(20 * 1000)
+    expect(restAfter(usual, true, false)).toBe(RECORD_AFTER)
+    expect(restAfter(usual, false, false)).toBe(usual)
+  })
+  it('waits the usual while a pane is open, since somebody is reading it', () => {
+    expect(restAfter(usual, true, true)).toBe(usual)
   })
 })

@@ -20,6 +20,7 @@
    Nothing here talks to a real device. */
 import { printerNotes, printersAsked, printersRoute } from './printers.mjs'
 import { powerRoute } from './power.mjs'
+import { photosRoute } from './photos.mjs'
 import { developerRoute, developerStatus } from './developer.mjs'
 
 export function createHouse({ env = {}, qr = null } = {}) {
@@ -44,7 +45,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
         // a TV with apps of its own, which the brain counts as a streaming box (hub/boxes.py, design/tv-box/)
         box: true, apps: ['Netflix', 'Disney+', 'YouTube', 'Prime Video', 'Max', 'Apple TV', 'Hulu', 'Peacock', 'Paramount+', 'Spotify', 'Twitch', 'Plex'],
         used_apps: ['Disney+', 'Netflix'], last_on: { title: 'The Bear', app: 'Disney+', at: Math.floor(Date.now() / 1000) - 600 } }),
-      dev('s1', 'Sonos', 'living', 'media', env.MUSIC === 'quiet' ? 'idle' : 'paused', { ...(env.MUSIC === 'quiet' ? {} : { media_title: 'Blue in Green', media_artist: 'Miles Davis' }), volume_level: 0.2, music: true }),
+      dev('s1', 'Sonos', 'living', 'media', env.MUSIC === 'quiet' ? 'idle' : env.MUSIC === 'playing' ? 'playing' : 'paused', { ...(env.MUSIC === 'quiet' ? {} : { media_title: 'Blue in Green', media_artist: 'Miles Davis' }), ...(env.MUSIC === 'playing' ? { entity_picture: '/s1.jpg', media_position: 135, media_duration: 337, media_position_updated_at: new Date().toISOString() } : {}), volume_level: 0.2, music: true }),
       dev('c1', 'Blinds', 'living', 'cover', 'open', { current_position: 70 }, 'IKEA'),
       dev('t1', 'Thermostat', 'living', 'climate', 'cool', { current_temperature: 74, temperature: 71, hvac_action: 'cooling', hvac_modes: ['heat', 'cool', 'heat_cool', 'off'], fan_modes: ['on', 'auto'], fan_mode: 'auto', current_humidity: 48 }),
       dev('mo1', 'Motion', 'living', 'motion', 'on', {}),
@@ -152,7 +153,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
     ask: `Remove ${t.name} from the house? ${tail}`, yes: `Yes, remove ${t.name}`, no: 'Keep it' })
   const status = { driver: env.ENGINE === 'down' ? 'down' : 'ready', reason: env.ENGINE === 'down' ? "The hub's engine is not answering yet." : '',
     version: 'v0.3.0',   // the build this mock is: the panel reloads itself when a status answers with another (store.ts, newBuild)
-    setup_done: env.FRESH !== '1', owner: 'Jordan', home: "Jordan's house", location: true, rooms: 8, devices: 30, locked: env.LOCKED === '1',
+    screens: 2, setup_done: env.FRESH !== '1', owner: 'Jordan', home: "Jordan's house", location: true, rooms: 8, devices: 30, locked: env.LOCKED === '1',
     drivers: [
       { id: 'mqtt', name: 'Device messages', state: 'ready', text: 'Working', port: 1883 },
       { id: 'zigbee', name: 'Zigbee radio', state: 'ready', text: 'Plugged in', port: 8080 },
@@ -399,7 +400,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
 
   // A picture for cameras and album art: a soft gradient, so tiles look occupied.
   const pic = (a, b) => `<svg xmlns='http://www.w3.org/2000/svg' width='640' height='360'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='${a}'/><stop offset='1' stop-color='${b}'/></linearGradient></defs><rect width='640' height='360' fill='url(#g)'/><ellipse cx='420' cy='300' rx='300' ry='90' fill='rgba(0,0,0,.25)'/></svg>`
-  const PICS = { f2: pic('#3b4a5c', '#1b2230'), g1: pic('#2f2a26', '#14110f'), y1: pic('#2c4a2f', '#111a12'), m1: pic('#7a3b2a', '#2a1410') }
+  const PICS = { f2: pic('#3b4a5c', '#1b2230'), g1: pic('#2f2a26', '#14110f'), y1: pic('#2c4a2f', '#111a12'), m1: pic('#7a3b2a', '#2a1410'), s1: pic('#5b97c4', '#1b3550') }
 
   const started = Date.now()      // the mock's frames are as old as the mock, bar the one that is deliberately stale
 
@@ -603,6 +604,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
     }
     if (printersRoute(req, res, p, env)) return    // 3D printers, only for a page that asked for them: mock/printers.mjs
     if (powerRoute(req, res, p, env)) return       // a Tesla gateway, the same way: mock/power.mjs
+    if (photosRoute(req, res, p, env)) return      // the photos a resting TV shows: mock/photos.mjs
     if (developerRoute(req, res, p)) return        // For working on the hub, ?dev= on the page: mock/developer.mjs
     if (p === '/setup/status') return json(res, developerStatus(req, status))
     if (p === '/update/notes') return json(res, { notes: releaseNotes[0], history: releaseNotes })
@@ -802,7 +804,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
     })
     /* Music in every room (hub/music.py, design/music/): a fixed shelf, the way /sounds is. Each room's last plays, a few
        stations, and none of the household's own -- the mock house has no drive of music. MUSIC=quiet puts the Sonos at
-       rest, so the living room's card shows Play something. */
+       rest, so the living room's card shows Play something; MUSIC=playing has it playing, for a resting TV's music (design/rest-tv/, B). */
     if (p === '/music' || p === '/music/find') {
       const shelf = MUSIC_SHELF, q = (url.searchParams.get('q') || '').toLowerCase()
       if (p === '/music/find') return json(res, { items: q.length < 2 ? [] : [...shelf.radio, ...shelf.again].filter(i => i.name.toLowerCase().includes(q)) })
@@ -1024,7 +1026,8 @@ export function createHouse({ env = {}, qr = null } = {}) {
       if (ph) ph.remote = on
       json(res, ph ?? {})
     }) }
-    if (p === '/phones') return json(res, phones)
+    // the screen asking is seen as it asks, as on a hub, rather than when the mock started
+    if (p === '/phones') return json(res, { ...phones, phones: phones.phones.map(x => x.me ? { ...x, last_seen: Math.floor(Date.now() / 1000) } : x) })
     /* What this house has: one door holding everything, grouped by what brought it. Derived from the
        mock house rather than written out, so the page cannot drift from the rooms beside it -- and so
        that SWITCHES=11 fills the bridge group the way a real bridge does. brain/hub/things.py is the

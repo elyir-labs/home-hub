@@ -248,7 +248,9 @@ describe('asking a strip again, afterwards', () => {
     const calls = new Set([...stripPart().matchAll(/@(?:click|pointerdown|pointerup|pointerleave|pointercancel)="([a-zA-Z]+)/g)].map(m => m[1]))
     /* ...and, since 1 October, the second strip's one act: a light of its own (which asks only a room)
        or part of the first (which asks nothing). design/controller-panel/ChangeLaterC.dc.html. */
-    expect([...calls].sort()).toEqual(['askAgain', 'closeDoor', 'closeTune', 'join', 'openFirst', 'openRow', 'split', 'splitting', 'startWalk', 'stopWalk'])
+    /* ...and, since 20 November, a strip behind the TV's switch to follow the picture and the way to mark where the TV
+       is (design/tv-glow/, A with B): a row of its own, not a third question about the strip itself. */
+    expect([...calls].sort()).toEqual(['askAgain', 'closeDoor', 'closeTune', 'flipFollow', 'join', 'marking', 'openFirst', 'openRow', 'split', 'splitting', 'startWalk', 'stopWalk'])
   })
 })
 

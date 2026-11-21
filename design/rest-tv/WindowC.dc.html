@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>C: the sky as a window</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="rest-tv.css">
+<style>
+  .sky { position: absolute; inset: 0; transition: background .6s; }
+  [data-at="night"] .sky { background: radial-gradient(30% 26% at 74% 26%, rgba(170,180,230,.16), transparent 70%), linear-gradient(180deg, #0b1024 0%, #18204a 52%, #2c2f5c 78%, #3a3463 100%); }
+  [data-at="dusk"] .sky { background: radial-gradient(40% 30% at 30% 82%, rgba(255,196,140,.55), transparent 70%), linear-gradient(180deg, #1c2446 0%, #3e3a68 34%, #9b6478 62%, #e3946c 82%, #f2b67c 92%); }
+  [data-at="dawn"] .sky { background: radial-gradient(36% 28% at 70% 84%, rgba(255,226,190,.7), transparent 70%), linear-gradient(180deg, #4a6a9e 0%, #8aa3c8 40%, #e2b7b4 72%, #f6d2a8 90%); }
+  [data-at="day"] .sky { background: linear-gradient(180deg, #4f86c6 0%, #7eaedc 50%, #b9d4ea 85%, #d6e5ef 100%); }
+  .stars { transition: opacity .6s; }
+  [data-at="dawn"] .stars, [data-at="day"] .stars { opacity: 0; }
+  [data-at="dusk"] .stars { opacity: .35; }
+  .moon, .sun { position: absolute; transition: opacity .6s; opacity: 0; }
+  [data-at="night"] .moon { opacity: 1; }
+  [data-at="dusk"] .sun { opacity: 1; left: 520px; top: 820px; }
+  [data-at="dawn"] .sun { opacity: 1; left: 1300px; top: 830px; }
+  [data-at="day"] .sun { opacity: 1; left: 1380px; top: 150px; }
+  .cloud { position: absolute; border-radius: 50%; filter: blur(30px); transition: background .6s; }
+  [data-at="night"] .cloud { background: rgba(120,130,190,.22); }
+  [data-at="dusk"] .cloud { background: rgba(70,52,90,.55); }
+  [data-at="dawn"] .cloud { background: rgba(255,226,220,.55); }
+  [data-at="day"] .cloud { background: rgba(255,255,255,.75); }
+  .land path { transition: fill .6s; }
+  [data-at="night"] .far { fill: #232347; } [data-at="night"] .near { fill: #15152c; }
+  [data-at="dusk"] .far { fill: #4a3a55; } [data-at="dusk"] .near { fill: #2a2132; }
+  [data-at="dawn"] .far { fill: #8b7f9e; } [data-at="dawn"] .near { fill: #5b5371; }
+  [data-at="day"] .far { fill: #7d9a74; } [data-at="day"] .near { fill: #57744f; }
+  .windows rect { fill: #f3c27a; transition: opacity .6s; }
+  [data-at="day"] .windows rect, [data-at="dawn"] .windows rect { opacity: 0; }
+  .homes path, .homes rect.h { transition: fill .6s; }
+  [data-at="night"] .homes .h { fill: #0e0e20; } [data-at="dusk"] .homes .h { fill: #1f1826; }
+  [data-at="dawn"] .homes .h { fill: #4a4360; } [data-at="day"] .homes .h { fill: #46603f; }
+  .line { display: none; }
+  [data-say="garage"] .line { display: flex; }
+  [data-at="day"] .caption, [data-at="dawn"] .caption { text-shadow: 0 1px 14px rgba(0,0,0,.35); }
+  .try.second { top: 58px; }
+</style>
+</head>
+<body>
+<div class="screen" id="s" data-at="night" data-say="none">
+  <div class="try"><span>The sky at</span><span class="flip" data-k="at" data-v="dawn">Dawn</span><span class="flip" data-k="at" data-v="day">Midday</span><span class="flip" data-k="at" data-v="dusk">Dusk</span><span class="flip on" data-k="at" data-v="night">Night</span></div>
+  <div class="try second"><span>The house says</span><span class="flip on" data-k="say" data-v="none">Nothing</span><span class="flip" data-k="say" data-v="garage">The garage is open</span></div>
+
+  <div class="sky"></div>
+  <div class="stars"></div>
+  <div class="stars" style="transform: translate(31%, 7%) scale(1.3); opacity:.7;"></div>
+  <div class="stars" style="transform: translate(-22%, 18%) scale(.9); opacity:.6;"></div>
+
+  <!-- the moon at its real phase that night -->
+  <svg class="moon" style="left:1350px; top:190px;" width="150" height="150" viewBox="0 0 150 150">
+    <defs><radialGradient id="mg"><stop offset=".55" stop-color="rgba(230,232,255,.35)"/><stop offset="1" stop-color="rgba(230,232,255,0)"/></radialGradient>
+    <mask id="ph"><rect width="150" height="150" fill="#fff"/><circle cx="58" cy="66" r="42" fill="#000"/></mask></defs>
+    <circle cx="75" cy="75" r="75" fill="url(#mg)"/>
+    <circle cx="75" cy="75" r="42" fill="#eceef8" mask="url(#ph)"/>
+    <circle cx="75" cy="75" r="42" fill="#c9cde4" opacity=".08"/>
+  </svg>
+  <div class="sun" style="width:150px; height:150px; border-radius:50%; background: radial-gradient(circle, #fff6dc 0 38%, rgba(255,228,170,.55) 48%, rgba(255,228,170,0) 70%);"></div>
+
+  <div class="cloud" style="left:180px; top:200px; width:640px; height:110px;"></div>
+  <div class="cloud" style="left:1000px; top:340px; width:540px; height:90px; opacity:.8;"></div>
+  <div class="cloud" style="left:600px; top:110px; width:380px; height:70px; opacity:.6;"></div>
+
+  <svg class="land" style="position:absolute; left:0; bottom:0;" width="1920" height="380" viewBox="0 0 1920 380" preserveAspectRatio="none">
+    <path class="far" d="M0 170 C 260 120 470 190 790 150 S 1330 100 1920 160 V380 H0z"/>
+    <path class="near" d="M0 250 C 340 210 600 270 960 236 S 1500 214 1920 244 V380 H0z"/>
+  </svg>
+  <!-- the houses on the hill keep their own lights: lit at dusk and after dark, as the street's are -->
+  <svg class="homes" style="position:absolute; left:0; bottom:0;" width="1920" height="380" viewBox="0 0 1920 380">
+    <g><path class="h" d="M1180 228 l30-26 30 26 v26 h-60z"/><path class="h" d="M1250 232 l22-20 22 20 v22 h-44z"/><path class="h" d="M1310 222 l34-28 34 28 v32 h-68z"/>
+       <path class="h" d="M640 248 l26-22 26 22 v22 h-52z"/><path class="h" d="M702 244 l30-24 30 24 v26 h-60z"/>
+       <path class="h" d="M1600 240 l24-20 24 20 v20 h-48z"/></g>
+    <g class="windows"><rect x="1196" y="234" width="10" height="10"/><rect x="1324" y="228" width="10" height="11"/><rect x="1350" y="228" width="10" height="11"/>
+       <rect x="656" y="252" width="9" height="9"/><rect x="724" y="250" width="10" height="10"/><rect x="1616" y="244" width="9" height="9"/></g>
+    <g class="h" style="fill:#0b0b18; opacity:.55"><path d="M560 262l12-40 12 40z"/><path d="M590 262l8-26 8 26z"/><path d="M1480 252l11-36 11 36z"/><path d="M1505 252l8-24 8 24z"/></g>
+  </svg>
+
+  <div class="caption shade" style="position:absolute; left:var(--safe-x); bottom:var(--safe-y);">
+    <div class="display" style="font-size:88px;">7:40<span class="period">PM</span></div>
+    <div style="font-size:26px; color:var(--ink-2); margin-top:12px;">78&deg; and partly cloudy &middot; a crescent moon</div>
+  </div>
+  <div class="line shade" style="position:absolute; left:var(--safe-x); top:var(--safe-y); align-items:center; gap:14px; font-size:30px; color:var(--lamp);">
+    <svg class="i" width="32" height="32" viewBox="0 0 24 24"><path d="M3 10.5L12 4l9 6.5V20H3z"/><path d="M7 20v-7h10v7"/><path d="M7 16h10"/></svg>The garage door is open
+  </div>
+  <div class="ok shade"><kbd>OK</kbd>The living room</div>
+</div>
+<script>
+  const s = document.getElementById('s')
+  document.querySelectorAll('.flip').forEach(f => f.onclick = () => {
+    s.dataset[f.dataset.k] = f.dataset.v
+    document.querySelectorAll(`.flip[data-k="${f.dataset.k}"]`).forEach(g => g.classList.toggle('on', g === f))
+  })
+</script>
+</body>
+</html>

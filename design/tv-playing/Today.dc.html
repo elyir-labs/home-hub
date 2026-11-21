@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Today: music in the TV's room</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="tv.css">
+<style>
+  body { width: 3000px; height: 720px; background: #07090d; }
+  .strip { display: flex; gap: 60px; padding: 40px; align-items: flex-start; }
+  .step { width: 920px; flex: none; }
+  .step img { width: 920px; height: 517.5px; display: block; border-radius: 14px; border: 1px solid var(--edge); }
+  .step h3 { margin: 26px 0 8px; font-size: 30px; font-weight: 500; }
+  .step p { margin: 0; font-size: 22px; line-height: 1.4; color: var(--ink-2); }
+  .step b { color: var(--lamp); font-weight: 500; }
+</style>
+</head>
+<body>
+<!-- not drawn: the shipped TV on the mock house (?tv=1&room=living, then &rest=1, then OK), 20 November, with the
+     living room's speaker playing. The mock has no cover, so the record stands on the sky rather than its own cover. -->
+<div class="strip">
+  <div class="step"><img src="shipped-awake.jpg" alt="">
+    <h3>1 · Awake: the room's rows</h3>
+    <p>Music leads the room as a row of its own (tv-music A). Everything else is under it. This is what the TV shows from the
+      moment anybody presses a key, <b>and for three minutes after the last one</b>, the same three minutes as a house with no music on.</p></div>
+  <div class="step"><img src="shipped-record.jpg" alt="">
+    <h3>2 · Three minutes later: the record</h3>
+    <p>Only at rest does the record fill the screen (tv-music B). It is the screen the person wanted all along, so the
+      three minutes are spent waiting for it.</p></div>
+  <div class="step"><img src="shipped-record-band.jpg" alt="">
+    <h3>3 · OK on the record: one row</h3>
+    <p>Pause, Next and The living room. Anything more is behind <b>The living room</b>, which wakes the TV back to step 1,
+      and the clock starts again.</p></div>
+</div>
+</body>
+</html>

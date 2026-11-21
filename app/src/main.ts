@@ -9,6 +9,8 @@ import '@fontsource-variable/instrument-sans'
    second after waking would be worse than one that carries 30KB it might not
    use. See layout.ts for why a layout gets to decide this at all. */
 import '@fontsource-variable/plus-jakarta-sans'
+/* The resting TV's titles and cards (design/tv-moments/): one face at one weight, Latin only, about 25KB. */
+import '@fontsource/instrument-serif/latin-400.css'
 import './panel.css'
 import App from './App.vue'
 import SetupWifi from './SetupWifi.vue'

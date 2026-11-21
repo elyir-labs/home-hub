@@ -19,12 +19,15 @@ import { lastTurn } from './thisScreen'
 import CodePrompt from './CodePrompt.vue'
 import Keys from './Keys.vue'
 import { onWall } from './keys'
-import { installRemote, musicIn, onTV, passTo, sceneFor, type Press } from './tv'
+import { installRemote, musicIn, onTV, passTo, RECORD_AFTER, restAfter, sceneFor, type Press } from './tv'
 import TvView from './views/TvView.vue'
 import DoorCorner from './DoorCorner.vue'
 import TvRecord from './TvRecord.vue'
 import TvGlow from './TvGlow.vue'
 import TvBand from './TvBand.vue'
+import TvRest from './TvRest.vue'
+import { bedtime, loadRestPhotos, localDay, nightOf, reportScreen, rest, SLEEP_AFTER } from './restTv'
+import { sleepTv } from './thisScreen'
 import type { Device } from './api'
 import { countPress } from './api'
 import { lock } from './code'
@@ -132,7 +135,8 @@ const tvHome = computed(() => homeRoom(rooms.value) ?? params.get('room')
   ?? rooms.value.find(r => r.devices.some(d => cap(d) === 'light'))?.id ?? rooms.value[0]?.id ?? null)
 const tvRoom = computed(() => room.value ?? rooms.value.find(r => r.id === tvHome.value) ?? null)
 const tvBand = ref(false)
-/* while the TV's room plays music, the resting TV is the record and its band works the music (design/tv-music/, B) */
+const bandOn = ref<'pause' | 'volume'>('pause')   // where the sheet over the record opens: OK on Pause, Up or Down on the volume
+/* while the TV's room plays music, the record is the TV's home and its sheet works the music, the room and the house (design/tv-playing/, A) */
 /* A pause keeps the record up a while, so a song stopped for a phone call is one press from playing again rather than
    gone from the screen; it goes once it has been paused ten minutes, or something else plays. */
 const PAUSE_HOLD = 10 * 60 * 1000
@@ -250,10 +254,20 @@ const idle = ref(new URLSearchParams(location.search).get('rest') === '1')   // 
 let lastTouch = Date.now()
 const kiosk = window.matchMedia('(min-width: 861px)')
 const woke = ref(0)   // counted so Home can arrive again on every wake, not only on the first load
+/* A TV at rest is sent to standby after SLEEP_AFTER with no key pressed (design/rest-tv/). Counted from when it
+   started resting or from its last key, whichever is later, and sent once. */
+const restSince = ref(Date.now())
+let slept = false
+watch(idle, v => { if (v) { restSince.value = Date.now(); slept = false; if (tv || screen) { reportScreen(tv); loadRestPhotos() } } })
+/* A screen says what it is once the house is read, then again at each rest; a wall with its photos switched on rests
+   on them (design/which-tv/, Wall A), and without them, or with none yet, as it always has. */
+watch(() => store.loaded, l => { if (l && (tv || screen)) { reportScreen(tv); loadRestPhotos() } }, { immediate: true })
+const wallPhotos = computed(() => !tv && screen && (rest.view === 'board' || (rest.view === 'art' && rest.paintings.length > 0) || (rest.shows && rest.photos.length > 0)))
 function touched(e?: Event) {
   lastTouch = Date.now()
   if (!idle.value) return
-  if (tv && e?.type === 'keydown') return   // a resting TV raises its band on OK; Home is what wakes it
+  // a resting TV raises its band on OK, and Home is what wakes it; a mouse in the band is the same as the remote
+  if (tv && (e?.type === 'keydown' || (e?.target as Element | null)?.closest?.('.tvb-wrap'))) { restSince.value = Date.now(); slept = false; return }
   wake()
 }
 function wake() {
@@ -287,6 +301,8 @@ watch(() => store.asks.length, (n, o) => { if (n > o) { store.askAside = false; 
 watch(() => store.bridge?.state, (is, was) => { if (is === 'knocking' && was && was !== 'knocking') touched() })
 /* The band's OK on a thing that opens rather than acts: a pane belongs to the awake panel. */
 function wakeOpen(d: Device) { wake(); store.opened = d }
+function wakeTo(id: string) { wake(); open(id) }
+function wakeToMusic() { const r = tvRoom.value; wake(); if (r) store.musicPane = r.id }
 function remote(p: Press): boolean {
   // somebody at the door: OK makes the door the whole screen, Back lets it go, awake or resting (design/tv-doorbell/, A)
   if (store.ringing && (p === 'ok' || p === 'back')) {
@@ -297,7 +313,11 @@ function remote(p: Press): boolean {
   }
   if (!idle.value) return false
   if (tvBand.value) { if (p === 'home') { wake(); return true } return false }
-  if (p === 'ok' || p === 'up' || p === 'down') tvBand.value = true
+  if (p === 'ok' && rest.face === 'photos' && (rest.beat === 'trivia' || rest.beat === 'joke') && rest.revealed !== rest.beatKey) { rest.revealed = rest.beatKey; return true }   // OK is the answer
+  if (rest.face === 'morning') rest.morningSeen = localDay(shown.value)   // a key on the morning card is somebody up; it goes back to the photos
+  if (!tvMusic.value && rest.face === 'bedtime' && p === 'ok') { bedtime(); return true }
+  if (!tvMusic.value && rest.face === 'bedtime' && p === 'back') { rest.notYet = nightOf(shown.value); return true }
+  if (p === 'ok' || p === 'up' || p === 'down') { bandOn.value = p === 'ok' ? 'pause' : 'volume'; tvBand.value = true }
   else if (p === 'home') wake()
   return true   // nothing else does anything to a resting TV
 }
@@ -325,9 +345,13 @@ async function rejoin() { halt(); await start() }                       // this 
 function checkIdle() {
   // a page that is the whole screen is a question waiting for its answer (joining, which room), so it never rests under the clock
   // nor while a streaming box has the TV: the house is out of sight, and is what comes back when it is done
-  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && !shut.value && !passTo.value && Date.now() - lastTouch > IDLE_AFTER) idle.value = true
+  const quiet = Date.now() - lastTouch
+  const wait = restAfter(IDLE_AFTER, !!tvMusic.value, !!store.opened || !!store.musicPane || !!store.glowSetup)
+  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && !shut.value && !passTo.value && quiet > wait) idle.value = true
+  if (idle.value && tvBand.value && tvMusic.value && quiet > RECORD_AFTER) tvBand.value = false
   forgetDone(idle.value)   // and the stale ones either way, for a screen that never rests
   if (idle.value) lastTurn.value = null   // This screen's Put it back, by the same rule
+  if (tv && idle.value && !slept && Date.now() - restSince.value > SLEEP_AFTER) { slept = true; sleepTv() }
 }
 /*
  * The panel has looked away, and that is the ONE moment Home may take back a
@@ -342,11 +366,11 @@ function looked() { if (document.visibilityState === 'hidden') forgetDone(true) 
 let tick: number | undefined, idler: number | undefined
 onMounted(() => {
   start()
+  window.addEventListener('pointerdown', touched, { capture: true })
+  window.addEventListener('keydown', touched, { capture: true })   // before the remote, which stops the keys it takes
   if (tv) unremote = installRemote({ first: remote, back: remoteBack, home: remoteHome, color: remoteColor, pressed: countPress })
   tick = window.setInterval(() => (now.value = new Date()), 10000)
   idler = window.setInterval(checkIdle, 5000)
-  window.addEventListener('pointerdown', touched, { capture: true })
-  window.addEventListener('keydown', touched, { capture: true })
   document.addEventListener('visibilitychange', looked)
   atTouch.addEventListener('change', measure)
   darkOS.addEventListener('change', onScheme)
@@ -518,6 +542,8 @@ onUnmounted(() => {
         <TvRecord :d="tvMusic" :room="tvRoom" :time="restTime.time" :period="restTime.period ?? ''" :day="day" :temp="restWx?.temp ?? null" :under="tvBand" />
       </div>
       <div class="idle" v-else-if="idle" aria-label="Tap to wake" :class="{ 'under-band': tvBand }">
+        <TvRest v-if="tv || wallPhotos" :now="shown" :room="tvRoom" :since="restSince" :wall="!tv" />
+        <template v-else>
         <div class="idle-wx" v-if="restWx">
           <WeatherArt />
           <div><div class="idle-wx-temp display">{{ restWx.temp }}</div><div class="idle-wx-label">{{ restWx.label }}</div></div>
@@ -531,11 +557,11 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="idle-line" v-else>{{ houseLine() }}</div>
-        <div class="idle-remote" v-if="tv && tvRoom && !tvBand"><kbd>OK</kbd>The {{ tvRoom.name.toLowerCase() }}</div>
+        </template>
       </div>
     </Transition>
     <TvGlow v-if="tv && store.glowSetup && tvRoom" :room="tvRoom" />
     <DoorCorner v-if="tv && store.ringing" />
-    <TvBand v-if="tv && idle && tvBand && tvRoom" :room="tvRoom" :music="tvMusic" @rooms="wake" @open="wakeOpen" />
+    <TvBand v-if="tv && idle && tvBand && tvRoom" :room="tvRoom" :music="tvMusic" :start="bandOn" @rooms="wake" @open="wakeOpen" @room="wakeTo" @music="wakeToMusic" />
   </div>
 </template>

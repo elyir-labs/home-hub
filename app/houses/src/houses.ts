@@ -45,15 +45,21 @@ export function addLink(hash: string): { house: string; code: string } | null {
   return /^[a-z0-9-]{1,30}$/.test(house) && code.length === 8 ? { house, code } : null
 }
 
+/* The mock brain on a developer's machine: 8399 unless this browser was told another (`houses:dev`), which is how a
+   test suite pointed at a mock on another port keeps the app and the house it frames on the same one. */
+function devHouse(): string {
+  try { return localStorage.getItem('houses:dev') || 'http://localhost:8399' } catch { return 'http://localhost:8399' }
+}
+
 /** A house's own origin, from its label and this app's zone; on a developer's machine, the mock brain. */
-export function originOf(label: string, here: { hostname: string; protocol: string }, dev = 'http://localhost:8399'): string {
+export function originOf(label: string, here: { hostname: string; protocol: string }, dev = devHouse()): string {
   if (here.hostname === 'localhost' || here.hostname === '127.0.0.1') return dev
   return `https://${label}.${here.hostname.split('.').slice(1).join('.')}`
 }
 
 /** Where the pretend house is (design/pretend-in-app/, B): the hub's own site, never a name under elyir.app, which
     are houses' own. On a developer's machine, the mock brain. */
-export const pretendAt = (here: { hostname: string }, dev = 'http://localhost:8399') =>
+export const pretendAt = (here: { hostname: string }, dev = devHouse()) =>
   here.hostname === 'localhost' || here.hostname === '127.0.0.1' ? dev : 'https://hub.elyir.com/try'
 
 /** The house a house's address names: `jordan` of https://jordan.elyir.app or jordan.elyir.app. */

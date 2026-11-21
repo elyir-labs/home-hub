@@ -13,10 +13,10 @@
  * again without something saying so.
  */
 export const BRAIN_PATHS = [
-  '/accounts', '/address', '/ambient', '/assistant', '/backup', '/bridge', '/catalog', '/credentials', '/devices', '/discovered',
+  '/accounts', '/address', '/ambient', '/art', '/assistant', '/backup', '/board', '/bridge', '/catalog', '/credentials', '/devices', '/discovered',
   '/developer', '/drafts', '/drive', '/events', '/flows', '/geo', '/glow', '/handover', '/happened', '/health', '/home', '/language', '/location', '/look', '/music', '/network', '/pair',
-  '/phone', '/phones', '/power', '/presence', '/printers', '/qr.svg', '/remote', '/reset', '/restart', '/restore', '/roofline', '/rooms', '/rules', '/say', '/scenes', '/signals',
-  '/setup', '/share', '/sounds', '/speakers', '/strip', '/suggestions', '/things', '/update',
+  '/phone', '/phones', '/photos', '/power', '/presence', '/printers', '/qr.svg', '/remote', '/reset', '/restart', '/restore', '/roofline', '/rooms', '/rules', '/say', '/scenes', '/screens', '/signals',
+  '/setup', '/share', '/sounds', '/speakers', '/strip', '/suggestions', '/things', '/update', '/words',
   '/docs', '/openapi.json', '/redoc',        // FastAPI's own, handy when the panel is not the thing being debugged
 ] as const
 

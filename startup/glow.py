@@ -28,6 +28,8 @@ and one without), lights a moving light from the strip's first light so the hous
 """
 import json
 import os
+import struct
+import zlib
 import socket
 import subprocess
 import sys
@@ -148,13 +150,23 @@ def run(config, stop=None):
 FW, FH = 160, 90   # a still for finding the corners: finer than a following frame, taken twice a setup
 
 
-def still(device):
-    """One picture from the camera, FW by FH, as raw RGB."""
-    src = ["-f", "lavfi", "-i", f"color=black:size={FW}x{FH}"] if device.startswith("test:") else ["-f", "v4l2", "-i", device]
-    out = subprocess.run(["ffmpeg", "-loglevel", "error", *src, "-frames:v", "1", "-vf", f"scale={FW}:{FH}",
+SW, SH = 480, 270   # the picture a phone marks the screen on
+
+
+def still(device, w=FW, h=FH):
+    """One picture from the camera, w by h, as raw RGB."""
+    src = ["-f", "lavfi", "-i", f"testsrc2=size={w}x{h}"] if device.startswith("test:") else ["-f", "v4l2", "-i", device]
+    out = subprocess.run(["ffmpeg", "-loglevel", "error", *src, "-frames:v", "1", "-vf", f"scale={w}:{h}",
                           "-pix_fmt", "rgb24", "-f", "rawvideo", "-"], capture_output=True, timeout=10).stdout
-    if len(out) < FW * FH * 3: raise OSError("the camera gave no picture")
+    if len(out) < w * h * 3: raise OSError("the camera gave no picture")
     return out
+
+
+def to_png(rgb, w, h):
+    """Raw RGB as a PNG, by hand: the hub has no imaging library and needs none."""
+    raw = b"".join(b"\x00" + rgb[y * w * 3:(y + 1) * w * 3] for y in range(h))
+    chunk = lambda t, d: struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xFFFFFFFF)
+    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(raw, 6)) + chunk(b"IEND", b"")
 
 
 def corners(lit, dark, w=FW, h=FH):
@@ -228,12 +240,16 @@ def chase(target, lights, until):
 class Answer(BaseHTTPRequestHandler):
     def log_message(self, *a): pass
 
-    def allowed(self): return self.headers.get("Origin") in ALLOWED
+    def allowed(self):
+        """The panel on this machine's own screen, or the brain beside it (which sends no Origin; this listens on the
+        machine's own address only, so nothing on the Wi-Fi reaches it)."""
+        o = self.headers.get("Origin")
+        return o is None or o in ALLOWED
 
     def reply(self, code, body=None):
         data = json.dumps(body if body is not None else {}).encode()
         self.send_response(code)
-        if self.allowed():
+        if self.headers.get("Origin") in ALLOWED:
             self.send_header("Access-Control-Allow-Origin", self.headers["Origin"]); self.send_header("Vary", "Origin")
         self.send_header("Content-Type", "application/json"); self.send_header("Content-Length", str(len(data)))
         self.end_headers(); self.wfile.write(data)
@@ -253,6 +269,11 @@ class Answer(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if not self.allowed(): return self.reply(403)
+        if self.path == "/still":   # what the camera sees, for marking the screen on a phone (design/tv-glow/, B)
+            try: png = to_png(still(CAMERA, SW, SH), SW, SH)
+            except (OSError, subprocess.TimeoutExpired) as e: return self.reply(503, {"detail": str(e)})
+            self.send_response(200); self.send_header("Content-Type", "image/png"); self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(png))); self.end_headers(); self.wfile.write(png); return
         if self.path != "/glow": return self.reply(404)
         self.reply(200, {"camera": CAMERA.startswith("test:") or os.path.exists(CAMERA), "set": os.path.exists(STATE)})
 
@@ -271,8 +292,10 @@ class Answer(BaseHTTPRequestHandler):
                 threading.Thread(target=chase, args=(b["target"], b.get("lights", 48), until), daemon=True).start()
                 return self.reply(200, {"ok": True})
             if u.path == "/save":
+                # marking the screen again on a phone changes the corners and keeps the way the strip runs
+                path = path_of(b["start"], b["first"], bool(b.get("bottom"))) if b.get("start") else json.load(open(STATE))["path"]
                 config = {"camera": CAMERA, "corners": b["corners"], "lights": min(MOST, int(b.get("lights", 48))),
-                          "path": path_of(b["start"], b["first"], bool(b.get("bottom"))), "strip": b["target"]}
+                          "path": path, "strip": b["target"]}
                 os.makedirs(os.path.dirname(STATE), exist_ok=True)
                 with open(STATE + ".new", "w") as f: json.dump(config, f)
                 os.replace(STATE + ".new", STATE)

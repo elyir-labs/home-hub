@@ -104,5 +104,7 @@ test.describe('on the wall', () => {
     const pick = rows.nth(1).getByRole('radiogroup')
     await pick.getByRole('radio', { name: 'Anywhere' }).click()
     await expect(pick.getByRole('radio', { name: 'Anywhere' })).toHaveAttribute('aria-checked', 'true')
+    await pick.getByRole('radio', { name: 'Home only' }).click()        // and back, so the mock reads the same next run
+    await expect(pick.getByRole('radio', { name: 'Home only' })).toHaveAttribute('aria-checked', 'true')
   })
 })

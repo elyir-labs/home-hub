@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio, json, logging, re, shutil, time, urllib.parse, urllib.request
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import date, datetime
 from zoneinfo import ZoneInfo
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -48,7 +48,13 @@ from .bridge import Bridges
 from .strip import Strips, StripError
 from .roofline import Roofline
 from .glow import Glow, GlowError
+from . import glow as glow_mod
 from .printers import Printers
+from .photos import Photos
+from .screens import Screens
+from .art import Art
+from .board import Board
+from . import words
 from .power import Power
 from .signals import Signals
 from . import things
@@ -147,6 +153,10 @@ class Hub:
         self.glow = Glow(self)             # the light behind the TV, following the picture (design/tv-glow/)
         self.roofline = Roofline(self)     # several strip controllers as one light outside, its evenings and its holidays
         self.printers = Printers(self)     # 3D printers on the Wi-Fi, let in at the printer and followed: hub/printers.py
+        self.photos = Photos()             # the household's own photos, for a TV at rest: design/rest-tv/
+        self.screens = Screens()           # the house's screens, which are TVs and which show photos: design/which-tv/
+        self.board = Board()               # notes and countdowns the household leaves for its screens: design/tv-moments/
+        self.art = Art()                   # paintings between the photos, or all day: design/tv-art/
         self.power = Power()               # the sun on the roof, the battery and the grid: hub/power.py
         self._power_sent: tuple[float, tuple | None] = (0.0, None)
         self.net = Network(self)           # how this hub is connected, and what it hands out: docs/network.md
@@ -224,7 +234,8 @@ class Hub:
                 "location": bool(self.location), "rooms": sum(1 for r in self.home.rooms.values() if r.id != "unassigned"),
                 "devices": len(self.home.devices), "drivers": self.provision.summary(), "problems": self.provision.problems,
                 "locked": self.lock.locked, "version": self.updates.version, "update": self.updates.summary(),
-                "language": self.language, "handed_over": bool(self.settings.get("handed_over")) and not self.settings.get("setup_done")}
+                "language": self.language, "handed_over": bool(self.settings.get("handed_over")) and not self.settings.get("setup_done"),
+                "screens": len(self.screens.listed())}
 
     def _set(self, driver, reason=""):
         if (driver, reason) == (self.driver, self.reason): return
@@ -823,9 +834,10 @@ async def lifespan(app):
     hub._roofline_task = asyncio.create_task(hub._roofline_loop())
     hub._address_task = asyncio.create_task(hub._address_loop())
     hub._printers_task = asyncio.create_task(hub.printers.run())   # needs no engine: a printer is its own
+    hub._art_task = asyncio.create_task(hub.art.run(hub.screens.want_art))
     yield
     for t in (hub._loop_task, hub._tick_task, hub._signals_task, hub._drivers_task, hub._comfort_task, hub._update_task,
-              hub._suggest_task, hub._prune_task, hub._roofline_task, hub._printers_task): t.cancel()
+              hub._suggest_task, hub._prune_task, hub._roofline_task, hub._printers_task, hub._art_task): t.cancel()
     if hub.ha: await hub.ha.close()
 
 
@@ -2762,6 +2774,34 @@ def glow_get(room: str | None = None):
             "target": hub.glow.target()}
 
 
+@app.get("/glow/still")
+def glow_still():
+    """What the hub's camera sees, for marking where the TV is on a phone (design/tv-glow/, B). Only the house's own
+    phones get this far, and nothing is kept: it is taken when asked and handed straight over."""
+    try: data, ctype = glow_mod.helper("/still")
+    except Exception: raise HTTPException(503, "The hub's camera isn't answering.")
+    return Response(content=data, media_type=ctype or "image/png", headers={"Cache-Control": "no-store"})
+
+
+@app.post("/glow/corners")
+def glow_corners(body: dict):
+    """{"corners": [[x, y] x4], "start"?, "first"?, "bottom"?}: where the TV is in the camera's view, and the way the
+    strip runs when it is said. From the TV finding itself (A) or a phone marking it (B)."""
+    try: return hub.glow.save(body.get("corners") or [], body.get("start"), body.get("first"), bool(body.get("bottom")))
+    except GlowError as e: raise HTTPException(409, str(e))
+    except ValueError as e: raise HTTPException(400, str(e))
+    except Exception: raise HTTPException(503, "The hub's camera isn't answering.")
+
+
+@app.post("/glow/chase")
+def glow_chase(body: dict):
+    """The strip runs a light from its start, so a phone can say which way it goes; {"stop": true} ends it."""
+    try: hub.glow.chase(bool(body.get("stop")))
+    except GlowError as e: raise HTTPException(409, str(e))
+    except Exception: raise HTTPException(503, "The hub's camera isn't answering.")
+    return {"ok": True}
+
+
 @app.post("/glow")
 async def glow_set(body: dict):
     """{"strip": id, "run": 0 | 1} to follow the picture, or {"on": false} to stop (design/tv-glow/, A)."""
@@ -2900,6 +2940,130 @@ def _music_rooms(room: str | None) -> list[dict]:
     rooms = [hub.home.rooms[r] for r in hub.music.rooms() if r in hub.home.rooms]
     rooms.sort(key=lambda r: (r.id != room, r.name))
     return [{"id": r.id, "name": r.name, "here": r.id == room, "playing": playing.get(r.id)} for r in rooms]
+
+
+# ---------- the household's photos, for a TV at rest (design/rest-tv/, A) ----------
+@app.get("/photos")
+def photos_list():
+    return {"photos": hub.photos.list(), "screens": [_named(s) for s in hub.screens.listed()]}
+
+
+def _named(screen: dict) -> dict:
+    room = hub.home.rooms.get(screen["room"] or "")
+    return {**screen, "room_name": room.name if room else None}
+
+
+@app.post("/screens/me")
+def screens_me(body: dict):
+    """{"id", "room", "tv", "by"}: what a screen says about itself when it starts and when it rests, or, with by
+    "person", what somebody answered on This screen (design/which-tv/). Says back whether it shows photos at rest."""
+    try:
+        return _named(hub.screens.said(body.get("id"), room=body.get("room"), tv=body.get("tv"), by="person" if body.get("by") == "person" else "screen"))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+# ---------- the family board: notes and countdowns (design/tv-moments/, step 2) ----------
+@app.get("/board")
+def board_now():
+    return hub.board.current()
+
+
+@app.post("/board/notes")
+def board_note(body: dict, request: Request):
+    """{"text", "until"}: a note for the screens. `until` is when it comes down, in seconds, worked out by the phone in
+    its own day (tonight, tomorrow), or null to stay until somebody takes it down. Signed with the phone's name."""
+    phone = hub.phones.identify(_phone_token(request))
+    try: return hub.board.leave(body.get("text"), by=(phone or {}).get("name"), until=body.get("until"))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.post("/board/countdowns")
+def board_countdown(body: dict, request: Request):
+    """{"what", "date"}: a countdown to a day, "YYYY-MM-DD". A birthday or an anniversary comes round every year."""
+    phone = hub.phones.identify(_phone_token(request))
+    try: return hub.board.count_to(body.get("what"), body.get("date"), by=(phone or {}).get("name"))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.post("/board/mornings")
+def board_morning(body: dict, request: Request):
+    """{"text", "day"}: a line left for the morning of `day`, the phone's tomorrow. It greets the first screen to wake."""
+    phone = hub.phones.identify(_phone_token(request))
+    try: return hub.board.for_morning(body.get("text"), body.get("day"), by=(phone or {}).get("name"))
+    except ValueError as e: raise HTTPException(400, str(e))
+
+
+@app.get("/words/today")
+def words_today(day: str):
+    """The morning's line and the evening's for a screen's own day, "YYYY-MM-DD" (hub/words.py)."""
+    try: d = date.fromisoformat(day)
+    except ValueError: raise HTTPException(400, "That isn't a day.") from None
+    return {"day": d.isoformat(), "morning": words.of_the_day("morning", d), "evening": words.of_the_day("evening", d), **words.cards_of_the_day(d)}
+
+
+@app.delete("/board/{item_id}")
+def board_remove(item_id: str):
+    if not hub.board.remove(item_id): raise HTTPException(404, "Nothing like that is up.")
+    return {"ok": True}
+
+
+@app.post("/photos/screens/{screen_id}")
+def photos_screen(screen_id: str, body: dict):
+    """{"on": bool, "play": "each" | "days"}: whether this screen shows the photos at rest (design/which-tv/, C), and
+    how they play, one after another or a day at a time (design/tv-moments/). Either may be left out."""
+    on = body.get("on") if isinstance(body.get("on"), bool) else None
+    notes = body.get("notes") if isinstance(body.get("notes"), bool) else None
+    said = body.get("lines") if isinstance(body.get("lines"), bool) else None
+    cards = {k: body[k] for k in ("today", "facts", "jokes", "quotes", "art") if isinstance(body.get(k), bool)}
+    screen = hub.screens.show(screen_id, on=on, play=body.get("play"), notes=notes, shows=body.get("shows"), lines=said, cards=cards)
+    if not screen: raise HTTPException(404, "No such screen.")
+    if "art" in cards or body.get("shows"): hub.art.poke()
+    return _named(screen)
+
+
+# ---------- paintings (design/tv-art/, C and a channel too) ----------
+@app.get("/art")
+def art_list():
+    """The paintings on this hub, and how getting them is going, for the screens and for the phone's switch."""
+    return {"paintings": hub.art.list(), **hub.art.state()}
+
+
+@app.get("/art/{painting_id}")
+def art_file(painting_id: str):
+    path = hub.art.file(painting_id)
+    if not path: raise HTTPException(404, "no such painting")
+    return FileResponse(path, media_type="image/jpeg", headers={"Cache-Control": "public, max-age=31536000, immutable"})
+
+
+@app.get("/photos/{photo_id}")
+def photos_file(photo_id: str):
+    found = hub.photos.file(photo_id)
+    if not found: raise HTTPException(404, "no such photo")
+    path, ctype = found
+    return FileResponse(path, media_type=ctype, headers={"Cache-Control": "private, max-age=31536000, immutable"})
+
+
+@app.post("/photos")
+async def photos_add(request: Request):
+    """The photo's bytes as the body, already redrawn by the phone. `X-Taken` is when it was taken, in seconds,
+    if the phone knew, and `X-Width` and `X-Height` its size. The phone's own name is who it came from."""
+    phone = hub.phones.identify(_phone_token(request))
+    try: taken = float(request.headers.get("x-taken") or "") or None
+    except ValueError: taken = None
+    try: size = (int(request.headers["x-width"]), int(request.headers["x-height"]))
+    except (KeyError, ValueError): size = None
+    try:
+        photo = hub.photos.add(await request.body(), by=(phone or {}).get("name"), taken=taken, size=size)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return photo
+
+
+@app.delete("/photos/{photo_id}")
+def photos_remove(photo_id: str):
+    if not hub.photos.remove(photo_id): raise HTTPException(404, "no such photo")
+    return {"ok": True}
 
 
 @app.get("/music")
