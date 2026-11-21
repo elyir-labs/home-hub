@@ -64,8 +64,12 @@ jobs:
           xz -T0 -9e "$NAME"
           sha256sum "$NAME.xz" | tee "$NAME.xz.sha256"
           ls -lh "$NAME.xz"
-          # GitHub refuses a release file over 2 GiB; say so here rather than at the upload.
-          [ "$(stat -c %s "$NAME.xz")" -lt 2147483648 ] || { echo "the image is over 2 GiB and cannot be attached to a release"; exit 1; }
+          # GitHub refuses a release file over 2 GiB; say so here rather than at the upload. An image built by hand or for a
+          # pull request is only an artifact, which has no such limit, so it is still uploaded and only warned about.
+          if [ "$(stat -c %s "$NAME.xz")" -ge 2147483648 ]; then
+            if [ "$GITHUB_REF_TYPE" = tag ]; then echo "the image is over 2 GiB and cannot be attached to a release"; exit 1; fi
+            echo "::warning::the image is over 2 GiB: fine as an artifact, but a release would refuse it"
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: home-hub-x86-image
