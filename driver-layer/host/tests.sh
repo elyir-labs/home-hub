@@ -1024,7 +1024,8 @@ case "$*" in
   "-t -f NAME,TYPE connection show") [ -n "${SAVED:-}" ] && echo "$SAVED:802-11-wireless" ;;
   "-t -f NAME,DEVICE connection show --active") ;;
   "-t -f NAME connection show --active") [ -f "$ROOT/ap" ] && echo home-hub-setup ;;
-  "connection up home-hub-setup") touch "$ROOT/ap" ;;
+  "connection add type wifi ifname "*) echo "$6" > "$ROOT/apif" ;;
+  "connection up home-hub-setup") [ -n "${BUSY:-}" ] && [ "$(cat "$ROOT/apif")" = hubsetup0 ] && exit 4; touch "$ROOT/ap" ;;
   "connection delete home-hub-setup") rm -f "$ROOT/ap" ;;
   *"device wifi connect"*) if [ -n "${WRONG:-}" ]; then echo "Error: Connection activation failed: Secrets were required, but not provided."; exit 4; fi
     touch "$ROOT/up" ;;
@@ -1064,7 +1065,7 @@ SH
 v=json.load(open(sys.argv[1]))
 for k in sys.argv[2].split("."): v=v.get(k) if isinstance(v,dict) else None
 print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
-  fresh() { rm -f "$root"/asked "$root"/ap "$root"/iface "$root"/up "$data"/network.*; }
+  fresh() { rm -f "$root"/asked "$root"/ap "$root"/iface "$root"/up "$root"/apif "$data"/network.*; }
 
   printf '' > "$root/conf"; fresh; tick
   is "with no password to put on it, it is never started" "$(grep -c 'con-name home-hub-setup' "$root/asked")" "0"
@@ -1096,7 +1097,10 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
   fresh; mkdir -p "$net/wlp1s0/device"; ln -s ../../../bus/sdio/drivers/brcmfmac "$net/wlp1s0/device/driver"; BOTH=1 tick
   is "the Pi's chip says it can do both and cannot: its own Wi-Fi goes on the card itself" \
     "$(grep -c 'interface add hubsetup0' "$root/asked") $(field setup.both)" "0 false"
-  rm -rf "$net/wlp1s0/device"; fresh; BOTH=1 tick
+  rm -rf "$net/wlp1s0/device"; fresh; BUSY=1 BOTH=1 tick
+  is "a card that says it can do both and then refuses the second interface: its own Wi-Fi goes on the card itself" \
+    "$(cat "$root/apif") $(field setup.both) $([ -f "$root/ap" ] && echo up) $(grep -c 'iw dev hubsetup0 del' "$root/asked")" "wlp1s0 false up 1"
+  fresh; BOTH=1 tick
   BOTH=1 ask '{"do": "join", "ssid": "Bluebell", "password": "right"}'
   is "the house's Wi-Fi is tried on its 2.4 GHz side, so the phone on the hub's stays on" \
     "$(grep -c 'device wifi connect Bluebell password right ifname wlp1s0 bssid AA:BB:CC:00:00:01' "$root/asked")" "1"
