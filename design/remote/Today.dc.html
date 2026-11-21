@@ -1,0 +1,63 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 Temitope Adeyeri -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Today: a bought remote plugged into the hub, and which of its keys the hub listens to (branch tv-remote). -->
+<html lang="en"><head><meta charset="utf-8"><title>Today / A bought remote, plugged into the hub</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="remote.css">
+<style>.used { stroke: rgb(233,184,114); stroke-width: 2.5; } .idle { opacity: .32; }</style></head><body><main class="board">
+<div class="eyebrow">Elyir / Our own remote / today</div>
+<h1>Today / A bought remote, plugged into the hub</h1>
+<p class="sub">A typical remote, its receiver plugged into the hub. Most keys pass to the streaming box while it is on screen; Home and the colored keys bring the house back. It knows nothing of the room, and with the TV off it does nothing.</p>
+<div class="grid">
+<section class="drawing"><svg viewBox="0 0 520 650" role="img" aria-label="A typical bought remote, with the keys the hub uses outlined">
+<defs>
+ <linearGradient id="body" x1="0" x2="1"><stop offset="0" stop-color="#2a2c30"/><stop offset=".45" stop-color="#3a3d42"/><stop offset="1" stop-color="#222427"/></linearGradient>
+ <filter id="sh" x="-30%" y="-10%" width="160%" height="130%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#5a5040" flood-opacity=".28"/></filter>
+</defs>
+<text x="24" y="30" font-size="15" font-weight="600">A typical one, to scale</text>
+<g fill="#55595f" stroke="none">
+<rect x="60" y="60" width="153" height="544" rx="38" fill="url(#body)" filter="url(#sh)"/>
+<circle class="idle" cx="96" cy="94" r="11" fill="#b5443a"/><circle class="idle" cx="177" cy="94" r="11"/>
+<circle class="used" cx="136.5" cy="182" r="52" fill="#4a4e54"/><circle class="used" cx="136.5" cy="182" r="22" fill="#62666c"/>
+<circle class="used" cx="92" cy="271" r="14"/><circle class="used" cx="136.5" cy="271" r="14"/><circle class="idle" cx="181" cy="271" r="14"/>
+<rect class="used" x="82" y="310" width="28" height="70" rx="14"/><rect class="idle" x="163" y="310" width="28" height="70" rx="14"/>
+<circle class="used" cx="100" cy="414" r="11"/><circle class="used" cx="136.5" cy="414" r="11"/><circle class="used" cx="173" cy="414" r="11"/>
+<rect class="used" x="80" y="447" width="24" height="12" rx="6" fill="#c0463c"/><rect class="used" x="111" y="447" width="24" height="12" rx="6" fill="#3f9a62"/>
+<rect class="used" x="142" y="447" width="24" height="12" rx="6" fill="#d1ac2e"/><rect class="used" x="173" y="447" width="24" height="12" rx="6" fill="#3a72bd"/>
+<g class="idle" id="nums"></g>
+</g>
+<g fill="#c9ccc8" font-size="11" text-anchor="middle"><text x="136.5" y="186" fill="#e2e4e1">OK</text><text x="96" y="346" fill="#e2e4e1">+</text><text x="96" y="372" fill="#e2e4e1">−</text></g>
+<path d="M36 60 v544 M31 60 h10 M31 604 h10" stroke="#a39d8c"/><text class="dim" x="26" y="332" transform="rotate(-90 26 332)" text-anchor="middle">about 160 mm</text>
+<path class="lead" d="M188 94 H246"/><text class="lbl" x="252" y="90"><tspan class="b">Power, input:</tspan><tspan x="252" dy="17">nothing</tspan></text>
+<path class="lead" d="M189 182 H246"/><text class="lbl" x="252" y="170"><tspan class="b">Arrows and OK:</tspan><tspan x="252" dy="17">passed to the streaming box</tspan><tspan x="252" dy="17">while it is on screen</tspan></text>
+<path class="lead" d="M195 271 H246"/><text class="lbl" x="252" y="258"><tspan class="b">Back passed on. Home brings</tspan><tspan x="252" dy="17">the house back. Menu: nothing</tspan></text>
+<path class="lead" d="M191 345 H246"/><text class="lbl" x="252" y="333"><tspan class="b">Louder and quieter:</tspan><tspan x="252" dy="17">passed on. Channels: nothing</tspan></text>
+<path class="lead" d="M184 414 H246"/><text class="lbl" x="252" y="418"><tspan class="b">Play, back and ahead:</tspan><tspan x="252" dy="17">passed on</tspan></text>
+<path class="lead" d="M197 453 H246"/><text class="lbl" x="252" y="470"><tspan class="b">Colored keys:</tspan><tspan x="252" dy="17">bring the house back</tspan></text>
+<path class="lead" d="M196 540 H246"/><text class="lbl" x="252" y="545"><tspan class="b">Numbers: nothing</tspan></text>
+<rect x="252" y="586" width="16" height="10" rx="5" fill="none" class="used"/><text class="dim" x="276" y="595">the hub listens</text>
+<rect x="372" y="586" width="16" height="10" rx="5" fill="#55595f" class="idle"/><text class="dim" x="396" y="595">does nothing</text>
+</svg>
+<script>
+const g = document.getElementById('nums'), ns = 'http://www.w3.org/2000/svg'
+for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) { const e = document.createElementNS(ns, 'rect')
+  Object.entries({ x: 86 + c * 38, y: 490 + r * 26, width: 26, height: 14, rx: 7 }).forEach(([k, v]) => e.setAttribute(k, v)); g.appendChild(e) }
+</script></section>
+<div class="right">
+<div class="moments">
+ <div><div class="when">TV off, late</div><div class="pic" style="--glow:.55"><div class="lamp"></div><div class="pole"></div><div class="shade"></div><div class="tv"></div><div class="sofa"></div><div class="none">Nothing happens</div></div>
+  <p class="cap"><b>Every key does nothing.</b> The remote talks to what is on the screen, and nothing is. The lamps are dimmed from a phone or the wall.</p></div>
+ <div><div class="when">A film on</div><div class="pic"><div class="tv on"></div><div class="grid9"><i></i><i></i><i class="lit"></i><i></i><i></i><i></i><i></i><i></i></div><div class="sofa"></div></div>
+  <p class="cap"><b>The streaming box gets the arrows.</b> Home or a colored key brings the room up. Dimming is Up, Up, Up, one step a press.</p></div>
+ <div><div class="when">Carried to the bedroom</div><div class="pic"><div class="tv"></div><div class="sofa"></div><div class="none">Still the living room, if it reaches</div></div>
+  <p class="cap"><b>It has no idea it moved.</b> It still talks to the hub by the living room TV, as far as its receiver can hear it.</p></div>
+</div>
+<div class="cases">
+ <section class="card"><span class="tagc">What it does well</span><ul><li>It is here this week, it is cheap, and the hub already listens to it (the work on the streaming box keys).</li><li>Everyone already knows how to hold it.</li></ul></section>
+ <section class="card"><span class="tagc against">What it cannot do</span><ul><li>Nothing without the screen. No room of its own, no level but pressing, no way to talk to the house, no way to find it.</li><li>Half its keys mean nothing here.</li></ul></section>
+ <section class="card"><span class="tagc asks">What it can teach us</span><ul><li>Count which keys get pressed in the living room over a few weeks. That sets which keys ours keeps.</li></ul></section>
+</div>
+</div></div>
+<div class="foot">Drawn as a typical one; the one ordered is not here yet. The keys the hub uses are the ones on the tv-remote branch (passed to an Apple TV; other boxes keep their own remote). Not yet tried on the real Apple TV.</div>
+</main></body></html>

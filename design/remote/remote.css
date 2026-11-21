@@ -1,0 +1,76 @@
+/* Our own remote, drawn to scale (3.4 px to the millimeter) beside what a press does in the living room.
+   The pictures of the TV use the panel's own values (tv.css in design/living-room). */
+* { box-sizing: border-box; }
+body { margin: 0; background: #ede7db; color: #292d29;
+  font: 18px/1.45 "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --lamp-rgb: 233, 184, 114; --lamp: rgb(var(--lamp-rgb)); --ink-2: #b9b5ad; }
+.board { width: 1440px; height: 900px; padding: 36px 52px; overflow: hidden; position: relative; }
+.eyebrow { font-size: 13px; letter-spacing: .15em; text-transform: uppercase; color: #737769; }
+h1 { font-size: 38px; line-height: 1.12; letter-spacing: -.035em; font-weight: 500; margin: 10px 0 8px; }
+.sub { max-width: 1200px; font-size: 18px; margin: 0; color: #555e53; }
+.grid { display: grid; grid-template-columns: 520px 1fr; gap: 26px; margin-top: 20px; }
+.drawing { background: #faf7f0; border: 1px solid #d6d2c6; border-radius: 18px; height: 652px; overflow: hidden; }
+.drawing svg { display: block; width: 520px; height: 650px; }
+svg text { font-family: "Instrument Sans", -apple-system, sans-serif; fill: #2b382e; }
+svg .lbl { font-size: 14px; }
+svg .lbl tspan.b { font-weight: 600; }
+svg .dim { font-size: 12px; fill: #7a7d70; }
+svg .lead { stroke: #a39d8c; stroke-width: 1; fill: none; }
+
+.right { display: flex; flex-direction: column; gap: 16px; }
+.moments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.when { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #737769; margin-bottom: 6px; }
+.cap { font-size: 14.5px; line-height: 1.38; color: #4d564b; margin-top: 8px; }
+.cap b { color: #292d29; font-weight: 600; }
+
+/* ---- the living room, small ---- */
+.pic { position: relative; height: 196px; border-radius: 14px; overflow: hidden; background: #08090c; color: #f1eee8;
+  font-size: 11px; line-height: 1.25; }
+.pic .tv { position: absolute; left: 22%; right: 22%; top: 14%; height: 46%; border-radius: 4px; background: #050608;
+  border: 2px solid #1b1d22; }
+.pic .tv.on { background: radial-gradient(40px 40px at 64% 50%, #ffd9a0, #f3a35f 40%, transparent 70%),
+  linear-gradient(transparent 56%, #0d1a24 56.2%, #13283a 70%, #0a141c), linear-gradient(#1c2a4a, #6a4a6e 30%, #d9805a 50%, #f0b07a 56%); }
+.pic .sofa { position: absolute; left: 12%; right: 12%; bottom: -6px; height: 26%; border-radius: 16px 16px 0 0; background: #15171b; }
+.pic .lamp { position: absolute; width: 140px; height: 140px; border-radius: 50%; left: -26px; bottom: -10px;
+  background: radial-gradient(rgba(var(--lamp-rgb), var(--glow, .55)), transparent 68%); }
+.pic .pole { position: absolute; left: 42px; bottom: 0; width: 2px; height: 82px; background: #2a2b2f; }
+.pic .shade { position: absolute; left: 30px; bottom: 80px; width: 26px; height: 16px; border-radius: 4px 4px 2px 2px;
+  background: rgba(var(--lamp-rgb), var(--shade, .9)); }
+.pic .tag { position: absolute; right: 10px; top: 10px; padding: 4px 9px; border-radius: 10px; background: rgba(10,12,16,.8);
+  border: 1px solid rgba(var(--lamp-rgb), .5); font-size: 11px; }
+.pic .tag b { color: var(--lamp); font-weight: 600; }
+
+/* the room's row over a film, as design/living-room C draws it, at a tenth of the size */
+.pic.film { background: radial-gradient(60px 60px at 64% 40%, #ffd9a0, #f3a35f 40%, transparent 70%),
+  linear-gradient(transparent 50%, #0d1a24 50.2%, #13283a 66%, #0a141c), linear-gradient(#1c2a4a, #6a4a6e 30%, #d9805a 46%, #f0b07a 50%); }
+.pic .scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 66%; background: linear-gradient(transparent, rgba(5,7,10,.8) 45%, rgba(5,7,10,.92)); }
+.pic .row { position: absolute; left: 10px; right: 10px; bottom: 10px; }
+.pic .hd { font-size: 13px; margin-bottom: 6px; }
+.pic .hd small { color: var(--ink-2); margin-left: 6px; font-size: 10px; }
+.pic .cards { display: flex; gap: 6px; }
+.pic .c { flex: 1; height: 50px; border-radius: 8px; padding: 6px 7px; background: rgba(22,24,30,.7); border: 1px solid rgba(255,255,255,.1); }
+.pic .c em { display: block; font-style: normal; color: var(--ink-2); margin-top: 2px; }
+.pic .c.lit { box-shadow: 0 0 0 2px rgba(var(--lamp-rgb), .95), 0 0 0 5px rgba(var(--lamp-rgb), .2); }
+.pic .c.lit em { color: var(--lamp); }
+.pic .c i { display: block; height: 3px; border-radius: 2px; background: rgba(255,255,255,.12); margin-top: 5px; }
+.pic .c i::after { content: ""; display: block; height: 100%; width: var(--v, 0%); background: var(--lamp); border-radius: 2px; }
+.pic .scenes { display: flex; gap: 6px; margin-top: 6px; font-size: 10px; color: var(--ink-2); }
+.pic .scenes span { display: inline-flex; align-items: center; gap: 4px; }
+.pic .scenes span::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--k); }
+.pic .said { position: absolute; left: 10px; right: 10px; bottom: 10px; padding: 8px 10px; border-radius: 10px;
+  background: rgba(14,16,20,.86); border: 1px solid rgba(255,255,255,.12); font-size: 12px; }
+.pic .said .q { display: block; color: var(--ink-2); font-size: 11px; margin-bottom: 3px; }
+.pic .said b { color: var(--lamp); font-weight: 500; }
+.pic .grid9 { position: absolute; left: 26%; right: 26%; top: 20%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.pic .grid9 i { height: 14px; border-radius: 3px; background: rgba(255,255,255,.18); }
+.pic .grid9 i.lit { background: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.5); }
+.pic .none { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-size: 12px; color: #8c8a84; }
+
+.cases { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.card { background: #faf7f0; border: 1px solid #d6d2c6; border-radius: 16px; padding: 14px 18px; }
+.card ul { margin: 6px 0 0; padding-left: 18px; font-size: 14.5px; line-height: 1.4; color: #4d564b; }
+.card li + li { margin-top: 4px; }
+.tagc { display: inline-block; padding: 3px 10px; border-radius: 20px; background: #e0e8db; font-size: 12.5px; }
+.tagc.against { background: #f1dcc8; }
+.tagc.asks { background: #dde3ec; }
+.foot { position: absolute; left: 52px; right: 52px; bottom: 16px; font-size: 12.5px; color: #70766a; border-top: 1px solid #cccbbf; padding-top: 8px; }

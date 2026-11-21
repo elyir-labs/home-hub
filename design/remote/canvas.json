@@ -1,0 +1,340 @@
+{
+ "name": "Our own remote",
+ "areas": [
+  "Watching and listening"
+ ],
+ "pages": [
+  {
+   "id": "remote",
+   "name": "What our own remote is like",
+   "decided": {
+    "on": "2026-11-20",
+    "chose": "G, the stone: the ring follows what is playing, Favorite on both sides, on the dish",
+    "board": "StoneQuietG.dc.html"
+   }
+  },
+  {
+   "id": "remote-top",
+   "name": "Where the ring meets the top of the stone",
+   "decided": {
+    "on": "2026-11-20",
+    "chose": "H with a 42 mm ring: the ring sits in a shallow dish",
+    "board": "RingDishH.dc.html"
+   }
+  },
+  {
+   "id": "remote-top-rejected",
+   "name": "Where the ring meets the top of the stone: not chosen"
+  },
+  {
+   "id": "remote-rejected",
+   "name": "What our own remote is like: not chosen"
+  }
+ ],
+ "artboards": [
+  {
+   "file": "Today.dc.html",
+   "page": "remote",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today / A bought remote, plugged into the hub"
+  },
+  {
+   "file": "StoneA.dc.html",
+   "page": "remote-rejected",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "A / The stone: four things to press, and the rest said aloud"
+  },
+  {
+   "file": "BarB.dc.html",
+   "page": "remote-rejected",
+   "x": 0,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "B / The bar: a remote you already know how to hold"
+  },
+  {
+   "file": "DialC.dc.html",
+   "page": "remote-rejected",
+   "x": 0,
+   "y": 2200,
+   "w": 1440,
+   "h": 900,
+   "title": "C / The dial: it lives on the table, and you turn it"
+  },
+  {
+   "file": "StoneBackD.dc.html",
+   "page": "remote-rejected",
+   "x": 0,
+   "y": 3300,
+   "w": 1440,
+   "h": 900,
+   "title": "D / The stone, with Back and Play on its sides"
+  },
+  {
+   "file": "StoneSoundE.dc.html",
+   "page": "remote-rejected",
+   "x": 0,
+   "y": 4400,
+   "w": 1440,
+   "h": 900,
+   "title": "E / The stone, with the sound on its side and a key of your own"
+  },
+  {
+   "file": "StoneAllF.dc.html",
+   "page": "remote-rejected",
+   "x": 0,
+   "y": 5500,
+   "w": 1440,
+   "h": 900,
+   "title": "F / The stone, with everything else on its sides"
+  },
+  {
+   "file": "StoneQuietG.dc.html",
+   "page": "remote",
+   "x": 0,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "G / The stone: the ring follows what is playing"
+  },
+  {
+   "file": "RingToday.dc.html",
+   "page": "remote-top",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today / The ring as the parts put it"
+  },
+  {
+   "file": "RingDishH.dc.html",
+   "page": "remote-top",
+   "x": 0,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "H / The ring sits in a shallow dish"
+  },
+  {
+   "file": "RingFlatI.dc.html",
+   "page": "remote-top-rejected",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "I / The top flattens around the ring"
+  },
+  {
+   "file": "RingCrownJ.dc.html",
+   "page": "remote-top-rejected",
+   "x": 0,
+   "y": 1100,
+   "w": 1440,
+   "h": 900,
+   "title": "J / The ring's top follows the dome"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "decided",
+   "page": "remote",
+   "x": -620,
+   "y": -760,
+   "w": 520,
+   "text": "DECIDED 20 NOVEMBER 2026 — G, THE STONE ON ITS DISH\n\nA pebble, 96 x 66 x 24 mm, lying on a charging dish. On top: the light, a key to talk, a 42 mm ring (46 when first drawn; see the next page) that turns around a 30 mm pad that tilts to move and presses for OK, and Home. On each side, one Favorite key, mirrored for either hand. No keys for the sound: the ring is the volume while something plays and the lights otherwise; holding Favorite while turning is always the lights.\n\nB was picked first the same day and replaced by G after a second look: the stone is the one that feels like ours, and its gaps (scenes without talking, the sound, the lights during music) closed with one key on each side.\n\nThe ring and pad are two stock parts: an Alps EC21A1520401 ring encoder with an Alps SKRHABE010 five-way switch in its hollow middle. Backup: the all-in-one Alps RKJXT1F42001.\n\nNext: try the parts by hand, holding a side key while turning included (if that is awkward, E's rocker is the fallback); a devkit prototype as an ordinary Bluetooth remote; then the board, case and dish in home-hub-hardware. The bought remote's key count says whether Back earns a key."
+  },
+  {
+   "id": "why",
+   "page": "remote",
+   "x": -620,
+   "y": 0,
+   "w": 520,
+   "text": "WHY THIS EXISTS\n\n20 November 2026: a bought USB remote is on order for the living room hub, and the question was what our own remote would be if the experience is to be great, more than a third party's can be.\n\nA bought remote sends keys to whatever is on the screen. Ours can know the house: which room it is in, what the TV is showing, and what the room's lights are doing. So it can be useful with the TV off, which no TV remote is. These boards are about its shape and what is on it. The electronics are the same in every direction (see beside)."
+  },
+  {
+   "id": "given",
+   "page": "remote",
+   "x": -620,
+   "y": 620,
+   "w": 520,
+   "text": "WHAT EVERY DIRECTION KEEPS, SO IT IS NOT WHAT THEY ARGUE ABOUT\n\nIT KNOWS ITS ROOM. The hub and the bridge pucks already listen for Bluetooth; the remote is in the room whose listener hears it loudest. \"The lights\" means this room's lights, with nothing to set up. A second remote in the bedroom just works there.\n\nIT WORKS WITH THE TV OFF. Turning dims the room it is in, a press turns it on or off. The TV adds the room's row along its foot (design/living-room, C's band), and changes nothing about what a key means.\n\nHOLD TO TALK INTO THE COMMAND BOX. The words go into the same fixed grammar the box already runs, with no model, so it works on every hub. Speech to text is sized to the hub (Hub runs a small one). The answer is on the TV if it is on, and a blink of the remote's light if not.\n\nONE LIGHT. The lamp dot from the startup, breathing while it listens. It is an LED, so it gets its own saturated warm color, not the panel's pastel (emitter colors are not screen colors).\n\nWAKES WHEN PICKED UP, FOUND WHEN ASKED. A motion sensor wakes it before a key is pressed. \"Where is the remote?\" in the command box makes it chirp and blink.\n\nJOINED BY A PRESS. Hold Home while Add is open, and it arrives like anything else does. One sold with a hub comes joined.\n\nINSIDE. An ESP32-class chip, as in the puck (C6 or H2 for battery life). It first speaks as an ordinary Bluetooth remote, so the hub hears the same keys as the bought one and the tv-remote branch's work carries straight over; the room, the voice, the light and waking are a second channel on top. Rechargeable, months a charge. The board and case go in home-hub-hardware, never this repository.\n\nTHE OPEN RISK. Bluetooth reach from sofa to hub is the strip's unsolved problem too. The pucks will likely have to carry it."
+  },
+  {
+   "id": "today",
+   "page": "remote",
+   "x": 1560,
+   "y": 0,
+   "w": 520,
+   "text": "TODAY\n\nA typical bought remote with a USB receiver, drawn because the ordered one is not here yet; redraw it when it arrives. The keys outlined are the ones branch tv-remote listens to (KEYS in brain/hub/boxes.py): arrows, OK, Back, play, skip and volume pass to an Apple TV while it has the TV, and Home and the colored keys bring the house back. Untested on the real Apple TV.\n\nWhat to do with it while ours is drawn: count which keys get pressed in the living room for a few weeks. Ours keeps the ones that get used."
+  },
+  {
+   "id": "a",
+   "page": "remote-rejected",
+   "x": 1560,
+   "y": 0,
+   "w": 520,
+   "text": "A — THE STONE\n\nThe case for it: four things to press (a ring that turns, a pad inside it that tilts to move and presses for OK, Home, talk), all findable by feel. It is the least to learn and the most unlike anything in the shops, and it reads as an object for the coffee table rather than a gadget.\n\nWhat it gives up: scenes depend on talking, so a household that would rather not talk to it gets them only on the TV. With no Back and no Play, Home does two jobs and a held OK stands in for Play, and a streaming box's own screens lean on both. A pebble does not point."
+  },
+  {
+   "id": "b",
+   "page": "remote-rejected",
+   "x": 1560,
+   "y": 1100,
+   "w": 520,
+   "text": "B — THE BAR (chosen first on 20 November, then replaced by G)\n\nThe case for it: nobody has to learn to hold it. It has everything a streaming box asks for (ring, OK, Back, Play), plus the house's own: a ring that turns for how much, Home that always means the house, four scene keys in the TV's colors that work with the screen off, and a key to talk.\n\nWhat it gives up: twelve things to press, the most of the three, and from across the room it looks like any remote. What makes it ours is what it does, not how it looks.\n\nThe arrows are on the pad inside the ring (20 November): the ring only turns, and the pad tilts to move and presses for OK, because the ring's part cannot tilt."
+  },
+  {
+   "id": "c",
+   "page": "remote-rejected",
+   "x": 1560,
+   "y": 2200,
+   "w": 520,
+   "text": "C — THE DIAL\n\nThe case for it: turning is the most natural way to say how much, and dimming feels like a real dimmer. It lives on its charging dish, so it is never lost or flat, and it glows faintly under itself so it is found in the dark. A second one makes a bedroom's control with no TV at all.\n\nWhat it gives up: no arrows, so walking a streaming box's grid of apps by turning is slow; for watching it is the weakest. Turning means moving or setting depending on a press, which has to be learned. It does not point and it is not for a lap."
+  },
+  {
+   "id": "lost",
+   "page": "remote-rejected",
+   "x": -620,
+   "y": 0,
+   "w": 520,
+   "text": "NOT CHOSEN\n\nThe bar was picked first and replaced the same day: the stone felt more like ours, and its gaps closed with a key on each side. The dial has no arrows, so a grid of apps is slow. D left the ring meaning two things with scenes still needing a voice; E and F put sound keys beside a ring that already turns. C's dish and A's shape were kept, in G."
+  },
+  {
+   "id": "stone-why",
+   "page": "remote",
+   "x": -620,
+   "y": 1100,
+   "w": 520,
+   "text": "WHY THIS PAGE EXISTS\n\n20 November 2026, after B was picked: on a second look, the stone is the one that feels like ours. The question is the stone with the bar's charging dish, and the keys the stone lacked put on its sides, if there is room.\n\nThere is room. At its widest the stone's flank is about 12 mm tall, enough for a 10 mm key or a 16 mm rocker on each side, without touching its top. The ring and pad are the same two parts as the bar's (Alps EC21A ring, Alps SKRH pad), at 46 mm and 30 mm. Presses while it is being lifted are ignored, which the motion sensor already knows.\n\nThe top stays as A drew it: the light, the talk key, the ring with its tilting pad, and Home."
+  },
+  {
+   "id": "d",
+   "page": "remote-rejected",
+   "x": 1560,
+   "y": 3300,
+   "w": 520,
+   "text": "D — BACK AND PLAY ON ITS SIDES\n\nThe case for it: the stone's two gaps for watching, closed by feel: Back under the fingers, Play under the palm. Home goes back to one job.\n\nWhat it gives up: the ring stays two things, the sound while a film plays and the light once the room is up, so it depends on what the screen shows. Scenes still need a voice. A key under the palm may be pressed just by holding it."
+  },
+  {
+   "id": "e",
+   "page": "remote-rejected",
+   "x": 1560,
+   "y": 4400,
+   "w": 520,
+   "text": "E — THE SOUND ON ITS SIDE, AND A KEY OF YOUR OWN\n\nThe case for it: the ring is only ever the light and the rocker only ever the sound, so neither changes the other by mistake, whatever the screen shows. One Favorite key runs the room's favorite scene without talking, which was the stone's biggest gap; held, it opens the choice of scene on the TV.\n\nWhat it gives up: Back stays a second press of Home and Play a press of OK. A rocker on one side favors one hand."
+  },
+  {
+   "id": "f",
+   "page": "remote-rejected",
+   "x": 1560,
+   "y": 5500,
+   "w": 520,
+   "text": "F — EVERYTHING ELSE ON ITS SIDES\n\nThe case for it: every job its own key (rocker on the right, Back and Favorite on the left), with the top still four things. Closest to the bar in what it does.\n\nWhat it gives up: three keys round a pebble are the most to press by accident and the most to find by feel, and two keys on one flank can be confused in the dark."
+  },
+  {
+   "id": "g",
+   "page": "remote",
+   "x": 1560,
+   "y": 1100,
+   "w": 520,
+   "text": "G — THE RING FOLLOWS WHAT IS PLAYING (chosen 20 November)\n\nDrawn 20 November, after asking whether the stone needs sound keys at all, given the ring. It does not, if the ring keeps one rule: the volume while a film or music plays, the lights otherwise, and whatever is lit once Home brings the room up. E's rocker is gone, and Favorite is mirrored, one on each side, for either hand.\n\nThe lights while something plays: hold Favorite and turn the ring. It has to be a side key, because the ring and the pad are under the same thumb; a finger holds the side key while the thumb turns. Favorite then decides on release: turned while held is the lights, a short press is the favorite scene, a long hold with no turn opens the choice of scene on the TV.\n\nWhat it gives up: what the ring turns depends on whether something plays, and holding Favorite for the lights has to be told once. The side keys may be pressed when the stone is picked up, which the motion sensor is there to ignore."
+  },
+  {
+   "id": "top-decided",
+   "page": "remote-top",
+   "x": -620,
+   "y": -760,
+   "w": 520,
+   "text": "DECIDED 20 NOVEMBER 2026 — H, WITH A 42 MM RING\n\nThe ring sits in a shallow dish in the stone's top, on caps 2.7 mm shorter, and is 42 mm across round the 30 mm pad. Flush at the ends, 0.5 mm proud at the sides, the stone about 22 mm at the dish's rim. Nothing on the board moves.\n\nNext: print the 42 mm cap for the ring rig and check a 5.5 mm ring turns easily under a thumb; the shorter caps and the dish come with the case (remote/stone-board/ in the hardware repository)."
+  },
+  {
+   "id": "top-why",
+   "page": "remote-top",
+   "x": -620,
+   "y": 0,
+   "w": 520,
+   "text": "WHY THIS PAGE EXISTS\n\n20 November 2026: placing the stone's board (remote/stone-board/ in the hardware repository) found that a flat 46 mm ring on the stone's curved top stands proud of it, by about 1.5 to 2 mm along the stone and 4 mm across it, because the dome falls much faster across the 66 mm width than along the 96 mm length. Asked to draw the dish against a flatter top.\n\nEvery board is cut through the ring's center at 6 px to the millimeter, from the board's own heights: board top 7.9 mm, the ring's part 9 mm above it, the battery underneath. The shell is still the height check's stand-in (an 11 mm upright side meeting a dome, 24 mm at the peak), so the numbers move a little when the case is drawn."
+  },
+  {
+   "id": "top-today",
+   "page": "remote-top",
+   "x": 1560,
+   "y": 0,
+   "w": 520,
+   "text": "TODAY\n\nThe ring and pad at the peak, 24.1 mm. Proud of the dome by 1.5 and 2.1 mm at the two ends of the ring, and 4.0 mm at its sides."
+  },
+  {
+   "id": "h",
+   "page": "remote-top",
+   "x": 1560,
+   "y": 1100,
+   "w": 520,
+   "text": "H — THE RING SITS IN A SHALLOW DISH, AND IS 42 MM ACROSS (chosen 20 November)\n\nThe case for it: the ring comes down 2.7 mm on shorter caps, and the top dips into a gentle bowl around it: a place for the thumb, flush (0.3 mm under the rim) at the ends, and with the ring at 42 mm instead of 46, only 0.5 mm proud at the sides, against 4.0 today and 1.3 with the 46 mm ring. The stone is 2 mm slimmer, at about 22 mm. Nothing on the board moves.\n\nWhat it gives up: the dome's peak; from the side the middle sits a little below the shoulders. 2.7 mm is as low as it goes: the ring's web under the pad thins to 0.8 mm and the pad's tilt keeps 1.3 mm under its edge. Round the same 30 mm pad, the ring is 5.5 mm wide to grip instead of 7.5.\n\nDrawn first at 46 mm; the 42 mm ring was the recommendation alongside it, and the one picked."
+  },
+  {
+   "id": "i",
+   "page": "remote-top-rejected",
+   "x": 1560,
+   "y": 0,
+   "w": 520,
+   "text": "I — THE TOP FLATTENS AROUND THE RING\n\nThe case for it: flush all round, the caps unchanged, the simplest to model and mold.\n\nWhat it gives up: across the stone the plateau has to fall from 24 mm to the side within a few millimeters, a shoulder; with a flat top it reads as a puck or a mouse rather than a pebble, and the plateau's edge is a new line on a top that was meant to have none."
+  },
+  {
+   "id": "j",
+   "page": "remote-top-rejected",
+   "x": 1560,
+   "y": 1100,
+   "w": 520,
+   "text": "J — THE RING'S TOP FOLLOWS THE DOME\n\nThe case for it: the shell and the silhouette do not change; the ring's top slopes 2.5 mm from its inner edge to its outer and the pad is crowned.\n\nWhat it gives up: the dome is not round, so the step changes round the ring, 1.0 and 0.4 mm under at the ends and 1.5 mm proud at the sides, and a turning ring makes that visible. A sloped ring is a little harder to turn with a flat thumb."
+  },
+  {
+   "id": "top-lost",
+   "page": "remote-top-rejected",
+   "x": -620,
+   "y": 0,
+   "w": 520,
+   "text": "NOT CHOSEN\n\nI kept the ring flush by flattening the top, and stopped being a pebble. J kept the outline but left a step that changes as the ring turns. H's dish keeps the shape and gives the thumb a seat, and the smaller ring took away most of what was left of its step."
+  }
+ ],
+ "reading": [
+  "decided",
+  "why",
+  "given",
+  "Today.dc.html",
+  "today",
+  "stone-why",
+  "StoneQuietG.dc.html",
+  "g",
+  "top-decided",
+  "top-why",
+  "RingToday.dc.html",
+  "top-today",
+  "RingDishH.dc.html",
+  "h",
+  "lost",
+  "StoneA.dc.html",
+  "a",
+  "BarB.dc.html",
+  "b",
+  "DialC.dc.html",
+  "c",
+  "StoneBackD.dc.html",
+  "d",
+  "StoneSoundE.dc.html",
+  "e",
+  "StoneAllF.dc.html",
+  "f",
+  "top-lost",
+  "RingFlatI.dc.html",
+  "i",
+  "RingCrownJ.dc.html",
+  "j"
+ ]
+}
