@@ -458,6 +458,96 @@
       "h": 900,
       "title": "As built: the hub on the drive",
       "page": "stick-try"
+    },
+    {
+      "file": "AfterToday-1.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: moving onto the drive",
+      "page": "after-move"
+    },
+    {
+      "file": "AfterToday-2.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: done, and the restart lands on the stick again",
+      "page": "after-move"
+    },
+    {
+      "file": "AfterToday-3.dc.html",
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: the move failed, and the screen says a try was picked",
+      "page": "after-move"
+    },
+    {
+      "file": "DoneA-1.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A: said before the restart",
+      "page": "after-move"
+    },
+    {
+      "file": "DoneB-1.dc.html",
+      "x": 1560,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "B1: waits for the stick to come out",
+      "page": "after-move"
+    },
+    {
+      "file": "DoneB-2.dc.html",
+      "x": 3120,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "B2: the stick taken out",
+      "page": "after-move"
+    },
+    {
+      "file": "DoneC-1.dc.html",
+      "x": 0,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "C1: said by the drive itself, on its first start, the stick still in",
+      "page": "after-move"
+    },
+    {
+      "file": "DoneC-2.dc.html",
+      "x": 1560,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "C2: the stick taken out, the line goes",
+      "page": "after-move"
+    },
+    {
+      "file": "FailA-1.dc.html",
+      "x": 0,
+      "y": 3900,
+      "w": 1440,
+      "h": 900,
+      "title": "A: said plainly, then it carries on from the stick",
+      "page": "after-move"
+    },
+    {
+      "file": "FailB-1.dc.html",
+      "x": 1560,
+      "y": 3900,
+      "w": 1440,
+      "h": 900,
+      "title": "B: asked, while somebody is at the keyboard",
+      "page": "after-move"
     }
   ],
   "annotations": [
@@ -668,6 +758,38 @@
       "y": 6500,
       "w": 500,
       "text": "AS BUILT (19 NOVEMBER 2026)\n\nThe screens the splash draws, in the words startup/sequence.mjs carries; startup/startup.test.mjs fails when they stop agreeing. Every answer is one line and one small line, so the small lines are shorter than AC1 and AC2 drew them. The card on a try says when it was set up and last used. Backspace goes back to the question with the same answer highlighted."
+    },
+    {
+      "id": "why-am",
+      "page": "after-move",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY (21 NOVEMBER 2026)\n\nOn the living room NUC the move was asked for and erase typed. The screen said Moving, and then:\n\n- When the copy failed, it said \"Starting a try from the USB stick. The drive stays as it is.\" The drive did not stay as it was: the copy had started, and it would no longer start by itself. Nothing on the screen said the move had failed.\n- When a move finished, nothing said so. The firmware started the stick again (it puts any USB stick first), and the stick asked about the hub on the drive, which read like being asked about a try.\n\nBeing told it is installed and to take the stick out was what was expected. (The restart now goes to the drive even with the stick left in; that part is behavior and needs no board.)"
+    },
+    {
+      "id": "done-am",
+      "page": "after-move",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "WHEN IT WORKED\n\nThree places to say so.\n\nA: before the restart, held for 8 seconds. Short, but it is said before anything proves the drive starts: the NUC's broken drive would have been told it was done.\n\nB: waits for the stick to come out, and starts the hub once it has (or after 2 minutes). The stick is in a hand, so it can't start again by mistake. Against: a box nobody is watching waits 2 minutes, and it is still said before the drive has started once.\n\nC: said by the drive, on its own first start, while a stick is still plugged in, and gone once it is taken out. It is only ever said when it is true, because only a drive that started can say it, and it sits on the 10-minute first start, when somebody is looking. Against: a drive that won't start says nothing at all, which is what the failure screens below are for."
+    },
+    {
+      "id": "fail-am",
+      "page": "after-move",
+      "x": -620,
+      "y": 3900,
+      "w": 500,
+      "text": "WHEN IT DIDN'T\n\nA: said plainly, then it carries on from the stick as a try, as it does today, and the phone says what happened. The drive is called partly written rather than unchanged.\n\nB: asked, when somebody is at the keyboard (they just typed erase, so they usually are): Try again, or Carry on from the USB stick. With no answer it does A. Without a keyboard (the phone asked for the move) it is A.\n\nEither way the reason is kept on the stick, so the phone, and we, can read why."
+    },
+    {
+      "id": "rec-am",
+      "page": "after-move",
+      "x": 3120,
+      "y": 2600,
+      "w": 500,
+      "text": "RECOMMENDED\n\nC for when it worked: only the drive that started can say it is done, so it is never said wrongly, and the stick is told to come out while somebody is watching the first start.\n\nB for when it didn't, falling back to A without a keyboard.\n\nOr something else: describe it."
     }
   ],
   "pages": [
@@ -710,6 +832,10 @@
         "chose": "A, with the Both board, every question in the keys-2 form",
         "board": "HybridAC-2.dc.html"
       }
+    },
+    {
+      "id": "after-move",
+      "name": "After the move: done, or not"
     }
   ]
 }
