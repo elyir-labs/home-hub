@@ -338,6 +338,14 @@ Do not reopen these, and do not propose around them.
   the one the screen showed, and the stick is never written, so one stick sets up hub after hub. Pinned by
   `app/tests/drive.test.ts`, `app/e2e/move-to-drive.spec.ts`, `brain/tests/test_drive.py` and the `moving_in`,
   `moving` and `describing` groups in `driver-layer/host/tests.sh`.
+  **The stick is never a hub, and the keys choose** (19 November, `design/move-to-drive/`, keys-2 A and C, stick-try A).
+  The stick sets hubs up or holds one try. Every question on it lists its answers as cards, each with its own letter;
+  the safe one starts highlighted, Up, Down, Tab or the wheel move the highlight, and Enter or the letter picks. Erase
+  still goes to the box where Enter erases only once *erase* is typed. Beside a drive with something on it and nobody
+  answering, a start becomes a try and restarts onto it. A try runs on an overlay over the stick's system, whose device
+  is read-only before anything mounts it (`x86-image/try-premount.sh`, `try-root.sh`, `host/try.sh`); a move takes the
+  try along and empties it. Pinned by the `trying`, `stick_root` and `growing` groups and by `x86-image/stick-e2e.sh`,
+  which starts the image as a USB stick beside a drive on every change to it.
 - **Leaving a house: erasing is on The hub, handing over is on People** (1 November, `design/leaving/`, B). Start over
   is the last row of The hub: behind the passcode, refused outright on a hub with none, only in the house, and a hold.
   It erases everything that is the house, keeps what is the unit's (what it updates from, its name on the network, its
