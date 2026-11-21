@@ -104,6 +104,8 @@ detach "$L"
 truncate -s 64M "$W/ctl.img"; mkfs.ext4 -q -F -L E2ECTL "$W/ctl.img"
 step() { mount -o loop "$W/ctl.img" "$W/mnt/b"; rm -rf "${W:?}/mnt/b/"*; cat > "$W/mnt/b/step.sh"; umount "$W/mnt/b"; }
 seen() { mount -o loop,ro "$W/ctl.img" "$W/mnt/b"; mkdir -p "$W/logs/$1"; cp -a "$W/mnt/b/." "$W/logs/$1/" 2>/dev/null; umount "$W/mnt/b"; }
+# A start that restarted before the test's step ran (move-early.sh's work) leaves nothing in its logs but the step.
+restarted_first() { [ -e "$W/logs/$1/boot.log" ] && echo no || echo yes; }
 got() { cat "$W/logs/$1/$2" 2>/dev/null | tr -d '\n'; }
 field() { python3 -c 'import json,sys
 try: print(json.dumps(json.loads(open(sys.argv[1]).read().strip().splitlines()[-1])[sys.argv[2]]))
@@ -166,22 +168,17 @@ b() {
 say "B: a drive with something on it: a try is made, kept across a restart, and Start over leaves no trace"
 fresh_stick; used_drive
 before="$(P1)"
+# Nobody answers at the keyboard, so move-early.sh makes a try before anything else runs and restarts onto it: this
+# start never gets as far as the test's step.
 step <<S
-$T status > before.json
-# The other half of the design (move-early.sh) makes the try on a start like this; here the test asks for it.
-if ! python3 -c 'import json,sys; sys.exit(not json.load(open("before.json"))["active"])'; then
-  mkdir -p /var/lib/home-hub; echo written-on-memory > /var/lib/home-hub/e2e-early
-  $T make; echo \$? > make.rc
-fi
-echo reboot > next
+echo poweroff > next
 S
 start B1 0 1
-is "a fresh stick starts on memory" "$(field B1 stick) $(field B1 active) $(field B1 present)" "true false false"
-is "...and the try is made" "$(got B1 make.rc)" "0"
+is "a fresh stick beside a drive with something on it makes a try first, and restarts onto it" "$(restarted_first B1)" "yes"
 is "the stick's system is unchanged by making it" "$(P1)" "$before"
 is "...the try has its own partition, after the system" "$(has_try "$W/stick.img")" "True"
 step <<S
-cat /var/lib/home-hub/e2e-early > early; echo kept-by-the-try > /var/lib/home-hub/e2e-proof
+echo kept-by-the-try > /var/lib/home-hub/e2e-proof
 findmnt -no FSTYPE /var/lib/docker > docker-fs
 systemctl start docker && docker load -i /var/lib/home-hub/preload/caddy.tar >/dev/null && docker run --rm --entrypoint caddy caddy:2 version > docker-run 2>&1
 docker info -f '{{.Driver}}' > docker-driver 2>&1
@@ -189,7 +186,6 @@ echo reboot > next
 S
 start B2 0 1
 is "the restart runs on the try, on this computer" "$(field B2 active) $(field B2 present) $(field B2 here) $(field B2 disk)" 'true true true "sda"'
-is "...with what the first start wrote before the try was made" "$(got B2 early)" "written-on-memory"
 is "...the root is the overlay, still named after the stick's system" "$(awk 'NR == 2 {print $1, $2}' "$W/logs/B2/boot.log")" "overlay /dev/sda1"
 is "...Docker's layers on the try's own filesystem, and a container runs" "$(got B2 docker-fs) $(grep -c -E '^v2' "$W/logs/B2/docker-run" 2>/dev/null)" "ext4 1"
 step <<S
@@ -201,14 +197,21 @@ start B3 0 1
 is "a file written on the try survives a restart" "$(got B3 proof)" "kept-by-the-try"
 is "...and so does the image Docker loaded" "$(got B3 images)" "1"
 is "Start over: cleared" "$(got B3 clear.rc)" "0"
+# Start over empties the try at the next start, and the stick is as flashed again; beside the same drive, that start
+# then makes a new try, as the very first one did.
 step <<S
-ls /var/lib/home-hub/e2e-proof /var/lib/home-hub/e2e-early > left 2>/dev/null; $T status > status.json
-systemctl start docker; docker image ls -q 2>/dev/null | wc -l > images
 echo poweroff > next
 S
 start B4 0 1
-is "...and after the restart, no trace: no file, no image, no try" "$(got B4 left)|$(got B4 images)|$(field B4 active) $(field B4 present)" "|0|false false"
-is "...the try's partition is empty" "$(try_holds "$W/stick.img")" ""
+is "...and the next start empties it, then makes a new one, as a fresh stick does" "$(restarted_first B4)" "yes"
+step <<S
+ls /var/lib/home-hub/e2e-proof > left 2>/dev/null; $T status > status.json
+systemctl start docker; docker image ls -q 2>/dev/null | wc -l > images
+echo poweroff > next
+S
+start B5 0 1
+is "...which holds no trace of the old one: no file, no image" "$(got B5 left)|$(got B5 images)|$(field B5 active)" "|0|true"
+is "...and is newer than it" "$(python3 -c 'import sys; print("newer" if int(sys.argv[1] or 0) > int(sys.argv[2] or 0) else "not newer")' "$(field B5 made)" "$(field B2 made)")" "newer"
 is "the stick's system is still as flashed" "$(P1)" "$before"
 
 }
@@ -219,10 +222,10 @@ say "C: a move from a try: the drive starts as that house, without an overlay, a
 fresh_stick; used_drive
 before="$(P1)"
 step <<S
-$T make; echo \$? > make.rc; echo reboot > next
+echo poweroff > next
 S
 start C1 0 1
-is "a new try is made" "$(got C1 make.rc)" "0"
+is "a new try is made by the first start" "$(restarted_first C1) $(has_try "$W/stick.img")" "yes True"
 step <<S
 echo the-house > /var/lib/home-hub/e2e-house
 systemctl start docker && docker load -i /var/lib/home-hub/preload/caddy.tar >/dev/null
