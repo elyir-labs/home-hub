@@ -99,6 +99,34 @@ export function wayBack(colors: boolean, box: string): string {
 }
 export const HANDOVER_MS = 2200
 
+/* A remote plugged into the hub while the box is on the TV. The hub's own screen is out of sight then, so no press may
+   act on it: the box's keys go to the box, and Home or a colored button brings the house back. The words are the
+   brain's (brain/hub/boxes.py KEYS), which turns them into whatever the box's integration calls them. */
+export type BoxKey = 'up' | 'down' | 'left' | 'right' | 'ok' | 'back' | 'play_pause' | 'play' | 'pause' | 'next' | 'previous'
+  | 'forward' | 'rewind' | 'louder' | 'quieter'
+const BOX_KEYS: Record<string, BoxKey> = {
+  ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+  Enter: 'ok', Select: 'ok', ' ': 'ok',
+  Escape: 'back', Backspace: 'back', BrowserBack: 'back', GoBack: 'back', Exit: 'back',
+  MediaPlayPause: 'play_pause', MediaPlay: 'play', MediaPause: 'pause', MediaTrackNext: 'next', MediaTrackPrevious: 'previous',
+  MediaFastForward: 'forward', MediaRewind: 'rewind', AudioVolumeUp: 'louder', AudioVolumeDown: 'quieter',
+}
+export const boxKeyOf = (key: string): BoxKey | null => BOX_KEYS[key] ?? null
+
+export type PassOn = { key: (k: BoxKey, repeat: boolean) => void; back: () => void }
+export const passTo = shallowRef<PassOn | null>(null)
+
+/* Keys go to the box one at a time, in the order pressed. A held arrow sends as fast as the box answers rather than as
+   fast as the key repeats, so letting go stops it where it is. */
+export function keySender(send: (k: BoxKey) => Promise<unknown>): PassOn['key'] {
+  let chain: Promise<unknown> = Promise.resolve(), waiting = 0
+  return (k, repeat) => {
+    if (repeat && waiting > 0) return
+    waiting++
+    chain = chain.then(() => send(k)).catch(() => {}).finally(() => { waiting-- })
+  }
+}
+
 const ORDER = ['light', 'cover', 'climate', 'media', 'fan', 'switch', 'lock']
 /* Everything in the room a person can do something to, in an order that never changes with its state:
    a light turned off from the sofa stays exactly where it was. Cameras have a row of their own. */
@@ -259,7 +287,17 @@ export function light(e: HTMLElement | null) {
 /* A screen that asks for a number takes the digits, and Back while there is one to take off. */
 export const typing = shallowRef<{ digit: (d: string) => void; back: () => boolean } | null>(null)
 
+/* A key as it is counted: the browser's name for it, with any of Control, Alt or Meta held, since some remotes send a
+   combination for one button. A key the browser cannot name keeps its code, so two such buttons still count apart. */
+export function keyName(e: Pick<KeyboardEvent, 'key' | 'code' | 'ctrlKey' | 'altKey' | 'metaKey'>): string {
+  const key = e.key === 'Unidentified' || !e.key ? `Unidentified:${e.code || '?'}` : e.key
+  const held = [e.ctrlKey && key !== 'Control' && 'Control', e.altKey && key !== 'Alt' && 'Alt', e.metaKey && key !== 'Meta' && 'Meta']
+  return [...held.filter(Boolean), key].join('+')
+}
+
 export type RemoteHooks = {
+  /* Every press, counted, with who had the TV. Never a held key's repeats, and never typing into a field. */
+  pressed?: (key: string, on: 'box' | 'house') => void
   /* Takes a press before anything else: the resting TV raising its band. True when it took it. */
   first?: (p: Press) => boolean
   back: () => boolean
@@ -288,6 +326,16 @@ export function installRemote(hooks: RemoteHooks): () => void {
   }
 
   function down(e: KeyboardEvent) {
+    const box = passTo.value
+    if (!e.repeat && (box || !typable(e.target as Element))) hooks.pressed?.(keyName(e), box ? 'box' : 'house')
+    if (box) {
+      e.preventDefault(); e.stopImmediatePropagation()
+      const p = pressOf(e.key)
+      if (p === 'home' || p === 'red' || p === 'green' || p === 'yellow' || p === 'blue') { if (!e.repeat) box.back(); return }
+      const k = boxKeyOf(e.key)
+      if (k) box.key(k, e.repeat)
+      return
+    }
     if (typable(e.target as Element)) {
       if (e.key === 'Escape') { (e.target as HTMLElement).blur(); e.preventDefault() }
       return
@@ -329,6 +377,7 @@ export function installRemote(hooks: RemoteHooks): () => void {
     move(p as Dir)
   }
   function up(e: KeyboardEvent) {
+    if (passTo.value) { e.preventDefault(); e.stopImmediatePropagation(); return }
     if (pressOf(e.key) !== 'ok' || typable(e.target as Element)) return
     e.preventDefault(); e.stopImmediatePropagation()
     if (!holding) return

@@ -121,6 +121,7 @@ class Hub:
         self.home.kinds = dict(self.settings.get("kinds") or {})   # what the owner said things are; kept in settings so a restore brings it back with the rest of the house
         self.home.color_pinned = set(self.settings.get("color_pinned") or [])   # and which lights somebody chose a color for, rather than leaving to the house
         self.home.watched = boxes.Watched(self.settings)
+        self.pressed = boxes.Pressed(self.settings)
         self.home.room_colors = {k: list(v) for k, v in (self.settings.get("room_colors") or {}).items()}
         self.home.speaker_pairs = list(self.settings.get("speaker_pairs") or [])
         self.home.off_home = set(self.settings.get("off_home") or [])   # what is never on Home, on any screen (design/home-keep/)
@@ -760,6 +761,14 @@ class Hub:
                 except Exception as e: log.warning("roofline: %s did not take %s (%s)", part.id, action, e)
             self.log.add("action", dev.id, None, action, source=source, detail={**data, **({"said": said} if said else {})} or None)
         if dev.capability != "camera" and dev.room_id in self.home.rooms: self.hold(self.home.rooms[dev.room_id])
+
+    async def press(self, dev, key: str):
+        """A key from a remote plugged into the hub, passed on to the box the TV is showing. Not logged and no hold on
+        the room: it is somebody finding their way around an app, not doing something to the house."""
+        remote = dev.attrs.get("keys") and self.home.box_remotes.get(dev.id)
+        command = remote and boxes.command_for(self.home.box_platform.get(dev.id, ""), key)
+        if not command: raise ValueError(f"{dev.name} doesn't take {key} from here.")
+        await self.ha.call("remote", "send_command", remote, command=command)
 
     async def rename_unit(self, dev, name: str):
         """Name the hardware a device is part of, and carry its parts along.
@@ -2523,6 +2532,31 @@ async def device_sense(device_id: str, body: dict | None = None):
     try: await hub.comfort.set_sensor(dev, (body or {}).get("sensor") or None)
     except ValueError as e: raise HTTPException(400, str(e))
     return {"ok": True, **hub.comfort.describe(dev.id)}
+
+
+@app.post("/devices/{device_id}/key")
+async def device_key(device_id: str, body: dict | None = None):
+    """A remote's key for the streaming box on the TV: {"key": "up"}. The words are the panel's (hub/boxes.py KEYS)."""
+    hub.ready()
+    dev = hub.home.devices.get(device_id)
+    if not dev: raise HTTPException(404, "unknown device")
+    try: await hub.press(dev, str((body or {}).get("key") or ""))
+    except ValueError as e: raise HTTPException(400, str(e))
+    return {"ok": True}
+
+
+@app.post("/remote/pressed")
+async def remote_pressed(body: dict | None = None):
+    """A key pressed on a remote plugged into the hub, counted: {"key": "ArrowUp", "on": "box" | "house"}."""
+    try: hub.pressed.count(str((body or {}).get("key") or ""), str((body or {}).get("on") or ""))
+    except ValueError as e: raise HTTPException(400, str(e))
+    return {"ok": True}
+
+
+@app.get("/remote/pressed")
+async def remote_pressed_counts():
+    """Which keys of a remote plugged into the hub get pressed: totals, most pressed first, and each day's."""
+    return hub.pressed.summary()
 
 
 @app.post("/devices/{device_id}/{action}")

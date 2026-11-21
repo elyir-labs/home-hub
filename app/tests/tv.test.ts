@@ -3,10 +3,10 @@
 /* The TV's rules (design/living-room/): which screens are TVs, what each remote's keys mean, where an arrow
    goes, what is in a room's row and in what order, and what OK and Up/Down ask of a thing. */
 import { readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { Device, Room } from '../src/api'
 import { activity } from '../src/store'
-import { appsOf, appTint, boxAsleep, boxIn, digitOf, hintFor, lastOn, leadsOf, musicIn, nearest, okOf, onTV, pressOf, RECORD_AFTER, restAfter, sceneFor, speakersOf, stateOf, thingsIn, wayBack } from '../src/tv'
+import { appsOf, appTint, boxAsleep, boxIn, boxKeyOf, digitOf, hintFor, installRemote, keyName, keySender, lastOn, leadsOf, musicIn, nearest, okOf, onTV, passTo, pressOf, RECORD_AFTER, restAfter, sceneFor, speakersOf, stateOf, thingsIn, wayBack } from '../src/tv'
 import { stepOf } from '../src/levels'
 import { SCENES, store } from '../src/store'
 
@@ -192,6 +192,75 @@ describe('a streaming box beside the TV', () => {
   it('gives an app the same tint every time, from a quiet set, never a logo', () => {
     expect(appTint('Netflix')).toBe(appTint('Netflix'))
     expect(appTint('Netflix')).toMatch(/^\d+, \d+, \d+$/)
+  })
+})
+
+describe('a remote plugged into the hub while the box has the TV', () => {
+  it('passes the box the keys it has a word for, and media and volume keys too', () => {
+    expect(['ArrowUp', 'Enter', 'Escape', 'BrowserBack'].map(boxKeyOf)).toEqual(['up', 'ok', 'back', 'back'])
+    expect(['MediaPlayPause', 'MediaFastForward', 'AudioVolumeUp'].map(boxKeyOf)).toEqual(['play_pause', 'forward', 'louder'])
+    expect(['F1', 'Home', '5'].map(boxKeyOf)).toEqual([null, null, null])
+  })
+
+  function pressing(keys: { key: string; repeat?: boolean }[], pressed = vi.fn()) {
+    const sent: string[] = [], back = vi.fn(), home = vi.fn(), color = vi.fn(), first = vi.fn(() => false)
+    const off = installRemote({ first, back: () => false, home, color, pressed })
+    passTo.value = { key: (k) => sent.push(k), back }
+    for (const k of keys) window.dispatchEvent(new KeyboardEvent('keydown', { key: k.key, repeat: !!k.repeat }))
+    passTo.value = null
+    off()
+    return { sent, back, home, color, first }
+  }
+  it('sends arrows, OK and Back to the box and never to the screen out of sight', () => {
+    const r = pressing([{ key: 'ArrowDown' }, { key: 'Enter' }, { key: 'Escape' }, { key: '7' }])
+    expect(r.sent).toEqual(['down', 'ok', 'back'])
+    expect(r.first).not.toHaveBeenCalled()      // a resting TV's band does not rise under the box
+  })
+  it('brings the house back on Home or any colored button, and starts no scene', () => {
+    for (const key of ['Home', 'F2', 'ColorF3Blue']) {
+      const r = pressing([{ key }])
+      expect(r.back).toHaveBeenCalledOnce()
+      expect(r.color).not.toHaveBeenCalled()
+      expect(r.home).not.toHaveBeenCalled()
+      expect(r.sent).toEqual([])
+    }
+  })
+  it('counts every press once, keys the box has no word for too, as pressed while the box had the TV', () => {
+    const pressed = vi.fn()
+    pressing([{ key: 'ArrowDown' }, { key: 'ArrowDown', repeat: true }, { key: '7' }, { key: 'Home' }], pressed)
+    expect(pressed.mock.calls).toEqual([['ArrowDown', 'box'], ['7', 'box'], ['Home', 'box']])
+  })
+  it('sends a held arrow only as fast as the box answers, in the order pressed', async () => {
+    const answered: string[] = []
+    let open!: () => void
+    const send = keySender(k => { answered.push(k); return answered.length === 1 ? new Promise<void>(r => { open = r }) : Promise.resolve() })
+    send('right', false)
+    send('right', true); send('right', true)   // repeats while the first is still on its way
+    send('ok', false)
+    await Promise.resolve()
+    open()
+    await new Promise(r => setTimeout(r, 0))
+    expect(answered).toEqual(['right', 'ok'])
+  })
+})
+
+describe('counting which keys of a remote get pressed', () => {
+  const k = (key: string, more: Partial<KeyboardEvent> = {}) => ({ key, code: '', ctrlKey: false, altKey: false, metaKey: false, ...more })
+  it('names a key as the browser does, with Control, Alt or Meta held, and keeps the code of one it cannot name', () => {
+    expect(keyName(k('ArrowUp'))).toBe('ArrowUp')
+    expect(keyName(k('F4', { altKey: true }))).toBe('Alt+F4')
+    expect(keyName(k('Control', { ctrlKey: true }))).toBe('Control')
+    expect(keyName(k('Unidentified', { code: 'Lang3' }))).toBe('Unidentified:Lang3')
+  })
+  it('counts presses on the house too, and never what is typed into a field', () => {
+    const pressed = vi.fn()
+    const off = installRemote({ back: () => false, home: vi.fn(), color: vi.fn(), pressed })
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }))
+    const field = document.body.appendChild(document.createElement('input'))
+    field.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }))
+    field.remove()
+    off()
+    expect(pressed.mock.calls).toEqual([['ArrowLeft', 'house']])
   })
 })
 

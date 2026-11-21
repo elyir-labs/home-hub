@@ -9,6 +9,7 @@ and back is the screen's own job, over HDMI (startup/cec.sh), because only the s
 
 Which integrations are boxes is the brain's to know; the panel only ever sees a player with apps."""
 import time
+from datetime import date
 
 # A TV with apps built in counts too (a Google TV is androidtv_remote). An LG TV's list mixes its HDMI inputs in with
 # its apps, so it waits until there is one to try it on.
@@ -25,9 +26,31 @@ WATCH_FIRST = ["Netflix", "YouTube", "Disney+", "Prime Video", "Max", "Hulu", "T
 
 USED_KEEP = 12
 
+# The keys a remote plugged into the hub passes on while the box is on the TV, in the panel's words, and what each
+# integration's remote calls them. A box whose integration is not here keeps its own remote and nothing is passed on.
+KEYS = {
+    "apple_tv": {"up": "up", "down": "down", "left": "left", "right": "right", "ok": "select", "back": "menu",
+                 "play_pause": "play_pause", "play": "play", "pause": "pause", "next": "next", "previous": "previous",
+                 "forward": "skip_forward", "rewind": "skip_backward", "louder": "volume_up", "quieter": "volume_down"},
+}
+
 
 def is_box(entity: dict) -> bool:
     return entity.get("entity_id", "").startswith("media_player.") and entity.get("platform") in BOXES
+
+
+def remotes_of(entities: list[dict]) -> dict[str, str]:
+    """Each box that takes keys, and the remote that sends them: the integration's remote on the same hardware."""
+    found = {}
+    for e in entities:
+        if not is_box(e) or e.get("platform") not in KEYS or not e.get("device_id"): continue
+        found[e["entity_id"]] = next((r["entity_id"] for r in entities if r["entity_id"].startswith("remote.")
+                                      and r.get("device_id") == e["device_id"] and r.get("platform") == e["platform"]), None)
+    return {eid: r for eid, r in found.items() if r}
+
+
+def command_for(platform: str, key: str) -> str | None:
+    return KEYS.get(platform, {}).get(key)
 
 
 def apps_of(attrs: dict) -> list[str]:
@@ -74,3 +97,33 @@ class Watched:
         if app in apps: self._use(eid, app)
         self._keep()
         return True
+
+
+PRESSED_KEEP = 120     # days
+
+class Pressed:
+    """How often each key of a remote plugged into the hub is pressed, a day at a time, and whether the box had the TV
+    or the house did. It is there to learn which keys a remote of our own needs (design/remote/): nothing on the hub
+    acts on it, and it is read by a person deciding that. Keys are named as the screen's browser names them, so one it
+    cannot name still shows up, as Unidentified."""
+
+    def __init__(self, settings, today=lambda: date.today().isoformat()):
+        self.settings = settings
+        self.today = today
+        self.days = {d: {on: dict(keys) for on, keys in by.items()} for d, by in (settings.get("pressed") or {}).items()}
+
+    def count(self, key: str, on: str):
+        if on not in ("box", "house") or not key or len(key) > 40 or not key.isprintable():
+            raise ValueError("That is not a key.")
+        keys = self.days.setdefault(self.today(), {}).setdefault(on, {})
+        keys[key] = keys.get(key, 0) + 1
+        for old in sorted(self.days)[:-PRESSED_KEEP]: del self.days[old]
+        self.settings.set(pressed=self.days)
+
+    def summary(self) -> dict:
+        total: dict[str, dict[str, int]] = {}
+        for by in self.days.values():
+            for on, keys in by.items():
+                for k, n in keys.items(): total.setdefault(on, {})[k] = total.get(on, {}).get(k, 0) + n
+        most = {on: dict(sorted(keys.items(), key=lambda kv: (-kv[1], kv[0]))) for on, keys in total.items()}
+        return {"since": min(self.days, default=None), "total": most, "days": dict(sorted(self.days.items()))}

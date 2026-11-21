@@ -19,7 +19,7 @@ import { lastTurn } from './thisScreen'
 import CodePrompt from './CodePrompt.vue'
 import Keys from './Keys.vue'
 import { onWall } from './keys'
-import { installRemote, musicIn, onTV, RECORD_AFTER, restAfter, sceneFor, type Press } from './tv'
+import { installRemote, musicIn, onTV, passTo, RECORD_AFTER, restAfter, sceneFor, type Press } from './tv'
 import TvView from './views/TvView.vue'
 import DoorCorner from './DoorCorner.vue'
 import TvRecord from './TvRecord.vue'
@@ -29,6 +29,7 @@ import TvRest from './TvRest.vue'
 import { bedtime, loadRestPhotos, localDay, nightOf, reportScreen, rest, SLEEP_AFTER } from './restTv'
 import { sleepTv } from './thisScreen'
 import type { Device } from './api'
+import { countPress } from './api'
 import { lock } from './code'
 import Sky from './Sky.vue'
 import ArtDefs from './ArtDefs.vue'
@@ -343,9 +344,10 @@ let unremote: (() => void) | undefined
 async function rejoin() { halt(); await start() }                       // this screen just joined: read the house and reconnect
 function checkIdle() {
   // a page that is the whole screen is a question waiting for its answer (joining, which room), so it never rests under the clock
+  // nor while a streaming box has the TV: the house is out of sight, and is what comes back when it is done
   const quiet = Date.now() - lastTouch
   const wait = restAfter(IDLE_AFTER, !!tvMusic.value, !!store.opened || !!store.musicPane || !!store.glowSetup)
-  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && !shut.value && quiet > wait) idle.value = true
+  if (!idle.value && kiosk.matches && !store.viewer && !store.sheet && !setup.value && !shut.value && !passTo.value && quiet > wait) idle.value = true
   if (idle.value && tvBand.value && tvMusic.value && quiet > RECORD_AFTER) tvBand.value = false
   forgetDone(idle.value)   // and the stale ones either way, for a screen that never rests
   if (idle.value) lastTurn.value = null   // This screen's Put it back, by the same rule
@@ -366,7 +368,7 @@ onMounted(() => {
   start()
   window.addEventListener('pointerdown', touched, { capture: true })
   window.addEventListener('keydown', touched, { capture: true })   // before the remote, which stops the keys it takes
-  if (tv) unremote = installRemote({ first: remote, back: remoteBack, home: remoteHome, color: remoteColor })
+  if (tv) unremote = installRemote({ first: remote, back: remoteBack, home: remoteHome, color: remoteColor, pressed: countPress })
   tick = window.setInterval(() => (now.value = new Date()), 10000)
   idler = window.setInterval(checkIdle, 5000)
   document.addEventListener('visibilitychange', looked)

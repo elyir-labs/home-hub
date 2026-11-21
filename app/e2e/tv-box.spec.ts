@@ -30,7 +30,7 @@ async function tv(page: Page, withBox = true, colors = false) {
     const res = await r.fetch(), home = await res.json()
     for (const room of home.rooms) for (const d of room.devices) {
       if (d.id === 's1') d.state = 'idle'
-      if (d.id === 'm1') { if (!withBox) delete d.attrs.box; else { d.state = 'standby'; box = d } }
+      if (d.id === 'm1') { if (!withBox) delete d.attrs.box; else { d.state = 'standby'; d.attrs.keys = true; box = d } }
     }
     await r.fulfill({ response: res, json: home })
   })
@@ -112,4 +112,38 @@ test('a TV with no box beside it opens on its room, as before', async ({ page })
   await tv(page, false)
   await expect(page.locator('.tv-row h2').first()).toHaveText('In the living room')
   await expect(lit(page)).toContainText('Ceiling light')
+})
+
+/* A remote plugged into the hub while the box has the TV (the Apple TV over the network, brain/hub/boxes.py KEYS). */
+const keys = () => asked.filter(a => a.startsWith('/devices/m1/key')).map(a => JSON.parse(a.split(' ')[1]).key)
+
+test('while the box has the TV, a remote plugged into the hub works the box and nothing on the hidden screen; Home brings the house back', async ({ page }) => {
+  await tv(page)
+  await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('Enter')
+  await expect.poll(() => shown).toEqual(['box'])
+  await expect(page.locator('.tv-handover')).toHaveCount(0)
+  boxSays('on', 'Netflix')
+  const before = asked.length
+  for (const k of ['ArrowDown', 'ArrowDown', 'Enter', 'Escape', 'MediaPlayPause']) await page.keyboard.press(k)
+  await expect.poll(keys).toEqual(['down', 'down', 'ok', 'back', 'play_pause'])
+  expect(asked.slice(before).filter(a => !a.startsWith('/devices/m1/key'))).toEqual([])   // no light toggled out of sight
+  await page.keyboard.press('Home')
+  await expect.poll(() => shown).toEqual(['box', 'house'])
+  await expect(lit(page)).toContainText('Netflix')
+  await page.keyboard.press('ArrowDown')
+  await page.waitForTimeout(200)
+  expect(keys()).toHaveLength(5)                     // the house again: the arrow is the panel's
+})
+
+test('a box woken by its own remote, found on the TV over HDMI, is worked by the remote plugged into the hub too', async ({ page }) => {
+  await tv(page)
+  tvSays = { showing: 'elsewhere', colors: false }
+  boxSays('on', null)
+  await page.waitForTimeout(3500)
+  await page.keyboard.press('ArrowLeft')
+  await expect.poll(keys).toEqual(['left'])
+  await page.keyboard.press('F1')                    // a colored button: back to the house, and no scene
+  await expect.poll(() => shown).toEqual(['house'])
+  expect(asked.filter(a => a.includes('/scenes') || a.includes('/rooms'))).toEqual([])
 })
