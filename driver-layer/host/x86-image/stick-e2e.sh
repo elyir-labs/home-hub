@@ -70,6 +70,8 @@ C=/run/hub-e2e; mkdir -p "$C"
 mount LABEL=E2ECTL "$C" 2>/dev/null || exit 0
 cd "$C" || exit 0
 { date +%s; findmnt -no FSTYPE,SOURCE /; /opt/home-hub/driver-layer/host/try.sh status; } > boot.log 2>&1
+s="$(findmnt -no SOURCE /run/home-hub-try/lower 2>/dev/null)"
+[ -n "$s" ] && { echo "read-only=$(cat "/sys/class/block/${s##*/}/ro")"; dumpe2fs -h "$s" 2>/dev/null | grep -E '^(Last write time|Lifetime writes)'; } > stick-sb.log 2>&1
 rm -f next; bash ./step.sh > step.log 2>&1; echo "rc=$?" >> step.log
 { cat /proc/cmdline; findmnt -rno TARGET,SOURCE,FSTYPE,OPTIONS; dmesg; } > system.log 2>&1
 journalctl -b --no-pager -o short-monotonic > journal.log 2>&1
@@ -111,6 +113,8 @@ field() { python3 -c 'import json,sys
 try: print(json.dumps(json.loads(open(sys.argv[1]).read().strip().splitlines()[-1])[sys.argv[2]]))
 except Exception: print("none")' "$W/logs/$1/boot.log" "$2"; }
 
+# When the stick's system superblock was last written, read from outside after a start.
+sb_written() { local l; l="$(attach "$W/stick.img" ro)"; dumpe2fs -h "${l}p1" 2>/dev/null | sed -n 's/^Last write time: *//p'; detach "$l"; }
 # One start. $1 names it in the logs; the stick and the drive come with their boot priority, or "-" when not plugged in.
 start() {
   local name="$1" stick="$2" drive="$3" args=()
@@ -124,6 +128,7 @@ start() {
   echo "-- start $name"
   timeout "${E2E_START_TIMEOUT:-900}" qemu-system-x86_64 "${args[@]}" || echo "   (qemu: $?)"
   seen "$name"
+  [ "$stick" != - ] && echo "   | the stick's system, last written: $(sb_written)"
   grep -h -E 'home-hub|hub-e2e' "$W/logs/$name.serial" | tail -n 15 | sed 's/^/   | /'
 }
 fresh_stick() { cp --sparse=always "$W/base.img" "$W/stick.img"; truncate -s 16G "$W/stick.img"; cp "$VARS" "$W/vars.fd"; }
