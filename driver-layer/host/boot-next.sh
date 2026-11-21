@@ -8,7 +8,8 @@
 #                               for it once, on the next start (BootNext)
 #   boot-next.sh gone           the hub is on its drive, so the stick's entry goes
 #   boot-next.sh drive <disk>   the next start is the hub on that drive (stick-try: a stick started beside it, and
-#                               Start the hub on the drive picked): its own entry, or one made for it outside the order
+#                               Start the hub on the drive picked; or the hub just moved there): its own entry, or one
+#                               made for it outside the order
 #
 # BootNext is used once and leaves BootOrder alone, so the system already on the drive keeps its place, and pulling
 # the stick starts it as before. Nothing here ever changes BootOrder.

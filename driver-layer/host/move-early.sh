@@ -153,7 +153,8 @@ quiet rw
 rm -f "$VAR/move.request"
 if [ "$ok" -eq 0 ]; then
   log "moved; restarting from $TARGET. The stick is untouched and can set up another hub."
-  boot_next gone
+  # Asked for by name, so firmware that puts any USB stick first still starts the new hub, with the stick left in.
+  boot_next gone; boot_next drive "$TARGET"
   sync; systemctl --no-block reboot 2>/dev/null || reboot
 else
   [ -n "$ASKED" ] && echo "The hub couldn't move onto the drive, so it's still running from the USB stick. Nothing on the drive was changed until the copy started." > "$VAR/move.failed"

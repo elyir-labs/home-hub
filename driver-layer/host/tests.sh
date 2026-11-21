@@ -1270,6 +1270,7 @@ SH
   is "erase typed: the system moves there" "$(asked '^move sda nvme0n1$') $(asked 'systemctl --no-block reboot')" "1 1"
   is "...the answer is kept, with the drive's serial, so the phone never asks it" "$(told answer) $(told serial)" "erase S6P7NS0T"
   is "...and the stick's start-next entry goes once it has moved" "$(asked '^boot-next gone$') $(asked '^boot-next stick')" "1 0"
+  is "...and the restart is the new hub on the drive, even with the stick left in" "$(asked '^boot-next drive nvme0n1$')" "1"
   fresh; ANSWER=erase MOVE_FAILS=1 early
   is "erase typed and the copy failed: said, and it carries on in a try, coming back to the stick after a restart" "$([ -s "$var/move.failed" ] && echo said) $(asked '^try make$') $(asked '^boot-next stick sda$')" "said 1 1"
   fresh; ANSWER=try early
