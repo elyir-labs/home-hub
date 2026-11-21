@@ -37,6 +37,10 @@ BYTES="$(sfdisk -J "/dev/$SRC" | python3 -c 'import json,sys
 p=json.load(sys.stdin)["partitiontable"]
 print(max(x["start"]+x["size"] for x in p["partitions"] if x.get("name") != "hub-try")*p.get("sectorsize",512))')"
 [ "$(blockdev --getsize64 "/dev/$DST")" -ge "$BYTES" ] || { log "$DST is too small for this system"; exit 1; }
+# A filesystem on the drive that is in use can't be given its own id, and finding that out after the copy leaves a
+# drive that starts nothing.
+IN_USE="$(lsblk -lno MOUNTPOINTS "/dev/$DST" 2>/dev/null | grep -v '^$' | tr '\n' ' ' || true)"
+[ -z "$IN_USE" ] || { log "$DST is in use ($IN_USE), so nothing was written to it"; exit 1; }
 dd if="/dev/$SRC" of="/dev/$DST" bs=4M count="$BYTES" iflag=count_bytes conv=fsync status=none
 sfdisk --relocate gpt-bak-std "/dev/$DST" >/dev/null
 # The stick's table names its try, whose bytes were not copied.

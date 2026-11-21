@@ -1526,6 +1526,10 @@ SH
   is "a fresh stick brings no try along" "$(asked '^rsync ') $(asked '^growpart ')" "0 0"
   SIZE=1000 move
   is "a drive too small for the system is refused before anything is written" "$(asked '^dd ')" "0"
+  printf '#!/usr/bin/env bash\n[ -n "${IN_USE:-}" ] && printf "\\n/boot\\n"\nexit 0\n' > "$bin/lsblk"; chmod +x "$bin/lsblk"
+  IN_USE=1 move
+  is "a drive with a filesystem in use is refused before anything is written" "$(asked '^dd ') $(grep -c 'in use (/boot )' "$root/out")" "0 1"
+  rm -f "$bin/lsblk"
 
   # Running on the stick's try: the try's partition is listed after the system on the stick, and is not copied as one.
   mkdir -p "$root/try/part/docker"; echo try > "$root/try/state"; date +%s > "$root/try/part/made"
@@ -1647,12 +1651,12 @@ SH
 # does, which is let the stick's own system be written.
 stick_root() {
   group "a start from the stick runs on an overlay over the stick's system, never on the system itself"
-  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin" "$root/sys/devices/usb/sda/sda1" "$root/sys/devices/usb/sda/sda2" "$root/sys/class/block"
-  touch "$root/sys/devices/usb/sda/sda1/partition"
+  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin" "$root/sys/devices/usb/sda/sda1" "$root/sys/devices/usb/sda/sda15" "$root/sys/devices/usb/sda/sda16" "$root/sys/devices/usb/sda/sda2" "$root/sys/class/block"
+  touch "$root/sys/devices/usb/sda/sda1/partition" "$root/sys/devices/usb/sda/sda15/partition" "$root/sys/devices/usb/sda/sda16/partition"
   ln -s ../../devices/usb/sda/sda1 "$root/sys/class/block/sda1"; ln -s ../../devices/usb/sda "$root/sys/class/block/sda"
   cat > "$bin/blkid" <<'SH'
 #!/bin/sh
-case "$5" in /dev/sda1) echo "${LABEL:-cloudimg-rootfs}" ;; /dev/sda2) [ -e "$FAKES/sys/devices/usb/sda/sda2/partition" ] && echo hub-try ;; esac
+case "$5" in /dev/sda1) echo "${LABEL:-cloudimg-rootfs}" ;; /dev/sda15) echo UEFI ;; /dev/sda16) echo BOOT ;; /dev/sda2) [ -e "$FAKES/sys/devices/usb/sda/sda2/partition" ] && echo hub-try ;; esac
 exit 0
 SH
   cat > "$bin/mount" <<'SH'
@@ -1686,6 +1690,7 @@ SH
   is "...Docker's and containerd's layers on a filesystem of their own" "$(asked "mount -o bind $root/run/hht/fresh/docker $root/rootmnt/var/lib/docker") $(asked "mount -o bind $root/run/hht/fresh/containerd $root/rootmnt/var/lib/containerd")" "1 1"
   is "...and says what it started on, for try.sh" "$(cat "$root/run/hht/state") $(cat "$root/run/hht/disk") $(cat "$root/run/hht/system")" "fresh sda /dev/sda1"
   is "the fstab it starts with has no root line, and the stick's boot partitions read-only and unchecked" "$(grep -c 'cloudimg-rootfs' "$root/run/hht/fstab") $(awk '$2 ~ /^\/boot/ {printf "%s %s ", $4, $6}' "$root/run/hht/fstab")" "0 defaults,ro,noload 0 umask=0077,ro 0 "
+  is "...named by the stick's own partitions, so a half-moved drive's BOOT and UEFI are never mounted in their place" "$(awk '$2 ~ /^\/boot/ {printf "%s ", $1}' "$root/run/hht/fstab")" "/dev/sda16 /dev/sda15 "
   is "...in place of the stick's own, which is never edited" "$(asked "mount -o bind $root/run/hht/fstab $root/rootmnt/etc/fstab") $(grep -c cloudimg-rootfs "$root/rootmnt/etc/fstab")" "1 1"
   is "...and nothing ever mounts the stick's system writable" "$(never_rw)" "0"
 
