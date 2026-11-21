@@ -9,7 +9,7 @@ case "${1:-}" in prereqs) echo "$PREREQ"; exit 0 ;; esac
 # shellcheck disable=SC1091
 . /usr/share/initramfs-tools/hook-functions
 manual_add_modules overlay ext4
-for t in blkid e2fsck mke2fs; do copy_exec "/usr/sbin/$t" "/usr/sbin/$t"; done
+for t in blkid blockdev e2fsck mke2fs; do copy_exec "/usr/sbin/$t" "/usr/sbin/$t"; done
 copy_exec /usr/bin/mount /usr/sbin/mount
 copy_exec /usr/bin/umount /usr/sbin/umount
 copy_file config /etc/mke2fs.conf /etc/mke2fs.conf

@@ -1712,8 +1712,12 @@ SH
 
   # Before the root is mounted: the initramfs's own check would write the stick's superblock.
   premount() { rm -f "$root/param.conf"; HUB_PATH="$bin:$PATH" FAKES="$root" ROOT="$1" HUB_PARAM_CONF="$root/param.conf" sh "$HERE/x86-image/try-premount.sh"; cat "$root/param.conf" 2>/dev/null; }
+  printf '#!/bin/sh\necho "blockdev $*" >> "$FAKES/asked"\n' > "$bin/blockdev"; chmod +x "$bin/blockdev"
+  rm -f "$root/asked"
   is "the stick's system is never checked before it is mounted" "$(premount /dev/sda1)" "fastboot=y"
-  is "...a drive copy is, as before" "$(LABEL=hub-root premount /dev/sda1)" ""
+  is "...and its device is read-only before anything mounts it" "$(asked 'blockdev --setro /dev/sda1')" "1"
+  rm -f "$root/asked"
+  is "...a drive copy is checked and written, as before" "$(LABEL=hub-root premount /dev/sda1) $(asked blockdev)" " 0"
   rm -rf "${root:?}"
 }
 
