@@ -17,7 +17,9 @@ case "${ROOT:-}" in
   ?*) dev="$(blkid -l -o device -t "$ROOT" 2>/dev/null)" ;;
   *) dev="" ;;
 esac
-[ -n "$dev" ] && [ "$(blkid -o value -s LABEL "$dev" 2>/dev/null)" = cloudimg-rootfs ] || exit 0
-blockdev --setro "$dev" || echo "home-hub: the stick's system could not be made read-only" > /dev/kmsg 2>/dev/null
+say() { echo "home-hub: $*" > /dev/kmsg 2>/dev/null || true; }
+[ -n "$dev" ] && [ "$(blkid -o value -s LABEL "$dev" 2>/dev/null)" = cloudimg-rootfs ] || { say "premount: ${ROOT:-no root} is not the stick's system"; exit 0; }
+blockdev --setro "$dev" || say "the stick's system could not be made read-only"
 echo "fastboot=y" >> "${HUB_PARAM_CONF:-/conf/param.conf}"
+say "premount: the stick's system ($dev) is read-only and not checked"
 exit 0
