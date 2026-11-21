@@ -22,8 +22,8 @@
 #
 # The x86 image (x86-image/) is written to a USB stick and booted on the NUC. Moving off the stick onto
 # the computer's drive happens before this runs (host/move-early.sh, at the start of the boot); by the
-# time first boot gets here the hub is wherever it is staying, and its root filesystem is grown to fill
-# that disk.
+# time first boot gets here the hub is wherever it is staying. On a drive its root filesystem is grown to fill
+# the disk; on the stick it is not, because the stick's system stays as flashed and its free space is the try's.
 set -euo pipefail
 MARK=${HUB_FIRSTBOOT_MARK:-/var/lib/home-hub/firstboot.done}
 CONF=${HUB_CONF:-/etc/home-hub.conf}
@@ -92,7 +92,9 @@ else
   usb_first
 fi
 
-if [ "${HUB_IMAGE:-}" = x86 ]; then
+if [ "${HUB_IMAGE:-}" = x86 ] && [ -e "${HUB_TRY_RUN:-/run/home-hub-try}/state" ]; then
+  log "running from the USB stick: its system is left as it was flashed"
+elif [ "${HUB_IMAGE:-}" = x86 ]; then
   SYS_BLOCK="${HUB_SYS_BLOCK:-/sys/block}"
   ROOT_PART="$(findmnt -no SOURCE /)"
   ROOT_DISK="$(lsblk -no PKNAME "$ROOT_PART" | head -1)"
