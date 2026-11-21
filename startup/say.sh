@@ -6,12 +6,17 @@
 # Each step calls it as the step starts, so the line under the house is never a guess. With no splash up -- an
 # update, a hub with no screen, an install by hand -- it does nothing, quietly.
 #
-#   say.sh step preparing|moving|unpacking|setting|downloading|starting|keeping|unasked
+#   say.sh step preparing|moving|unpacking|setting|downloading|starting|trying|unasked|clearing|todrive
 #   say.sh first      at the very start of a boot: marks it a first start, and says it is getting ready
 #   say.sh end        once the hub answers: a first start ends on where to go next, any other start as it always has
-#   say.sh ask-drive <drive.sh describe's JSON>
-#                     asks on the screen what to do with the drive (design/move-to-drive/, screen-asks) and prints
-#                     erase, keep, or nothing when nobody answered in time; exits 3 with no splash to ask on
+#   say.sh ask <kind> <letters> [<drive.sh describe JSON>] [<try.sh status JSON>]
+#                     asks a question on the screen (design/move-to-drive/: keys-2 and stick-try) with the answers
+#                     <letters> names, in that order, and prints what was picked, or nothing when nobody answered:
+#                       drive (T E)    try | erase           the drive isn't empty
+#                       here (C D S)   carry | move | over   a try made on this computer
+#                       away (N B)     new | bring           a try from another computer
+#                       hub (H T R)    drive | try | erase   a hub already on the drive
+#                     exits 3 with no splash to ask on
 set -uo pipefail
 # Letters, not bytes: spelling a · or a ’ a byte at a time sends the splash halves it has no picture for. Early in a
 # boot nothing has set a locale yet.
@@ -120,15 +125,37 @@ files = f"{size(used)} of files" if used else ""
 if system and hub: lost = f"{system}, the hub on it with its house, and {files}" if files else f"{system} and the hub on it with its house"
 elif system and files: lost = f"{system} and {files}"
 else: lost = system or files or "everything on it"
-print(f"{model} · {size(d.get("bytes") or 0)}")
-print((system or "Something the hub can\u2019t read") + (", with a hub on it" if hub else ""))
+if sys.argv[2:] == ["hub"]:
+    print("A hub on this computer\u2019s drive")
+    print(f"{model} · {size(d.get("bytes") or 0)}")
+else:
+    print(f"{model} · {size(d.get("bytes") or 0)}")
+    print((system or "Something the hub can\u2019t read") + (", with a hub on it" if hub else ""))
 print(rest)
-print(f"This erases {lost}.")' "$1"
+print(f"This erases {lost}.")' "$@"
+}
+# A try's card (design/move-to-drive/, stick-try): when it was set up and last used, from try.sh status.
+try_words() {
+  python3 -c 'import json, sys, time
+t = json.loads(sys.argv[2] or "{}")
+def day(e): return time.strftime("%-d %B" if time.localtime(e).tm_year == time.localtime().tm_year else "%-d %B %Y", time.localtime(e))
+def ago(e):
+    days = int((time.time() - e) // 86400)
+    return "today" if days < 1 else "yesterday" if days < 2 else f"{days} days ago" if days < 30 else "in " + day(e)
+made, last = t.get("made"), t.get("last")
+if sys.argv[1] == "here":
+    print(f"Your try, set up {day(made)}" if made else "Your try")
+    print(f"Last used {ago(last)}" if last else "Kept on the USB stick")
+    print(" · kept on the USB stick" if last else "")
+else:
+    print("A try from another computer")
+    print(f"Set up {day(made)}" if made else "Kept on the USB stick")
+    print(f" · last used {ago(last)}" if last else "")' "$1" "$2"
 }
 
 case "${1:-}" in
   step)
-    case "${2:-}" in preparing|moving|unpacking|setting|downloading|starting|keeping|unasked) ;; *) echo "say.sh: no step called ${2:-}" >&2; exit 2 ;; esac
+    case "${2:-}" in preparing|moving|unpacking|setting|downloading|starting|trying|unasked|clearing|todrive) ;; *) echo "say.sh: no step called ${2:-}" >&2; exit 2 ;; esac
     up && tell "elyir:step:$2" ;;
   first)
     [ -e "$DONE" ] && exit 0
@@ -152,24 +179,75 @@ case "${1:-}" in
       fi
       sleep "${ELYIR_FOLLOW_EVERY:-5}"
     done ;;
-  ask-drive)
+  ask)
     up || exit 3
-    words="$(drive_words "${2:-}")" || exit 3
-    { IFS= read -r model; IFS= read -r sys; IFS= read -r rest; IFS= read -r warn; } <<< "$words"
-    spell dmodel "$model"; spell dsys "$sys"; spell drest "$rest"; spell dwarn "$warn"
-    tell "elyir:drive:ask"
-    end=$(( $(date +%s) + ${ELYIR_ASK_FOR:-120} )); answer=""
-    while :; do
+    kind="${2:-}"; letters="${3:-}"; drive="${4:-}"; try="${5:-}"
+    case "$kind" in drive) safe=T; wait=120 ;; here) safe=C; wait=30 ;; away) safe=B; wait=120 ;; hub) safe=H; wait=120 ;;
+      *) echo "say.sh: no question called $kind" >&2; exit 2 ;; esac
+    [ -n "$letters" ] || exit 2
+    wait="${ELYIR_ASK_FOR:-$wait}"
+    coproc KEYS { exec python3 "$HERE/keys.py"; }
+    # The card's words: the drive's own (drive), the hub found on it (hub), or the try's (here, away). The erase page's
+    # card is always the drive, spelled into fields of its own once the question is up, so turning to it is instant.
+    card() {
+      local m s r w
+      case "$1" in
+        here|away) { IFS= read -r m; IFS= read -r s; IFS= read -r r; } <<< "$(try_words "$1" "$try")" ;;
+        *) { IFS= read -r m; IFS= read -r s; IFS= read -r r; } <<< "$(drive_words "$drive" "$1")" ;;
+      esac
+      spell dmodel "$m"; spell dsys "$s"; spell drest "$r"
+      [ -n "$drive" ] || return 0
+      { IFS= read -r m; IFS= read -r s; IFS= read -r r; IFS= read -r w; } <<< "$(drive_words "$drive" drive)"
+      erase_card=("$m" "$s" "$r" "$w")
+    }
+    at() { local p="${letters%%"$1"*}"; [ "$p" = "$letters" ] && echo -1 || echo "${#p}"; }
+    typed=""; page=choose; answer=""; erase_card=()
+    pick=$(at "$safe"); [ "$pick" -ge 0 ] || pick=0
+    n=${#letters}
+    card "$kind"
+    tell "elyir:ask:$kind"
+    for ((i = 0; i < n; i++)); do tell "elyir:opt:$kind:${letters:i:1}"; done
+    tell "elyir:pick:$pick"
+    if [ -n "$drive" ]; then
+      spell emodel "${erase_card[0]}"; spell esys "${erase_card[1]}"; spell erest "${erase_card[2]}"; spell dwarn "${erase_card[3]}"
+    fi
+    to_page() { page="$1"; tell "elyir:page:$1"; }
+    # What a letter does here: an answer, or the box for erase, or starting over said plainly.
+    act() {
+      case "$kind:$1" in
+        drive:T|hub:T) answer=try ;;
+        drive:E|hub:R) typed=""; tell "elyir:dtyped"; to_page erase ;;
+        here:C) answer=carry ;;
+        here:D) if [ "$(python3 -c 'import json,sys; print(1 if json.loads(sys.argv[1] or "{}").get("empty") else 0)' "$drive" 2>/dev/null)" = 1 ]
+                then answer=move; else typed=""; tell "elyir:dtyped"; to_page erase; fi ;;
+        here:S) to_page over ;;
+        away:N) answer=new ;;
+        away:B) answer=bring ;;
+        hub:H) answer=drive ;;
+      esac
+    }
+    back() { to_page choose; }
+    end=$(( $(date +%s) + wait ))
+    while [ -z "$answer" ]; do
       left=$(( end - $(date +%s) )); [ "$left" -gt 0 ] || break
-      got="$(timeout "$left" plymouth ask-question --prompt=elyir-drive 2>/dev/null)" || break
-      case "${got,,}" in
-        "") answer=keep; break ;;
-        erase) answer=erase; break ;;
-        *) tell "elyir:drive:again" ;;
+      IFS= read -r -t "$left" -u "${KEYS[0]}" key || { [ $? -gt 128 ] && break; sleep 1; continue; }
+      end=$(( $(date +%s) + wait ))
+      case "$page:$key" in
+        choose:up) pick=$(( (pick + n - 1) % n )); tell "elyir:pick:$pick" ;;
+        choose:down|choose:tab) pick=$(( (pick + 1) % n )); tell "elyir:pick:$pick" ;;
+        choose:enter) act "${letters:pick:1}" ;;
+        choose:?) L="${key^^}"
+                  case "$letters" in *"$L"*) pick=$(at "$L"); tell "elyir:pick:$pick"; act "$L" ;; esac ;;
+        erase:?) [ "${#typed}" -lt 12 ] && { typed="$typed$key"; spell dtyped "$typed"; } ;;
+        erase:back) if [ -z "$typed" ]; then back; else typed="${typed%?}"; spell dtyped "$typed"; fi ;;
+        erase:enter) [ "$typed" = erase ] && case "$kind" in here) answer=move ;; *) answer=erase ;; esac ;;
+        over:enter) answer=over ;;
+        over:back) back ;;
       esac
     done
-    tell "elyir:drive:done"
+    kill "$KEYS_PID" 2>/dev/null
+    tell "elyir:ask:done"
     echo "$answer" ;;
-  *) echo "usage: $0 step <name> | first | end | ask-drive <drive>" >&2; exit 2 ;;
+  *) echo "usage: $0 step <name> | first | end | ask <kind> <letters> [<drive>] [<try>]" >&2; exit 2 ;;
 esac
 exit 0

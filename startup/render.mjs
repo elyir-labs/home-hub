@@ -9,8 +9,8 @@
 // It borrows the panel's Playwright (app/node_modules) to draw; PLAYWRIGHT=<path to the package's
 // index.mjs> points it at another copy.
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { COLOR, NAME, HOUSE, TIME, SLOW, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, DRIVE, DRIVE_AT, MODEM } from './sequence.mjs'
-import { THEME, K, NAME_FRAMES, fingerprint, themeFile, timingSh, script, glyphFile, smallFile, driveFile, DRIVE_SETS } from './plymouth.mjs'
+import { COLOR, NAME, HOUSE, TIME, SLOW, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, ASK, ASK_AT, MODEM } from './sequence.mjs'
+import { THEME, K, NAME_FRAMES, fingerprint, themeFile, timingSh, script, glyphFile, smallFile, driveFile, DRIVE_SETS, optionFile } from './plymouth.mjs'
 
 const OUT = new URL(`plymouth/${THEME}/`, import.meta.url)
 const from = process.env.PLAYWRIGHT ?? new URL('../app/node_modules/playwright/index.mjs', import.meta.url).href
@@ -119,38 +119,69 @@ await piece('or-addr.png', SCAN.orAddr, WORDS.or.color, 400, WORDS.or)
 await piece('or-addr-after.png', SCAN.orAddrAfter, WORDS.or.color, 400, WORDS.or)
 for (const c of GLYPHS) await piece(smallFile(c), c, WORDS.or.value, WORDS.or.weight, WORDS.or)
 
-// Asked on the screen at the start (design/move-to-drive/, screen-asks): the fixed parts are pictures, and the drive's
-// own words are set from letters in the sizes and colors the card, the warning and the typed word use.
+// Asked on the screen at the start (design/move-to-drive/: screen-asks, keys-2, stick-try): the fixed parts are pictures,
+// each answer drawn twice (highlighted and not), and the card's own words are set from letters in the sizes and colors
+// the card, the warning and the typed word use.
 const at = (w) => ({ size: w.size, top: w.top, color: w.color })
-await across('drive-ask.png', at(DRIVE_AT.title), DRIVE.ask)
-await across('drive-sure.png', at(DRIVE_AT.title), DRIVE.sure)
-await across('drive-undone.png', at(DRIVE_AT.warn), DRIVE.undone)
-await across('drive-foot.png', at(DRIVE_AT.foot), DRIVE.foot)
-await across('drive-ready.png', WORDS.ready, DRIVE.ready)
-await across('drive-scan.png', WORDS.scan, DRIVE.scan)
-const c = DRIVE_AT.card
-await shoot('drive-card.png', c.width * K, c.height * K, `<div style="box-sizing:border-box;width:${c.width * K}px;height:${c.height * K}px;
+const A = ASK_AT
+for (const [kind, q] of Object.entries(ASK.kinds)) {
+  await across(`ask-${kind}-title.png`, at(A.title), q.title)
+  await across(`ask-${kind}-foot.png`, at(A.foot), q.foot)
+}
+await across('ask-hint.png', A.hint, ASK.hint)
+await across('drive-sure.png', at(A.title), ASK.sure)
+await across('over-title.png', at(A.title), ASK.over.title)
+await across('drive-type.png', at(A.type), ASK.type.replace('<b>', `<b style="font-weight:500;color:#f1eee8">`))
+await across('drive-undone.png', at(A.warn), ASK.undone)
+await across('drive-ready.png', WORDS.ready, ASK.ready)
+await across('drive-scan.png', WORDS.scan, ASK.scan)
+const c = A.card
+const cardBg = (icon, bg) => `<div style="box-sizing:border-box;width:${c.width * K}px;height:${c.height * K}px;
   padding:0 ${26 * K}px;border-radius:${16 * K}px;background:#15161a;border:${K}px solid #26272c;display:flex;align-items:center">
-  <span style="width:${52 * K}px;height:${52 * K}px;border-radius:${12 * K}px;background:#1f2025;display:grid;place-items:center">
-  <svg width="${28 * K}" height="${28 * K}" viewBox="0 0 24 24" fill="none" stroke="#d9d5cd" stroke-width="1.6" stroke-linecap="round">
-  <rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 12h.01M11 12h6"/></svg></span></div>`)
+  <span style="width:${52 * K}px;height:${52 * K}px;border-radius:${12 * K}px;background:${bg};display:grid;place-items:center">${icon}</span></div>`
+await shoot('drive-card.png', c.width * K, c.height * K, cardBg(`<svg width="${28 * K}" height="${28 * K}" viewBox="0 0 24 24" fill="none"
+  stroke="#d9d5cd" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 12h.01M11 12h6"/></svg>`, '#1f2025'))
+await shoot('home-card.png', c.width * K, c.height * K, cardBg(`<svg width="${28 * K}" height="${28 * K}" viewBox="0 0 24 24" fill="none"
+  stroke="#e9b872" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/>
+  <circle cx="12" cy="14.5" r="1.6" fill="#e9b872" stroke="none"/></svg>`, '#2a2219'))
+const ch = A.choices
+for (const [kind, q] of Object.entries(ASK.kinds)) for (const o of q.options) for (const on of [0, 1]) {
+  await shoot(optionFile(kind, o.key, on), ch.width * K, ch.height * K, `<div style="box-sizing:border-box;width:${ch.width * K}px;
+    height:${ch.height * K}px;padding:0 ${22 * K}px;border-radius:${14 * K}px;display:flex;gap:${18 * K}px;align-items:center;
+    font-family:'Instrument Sans',sans-serif;line-height:1.35;${on ? `border:${2 * K}px solid #e9b872;background:#17181c;color:#f1eee8`
+      : `border:${K}px solid #26272c;background:#101114;color:#d9d5cd`}">
+    <span style="flex:none;width:${44 * K}px;text-align:center;box-sizing:border-box;padding:${6 * K}px 0;border-radius:${9 * K}px;
+      border:${K}px solid ${on ? '#e9b872' : '#3a3b41'};border-bottom-width:${3 * K}px;font-size:${18 * K}px;font-weight:500;
+      color:${on ? '#e9b872' : '#f1eee8'};background:#1b1c20">${o.key}</span>
+    <span style="font-size:${21 * K}px;white-space:nowrap">${o.text}<small style="display:block;margin-top:${2 * K}px;
+      font-size:${18 * K}px;color:#8f8b84">${o.small}</small></span></div>`)
+}
 const keyRows = (rows, width) => `<div style="width:${width * K}px;font-family:'Instrument Sans',sans-serif">${rows.map((r) =>
   `<div style="display:flex;align-items:baseline;gap:${18 * K}px;margin-bottom:${20 * K}px;font-size:${21 * K}px;color:#d9d5cd;line-height:1.35">
   <span style="flex:none;min-width:${84 * K}px;text-align:center;box-sizing:border-box;padding:${6 * K}px ${12 * K}px;border-radius:${9 * K}px;
   border:${K}px solid #3a3b41;border-bottom-width:${3 * K}px;font-size:${18 * K}px;font-weight:500;color:#f1eee8;background:#1b1c20">${r.cap}</span>
-  <span>${r.text.replace(/<b>/g, '<b style="font-weight:500;color:#f1eee8">')}${r.small ? `<small style="display:block;margin-top:${2 * K}px;font-size:${18 * K}px;color:#8f8b84">${r.small}</small>` : ''}</span></div>`).join('')}</div>`
+  <span>${r.text}</span></div>`).join('')}</div>`
 const tall = async (html, width) => page.evaluate(([html, w]) => {
   const d = document.createElement('div'); d.style.cssText = `position:absolute;width:${w}px`; d.innerHTML = html
   document.body.appendChild(d); const h = d.getBoundingClientRect().height; d.remove(); return Math.ceil(h)
 }, [html, width])
-for (const [file, rows, w] of [['drive-keys.png', DRIVE.keys, DRIVE_AT.keys.width], ['drive-sure-keys.png', DRIVE.sureKeys, DRIVE_AT.sureKeys.width]]) {
+for (const [file, rows, w] of [['drive-sure-keys.png', ASK.sureKeys, A.keys.width], ['drive-back-key.png', ASK.backKey, A.keys.width],
+  ['over-keys.png', ASK.over.keys, A.overKeys.width]]) {
   const html = keyRows(rows, w)
   await shoot(file, w * K, await tall(html, w * K), html)
 }
-const e = DRIVE_AT.entry, k = DRIVE_AT.caret
+const ow = `<div style="width:${1400 * K}px;text-align:center;${font(A.warn)};line-height:1.45;color:${A.warn.color}">${ASK.over.warn}</div>`
+await shoot('over-warn.png', 1400 * K, await tall(ow, 1400 * K), ow)
+const e = A.entry, k = A.caret
 await shoot('drive-entry.png', e.width * K, e.height * K, `<div style="box-sizing:border-box;width:${e.width * K}px;height:${e.height * K}px;
   border-radius:${12 * K}px;border:${K}px solid ${k.color};background:#15161a"></div>`)
 await shoot('drive-caret.png', k.width * K, k.height * K, `<div style="width:${k.width * K}px;height:${k.height * K}px;background:${k.color}"></div>`)
+const holdFont = `font:400 ${e.size * K}px/1.3 'Instrument Sans',sans-serif;letter-spacing:${e.spacing}em`
+const holdW = await page.evaluate(([t, f]) => {
+  const span = document.createElement('span'); span.style.cssText = `${f};white-space:pre;position:absolute`; span.textContent = t
+  document.body.appendChild(span); const w = span.getBoundingClientRect().width; span.remove(); return w
+}, [ASK.placeholder, holdFont])
+await shoot('drive-hold.png', Math.round(holdW), e.size * 1.3 * K, `<div style="white-space:pre;${holdFont};color:${e.hold}">${ASK.placeholder}</div>`)
 const letter = async (file, ch, w) => {
   const f = `font:${w.weight || 400} ${w.size * K}px/1.3 'Instrument Sans',sans-serif;letter-spacing:${w.spacing || 0}em`
   const width = await page.evaluate(([t, f]) => {
@@ -159,7 +190,7 @@ const letter = async (file, ch, w) => {
   }, [ch, f])
   await shoot(file, Math.max(1, Math.round(width)), w.size * 1.3 * K, `<div style="white-space:pre;${f};color:${w.color}">${ch}</div>`)
 }
-for (const [set, key] of Object.entries(DRIVE_SETS)) for (const ch of GLYPHS) await letter(driveFile(set, ch), ch, DRIVE_AT[key])
+for (const [set, key] of Object.entries(DRIVE_SETS)) for (const ch of GLYPHS) await letter(driveFile(set, ch), ch, ASK_AT[key])
 
 // Ready on a cable into the modem (design/modem-cable/, C): a smaller tile for the left column, the lines that are
 // always the same, the drawing of the cable, the split between the two answers, and the words beside the drawing.

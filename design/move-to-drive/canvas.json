@@ -188,6 +188,276 @@
       "h": 900,
       "title": "C1: no answer at the keyboard, so the phone will ask",
       "page": "screen-asks"
+    },
+    {
+      "file": "Keys2Today-1.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: Enter, to get to the typing, keeps the drive",
+      "page": "keys-2"
+    },
+    {
+      "file": "PickA-1.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A1: one key for each answer",
+      "page": "keys-2"
+    },
+    {
+      "file": "PickA-2.dc.html",
+      "x": 1560,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A2: Enter on its own only says which keys",
+      "page": "keys-2"
+    },
+    {
+      "file": "PickA-3.dc.html",
+      "x": 3120,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A3: E pressed, and a box to type into",
+      "page": "keys-2"
+    },
+    {
+      "file": "PickA-4.dc.html",
+      "x": 4680,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A4: erase typed, Enter now erases",
+      "page": "keys-2"
+    },
+    {
+      "file": "BoxB-1.dc.html",
+      "x": 0,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "B1: a box from the start, two words",
+      "page": "keys-2"
+    },
+    {
+      "file": "BoxB-2.dc.html",
+      "x": 1560,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "B2: Enter on an empty box",
+      "page": "keys-2"
+    },
+    {
+      "file": "ArrowC-1.dc.html",
+      "x": 0,
+      "y": 3900,
+      "w": 1440,
+      "h": 900,
+      "title": "C1: arrows move the highlight, Enter picks",
+      "page": "keys-2"
+    },
+    {
+      "file": "TryToday-1.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: in another computer, the stick is the last house",
+      "page": "stick-try"
+    },
+    {
+      "file": "TryToday-2.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: back where its hub is on the drive, it turns off",
+      "page": "stick-try"
+    },
+    {
+      "file": "TryA-1.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A1: the same computer: carry on, put it on the drive, or start over",
+      "page": "stick-try"
+    },
+    {
+      "file": "TryA-2.dc.html",
+      "x": 1560,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A2: start over, said plainly",
+      "page": "stick-try"
+    },
+    {
+      "file": "TryA-3.dc.html",
+      "x": 3120,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A3: another computer: a new hub, or the try brought here",
+      "page": "stick-try"
+    },
+    {
+      "file": "TryA-4.dc.html",
+      "x": 4680,
+      "y": 1300,
+      "w": 1440,
+      "h": 900,
+      "title": "A4: moved onto a drive, the stick is fresh again",
+      "page": "stick-try"
+    },
+    {
+      "file": "TryB-1.dc.html",
+      "x": 0,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "B1: the same computer carries on, with a way out",
+      "page": "stick-try"
+    },
+    {
+      "file": "TryB-2.dc.html",
+      "x": 1560,
+      "y": 2600,
+      "w": 1440,
+      "h": 900,
+      "title": "B2: another computer starts a new hub, with a way to keep the try",
+      "page": "stick-try"
+    },
+    {
+      "file": "OnDrive-1.dc.html",
+      "x": 0,
+      "y": 3900,
+      "w": 1440,
+      "h": 900,
+      "title": "Both: this computer already has a hub on its drive",
+      "page": "stick-try"
+    },
+    {
+      "file": "HybridAC-1.dc.html",
+      "x": 0,
+      "y": 5200,
+      "w": 1440,
+      "h": 900,
+      "title": "AC1: the highlight or the letter, either one",
+      "page": "keys-2"
+    },
+    {
+      "file": "HybridAC-2.dc.html",
+      "x": 1560,
+      "y": 5200,
+      "w": 1440,
+      "h": 900,
+      "title": "AC2: the same form for a try found on this computer",
+      "page": "keys-2"
+    },
+    {
+      "file": "BuiltDrive-1.dc.html",
+      "x": 0,
+      "y": 6500,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: the drive isn't empty",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltHere-1.dc.html",
+      "x": 1560,
+      "y": 6500,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: a try made here",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltAway-1.dc.html",
+      "x": 3120,
+      "y": 6500,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: a try from another computer",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltHub-1.dc.html",
+      "x": 4680,
+      "y": 6500,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: a hub already on the drive",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltErase-1.dc.html",
+      "x": 0,
+      "y": 7800,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: the box, waiting for erase",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltErase-2.dc.html",
+      "x": 1560,
+      "y": 7800,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: erase typed",
+      "page": "stick-try"
+    },
+    {
+      "file": "BuiltOver-1.dc.html",
+      "x": 3120,
+      "y": 7800,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: start over",
+      "page": "stick-try"
+    },
+    {
+      "file": "StepTrying-1.dc.html",
+      "x": 4680,
+      "y": 7800,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: a try, picked",
+      "page": "stick-try"
+    },
+    {
+      "file": "StepUnasked-1.dc.html",
+      "x": 0,
+      "y": 9100,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: a try, nobody answered",
+      "page": "stick-try"
+    },
+    {
+      "file": "StepClearing-1.dc.html",
+      "x": 1560,
+      "y": 9100,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: starting over",
+      "page": "stick-try"
+    },
+    {
+      "file": "StepToDrive-1.dc.html",
+      "x": 3120,
+      "y": 9100,
+      "w": 1440,
+      "h": 900,
+      "title": "As built: the hub on the drive",
+      "page": "stick-try"
     }
   ],
   "annotations": [
@@ -294,6 +564,110 @@
       "y": 2600,
       "w": 500,
       "text": "DECIDED 18 NOVEMBER 2026\n\nC, with BootNext. On the first start from the stick, beside a drive with something on it, a keyboard gets A's question before anything is written; no keyboard, or no answer in 2 minutes, and the screen says the phone will ask (C1), and Ready says so too (B1). An answer at the keyboard is kept (drive.screen) and the phone never asks it again. Every start from the stick while the hub hasn't moved asks the firmware for the stick next (BootNext), and never changes BootOrder.\n\nChanged on building it: Esc is Plymouth's own key (it swaps the splash for the boot log on a real screen) and never reaches the theme, so going back is Backspace, which takes a letter off erase (A2 says so). Between the question and erase, the letters typed so far show in the field under the card, with the question's title and foot. The warning breaks before \"It can't be undone.\" so the drive's own words can be set from letters on one line.\n\nStill placeholders: the 2 minutes and the \"about 4 minutes\" for the move, until they are timed on the NUC.\n\nWHICH ONE\n\nRecommendation: C, with BootNext.\n\nA is what was asked for, and on a NUC with a keyboard it removes the phone from the most dangerous question there is. B on its own repeats the failure that started this: a question only a phone can answer, on a hub a phone could not reach. C keeps A's question and B's sentence for the box with no keyboard, so nobody is left looking at a screen that never says a decision is waiting.\n\nOr something else: describe it, and I'll draw it."
+    },
+    {
+      "id": "why-k2",
+      "page": "keys-2",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY (19 NOVEMBER 2026)\n\nOn the first real NUC with a keyboard, the question was read as a set of instructions for a later step: \"type erase\" sounded like something the next screen would ask for, and nothing on the screen looked like a place to type. Enter was pressed to get there, and Enter on its own meant keep. The drive was kept without anybody choosing to keep it.\n\nTwo things went wrong: a choice with no visible place to make it, and a key everybody presses to move on that silently answered the question."
+    },
+    {
+      "id": "a-k2",
+      "page": "keys-2",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "A: ONE KEY EACH, THEN A BOX\n\nThe question names one key per answer: E to put the hub on the drive, T to try it from the stick. Nothing else answers; Enter on its own puts a line under the keys saying which ones do (A2). E opens the confirm page, where an empty box with a caret and a faint \"erase\" says where the typing goes (A3); Enter there only erases once erase is in the box (A4). Backspace goes back.\n\nFOR: a choice and a confirm, like every installer. The dangerous word is only ever typed into a box that is visibly waiting for it.\n\nCOST: plymouth watch-keystroke --keys for the first page (one key, no Enter), ask-question for the box as now. Keep becomes Try (page stick-try)."
+    },
+    {
+      "id": "b-k2",
+      "page": "keys-2",
+      "x": -620,
+      "y": 2600,
+      "w": 500,
+      "text": "B: THE BOX IS ALWAYS THERE\n\nOne page: a box under the card from the start, with both words above it. Type erase or try, then Enter. Enter on an empty box says to type a word first (B2). Erase still goes to the confirm page.\n\nFOR: one page fewer, and the box is impossible to miss.\n\nAGAINST: typing \"try\" to choose the harmless answer is odd, and two typed words are slower than one key."
+    },
+    {
+      "id": "c-k2",
+      "page": "keys-2",
+      "x": -620,
+      "y": 3900,
+      "w": 500,
+      "text": "C: ARROWS AND A HIGHLIGHT\n\nTwo cards, Try highlighted to start; the arrow keys move the highlight and Enter picks. Put the hub on the drive goes to A3's box.\n\nFOR: what a computer's own setup screens look like.\n\nAGAINST: Enter still picks whatever is highlighted, which is how this went wrong; Try starting highlighted makes that harmless, but it is still a pick nobody meant. And the arrow keys reach Plymouth as escape sequences, like Esc, which never reaches the theme: unproven until tried on the NUC."
+    },
+    {
+      "id": "pick-k2",
+      "page": "keys-2",
+      "x": 1560,
+      "y": 0,
+      "w": 500,
+      "text": "WHICH ONE\n\nRecommendation: A. Nothing is chosen by Enter alone, and the box appears only when there is something to type."
+    },
+    {
+      "id": "why-t",
+      "page": "stick-try",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY (19 NOVEMBER 2026)\n\nA stick is the way to set up hubs, and the way to try one on a computer whose drive shouldn't be erased yet. Today a try turns the stick into that hub for good: its house, Wi-Fi and pairing live on the stick. Plugged into another computer it starts as the same house (a copy, if the first one was moved onto a drive). Plugged back into a computer whose drive has its hub, it turns off with a line only the boot log shows.\n\nThe stick should never be a hub. It should be an installer that can also hold one try."
+    },
+    {
+      "id": "behind-t",
+      "page": "stick-try",
+      "x": 6240,
+      "y": 1300,
+      "w": 500,
+      "text": "BEHIND BOTH\n\nThe stick's system is never written. The image starts with its root read-only and a second, writable layer on top (Ubuntu's overlayroot, in the initramfs), on its own partition of the stick: the try. Everything a try changes lands in that layer.\n\n- The try remembers the computer it was made on (the firmware's product UUID and the drive's serial) and when it was last used, and what it holds, for the card.\n- Start over: the layer is emptied. The stick is as flashed.\n- Put it on the drive: the move copies the system plus the try, as one, then empties the try on the stick. A house is never left on the stick once it is somewhere else, so no stick can make a second copy of a house.\n- An empty drive: as today, the move happens at the start without asking, and the stick stays fresh.\n- A fresh stick in a computer whose drive has a hub: the question on the Both board, instead of turning off.\n\nNo keyboard: the same computer carries on; another computer carries on too (nothing is cleared without someone asking), and This hub on the phone has Start over beside Put it on the drive."
+    },
+    {
+      "id": "a-t",
+      "page": "stick-try",
+      "x": -620,
+      "y": 1300,
+      "w": 500,
+      "text": "A: ASKED WHENEVER A TRY IS FOUND\n\nThe same computer: carry on (the default after 30 seconds), put it on this drive (house and all, after erase is typed), or start over (A1, A2). Another computer: start a new hub here, or bring the try (A3). Once a try is on a drive, the stick says it is fresh again (A4).\n\nFOR: what was asked for on the same computer, and the same choice everywhere else. Nothing is cleared without somebody pressing a key.\n\nCOST: one more splash question (the same keys as keys-2 A), and the overlay layer behind both."
+    },
+    {
+      "id": "b-t",
+      "page": "stick-try",
+      "x": -620,
+      "y": 2600,
+      "w": 500,
+      "text": "B: THE SAME COMPUTER CARRIES ON BY ITSELF\n\nNo question on the same computer: it carries on, and S in the first 10 seconds starts over (B1). Another computer starts a new hub, clearing the try in 10 seconds unless B is pressed (B2).\n\nFOR: no question in the way of a restart.\n\nAGAINST: on another computer a try is cleared by nobody answering, which is wrong for a box with no keyboard. Putting a try on the drive is only on the phone."
+    },
+    {
+      "id": "pick-t",
+      "page": "stick-try",
+      "x": 1560,
+      "y": 3900,
+      "w": 500,
+      "text": "WHICH ONE\n\nRecommendation: A, with the Both board for a fresh stick beside a drive that has a hub."
+    },
+    {
+      "id": "decided-k2",
+      "page": "keys-2",
+      "x": -620,
+      "y": 5200,
+      "w": 500,
+      "text": "DECIDED 19 NOVEMBER 2026\n\nA and C together. Every question on the stick lists its answers as cards, each with its own letter. The safe answer starts highlighted (Try, Carry on, Start the hub on the drive). Up and down, Tab, or a mouse wheel move the highlight and Enter picks it, or the letter picks at once. Put the hub on a drive always goes to A3's box, where Enter erases only once erase is typed, and Backspace on an empty box goes back.\n\nBUILT THIS WAY: Plymouth 24 reads a USB keyboard through evdev and drops keys that make no character, so the arrows never reach the theme or `plymouth watch-keystroke`. It doesn't grab the device, so the hub reads the keyboards itself (startup/keys.py) for every question: arrows, Tab, the wheel, Enter, Backspace and the letters (US layout), and the splash only draws. Esc stays Plymouth's own key (it shows the boot log)."
+    },
+    {
+      "id": "decided-t",
+      "page": "stick-try",
+      "x": 1560,
+      "y": 5200,
+      "w": 500,
+      "text": "DECIDED 19 NOVEMBER 2026\n\nA, with the Both board for a fresh stick beside a drive that has a hub, every question in the keys-2 form (AC2). The card says when the try was set up and last used, not devices and rooms, which the stick can't read before the house starts."
+    },
+    {
+      "id": "built-t",
+      "page": "stick-try",
+      "x": -620,
+      "y": 6500,
+      "w": 500,
+      "text": "AS BUILT (19 NOVEMBER 2026)\n\nThe screens the splash draws, in the words startup/sequence.mjs carries; startup/startup.test.mjs fails when they stop agreeing. Every answer is one line and one small line, so the small lines are shorter than AC1 and AC2 drew them. The card on a try says when it was set up and last used. Backspace goes back to the question with the same answer highlighted."
     }
   ],
   "pages": [
@@ -318,6 +692,24 @@
     {
       "id": "move-rejected",
       "name": "Moving a hub off its USB stick: not chosen"
+    },
+    {
+      "id": "keys-2",
+      "name": "The keyboard question, round 2: Enter never decides",
+      "decided": {
+        "on": "2026-11-19",
+        "chose": "A and C together: the highlight or the letter",
+        "board": "HybridAC-1.dc.html"
+      }
+    },
+    {
+      "id": "stick-try",
+      "name": "The USB stick is a try, never the hub",
+      "decided": {
+        "on": "2026-11-19",
+        "chose": "A, with the Both board, every question in the keys-2 form",
+        "board": "HybridAC-2.dc.html"
+      }
     }
   ]
 }

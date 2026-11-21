@@ -79,8 +79,10 @@ export const FIRST = {
   setting: { line: 'Setting up the hub' },
   downloading: { line: 'Downloading the rest of the hub' },
   starting: { line: 'Starting the house for the first time' },
-  keeping: { line: 'Keeping the drive as it is', quiet: 'The hub runs from the USB stick. Leave it plugged in. You can move it later on This hub.' },
-  unasked: { line: 'Starting from the USB stick for now', quiet: 'The drive hasn’t been touched. Your phone asks what to do with it when you set up the hub.' },
+  trying: { line: 'Starting a try from the USB stick', quiet: 'The drive stays as it is. It restarts once, then carries on.' },
+  unasked: { line: 'Starting a try from the USB stick', quiet: 'No answer, so the drive stays as it is. It restarts once, and your phone asks about the drive.' },
+  clearing: { line: 'Starting over', quiet: 'Clearing the try from the USB stick. It restarts once.' },
+  todrive: { line: 'Starting the hub on the drive', quiet: 'It restarts into it. The USB stick can stay in.' },
 }
 export const FIRST_BREATH = { period: 2.4, low: 0.45, blend: 1.5 }
 
@@ -106,40 +108,88 @@ export const SCAN = {
 }
 export const GLYPHS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-. ·,’()/+_:'
 
-// Asked on the screen at the start (design/move-to-drive/, screen-asks: C with BootNext, decided 18 November 2026).
-// On a first start from the stick, beside a drive with something on it, and with a keyboard plugged in, the splash
-// names the drive and asks before anything is written. Placed in the boards' space, as KeysA-1 and KeysA-2 draw it.
-// Esc is Plymouth's own (it shows the boot log), so going back is Backspace: the typed erase loses a letter.
-export const DRIVE = {
-  ask: 'This computer’s drive isn’t empty',
+// Asked on the screen at the start (design/move-to-drive/: screen-asks, C with BootNext, 18 November 2026; keys-2, A and
+// C together, and stick-try, A, 19 November 2026). On a start from the USB stick the splash can ask four questions, each
+// with a card and its answers as cards, every answer with its own letter: the arrows, Tab or a mouse wheel move the
+// highlight, which starts on the safe answer, and Enter picks it, or the letter picks at once. Putting the hub on a
+// drive with anything on it goes to a box where Enter erases only once erase is typed, and Backspace on an empty box
+// goes back. Placed in the boards' space, as HybridAC-1, HybridAC-2 and the Ask boards draw it. Esc is Plymouth's own
+// (it shows the boot log), so going back is Backspace.
+export const ASK = {
+  hint: '↑ ↓ or Tab to choose · Enter to pick · or press the letter',
+  kinds: {
+    drive: {
+      title: 'This computer’s drive isn’t empty', card: 'drive', safe: 'T', wait: 120,
+      foot: 'Nothing has been written to the drive. With no answer in 2 minutes, it starts as a try and your phone asks.',
+      options: [
+        { key: 'T', text: 'Try the hub from the USB stick', small: 'The drive stays as it is. Decide later, or start over.' },
+        { key: 'E', text: 'Put the hub on this drive', small: 'Everything on the drive goes. You’ll type erase next.' },
+      ],
+    },
+    here: {
+      title: 'You were trying the hub on this computer', card: 'try', safe: 'C', wait: 30,
+      foot: 'With no answer in 30 seconds, it carries on trying.',
+      options: [
+        { key: 'C', text: 'Carry on trying', small: 'Everything as you left it, still on the USB stick.' },
+        { key: 'D', text: 'Put it on this computer’s drive', small: 'Your house comes too. Anything on the drive is erased.' },
+        { key: 'S', text: 'Start over', small: 'Clears the try from the stick. The drive isn’t touched.' },
+      ],
+    },
+    away: {
+      title: 'This USB stick has a try from another computer', card: 'try', safe: 'B', wait: 120,
+      foot: 'With no answer in 2 minutes, nothing is cleared: the try carries on here.',
+      options: [
+        { key: 'N', text: 'Start a new hub on this computer', small: 'Clears the try from the stick first.' },
+        { key: 'B', text: 'Bring the try to this computer', small: 'The same house and devices, carrying on here.' },
+      ],
+    },
+    hub: {
+      title: 'This computer already has a hub on its drive', card: 'try', safe: 'H', wait: 120,
+      foot: 'With no answer in 2 minutes, it starts the hub on the drive.',
+      options: [
+        { key: 'H', text: 'Start the hub on the drive', small: 'Restarts into it. The stick can stay in.' },
+        { key: 'T', text: 'Try a new one from the USB stick', small: 'The drive and its hub stay as they are.' },
+        { key: 'R', text: 'Replace it with a new hub', small: 'Erases the drive and its house. You’ll type erase next.' },
+      ],
+    },
+  },
   sure: 'Erase this drive?',
-  keys: [
-    { cap: 'erase', text: 'Type <b>erase</b> to put the hub on this drive', small: 'Faster, and the USB stick can come out afterwards. Everything on the drive goes.' },
-    { cap: 'Enter', text: 'Keep the drive as it is', small: 'The hub runs from the USB stick, which stays plugged in.' },
-  ],
+  type: 'Type <b>erase</b> here, then press Enter',
+  placeholder: 'erase',
+  undone: 'It can’t be undone.',
   sureKeys: [
     { cap: 'Enter', text: 'Erase it and move the hub there, about 4 minutes' },
     { cap: 'Backspace', text: 'Go back' },
   ],
-  undone: 'It can’t be undone.',
-  foot: 'Nothing has been written to the drive. With no answer in 2 minutes, the hub starts from the stick and your phone asks instead.',
-  waitFor: 120,
+  backKey: [{ cap: 'Backspace', text: 'Go back' }],
+  over: {
+    title: 'Start over?',
+    warn: 'The house you set up in the try is cleared from the stick.<br>The devices themselves keep working; you add them again to the new hub.',
+    keys: [
+      { cap: 'Enter', text: 'Clear the try and start a new hub' },
+      { cap: 'Backspace', text: 'Go back' },
+    ],
+  },
   // Ready while the phone still has the question (B1).
   ready: 'One question before your hub is ready',
   scan: 'This computer’s drive isn’t empty. Scan, and your phone asks what to do with it.',
 }
-export const DRIVE_AT = {
+export const ASK_AT = {
   title: { top: 268, size: 34, color: '#f1eee8' },
   card: { left: 400, top: 336, width: 640, height: 101 },
   model: { left: 499, top: 359, size: 22, weight: 500, color: '#f1eee8' },
   system: { left: 499, top: 392, size: 18, color: '#d9d5cd' },
   rest: { size: 18, color: '#8f8b84' },
-  keys: { left: 400, top: 492, width: 640 },
-  sureKeys: { left: 400, top: 680, width: 640 },
-  entry: { left: 560, top: 492, width: 320, height: 64, text: 505, size: 30, color: '#f1eee8', spacing: 0.06 },
-  caret: { width: 2, height: 30, top: 509, gap: 3, color: '#e9b872' },
-  warn: { top: 588, size: 21, color: '#d9d5cd', step: 30.45 },
-  foot: { top: 790, size: 18, color: '#6f6b65' },
+  choices: { left: 400, top: 476, width: 640, height: 82, gap: 10 },
+  hint: { below: 14, size: 19, color: '#8f8b84' },
+  foot: { top: 836, size: 18, color: '#6f6b65' },
+  type: { top: 462, size: 22, color: '#d9d5cd' },
+  entry: { left: 560, top: 504, width: 320, height: 64, text: 517, size: 30, color: '#f1eee8', hold: '#4a4b52', spacing: 0.06 },
+  caret: { width: 2, height: 30, top: 521, gap: 3, color: '#e9b872' },
+  warn: { top: 600, size: 21, color: '#d9d5cd', step: 30.45 },
+  keys: { left: 400, top: 700, width: 640 },
+  overWarn: { top: 492 },
+  overKeys: { left: 400, top: 620, width: 640 },
 }
 
 // Where and how big, in the boards' space, as design/first-start/first.css draws them.
