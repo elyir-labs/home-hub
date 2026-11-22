@@ -309,13 +309,13 @@ udevadm control --reload 2>/dev/null || true
 # The units below write into brain-data from their first tick, well before the brain starts and Docker would make it.
 mkdir -p brain-data
 chmod +x host/update.sh host/restore.sh host/reset.sh host/channel.sh host/restart.sh host/watchdog.sh host/network.sh host/public.sh host/away.sh \
-         host/drive.sh host/move-early.sh host/move-to-drive.sh host/developer.sh
+         host/drive.sh host/move-early.sh host/move-to-drive.sh host/developer.sh host/zone.sh
 for u in home-hub-update.service home-hub-update.path home-hub-restore.service home-hub-restore.path home-hub-reset.service home-hub-reset.path \
          home-hub-restart.service home-hub-restart.path home-hub-watchdog.service home-hub-watchdog.timer \
          home-hub-channel.service home-hub-channel.timer \
          home-hub-network.service home-hub-network.path home-hub-network.timer \
          home-hub-away.service home-hub-away.path home-hub-drive.service home-hub-drive.path home-hub-move.service \
-         home-hub-developer.service home-hub-developer.path; do
+         home-hub-developer.service home-hub-developer.path home-hub-zone.service home-hub-zone.path; do
   sed "s#/opt/home-hub#$DIR#g" "host/$u" > "/etc/systemd/system/$u"
 done
 systemctl daemon-reload 2>/dev/null || true
@@ -323,7 +323,7 @@ systemctl enable --now home-hub-update.path home-hub-restore.path home-hub-reset
                        home-hub-watchdog.timer home-hub-channel.timer \
                        home-hub-network.path home-hub-network.timer home-hub-away.path \
                        home-hub-drive.path home-hub-drive.service home-hub-move.service \
-                       home-hub-developer.path >/dev/null 2>&1 || true
+                       home-hub-developer.path home-hub-zone.path >/dev/null 2>&1 || true
 # Whether SSH is on, as the card was flashed, so the page for working on the hub says what is true (design/developer/).
 HOME_HUB_DIR="$DIR" ./host/developer.sh >/dev/null 2>&1 || true
 # ...and write the first picture of this hub's network now, so the panel's Network row is a fact
@@ -448,8 +448,18 @@ docker compose up -d --remove-orphans $RECREATE
 
 # A hub with a screen of its own brings the screen's side up to date too, once the house is back. It shows from
 # the wall's next start; the wall is not restarted under somebody using it.
+SCREEN_PENDING=${HUB_SCREEN_PENDING:-/var/lib/home-hub/screen-pending}
 if [ -f /etc/systemd/system/elyir-wall.service ] && [ -x "$DIR/startup/install.sh" ]; then
   HOME_HUB_DIR="$DIR" "$DIR/startup/install.sh" --if-changed >/dev/null 2>&1 || echo "  (the screen's startup could not be brought up to date; the house is unaffected)"
+elif [ -f "$SCREEN_PENDING" ] && [ -x "$DIR/startup/install.sh" ]; then
+  # First boot could not set the screen up, with no internet to fetch what it needs. Now it can, and it shows now:
+  # nobody is using a screen that has only ever shown the startup.
+  if HOME_HUB_DIR="$DIR" "$DIR/startup/install.sh" >/dev/null 2>&1; then
+    rm -f "$SCREEN_PENDING"; systemctl start --no-block elyir-wall.service >/dev/null 2>&1 || true
+    echo "  the screen is set up, now that the hub is online"
+  else
+    echo "  (the screen still could not be set up; it tries again at the next update)"
+  fi
 fi
 
 IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
