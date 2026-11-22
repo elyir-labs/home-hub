@@ -72,7 +72,9 @@ jobs:
           # Not `hub` yet: install.sh gives a unit that name when it decides to run a house, and first boot calls it
           # `screen` when the house already has a hub. Starting as `hub` set it against the real one over hub.local.
           hostname: elyir
-          username: hub
+          # The same user as the PC image makes (host/developer.sh), named for us rather than the hardware, and not `hub`,
+          # which is already the broker's login.
+          username: elyir
           password: ${{ steps.pass.outputs.value }}
           disable-first-boot-user-rename: 1
           # Without a country pi-gen ships the Wi-Fi switched off, so a Pi with no cable could not offer its own setup Wi-Fi.

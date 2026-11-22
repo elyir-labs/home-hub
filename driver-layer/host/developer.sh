@@ -42,13 +42,14 @@ key_ok() {
   esac
 }
 
-# A flashed Pi's user is pi; anything else has a first user too. HUB_SSH_USER in home-hub.conf says otherwise.
+# The first user, where there is one: a hand-installed Pi's pi, or an older Pi image's hub. A flashed hub's is elyir: the
+# Pi image names it so, and the PC image, which has none, makes it here. HUB_SSH_USER in home-hub.conf says otherwise.
 ssh_user() {
   [ -n "${HUB_SSH_USER:-}" ] && { echo "$HUB_SSH_USER"; return; }
-  getent passwd 1000 2>/dev/null | cut -d: -f1 | grep . || echo pi
+  getent passwd 1000 2>/dev/null | cut -d: -f1 | grep . || echo elyir
 }
 SUDOERS_DIR="${HUB_SUDOERS_DIR:-/etc/sudoers.d}"
-# A Pi is flashed with its user; the PC image has none, so the first key to sign in makes one, able to do what pi can.
+# A Pi is flashed with its user; the PC image has none, so the first key to sign in makes one, able to do what the Pi image's can.
 # '*' rather than useradd's '!': no password either way, but a locked account is refused a key too.
 make_user() {
   id "$1" >/dev/null 2>&1 && return 0

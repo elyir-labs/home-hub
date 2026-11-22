@@ -207,7 +207,7 @@ class Developer:
         asked = self.hub.settings.get("developer_ssh") is not None
         pending = SSH_REQUEST.exists() or (asked and wanted != done)
         keys = [{k: key.get(k) for k in ("name", "type", "fingerprint", "added", "source")} for key in w["keys"]]
-        return {"on": done_on, "user": did.get("user") or "pi", "host": f"{socket.gethostname().split('.')[0]}.local",
+        return {"on": done_on, "user": did.get("user") or "elyir", "host": f"{socket.gethostname().split('.')[0]}.local",
                 "ip": _address(), "keys": keys, "pending": bool(pending)}
 
     # ---------- screens ----------

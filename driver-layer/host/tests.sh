@@ -889,7 +889,7 @@ SH
   printf '{"on": true, "keys": ["%s"]}\n' "$key" > "$data/ssh.request"; SSH_AS=hub run
   is "a computer flashed with no user gets one to sign in as, not locked" \
     "$(asked 'useradd --create-home --shell /bin/bash hub') $(asked "usermod -p \\* hub") $(says)" "1 1 True 1 hub"
-  is "...in the groups it has, docker and sudo here, and sudo without a password, as pi has" \
+  is "...in the groups it has, docker and sudo here, and sudo without a password, as the Pi image's has" \
     "$(grep -o 'usermod -aG [a-z]* hub' "$root/asked" | tr '\n' ' ')$(cat "$root/sudoers/90-home-hub-hub")" \
     "usermod -aG sudo hub usermod -aG docker hub hub ALL=(ALL) NOPASSWD:ALL"
   printf '{"on": false, "keys": []}\n' > "$data/ssh.request"; SSH_AS=nobody run

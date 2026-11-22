@@ -127,6 +127,9 @@ class SSH(DeveloperTest):
         self.assertEqual((d["on"], d["pending"], d["user"]), (True, False, "pi"))
         self.assertTrue(d["host"].endswith(".local"))
 
+    def test_a_hub_whose_host_has_not_said_who_signs_in_says_elyir(self):
+        self.assertEqual(self.client.get("/developer").json()["ssh"]["user"], "elyir")
+
     def test_ssh_turned_on_when_the_card_was_flashed_is_on_and_nothing_is_waiting(self):
         (self.data / "ssh.json").write_text(json.dumps({"on": True, "keys": [], "user": "pi"}))
         d = self.client.get("/developer").json()["ssh"]
