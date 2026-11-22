@@ -805,8 +805,8 @@ shifter is a WS2812B in the box, first on the wire, which is why the firmware ha
 `roofbox`: the roof's picture starts after it, it shows the roof's first light, and its own project name
 keeps a plain devkit image off it (`strip/firmware/README.md`, "The roofline's devkit box"). The hub needs
 nothing new: several boxes are already one Roofline (item 52). **Not proven:** pixels.h's tests pass for all
-three boards on a Mac; the image has not been built here, because this Mac has no ESP-Matter, and nothing has
-run on a box. A roof box takes an update only from a `strip-roofbox` image, and no release builds one yet
+three boards on a Mac, and the image builds (22 November, esp-matter 70039c3: `strip-roofbox.bin`, 1.65 MB, 56%
+of its slot free, its name in the image); nothing has run on a box. A roof box takes an update only from a `strip-roofbox` image, and no release builds one yet
 (`tools/build-strip.sh` builds the devkit's).
 
 **52. The wall says what the strip controller says, and the roofline is one light that keeps its evenings
