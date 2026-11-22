@@ -19,6 +19,7 @@ import asyncio, json, logging, os, time
 
 log = logging.getLogger("hub.wallswitch")
 
+BUSY_TRIES, BUSY_WAIT = 12, 5
 CONFIG_WAIT = 200         # a `setup` is seven acknowledged exchanges and ten reads, each retried, over a link that may be weak
 APPEAR_WAIT = 25          # from finished to a light the panel can name
 LISTEN_WAIT = 30          # how long somebody gets to walk to the other switch
@@ -33,6 +34,7 @@ class WallSwitches:
         self.hub, self.bridge = hub, bridge
         self._listeners: list[tuple[str, asyncio.Future]] = []
         self._shows: dict[str, asyncio.Task] = {}
+        self._one_at_a_time = asyncio.Lock()
 
     # ---- what the house keeps about each switch ----
     def _path(self):
@@ -65,13 +67,19 @@ class WallSwitches:
         return (self.bridge.pucks.get(self.bridge._our_puck() or "") or {}).get("net")
 
     async def _config(self, cmd: str, timeout: float | None = None) -> dict:
+        """The bridge sets up one switch at a time and refuses a second while it works; the house waits its
+        turn rather than passing that refusal on to whoever tapped."""
         op, addr = cmd.split()[0], cmd.split()[1].lower()
-        body = await self.bridge._ask(cmd, "configured", timeout or CONFIG_WAIT, topic="config",
-                                      match=lambda b: isinstance(b, dict) and b.get("op") == op
-                                      and str(b.get("addr", "")).lower() == addr)
-        if body is None:
-            return {"ok": False, "why": "The bridge stopped answering. It may be out of range of the switch."}
-        return body
+        async with self._one_at_a_time:
+            for _ in range(BUSY_TRIES):
+                body = await self.bridge._ask(cmd, "configured", timeout or CONFIG_WAIT, topic="config",
+                                              match=lambda b: isinstance(b, dict) and b.get("op") == op
+                                              and str(b.get("addr", "")).lower() == addr)
+                if body is None:
+                    return {"ok": False, "why": "The bridge stopped answering. It may be out of range of the switch."}
+                if body.get("step") != "busy": return body
+                await asyncio.sleep(BUSY_WAIT)
+        return {"ok": False, "why": "The bridge is still busy with another switch. Try again in a minute."}
 
     # ---- joining, finished ----
     async def let_in(self, uuid: str, oob: str | None = None) -> dict:

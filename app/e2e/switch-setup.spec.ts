@@ -34,7 +34,15 @@ test('a switch that joins is set up on its light, then named after its room', as
 
   await expect(page.getByText('Is there another switch for this light?')).toBeVisible()
   await expect(page.getByText(/Heard: the switch at the top of the stairs/)).toBeVisible()
+  let joined: () => void = () => {}
+  await page.route('**/bridge/switches/*/pair', async route => {
+    await new Promise<void>(go => { joined = go })
+    await route.fallback()
+  })
   await page.getByRole('button', { name: 'Next' }).click()
+  await expect(page.getByText('Joining the two switches…')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Next' })).toHaveCount(0)
+  joined()
 
   await expect(page.getByText('Should it come on when someone walks in?')).toBeVisible()
   await page.getByRole('button', { name: 'Next' }).click()

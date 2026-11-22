@@ -27,7 +27,8 @@ class FakeHA:
         verb = str(kw.get("payload", "")).split(" ")[0]
         chip = kw["topic"].split("/")[2] if kw.get("topic", "").startswith("mesh/bridge/") else None
         if chip and verb in self.answers and self.cb:
-            leaf, body = self.answers[verb]
+            said = self.answers[verb]
+            leaf, body = said.pop(0) if isinstance(said, list) else said
             self.cb({"topic": f"mesh/bridge/{chip}/{leaf}", "payload": json.dumps(body)})
 
     async def send(self, type_, **kw):
@@ -159,6 +160,18 @@ class TheOtherSwitch(Setting):
         self.assertEqual((out["companion"], out["main"]), ("0021", "0020"))
         self.assertEqual(self.hub.ha.published[-1][1], "pair 0021 0020")
         self.assertEqual(self.ws.get("0020")["partner"], "0021")
+
+    def test_a_busy_bridge_is_waited_for_rather_than_passed_on(self):
+        self.ws.remember("0020", light=True)
+        self.ws.remember("0021", light=False)
+        busy = {"op": "pair", "addr": "0021", "ok": False, "step": "busy", "why": "the bridge is already setting up a switch"}
+        self.hub.ha.answers["pair"] = [("configured", busy), ("configured", {"op": "pair", "addr": "0021", "ok": True})]
+        waited = ws_mod.BUSY_WAIT
+        ws_mod.BUSY_WAIT = 0.01
+        try: out = run(self.ws.pair("0020", "0021"))
+        finally: ws_mod.BUSY_WAIT = waited
+        self.assertEqual(out["state"], "done")
+        self.assertEqual([m for _, m in self.hub.ha.published].count("pair 0021 0020"), 2)
 
     def test_a_press_somewhere_else_is_the_answer_and_a_retained_state_is_not(self):
         self.a_light("0021", room="hall")

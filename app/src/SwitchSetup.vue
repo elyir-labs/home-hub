@@ -121,7 +121,7 @@ async function listen() {
 }
 
 async function pairHeard() {
-  if (!heard.value) return
+  if (!heard.value || busy.value) return
   busy.value = true
   try {
     const r = await pairSwitch(me.value, heard.value.switch)
@@ -224,9 +224,10 @@ watch([at, heard, listening, room, busy, () => a.value.light, adding, blinkActs]
     else emit('acts', [])
   } else if (s === 'other') {
     const acts: Act[] = []
-    if (heard.value) acts.push({ label: 'Next', primary: true, run: pairHeard })
+    if (busy.value) {}
+    else if (heard.value) acts.push({ label: 'Next', primary: true, run: pairHeard })
     else if (!listening.value) acts.push({ label: 'Listen again', primary: true, run: listen })
-    if (a.value.light !== false) acts.push({ label: 'There isn’t another', run: noPartner })
+    if (!busy.value && a.value.light !== false) acts.push({ label: 'There isn’t another', run: noPartner })
     emit('acts', acts)
   } else if (s === 'walkin') emit('acts', [{ label: 'Next', primary: true, run: () => go(next('walkin', a.value)) }])
   else if (s === 'room') emit('acts', room.value && device.value ? [{ label: 'Next', primary: true, run: placeAndName }] : [])
@@ -312,6 +313,7 @@ onUnmounted(stopShowing)
       <div class="sw-picks">
         <div class="sw-pick on" v-if="heard"><span class="sw-pi"><Icon name="switch" :size="20" /></span>
           <span>Heard: {{ heard.name }}<small>Pressing either one will work this light</small></span></div>
+        <p class="flow-desc pulse" v-if="heard && busy">Joining the two switches…</p>
         <button class="sw-pick" v-else @click="addTheOther"><span class="sw-pi"><Icon name="plus" :size="20" /></span>
           <span>{{ a.light === false ? 'It isn’t added yet' : 'There is, but it isn’t added yet' }}<small>{{ a.light === false ? 'Add it now, from here. Then the light is set up from it' : 'Add it now, from here. Then this one carries on' }}</small></span></button>
       </div>
