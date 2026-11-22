@@ -9,21 +9,30 @@
   "Today.dc.html",
   "today",
   "can",
-  "AskA.dc.html",
-  "AskA-end.dc.html",
-  "a",
-  "OnePageB.dc.html",
-  "b",
+  "decided",
   "ShowC.dc.html",
   "ShowC-pair.dc.html",
   "ShowC-end.dc.html",
   "c",
-  "recommend"
+  "AskA.dc.html",
+  "AskA-end.dc.html",
+  "a",
+  "OnePageB.dc.html",
+  "b"
  ],
  "pages": [
   {
    "id": "switch-setup",
-   "name": "Setting up a wall switch"
+   "name": "Setting up a wall switch",
+   "decided": {
+    "on": "2026-11-22",
+    "chose": "C, ending on B's page",
+    "board": "ShowC.dc.html"
+   }
+  },
+  {
+   "id": "switch-setup-rejected",
+   "name": "Setting up a wall switch: not chosen"
   }
  ],
  "launch": {
@@ -43,55 +52,55 @@
   {
    "file": "AskA.dc.html",
    "x": 0,
-   "y": 980,
+   "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "A · Asked in words, one question at a time",
-   "page": "switch-setup"
+   "title": "A, not chosen · Asked in words, one question at a time",
+   "page": "switch-setup-rejected"
   },
   {
    "file": "AskA-end.dc.html",
    "x": 1560,
-   "y": 980,
+   "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "A · The end: what you told it, and the restart",
-   "page": "switch-setup"
+   "title": "A, not chosen · The end: what you told it, and the restart",
+   "page": "switch-setup-rejected"
   },
   {
    "file": "OnePageB.dc.html",
    "x": 0,
-   "y": 1960,
+   "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "B · One page, the usual answers already filled in",
-   "page": "switch-setup"
+   "title": "B, not chosen · One page, the usual answers already filled in",
+   "page": "switch-setup-rejected"
   },
   {
    "file": "ShowC.dc.html",
    "x": 0,
-   "y": 2940,
+   "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "C · The house tries it on the light, you say what you saw",
+   "title": "C, chosen 22 November · The house tries it on the light, you say what you saw",
    "page": "switch-setup"
   },
   {
    "file": "ShowC-pair.dc.html",
    "x": 1560,
-   "y": 2940,
+   "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "C · The other switch is found by pressing it",
+   "title": "C, chosen 22 November · The other switch is found by pressing it",
    "page": "switch-setup"
   },
   {
    "file": "ShowC-end.dc.html",
    "x": 3120,
-   "y": 2940,
+   "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "C · The end: B's page, filled in by what was seen",
+   "title": "C, chosen 22 November · The end: B's page, filled in by what was seen",
    "page": "switch-setup"
   }
  ],
@@ -123,34 +132,34 @@
   {
    "id": "a",
    "x": -640,
-   "y": 980,
+   "y": 0,
    "w": 540,
-   "page": "switch-setup",
-   "text": "A -- ASKED IN WORDS, ONE QUESTION AT A TIME\n\nFive questions, in the order that matters: what it controls, whether the bulbs dim, whether there is another switch for the same light, what to do when someone walks in, then its room and name. Answers so far stay above the question as sentences you can change. The end repeats them, then asks for the restart.\n\nFOR: nothing new to learn, every answer is one tap, and \"I'm not sure\" hands the bulb question to the house.\nAGAINST: it asks people things they often don't know (do my bulbs dim?), and it asks about a pair of switches without any way to point at the other one."
+   "page": "switch-setup-rejected",
+   "text": "A -- ASKED IN WORDS, ONE QUESTION AT A TIME\nNOT CHOSEN, 22 November. C was picked.\n\nFive questions, in the order that matters: what it controls, whether the bulbs dim, whether there is another switch for the same light, what to do when someone walks in, then its room and name. Answers so far stay above the question as sentences you can change. The end repeats them, then asks for the restart.\n\nFOR: nothing new to learn, every answer is one tap, and \"I'm not sure\" hands the bulb question to the house.\nAGAINST: it asks people things they often don't know (do my bulbs dim?), and it asks about a pair of switches without any way to point at the other one."
   },
   {
    "id": "b",
    "x": -640,
-   "y": 1960,
+   "y": 980,
    "w": 540,
-   "page": "switch-setup",
-   "text": "B -- ONE PAGE, THE USUAL ANSWERS ALREADY IN\n\nEverything on one page as settings, each starting at the usual answer: dims, a light, just this one switch, on then off when someone walks in. Change what is wrong, Blink the light to check which one it is, Save, restart.\n\nFOR: fastest for somebody who knows their wiring, and the same page can be the switch's settings later, so there is one place to learn.\nAGAINST: a page of settings is the opposite of a conversation, and its defaults will be wrong in silence. It is the only board that asks for watts, which most people would have to guess, and nothing on the hub can use it yet."
+   "page": "switch-setup-rejected",
+   "text": "B -- ONE PAGE, THE USUAL ANSWERS ALREADY IN\nNOT CHOSEN, 22 November -- and not gone: C ends on B's page, and it is the switch's settings afterward.\n\nEverything on one page as settings, each starting at the usual answer: dims, a light, just this one switch, on then off when someone walks in. Change what is wrong, Blink the light to check which one it is, Save, restart.\n\nFOR: fastest for somebody who knows their wiring, and the same page can be the switch's settings later, so there is one place to learn.\nAGAINST: a page of settings is the opposite of a conversation, and its defaults will be wrong in silence. It is the only board that asks for watts, which most people would have to guess, and nothing on the hub can use it yet."
   },
   {
    "id": "c",
    "x": -640,
-   "y": 2940,
+   "y": 980,
    "w": 540,
    "page": "switch-setup",
-   "text": "C -- THE HOUSE TRIES IT ON THE LIGHT, YOU SAY WHAT YOU SAW\nRECOMMENDED\n\nThe same five steps as A, but the questions are about what the person can see, not what they know. The house switches the light on to find out it controls one (\"nothing came on\" means it is the far switch of a pair). It dims it and asks whether it got dimmer, so nobody has to know their bulbs. It listens while you press the other switch for the same light, so a pair is made by touching it, the only way a person can point at a switch. Only walking in, room and name are asked in words. It ends on B's page, every row saying how it was found, which is also the switch's settings page later.\n\nFOR: everything a person can't know is found out on the real thing while they stand next to it, which is where design/adding says setup happens. It's the only direction where pairing is something you do, not something you pick.\nAGAINST: slower, and it needs the person by the light. \"I can't see it from here\" covers a wall screen in another room."
+   "text": "C -- THE HOUSE TRIES IT ON THE LIGHT, YOU SAY WHAT YOU SAW\nCHOSEN, 22 NOVEMBER.\n\nThe same five steps as A, but the questions are about what the person can see, not what they know. The house switches the light on to find out it controls one (\"nothing came on\" means it is the far switch of a pair). It dims it and asks whether it got dimmer, so nobody has to know their bulbs. It listens while you press the other switch for the same light, so a pair is made by touching it, the only way a person can point at a switch. Only walking in, room and name are asked in words. It ends on B's page, every row saying how it was found, which is also the switch's settings page later.\n\nFOR: everything a person can't know is found out on the real thing while they stand next to it, which is where design/adding says setup happens. It's the only direction where pairing is something you do, not something you pick.\nAGAINST: slower, and it needs the person by the light. \"I can't see it from here\" covers a wall screen in another room.\n\nAdded when it was picked: Did it get dimmer? has a fourth answer, It didn't change, because a freshly set-up switch sometimes reads its load type only after a restart. It asks for the tab, then dims again."
   },
   {
-   "id": "recommend",
+   "id": "decided",
    "x": 4680,
-   "y": 2940,
+   "y": 980,
    "w": 540,
    "page": "switch-setup",
-   "text": "RECOMMENDED: C, ending on B's page.\n\nThe Brilliant app asked what kind of bulbs and how many watts. A household doesn't know, but can see a lamp. C asks what they saw. B's page is kept as the place every answer lives afterward, so changing a switch later is the same page."
+   "text": "DECIDED 22 NOVEMBER 2026\n\nC, ending on B's page. Built with the add underneath fixed: the bridge finishes a switch it lets in (its key, its controls, its announcements), and the hub keeps the switch's own key so it can be set up again later."
   }
  ]
 }
