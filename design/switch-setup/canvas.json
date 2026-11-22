@@ -31,7 +31,21 @@
   "DimTwiceB-low.dc.html",
   "dim-b",
   "DimSlideC.dc.html",
-  "dim-c"
+  "dim-c",
+  "choose-why",
+  "ChooseToday-end.dc.html",
+  "ChooseToday-light.dc.html",
+  "choose-today",
+  "ChooseA-end.dc.html",
+  "ChooseA-cant.dc.html",
+  "ChooseA-light.dc.html",
+  "choose-a",
+  "choose-recommended",
+  "ChooseB-end.dc.html",
+  "ChooseB-light.dc.html",
+  "choose-b",
+  "ChooseC-ask.dc.html",
+  "choose-c"
  ],
  "pages": [
   {
@@ -59,11 +73,15 @@
   {
    "id": "dim-test-rejected",
    "name": "Testing whether the bulbs dim: not chosen"
+  },
+  {
+   "id": "choose",
+   "name": "Dimming is your choice"
   }
  ],
  "launch": {
   "view": "canvas",
-  "page": "dim-test"
+  "page": "choose"
  },
  "artboards": [
   {
@@ -191,6 +209,78 @@
    "h": 900,
    "title": "C, not chosen · You slide it down yourself and say what it did",
    "page": "dim-test-rejected"
+  },
+  {
+   "file": "ChooseToday-end.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · The end page: “The bulbs”, a fact worded as a choice",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseToday-light.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · A light’s own screen: nothing about its switch",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseA-end.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · One choice, “From the switch”, with what the house found under it",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseA-cant.dc.html",
+   "x": 1560,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · Bulbs that can’t dim: Dim is shown and can’t be picked",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseA-light.dc.html",
+   "x": 3120,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · The light’s screen: one line about its switch, and Change",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseB-end.dc.html",
+   "x": 0,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B · Two rows: what the bulbs can do, and what the switch does",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseB-light.dc.html",
+   "x": 1560,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B · The light’s screen: the choice itself, changed in place",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseC-ask.dc.html",
+   "x": 0,
+   "y": 2940,
+   "w": 1440,
+   "h": 900,
+   "title": "C · Asked in the flow, right after it dimmed",
+   "page": "choose"
   }
  ],
  "annotations": [
@@ -297,6 +387,54 @@
    "w": 540,
    "page": "dim-test-rejected",
    "text": "C -- YOU SLIDE IT DOWN YOURSELF\nNOT CHOSEN, 22 November. A was picked.\n\nThe person drags a slider on the screen and the light follows their finger, at their pace, stopping where they like. Then the same three answers as A.\n\nCost: it asks them to do the test rather than watch it, which needs the screen and the light in view at once -- true on a phone at the switch, often not on the wall. And a slow hand at the bottom is what shows a bulb that can't dim; a quick one can miss it."
+  },
+  {
+   "id": "choose-why",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "choose",
+   "text": "WHY THIS IS BEING REDRAWN\n\nSaid 22 November, after setting up two switches: a light whose bulbs can dim isn't always a light you want to dim. The hallway, the stairs: on and off, full, every time, even on dimmable bulbs.\n\nThe setup treats the two as one. The dim test decides it, and the only way past that is the end page's row \"The bulbs: Dim | On and off only\" -- which reads as a fact about the bulbs, so it doesn't look like a choice, and picking On and off only there writes down something untrue about them.\n\nAnd once setup is closed there is nowhere to change it. The end page says \"Change any of it here, or later from the light\", but no light's screen has the switch's settings: that sentence promises a place that doesn't exist."
+  },
+  {
+   "id": "choose-today",
+   "x": 4680,
+   "y": 0,
+   "w": 540,
+   "page": "choose",
+   "text": "TODAY -- FROM THE SHIPPED PANEL\n\nScreenshots of the running panel against the mock house at 1440x900. The end page is app/src/SwitchSetup.vue's last step after a switch whose light dimmed. The light's screen is app/src/panes/LightPane.vue, the same screen a wall switch's light opens on (held open on the floor lamp here). Neither changes dimming after setup."
+  },
+  {
+   "id": "choose-a",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "choose",
+   "text": "A -- ONE CHOICE, WHAT WAS FOUND UNDER IT\n\nThe end page's row becomes \"From the switch: Dim | On and off only\", and the small line under it says what the house found (\"Its bulbs can dim\" / \"can't dim\", \"you saw it\"). It starts at what was found; On and off only can always be picked; Dim can't be picked when the bulbs can't dim, and the line says why.\n\nThe light's screen gets one line about its switch, in the gap above the room's routine -- \"Wall switch · dims · comes on when someone walks in\" -- and Change opens the same page setup ended on, so there is one place the switch is set up, reached two ways. A change that needs the switch restarted says so there, as the end page does.\n\nCost: changing dimming later is two taps rather than one. That's right for something changed once a year."
+  },
+  {
+   "id": "choose-recommended",
+   "x": 4680,
+   "y": 980,
+   "w": 540,
+   "page": "choose",
+   "text": "RECOMMENDED: A\n\nOne row, worded as the choice it is, with the fact kept in small type where it explains rather than competes. And one place the switch's settings live, reached from setup's end and from the light, rather than two different controls that have to be kept in step. B shows the same information twice on the end page and puts a control on the light's screen that is touched almost never, beside ones touched every day. C asks every household with dimmable bulbs a question most of them answer the same way."
+  },
+  {
+   "id": "choose-b",
+   "x": -640,
+   "y": 1960,
+   "w": 540,
+   "page": "choose",
+   "text": "B -- TWO ROWS: FOUND, AND CHOSEN\n\nThe end page writes the fact down as its own row (\"The bulbs: Can dim\") and asks the choice in another (\"The switch: Dims | Only turns it on and off\"). The light's screen carries the choice itself, a segmented control in the gap above the room's routine, changed in place.\n\nCost: a row that only states a fact, on a page of things to change; and a control on the light's screen for something set once, next to the ones used every day -- the kind of thing that gets flipped by a stray tap."
+  },
+  {
+   "id": "choose-c",
+   "x": -640,
+   "y": 2940,
+   "w": 540,
+   "page": "choose",
+   "text": "C -- ASKED AS YOU GO\n\nRight after a light dims smoothly, the same step asks \"Should the switch dim it?\" -- yes, dim it from the switch, or no, just on and off -- with the hallway and stairs as the examples. Bulbs that can't dim are never asked. The end page and the light's screen are A's.\n\nCost: one more question for every dimmable light, and most will answer yes. The setup's rule was that the house asks only what it can't find out; this is a preference, and a default with a way to change it serves it with no extra step."
   }
  ]
 }
