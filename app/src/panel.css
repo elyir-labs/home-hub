@@ -321,6 +321,16 @@ input:focus-visible {
   }
 }
 
+/* Over the veil, so the ramps it and the sky make together are what is smoothed (grain.ts). */
+.sky-grain {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  image-rendering: pixelated;
+}
+
 .sky-veil {
   position: absolute;
   inset: 0;

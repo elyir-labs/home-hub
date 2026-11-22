@@ -3,6 +3,7 @@
   SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import { grainStyle } from './grain'
 import { inApp } from './inapp'
 import { narrow } from './band'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -387,6 +388,7 @@ onUnmounted(() => {
   atRead.removeEventListener('change', measure)
   atTall.removeEventListener('change', measure)
 })
+const grain = grainStyle()
 </script>
 
 <template>
@@ -396,6 +398,7 @@ onUnmounted(() => {
     <div class="sky-bloom" v-if="face === 'glass'"></div>
     <ArtDefs />
     <div class="sky-veil"></div>
+    <div class="sky-grain" :style="grain"></div>
     <Away v-if="lock.away" />
     <Join v-else-if="lock.unpaired" @joined="rejoin" />
     <MovePage v-else-if="store.moving" />
