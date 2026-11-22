@@ -355,14 +355,31 @@ splash downloading
 if ! PULLED="$(docker compose pull -q --ignore-buildable 2>&1)"; then
   echo "$PULLED" | sed -n 's/.*failed to resolve reference "\([^"]*\)".*/  could not fetch \1 — that pin is not on the registry/p' | sort -u
 fi
-if PULL="$(docker compose pull -q brain 2>&1)"; then
-  echo "  brain image: $(docker image inspect "${HUB_BRAIN_IMAGE:-ghcr.io/elyir-labs/home-hub-brain:latest}" --format '{{index .RepoDigests 0}}' 2>/dev/null | cut -d@ -f2 | cut -c1-19)"
-elif [ -n "${HUB_BRAIN_IMAGE:-}" ] && docker image inspect "$HUB_BRAIN_IMAGE" >/dev/null 2>&1; then
+# The brain this code is: the image says which commit it was built from, and one built from code that differs from this
+# in what goes into it is an older brain under this code's name -- a branch's tag the registry has not caught up on, or
+# the copy a flashed image brought after an update moved the code on. Each restarted the hub on the brain it already had
+# and said "done". A commit that only changed the docs or the host scripts builds no new image, so that is still this
+# code's. An image that names no commit predates the stamp and is taken at its word.
+BRAIN_PATHS="brain app sounds releases"
+built_from() { docker image inspect "$1" --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null | sed -n 's/^HUB_COMMIT=//p'; }
+this_code() {
+  local c; c="$(built_from "$1")"
+  [ -z "$c" ] || [ "$c" = "$(git -C "$DIR" rev-parse HEAD 2>/dev/null)" ] && return 0
+  # The checkout is shallow, so the image's commit may need fetching to compare against.
+  git -C "$DIR" cat-file -e "$c^{commit}" 2>/dev/null || git -C "$DIR" fetch -q --depth 1 origin "$c" 2>/dev/null || return 1
+  # shellcheck disable=SC2086
+  git -C "$DIR" diff --quiet "$c" HEAD -- $BRAIN_PATHS
+}
+BRAIN_REF="${HUB_BRAIN_IMAGE:-ghcr.io/elyir-labs/home-hub-brain:latest}"
+if PULL="$(docker compose pull -q brain 2>&1)" && this_code "$BRAIN_REF"; then
+  echo "  brain image: $(docker image inspect "$BRAIN_REF" --format '{{index .RepoDigests 0}}' 2>/dev/null | cut -d@ -f2 | cut -c1-19)"
+elif [ -n "${HUB_BRAIN_IMAGE:-}" ] && [ -n "$(built_from "$HUB_BRAIN_IMAGE")" ] && this_code "$HUB_BRAIN_IMAGE"; then
   # A flashed image brought this brain with it (firstboot.sh loaded it), and a branch's brain may not be published
   # yet. Building it again here took longer than anybody would wait in front of the splash.
   echo "  the registry doesn't have $HUB_BRAIN_IMAGE; using the copy this image brought"
 else
   case "$PULL" in
+    "") echo "  the brain image is from older code than this; building it here from the code above, which takes a few minutes" ;;
     *denied*|*unauthorized*|*401*|*403*) echo "  the published brain image is not public (GitHub package visibility); building it here from the code above, which takes a few minutes" ;;
     *) echo "  could not pull the brain image (no internet?); building it here from the code above, which takes a few minutes" ;;
   esac

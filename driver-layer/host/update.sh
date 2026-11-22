@@ -65,6 +65,17 @@ running_image() {
 }
 
 alive() { curl -fsS --max-time 5 "$ALIVE" >/dev/null 2>&1; }
+# Whether the brain moved when the code it is built from did. A hub flashed from a branch once restarted on the brain
+# its image brought, older than the code, said "done", and was offered the same update again on every tap. Code that
+# only changed outside the brain needs no new one; a brain that doesn't say its commit can't be held to one.
+said_commit() { curl -fsS --max-time 5 "$ALIVE" 2>/dev/null | sed -n 's/.*"commit": *"\([0-9a-f]*\)".*/\1/p'; }
+BEFORE="$(said_commit)"
+runs_head() {
+  local was now; was="$(field sha "$PREV")"; now="$(said_commit)"
+  [ -n "$BEFORE" ] && [ -n "$now" ] && [ -n "$was" ] || return 0
+  git -C "$DIR" diff --quiet "$was" HEAD -- brain app sounds releases 2>/dev/null && return 0
+  [ "$now" != "$BEFORE" ]
+}
 
 came_back() {
   # One answer is not proof: an image that starts, answers and then falls over on the data it found
@@ -142,7 +153,13 @@ if [ "$RC" -eq 0 ]; then
   # What the hub has just been moved onto, for naming a version that turns out not to work. The
   # request said what was wanted; this says what arrived, which is the one to refuse next time.
   GOT="${WANT:-$(git -C "$DIR" describe --tags --exact-match 2>/dev/null || git -C "$DIR" rev-parse --short HEAD 2>/dev/null)}"
-  if [ -z "$PROVE" ] || came_back; then
+  BACK=""; { [ -z "$PROVE" ] || came_back; } && BACK=1
+  if [ -n "$BACK" ] && [ -n "$PROVE" ] && ! runs_head; then
+    echo "the hub came back on an older brain than $GOT; putting it back" >> "$LOG"
+    put_back
+    finish failed ',"bad":"'"$GOT"'","stale":true,"log":"update.log"'
+    exit 1
+  elif [ -n "$BACK" ]; then
     finish 'done' ',"to":"'"$GOT"'"'
   else
     echo "the hub did not come back after $WAIT seconds on $GOT; putting it back" >> "$LOG"

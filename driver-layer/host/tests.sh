@@ -196,7 +196,9 @@ esac
 D
   cat > "$bin/curl" <<'C'
 #!/usr/bin/env bash
-[ -f "$FAKE/answering" ]
+[ -f "$FAKE/answering" ] || exit 7
+[ -f "$FAKE/said" ] && printf '{"ok":true,"commit":"%s"}' "$(cat "$FAKE/said")"
+exit 0
 C
   cat > "$bin/systemctl" <<'S'
 #!/usr/bin/env bash
@@ -253,6 +255,19 @@ I
   start ok ok; run >/dev/null
   [ -f "$data/update.request" ] && no "the request never survives a run" "it is still there" \
                                 || ok "the request never survives a run, so a hub cannot loop"
+
+  # The brain answers with the commit it was built from, the same one before and after: a flashed image's own copy.
+  mkdir -p "$dir/brain"; echo two > "$dir/brain/x"; git -C "$dir" add brain; git -C "$dir" commit -qm brain; git -C "$dir" tag v0.4.0
+  local brainy; brainy="$(git -C "$dir" rev-list -n 1 v0.4.0)"
+  echo 0123456789ab > "$fake/said"
+  start ok ok; touch "$fake/answering"; run
+  is "code that changed nothing the brain is built from, and the same brain: done" "$(state)" 'done'
+  new="$brainy"; start ok ok; touch "$fake/answering"; run
+  is "code that changed the brain, and the same brain answering after: not done" "$(state)" failed
+  is "...said as an older brain, so the panel doesn't call it ready again" "$(grep -c '"stale":true' "$data/update.json")" "1"
+  is "...and the hub is put back where it was" "$(at)" "$old"
+  start ok ok; touch "$fake/answering"; printf '#!/usr/bin/env bash\ngit -C "%s" reset -q --hard "%s"; echo fedcba987654 > "%s/said"; exit 0\n' "$dir" "$new" "$fake" > "$dir/install.sh"; run
+  is "...and once a new brain answers: done" "$(state)" 'done'
   rm -rf "$root"
 }
 
@@ -1004,6 +1019,40 @@ SH
 }
 
 
+# Ready offers a way in only once it works (design/own-wifi/, A): the hub's own Wi-Fi is offered once network.sh has
+# it up, on nothing Ready waits until then, and a computer that couldn't make one is told to plug in. The routes, the
+# radio and network.sh's files are stood in for; say.sh itself decides.
+offering() {
+  group "Ready offers the hub's own Wi-Fi only once it is up"
+  local root bin net data; root=$(mktemp -d); bin="$root/bin"; net="$root/net"; data="$root/data"
+  mkdir -p "$bin" "$net/wlp1s0/phy80211" "$data"
+  printf 'HUB_SETUP_SSID="Elyir Hub 4F2A"\nHUB_SETUP_PASS="kite-maple-41"\n' > "$root/conf"
+  cat > "$bin/ip" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "-4 route show default") [ -n "${ROUTE:-}" ] && echo "default via 192.168.1.1 dev enp3s0" ;;
+  "-4 -o addr show scope global") [ -n "${MODEM:-}" ] && echo "2: enp3s0    inet 1.2.3.4/24 brd 1.2.3.255 scope global enp3s0"
+    [ -n "${HOME_NET:-}" ] && echo "2: enp3s0    inet 192.168.1.9/24 brd 192.168.1.255 scope global enp3s0" ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\nexit 1\n' > "$bin/curl"; cp "$bin/curl" "$bin/busctl"
+  chmod +x "$bin"/*
+  where() { PATH="$bin:$PATH" HUB_CONF="$root/conf" HUB_NET="$net" HUB_NET_DATA="$data" "$HERE/../../startup/say.sh" where 2>/dev/null; }
+  is "in the modem, before its own Wi-Fi is up: the cable alone" "$(MODEM=1 ROUTE=1 where)" "alone"
+  is "on nothing, before its own Wi-Fi is up: not ready to say" "$(where)" "wait"
+  echo kite-maple-41 > "$data/network.setup-key"
+  is "in the modem, once it is up: both ways" "$(MODEM=1 ROUTE=1 where)" "modem"
+  is "on nothing, once it is up: its code" "$(where)" "wifi"
+  is "on the house's network: its address, whatever its own Wi-Fi is doing" "$(HOME_NET=1 ROUTE=1 where)" "addr"
+  rm "$data/network.setup-key"; touch "$data/network.setup-failed"
+  is "on nothing, when it couldn't make one: plug it in" "$(where)" "nowifi"
+  is "...and in the modem, the cable alone as before" "$(MODEM=1 ROUTE=1 where)" "alone"
+  rm -f "$data/network.setup-failed"; rm -rf "$net/wlp1s0"
+  is "on nothing, with no Wi-Fi card at all: plug it in" "$(where)" "nowifi"
+  rm -rf "$root"
+}
+
 # A hub with no cable and no Wi-Fi makes one of its own for a phone to set it up from (docs/network.md,
 # piece 5; design/setup-network/, A). NetworkManager, the kernel's radio and the routing table are
 # scripts on PATH; each says what this house looks like and writes down what it was asked.
@@ -1025,7 +1074,7 @@ case "$*" in
   "-t -f NAME,DEVICE connection show --active") ;;
   "-t -f NAME connection show --active") [ -f "$ROOT/ap" ] && echo home-hub-setup ;;
   "connection add type wifi ifname "*) echo "$6" > "$ROOT/apif" ;;
-  "connection up home-hub-setup") [ -n "${BUSY:-}" ] && [ "$(cat "$ROOT/apif")" = hubsetup0 ] && exit 4; touch "$ROOT/ap" ;;
+  "connection up home-hub-setup") [ -n "${DEAD:-}" ] && exit 4; [ -n "${BUSY:-}" ] && [ "$(cat "$ROOT/apif")" = hubsetup0 ] && exit 4; touch "$ROOT/ap" ;;
   "connection delete home-hub-setup") rm -f "$ROOT/ap" ;;
   *"device wifi connect"*) if [ -n "${WRONG:-}" ]; then echo "Error: Connection activation failed: Secrets were required, but not provided."; exit 4; fi
     touch "$ROOT/up" ;;
@@ -1100,6 +1149,11 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
   rm -rf "$net/wlp1s0/device"; fresh; BUSY=1 BOTH=1 tick
   is "a card that says it can do both and then refuses the second interface: its own Wi-Fi goes on the card itself" \
     "$(cat "$root/apif") $(field setup.both) $([ -f "$root/ap" ] && echo up) $(grep -c 'iw dev hubsetup0 del' "$root/asked")" "wlp1s0 false up 1"
+  fresh; DEAD=1 BOTH=1 tick
+  is "a card that can't make one either way says so, for the first start's screen" \
+    "$([ -e "$data/network.setup-failed" ] && echo said) $([ -e "$data/network.setup-key" ] && echo key || echo nokey)" "said nokey"
+  BOTH=1 tick
+  is "...and once it does make one, takes it back" "$([ -e "$data/network.setup-failed" ] && echo said || echo gone) $(cat "$data/network.setup-key")" "gone kite-maple-41"
   fresh; BOTH=1 tick
   BOTH=1 ask '{"do": "join", "ssid": "Bluebell", "password": "right"}'
   is "the house's Wi-Fi is tried on its 2.4 GHz side, so the phone on the hub's stays on" \
@@ -2088,6 +2142,6 @@ zigbee_kept() {
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; remote; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; trying; stick_root; growing; describing; starting_over; shutting; zigbee_kept
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; remote; sizing; guessing; awake; setting_up; offering; moving_in; asking_first; starting_next; moving; trying; stick_root; growing; describing; starting_over; shutting; zigbee_kept
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]
