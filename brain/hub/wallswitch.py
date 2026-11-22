@@ -76,6 +76,8 @@ class WallSwitches:
         r = await self.bridge.let_in(uuid, oob)
         if r.get("state") != "done": return r
         addr = str(r.get("unicast") or "").lower()
+        if not addr:
+            return {"state": "failed", "text": "The bridge didn't say where the switch joined. Try adding it again."}
         if not self.can_setup():
             # A bridge from before setup could be finished cannot do it, and saying "added" over a switch
             # nobody can use is the thing this file exists to stop.

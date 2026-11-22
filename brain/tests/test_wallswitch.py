@@ -109,6 +109,33 @@ class JoiningIsNotTheEnd(Setting):
         self.hub.ha.answers["setup"] = ("configured", {"op": "setup", "addr": "0099", "ok": True})
         self.assertEqual(run(self.ws.let_in("aa" * 16))["state"], "failed")
 
+    def test_the_blink_still_answering_is_not_taken_for_the_add(self):
+        # Seen in a real house: That's the one was tapped while the blink was still being answered, the
+        # blink's "ok" was taken as the add's, and the switch joined with its key thrown away.
+        self.hub.ha.answers["setup"] = ("configured", {"op": "setup", "addr": "0024", "ok": True})
+        say = lambda leaf, body: self.b._on_mqtt({"topic": f"mesh/bridge/c8ebba/{leaf}", "payload": json.dumps(body)})
+
+        async def go():
+            blink = asyncio.create_task(self.b.blink("aa" * 16, 1))
+            await asyncio.sleep(0.05)
+            add = asyncio.create_task(self.ws.let_in("aa" * 16))
+            await asyncio.sleep(0.05)
+            say("claimed", {"ok": True, "what": "blink"})
+            await asyncio.sleep(0.05)
+            say("claimed", {"ok": True, "unicast": "0024", "elements": 1, "devkey": "cd" * 16})
+            return await blink, await add
+
+        blinked, added = run(go())
+        self.assertEqual(blinked["state"], "done")
+        self.assertEqual(added["switch"], "0024")
+        self.assertEqual(self.ws.get("0024")["devkey"], "cd" * 16)
+
+    def test_a_join_that_names_no_address_is_not_finished(self):
+        self.hub.ha.answers["add"] = ("claimed", {"ok": True, "elements": 1})
+        out = run(self.ws.let_in("aa" * 16))
+        self.assertEqual(out["state"], "failed")
+        self.assertNotIn("hold a finger on it", out["text"])
+
     def test_without_its_key_the_house_says_how_to_start_over(self):
         out = run(self.ws.finish("0031"))
         self.assertEqual(out["state"], "failed")
