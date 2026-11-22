@@ -268,7 +268,7 @@ export async function switchSetup(addr: string): Promise<SwitchSetup> {
   const r = await request(`/bridge/switches/${addr}`); if (!r.ok) await fail(r); return r.json()
 }
 export const finishSwitch = (addr: string) => post<Letting>(`/bridge/switches/${addr}/finish`, {})
-export const showOnSwitch = (addr: string, what: 'light' | 'dim') => post<{ state: string; seconds: number }>(`/bridge/switches/${addr}/show`, { what })
+export const showOnSwitch = (addr: string, what: 'light' | 'dim') => post<{ state: string; seconds: number; every?: number; levels?: number[] }>(`/bridge/switches/${addr}/show`, { what })
 export const switchHasLight = (addr: string, light: boolean) => post<SwitchSetup>(`/bridge/switches/${addr}/light`, { light })
 export const switchDims = (addr: string, dims: boolean) => post<{ state: string; text?: string; restart?: boolean }>(`/bridge/switches/${addr}/dims`, { dims })
 export const listenForSwitch = (addr: string) => post<{ heard: { switch: string; device_id: string | null; name: string } | null }>(`/bridge/switches/${addr}/listen`, {})

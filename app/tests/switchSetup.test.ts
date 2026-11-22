@@ -40,12 +40,21 @@ describe('the board it was built from', () => {
     expect(canvas.pages[0].decided.chose).toMatch(/^C/)
   })
 
-  it('asks about the bulbs by what was seen, with the four answers the board draws', () => {
-    const board = readFileSync('../design/switch-setup/ShowC.dc.html', 'utf8')
+  it('asks about the bulbs by what was seen on the way down, with the four answers the board draws', () => {
+    const board = readFileSync('../design/switch-setup/DimDownA.dc.html', 'utf8')
     const vue = readFileSync('src/SwitchSetup.vue', 'utf8')
-    for (const answer of ['Yes, it dimmed smoothly', 'It flickered, buzzed or went off', 'It didn&rsquo;t change', 'I can&rsquo;t see it from here']) {
+    for (const answer of ['It got dimmer, smoothly, all the way down', 'It stayed bright, then went off near the end',
+                          'It flickered or buzzed', 'I can&rsquo;t see it from here']) {
       expect(board).toContain(answer)
       expect(vue).toContain(answer.replace('&rsquo;', '’'))
     }
+  })
+
+  it('never sends anybody to the tab in the middle of the dim test (dim test A, picked 22 November)', () => {
+    const dimTest = canvas.pages.find((p: { id: string }) => p.id === 'dim-test')
+    expect(dimTest.decided.chose).toMatch(/^A/)
+    const vue = readFileSync('src/SwitchSetup.vue', 'utf8')
+    expect(vue).not.toContain('Watch again')
+    expect(vue).not.toContain('It didn’t change')
   })
 })

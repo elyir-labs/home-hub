@@ -49,7 +49,16 @@
   },
   {
    "id": "dim-test",
-   "name": "Testing whether the bulbs dim"
+   "name": "Testing whether the bulbs dim",
+   "decided": {
+    "on": "2026-11-22",
+    "chose": "A",
+    "board": "DimDownA.dc.html"
+   }
+  },
+  {
+   "id": "dim-test-rejected",
+   "name": "Testing whether the bulbs dim: not chosen"
   }
  ],
  "launch": {
@@ -144,7 +153,7 @@
    "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "A · One slow look, all the way down to almost off",
+   "title": "A, chosen 22 November · One slow look, all the way down to almost off",
    "page": "dim-test"
   },
   {
@@ -153,35 +162,35 @@
    "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "A · The end, for a bulb that can’t dim: the restart stays here, once",
+   "title": "A, chosen 22 November · The end, for a bulb that can’t dim: the restart stays here, once",
    "page": "dim-test"
   },
   {
    "file": "DimTwiceB.dc.html",
    "x": 0,
-   "y": 1960,
+   "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "B · Half first, as today; “It didn’t change” tries it lower",
-   "page": "dim-test"
+   "title": "B, not chosen · Half first, as today; “It didn’t change” tries it lower",
+   "page": "dim-test-rejected"
   },
   {
    "file": "DimTwiceB-low.dc.html",
    "x": 1560,
-   "y": 1960,
+   "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "B · The second, lower look, only when half showed nothing",
-   "page": "dim-test"
+   "title": "B, not chosen · The second, lower look, only when half showed nothing",
+   "page": "dim-test-rejected"
   },
   {
    "file": "DimSlideC.dc.html",
    "x": 0,
-   "y": 2940,
+   "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "C · You slide it down yourself and say what it did",
-   "page": "dim-test"
+   "title": "C, not chosen · You slide it down yourself and say what it did",
+   "page": "dim-test-rejected"
   }
  ],
  "annotations": [
@@ -263,7 +272,7 @@
    "y": 980,
    "w": 540,
    "page": "dim-test",
-   "text": "A -- ONE SLOW LOOK, ALL THE WAY DOWN\n\nThe house takes the light slowly from full to almost off and back, twice, about five seconds each way. That one look answers it for every kind of bulb: a dimmable one gets dimmer the whole way, one that can't dim stays bright and then cuts out near the bottom (or never changes at all), and a poor one flickers or buzzes on the way.\n\nThe answers are what was seen, in those words, and each is final: no answer sends anybody to the tab. \"Nothing changed at all\" sits under \"stayed bright, then went off\" because it means the same thing -- on and off only. The one restart stays where it already was, at the end, once.\n\nCost: one more second of watching than today. The house never learns whether it was the bulb or the switch's mode that didn't dim, and doesn't need to: either way the right answer is on and off, and it can be changed on the light later."
+   "text": "A -- ONE SLOW LOOK, ALL THE WAY DOWN\nCHOSEN, 22 NOVEMBER.\n\nThe house takes the light slowly from full to almost off and back, twice, about five seconds each way. That one look answers it for every kind of bulb: a dimmable one gets dimmer the whole way, one that can't dim stays bright and then cuts out near the bottom (or never changes at all), and a poor one flickers or buzzes on the way.\n\nThe answers are what was seen, in those words, and each is final: no answer sends anybody to the tab. \"Nothing changed at all\" sits under \"stayed bright, then went off\" because it means the same thing -- on and off only. The one restart stays where it already was, at the end, once.\n\nCost: one more second of watching than today. The house never learns whether it was the bulb or the switch's mode that didn't dim, and doesn't need to: either way the right answer is on and off, and it can be changed on the light later."
   },
   {
    "id": "dim-recommended",
@@ -271,23 +280,23 @@
    "y": 980,
    "w": 540,
    "page": "dim-test",
-   "text": "RECOMMENDED: A\n\nOne look, one question, every answer final. It fixes both faults -- the test reaches the bottom, where the bulbs that can't dim show themselves, and the tab is never asked for mid-step -- without adding a screen. B keeps today's gentle look but spends a second screen on the very bulbs this question exists for. C is the most direct, but it asks the person to do the testing, and on the wall the screen is often in another room from the light."
+   "text": "DECIDED 22 NOVEMBER 2026\n\nA, as drawn. The house takes the light slowly to almost off and back, twice (show() in brain/hub/wallswitch.py); the four answers are the board's; no answer sends anybody to the tab, and the one restart stays on the end page. Pinned by app/tests/switchSetup.test.ts and app/e2e/switch-setup.spec.ts.\n\nWhy A over B and C: one look and one question, every answer final. B spent a second screen on the very bulbs the question exists for; C needed the screen and the light in view at once."
   },
   {
    "id": "dim-b",
    "x": -640,
-   "y": 1960,
+   "y": 0,
    "w": 540,
-   "page": "dim-test",
-   "text": "B -- HALF FIRST, THEN LOWER IF NOTHING CHANGED\n\nToday's first look, unchanged, so a dimmable bulb is still settled in one look at half. \"It didn't change\" no longer goes to the tab: it starts a second look, down to almost off, with three answers -- it got dimmer, it went off or flickered, still nothing -- and the last two mean on and off only.\n\nCost: a second screen for exactly the bulbs that can't dim, which is the case that went wrong; and \"It didn't change\" at half still reads like a fault before the second look explains it."
+   "page": "dim-test-rejected",
+   "text": "B -- HALF FIRST, THEN LOWER IF NOTHING CHANGED\nNOT CHOSEN, 22 November. A was picked.\n\nToday's first look, unchanged, so a dimmable bulb is still settled in one look at half. \"It didn't change\" no longer goes to the tab: it starts a second look, down to almost off, with three answers -- it got dimmer, it went off or flickered, still nothing -- and the last two mean on and off only.\n\nCost: a second screen for exactly the bulbs that can't dim, which is the case that went wrong; and \"It didn't change\" at half still reads like a fault before the second look explains it."
   },
   {
    "id": "dim-c",
    "x": -640,
-   "y": 2940,
+   "y": 980,
    "w": 540,
-   "page": "dim-test",
-   "text": "C -- YOU SLIDE IT DOWN YOURSELF\n\nThe person drags a slider on the screen and the light follows their finger, at their pace, stopping where they like. Then the same three answers as A.\n\nCost: it asks them to do the test rather than watch it, which needs the screen and the light in view at once -- true on a phone at the switch, often not on the wall. And a slow hand at the bottom is what shows a bulb that can't dim; a quick one can miss it."
+   "page": "dim-test-rejected",
+   "text": "C -- YOU SLIDE IT DOWN YOURSELF\nNOT CHOSEN, 22 November. A was picked.\n\nThe person drags a slider on the screen and the light follows their finger, at their pace, stopping where they like. Then the same three answers as A.\n\nCost: it asks them to do the test rather than watch it, which needs the screen and the light in view at once -- true on a phone at the switch, often not on the wall. And a slow hand at the bottom is what shows a bulb that can't dim; a quick one can miss it."
   }
  ]
 }

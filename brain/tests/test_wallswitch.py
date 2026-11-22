@@ -205,7 +205,7 @@ class WalkingIn(Setting):
 
 
 class TryingItOnTheLight(Setting):
-    def test_a_dim_is_full_half_full_three_times_and_ends_full(self):
+    def test_a_dim_goes_slowly_to_almost_off_and_back_twice_and_ends_full(self):
         async def go():
             await self.ws.show("0020", "dim")
             await self.ws._shows["0020"]
@@ -216,7 +216,8 @@ class TryingItOnTheLight(Setting):
         try: run(go())
         finally: asyncio.sleep = was
         sent = [p for t, p in self.hub.ha.published if t == f"mesh/{NET}/0020/set"]
-        self.assertEqual(sent, ["dim:100", "dim:50"] * 3 + ["dim:100"])
+        way = [100, 75, 50, 30, 15, 6, 2, 6, 15, 30, 50, 75, 100]
+        self.assertEqual(sent, [f"dim:{n}" for n in way + way[1:]])
 
     def test_the_restart_is_asked_for_after_dimming_is_chosen(self):
         self.hub.ha.answers["dims"] = ("configured", {"op": "dims", "addr": "0020", "ok": True, "restart": True})

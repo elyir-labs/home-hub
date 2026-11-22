@@ -23,6 +23,8 @@ CONFIG_WAIT = 200         # a `setup` is seven acknowledged exchanges and ten re
 APPEAR_WAIT = 25          # from finished to a light the panel can name
 LISTEN_WAIT = 30          # how long somebody gets to walk to the other switch
 LEAVE_AFTER = 600         # On, then off: off after ten minutes with nobody in the room
+DIM_DOWN = [100, 75, 50, 30, 15, 6, 2]   # the dim test's way down; back up is the same, reversed
+DIM_EVERY = 0.7          # seconds per level: about five seconds each way
 WALKIN = ("nothing", "on", "on_off")
 
 
@@ -127,20 +129,28 @@ class WallSwitches:
         await self.hub.ha.call("mqtt", "publish", None, topic=f"mesh/{self.net()}/{addr}/set", payload=payload)
 
     async def show(self, addr: str, what: str) -> dict:
-        """On and off three times, or full, half and full three times. Runs while the person watches; the
-        panel says what is happening and asks what they saw."""
+        """On and off three times, or slowly down to almost off and back, twice. Runs while the person
+        watches; the panel says what is happening and asks what they saw.
+
+        The dim goes all the way down because half proves nothing: many bulbs that can't dim ignore half and
+        only give themselves away near the bottom, where they cut out (design/switch-setup/, dim test A)."""
         if what not in ("light", "dim"): raise ValueError("Nothing to show.")
         if not self.net(): raise ValueError("No bridge of this house is on.")
         old = self._shows.pop(addr, None)
         if old: old.cancel()
-        steps = (["on", "off"] * 3 + ["on"]) if what == "light" else (["dim:100", "dim:50"] * 3 + ["dim:100"])
+        if what == "light":
+            steps, every, levels = ["on", "off"] * 3 + ["on"], 1.2, []
+        else:
+            sweep = DIM_DOWN + DIM_DOWN[-2::-1]
+            levels = sweep + sweep[1:]
+            steps, every = [f"dim:{n}" for n in levels], DIM_EVERY
 
         async def go():
             for s in steps:
                 await self._set(addr, s)
-                await asyncio.sleep(1.2)
+                await asyncio.sleep(every)
         self._shows[addr] = asyncio.create_task(go())
-        return {"state": "showing", "seconds": round(len(steps) * 1.2)}
+        return {"state": "showing", "seconds": round(len(steps) * every), "every": every, "levels": levels}
 
     async def has_light(self, addr: str, yes: bool) -> dict:
         self.remember(addr, light=bool(yes))

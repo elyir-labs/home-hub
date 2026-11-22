@@ -16908,14 +16908,14 @@ html[data-wall] [data-moving] *::after {
   text-underline-offset: 3px;
 }
 .sw-ask {
-  margin: 14px 0 6px;
+  margin: 10px 0 4px;
   font-size: 30px;
   font-weight: 400;
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
 .sw-ask.small {
-  margin-top: 14px;
+  margin-top: 8px;
   font-size: 22px;
 }
 .sw-q {
@@ -16925,7 +16925,7 @@ html[data-wall] [data-moving] *::after {
   gap: 8px 18px;
 }
 .sw-q .sw-live {
-  margin-top: 14px;
+  margin-top: 8px;
 }
 .sw-live {
   display: inline-flex;
@@ -16950,15 +16950,15 @@ html[data-wall] [data-moving] *::after {
 .sw-picks {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 6px;
+  margin-top: 8px;
 }
 .sw-pick {
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 52px;
-  padding: 7px 18px;
+  min-height: 48px;
+  padding: 5px 18px;
   border-radius: var(--r-md);
   border: 1px solid var(--edge);
   background: var(--surface-hi);

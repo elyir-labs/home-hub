@@ -24,7 +24,7 @@ const a = ref<Answers>({ walkin: 'on_off' })
 const device = ref<string | null>(props.deviceId ?? null)
 const showing = ref('')                 // what the light is doing right now, said while it does it
 const busy = ref(false)
-const restarting = ref(false)           // "It didn't change": the tab, then watch again
+const dimSeen = ref('')                 // what they saw when it dimmed, said again on the end page
 const heard = ref<{ switch: string; name: string } | null>(null)
 const listening = ref(false)
 const room = ref('')
@@ -32,23 +32,40 @@ const name = ref(props.name ?? '')
 const suggested = ref(props.name ?? '')   // the house's own name for it counts as not typed
 const partnerAddr = ref<string | null>(null)
 let showTimer: number | undefined
+let showTick: number | undefined
 
 const rooms = computed(() => store.rooms.filter(r => r.id !== 'unassigned'))
 const count = computed(() => progress(at.value, a.value))
 const answered = computed(() => saidRows(at.value, a.value))
 const lightName = computed(() => name.value.trim() || 'The light')
 
+function stopShowing() {
+  clearTimeout(showTimer); clearInterval(showTick)
+  showing.value = ''
+}
+
 async function show(what: 'light' | 'dim') {
-  clearTimeout(showTimer)
-  showing.value = what === 'light' ? 'Turning it on and off…' : 'Dimming to half…'
+  stopShowing()
+  showing.value = what === 'light' ? 'Turning it on and off…' : 'Going down…'
   try {
     const r = await showOnSwitch(props.addr, what)
-    showTimer = window.setTimeout(() => { showing.value = '' }, (r.seconds || 8) * 1000)
-  } catch (e: any) { showing.value = ''; notify(e.message, 'error') }
+    const levels = r.levels ?? []
+    if (levels.length && r.every) {
+      let i = 0
+      const say = () => {
+        const n = levels[i], before = levels[i - 1]
+        showing.value = `${before != null && n > before ? 'Coming back up' : 'Going down'}… ${n}%`
+        if (++i >= levels.length) clearInterval(showTick)
+      }
+      say()
+      showTick = window.setInterval(say, r.every * 1000)
+    }
+    showTimer = window.setTimeout(stopShowing, (r.seconds || 8) * 1000)
+  } catch (e: any) { stopShowing(); notify(e.message, 'error') }
 }
 
 async function go(step: Step) {
-  at.value = step; restarting.value = false
+  at.value = step
   if (step === 'light') show('light')
   if (step === 'dim') {
     // A switch that has just joined dims only once it is told it may, so it is told before it is tried.
@@ -73,7 +90,9 @@ async function lightCame(yes: boolean) {
   go(next('light', a.value))
 }
 
-async function dimmed(yes: boolean) {
+async function dimmed(yes: boolean, seen: string) {
+  stopShowing()
+  dimSeen.value = seen
   busy.value = true
   try {
     if (!yes) {
@@ -83,12 +102,6 @@ async function dimmed(yes: boolean) {
     a.value = { ...a.value, dims: yes, restartOwed: true }
     go(next('dim', a.value))
   } catch (e: any) { notify(e.message, 'error') } finally { busy.value = false }
-}
-
-function watchAgain() {
-  restarting.value = false
-  a.value = { ...a.value, restartOwed: false }
-  show('dim')
 }
 
 async function listen() {
@@ -149,7 +162,7 @@ async function changeWalkIn(mode: WalkIn) {
   try { await switchWalkIn(props.addr, mode) } catch (e: any) { a.value = { ...a.value, walkin: was }; notify(e.message, 'error') }
 }
 
-watch([at, restarting, heard, listening, room, busy, () => a.value.light], () => {
+watch([at, heard, listening, room, busy, () => a.value.light], () => {
   const s = at.value
   if (s === 'other') {
     const acts: Act[] = []
@@ -162,13 +175,12 @@ watch([at, restarting, heard, listening, room, busy, () => a.value.light], () =>
   else if (s === 'room') emit('acts', room.value && device.value ? [{ label: 'Next', primary: true, run: placeAndName }] : [])
   else if (s === 'end') emit('acts', [{ label: 'Done', primary: true, run: () => emit('done') },
                                       { label: 'Add another switch', run: () => emit('another') }])
-  else if (s === 'dim' && restarting.value) emit('acts', [{ label: 'Watch again', primary: true, run: watchAgain }])
   else emit('acts', [])
   emit('head', s === 'end' ? `${lightName.value} is set up.` : '')
 }, { immediate: true })
 
 onMounted(() => go('light'))
-onUnmounted(() => clearTimeout(showTimer))
+onUnmounted(stopShowing)
 </script>
 
 <template>
@@ -199,26 +211,23 @@ onUnmounted(() => clearTimeout(showTimer))
     </template>
 
     <!-- 2: does it dim -->
-    <template v-else-if="at === 'dim' && !restarting">
+    <template v-else-if="at === 'dim'">
       <h3 class="sw-ask">Watch the light.</h3>
-      <p class="flow-desc">The house is dimming it to half and back. You don’t need to know anything about the bulbs.</p>
+      <p class="flow-desc">The house is taking it slowly down to almost off, then back up. Bulbs that can’t dim give themselves away near the bottom.</p>
       <div class="sw-q">
-        <h3 class="sw-ask small">Did it get dimmer?</h3>
+        <h3 class="sw-ask small">What did it do?</h3>
         <span class="sw-live" v-if="showing || busy"><i></i>{{ busy ? 'Getting the switch ready…' : showing }}</span>
       </div>
       <div class="sw-picks">
-        <button class="sw-pick" :disabled="busy" @click="dimmed(true)"><span class="sw-pi"><Icon name="sun" :size="20" /></span><span>Yes, it dimmed smoothly</span></button>
-        <button class="sw-pick" :disabled="busy" @click="dimmed(false)"><span class="sw-pi"><Icon name="power" :size="20" /></span>
-          <span>It flickered, buzzed or went off<small>Then it stays on and off only. Some bulbs can’t dim</small></span></button>
-        <button class="sw-pick" :disabled="busy" @click="restarting = true"><span class="sw-pi"><Icon name="refresh" :size="20" /></span>
-          <span>It didn’t change<small>Restart the switch with its tab, then watch again</small></span></button>
+        <button class="sw-pick" :disabled="busy" @click="dimmed(true, 'You saw it dim')"><span class="sw-pi"><Icon name="sun" :size="20" /></span>
+          <span>It got dimmer, smoothly, all the way down<small>It becomes a dimmer: slide to set how bright</small></span></button>
+        <button class="sw-pick" :disabled="busy" @click="dimmed(false, 'It stayed bright, then went off')"><span class="sw-pi"><Icon name="power" :size="20" /></span>
+          <span>It stayed bright, then went off near the end<small>Or nothing changed at all. Then it stays on and off only</small></span></button>
+        <button class="sw-pick" :disabled="busy" @click="dimmed(false, 'It flickered or buzzed')"><span class="sw-pi"><Icon name="wave" :size="20" /></span>
+          <span>It flickered or buzzed<small>Then it stays on and off only. Some bulbs can’t dim</small></span></button>
         <button class="sw-pick" :disabled="busy" @click="show('dim')"><span class="sw-pi"><Icon name="eye" :size="20" /></span>
           <span>I can’t see it from here<small>Show it again, or go and stand by it</small></span></button>
       </div>
-    </template>
-    <template v-else-if="at === 'dim'">
-      <h3 class="sw-ask">Restart the switch.</h3>
-      <p class="flow-desc">Pull the small tab at the bottom of the switch out, then push it back in. The light goes off for a few seconds. When it’s back, tap Watch again.</p>
     </template>
 
     <!-- 3: the other switch for the same light -->
@@ -267,7 +276,7 @@ onUnmounted(() => clearTimeout(showTimer))
         <span class="sw-seg plain"><b>{{ lightName }}</b><span class="chip-btn on"><Icon name="check" :size="14" />{{ rooms.find(r => r.id === room)?.name }}</span><button class="button small ghost" @click="go('room')">Change</button></span>
       </div>
       <div class="sw-set" v-if="a.light !== false">
-        <span class="sw-k">The bulbs<small>{{ a.dims ? 'You saw them dim' : 'You said they don’t dim' }}</small></span>
+        <span class="sw-k">The bulbs<small>{{ dimSeen || (a.dims ? 'You saw them dim' : 'You said they don’t dim') }}</small></span>
         <span class="sw-seg"><button :class="{ on: a.dims }" @click="changeDims(true)">Dim</button><button :class="{ on: a.dims === false }" @click="changeDims(false)">On and off only</button></span>
       </div>
       <div class="sw-set">

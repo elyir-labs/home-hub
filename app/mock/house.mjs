@@ -925,7 +925,11 @@ export function createHouse({ env = {}, qr = null } = {}) {
       let raw = ''; req.on('data', c => (raw += c))
       return req.on('end', () => {
       let body = {}; try { body = JSON.parse(raw || '{}') } catch {}
-      if (sw[2] === 'show') return json(res, { state: 'showing', seconds: 3 })
+      if (sw[2] === 'show') {
+        if (body.what !== 'dim') return json(res, { state: 'showing', seconds: 8 })
+        const way = [100, 75, 50, 30, 15, 6, 2, 6, 15, 30, 50, 75, 100], levels = [...way, ...way.slice(1)]
+        return json(res, { state: 'showing', seconds: Math.round(levels.length * 0.7), every: 0.7, levels })
+      }
       if (sw[2] === 'light') { st.light = !!body.light; return json(res, summary()) }
       if (sw[2] === 'dims') { st.dims = !!body.dims; return json(res, { state: 'done', restart: true }) }
       if (sw[2] === 'listen') {

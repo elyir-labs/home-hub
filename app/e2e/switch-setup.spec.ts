@@ -23,10 +23,12 @@ test('a switch that joins is set up on its light, then named after its room', as
   await expect(page.getByText('Did a light come on?')).toBeVisible()
   await page.getByRole('button', { name: /Yes, a light came on/ }).click()
 
-  await expect(page.getByText('Did it get dimmer?')).toBeVisible()
-  for (const answer of ['Yes, it dimmed smoothly', 'It flickered, buzzed or went off', 'It didn’t change', 'I can’t see it from here'])
+  await expect(page.getByText('What did it do?')).toBeVisible()
+  await expect(page.getByText(/Going down… \d+%/)).toBeVisible()
+  for (const answer of ['It got dimmer, smoothly, all the way down', 'It stayed bright, then went off near the end',
+                        'It flickered or buzzed', 'I can’t see it from here'])
     await expect(page.getByRole('button', { name: new RegExp(answer) })).toBeVisible()
-  await page.getByRole('button', { name: /Yes, it dimmed smoothly/ }).click()
+  await page.getByRole('button', { name: /It got dimmer, smoothly/ }).click()
 
   await expect(page.getByText('Is there another switch for this light?')).toBeVisible()
   await expect(page.getByText(/Heard: the switch at the top of the stairs/)).toBeVisible()
@@ -49,4 +51,17 @@ test('a switch that joins is set up on its light, then named after its room', as
   expect(steps.filter(s => !s.startsWith('show'))).toEqual([
     'light {"light":true}', 'dims {"dims":true}', 'listen {}', 'pair {"with":"0021"}', 'walkin {"mode":"on_off"}',
   ])
+})
+
+test('a bulb that stays bright and then goes off is on and off only, and nobody is sent to the tab midway', async ({ page }) => {
+  await page.route('**/bridge', route => route.fulfill({ json: { state: 'none', bridges: 1, waiting: 1 } }))
+  await page.goto('/?sheet=add')
+  await page.getByRole('button', { name: /A switch on the wall/ }).click()
+  await page.getByRole('button', { name: 'That’s the one' }).click()
+  await page.getByRole('button', { name: /Yes, a light came on/ }).click()
+
+  await page.getByRole('button', { name: /It stayed bright, then went off near the end/ }).click()
+  await expect(page.getByText('Restart the switch.')).toHaveCount(0)
+  await expect(page.getByText('Is there another switch for this light?')).toBeVisible()
+  await expect(page.getByText(/it stays on and off/)).toBeVisible()
 })
