@@ -1,0 +1,156 @@
+{
+ "name": "Setting up a wall switch",
+ "areas": [
+  "Adding things",
+  "Light switches"
+ ],
+ "reading": [
+  "why",
+  "Today.dc.html",
+  "today",
+  "can",
+  "AskA.dc.html",
+  "AskA-end.dc.html",
+  "a",
+  "OnePageB.dc.html",
+  "b",
+  "ShowC.dc.html",
+  "ShowC-pair.dc.html",
+  "ShowC-end.dc.html",
+  "c",
+  "recommend"
+ ],
+ "pages": [
+  {
+   "id": "switch-setup",
+   "name": "Setting up a wall switch"
+  }
+ ],
+ "launch": {
+  "view": "canvas",
+  "page": "switch-setup"
+ },
+ "artboards": [
+  {
+   "file": "Today.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · Added., and nothing else: no name, no room, no questions",
+   "page": "switch-setup"
+  },
+  {
+   "file": "AskA.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · Asked in words, one question at a time",
+   "page": "switch-setup"
+  },
+  {
+   "file": "AskA-end.dc.html",
+   "x": 1560,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · The end: what you told it, and the restart",
+   "page": "switch-setup"
+  },
+  {
+   "file": "OnePageB.dc.html",
+   "x": 0,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B · One page, the usual answers already filled in",
+   "page": "switch-setup"
+  },
+  {
+   "file": "ShowC.dc.html",
+   "x": 0,
+   "y": 2940,
+   "w": 1440,
+   "h": 900,
+   "title": "C · The house tries it on the light, you say what you saw",
+   "page": "switch-setup"
+  },
+  {
+   "file": "ShowC-pair.dc.html",
+   "x": 1560,
+   "y": 2940,
+   "w": 1440,
+   "h": 900,
+   "title": "C · The other switch is found by pressing it",
+   "page": "switch-setup"
+  },
+  {
+   "file": "ShowC-end.dc.html",
+   "x": 3120,
+   "y": 2940,
+   "w": 1440,
+   "h": 900,
+   "title": "C · The end: B's page, filled in by what was seen",
+   "page": "switch-setup"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "why",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "WHY THIS EXISTS\n\nReported 22 November, setting up a new hub from scratch in the living room. A reset Brilliant switch was added through Add > A switch on the wall: it blinked, That's the one, and the page said Added. Nothing else happened. Nothing asked whether it dims, whether it has a motion sensor to use, how much light is on it, or whether it is one of a pair of switches for the same light. Afterward there was no way to tell what the switch was called or where it had gone.\n\nThe Brilliant app asked all of that when a switch was set up, and a switch that has been reset has forgotten every answer. Without them a dimmer comes back as on and off, the motion sensor stays silent, and the far switch of a stairway pair works nothing."
+  },
+  {
+   "id": "today",
+   "x": 1560,
+   "y": 0,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "TODAY -- FROM THE SHIPPED PANEL\n\napp/src/Adding.vue, beat four. let_in() in brain/hub/bridge.py answers with no device, so the page has no room and no name to offer, and the hub's own sentence (\"It is on the house now.\") lands inside \"It turned out to be ...\".\n\nUnderneath, the add stops after the first step. The bridge joins the switch to the network and nothing more: the switch is not given the key it needs to take commands, its own models are not bound, it is not told to report presses, and the key that would let the house set it up later is handed to the screen and thrown away. So the switch is on the network but is not yet a light anybody can use, which is why there was nothing to name. That half is not visual and gets fixed whatever is picked here."
+  },
+  {
+   "id": "can",
+   "x": 3120,
+   "y": 0,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "WHAT A SWITCH CAN BE TOLD TODAY\n\nEvery board assumes only what has been proven on a real switch, and says so where it can't.\n\nProven:\n- Pairing with another switch for the same light: the far switch can be told which switch is its partner, and to pass each press along. Done by hand on the stairway pair in September.\n- Dimming: giving a switch a working dimmer's whole setup makes it dim. The setting is read only when the switch starts, so the person restarts it (the tab at the bottom) once at the end.\n- Presence: a switch can report somebody walking up to it once it is told to. The house, not the switch, decides what to do with that, so On / On then off is a routine the house runs.\n\nNot known yet:\n- Which single setting means dimmer. Until it is found, On and off only gives the switch a non-dimming switch's setup instead.\n- Wattage. Nowhere to write it has been found. B is the only board that asks it; A and C leave it out until there is."
+  },
+  {
+   "id": "a",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "A -- ASKED IN WORDS, ONE QUESTION AT A TIME\n\nFive questions, in the order that matters: what it controls, whether the bulbs dim, whether there is another switch for the same light, what to do when someone walks in, then its room and name. Answers so far stay above the question as sentences you can change. The end repeats them, then asks for the restart.\n\nFOR: nothing new to learn, every answer is one tap, and \"I'm not sure\" hands the bulb question to the house.\nAGAINST: it asks people things they often don't know (do my bulbs dim?), and it asks about a pair of switches without any way to point at the other one."
+  },
+  {
+   "id": "b",
+   "x": -640,
+   "y": 1960,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "B -- ONE PAGE, THE USUAL ANSWERS ALREADY IN\n\nEverything on one page as settings, each starting at the usual answer: dims, a light, just this one switch, on then off when someone walks in. Change what is wrong, Blink the light to check which one it is, Save, restart.\n\nFOR: fastest for somebody who knows their wiring, and the same page can be the switch's settings later, so there is one place to learn.\nAGAINST: a page of settings is the opposite of a conversation, and its defaults will be wrong in silence. It is the only board that asks for watts, which most people would have to guess, and nothing on the hub can use it yet."
+  },
+  {
+   "id": "c",
+   "x": -640,
+   "y": 2940,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "C -- THE HOUSE TRIES IT ON THE LIGHT, YOU SAY WHAT YOU SAW\nRECOMMENDED\n\nThe same five steps as A, but the questions are about what the person can see, not what they know. The house switches the light on to find out it controls one (\"nothing came on\" means it is the far switch of a pair). It dims it and asks whether it got dimmer, so nobody has to know their bulbs. It listens while you press the other switch for the same light, so a pair is made by touching it, the only way a person can point at a switch. Only walking in, room and name are asked in words. It ends on B's page, every row saying how it was found, which is also the switch's settings page later.\n\nFOR: everything a person can't know is found out on the real thing while they stand next to it, which is where design/adding says setup happens. It's the only direction where pairing is something you do, not something you pick.\nAGAINST: slower, and it needs the person by the light. \"I can't see it from here\" covers a wall screen in another room."
+  },
+  {
+   "id": "recommend",
+   "x": 4680,
+   "y": 2940,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "RECOMMENDED: C, ending on B's page.\n\nThe Brilliant app asked what kind of bulbs and how many watts. A household doesn't know, but can see a lamp. C asks what they saw. B's page is kept as the place every answer lives afterward, so changing a switch later is the same page."
+  }
+ ]
+}
