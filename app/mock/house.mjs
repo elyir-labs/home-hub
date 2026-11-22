@@ -486,6 +486,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
   /* BRIDGES=1 is a house that already HAS a bridge and is not busy -- which is the normal case, and the
      one that puts the Wall switch door on the Add screen. WAITING=1 is a new switch sitting there
      unprovisioned, which is what that door then has something to say about. */
+  const SWITCH_SETUP = { light: null, dims: null, partner: null, walkin: 'nothing' }   // the one switch the pretend house lets in
   const HAVE = { bridges: Number(env.BRIDGES || (env.BRIDGE ? 1 : 0)), waiting: Number(env.WAITING || 0) }
   let bridgeAt = 0                      // when "yes, that's mine" was pressed; 0 = still knocking
   let bridgePinned = null               // set by dismiss/placed, or by a pinned BRIDGE value
@@ -912,7 +913,31 @@ export function createHouse({ env = {}, qr = null } = {}) {
       const d = dev('mesh-new', 'Brilliant switch 0019', 'unassigned', 'light', 'off', { brightness: 0, has_motion: true })
       unassigned.devices.push(d)
       push({ type: 'device', device: d })
-      return json(res, { state: 'done', device_id: d.id, name: d.name, text: 'A light that dims, and a motion sensor.' })
+      return json(res, { state: 'done', device_id: d.id, name: d.name, switch: '0020', setup: true })
+    }
+    /* Setting the switch up on its light (design/switch-setup/, C). LISTEN=none is nobody pressing the
+       other switch; otherwise one is heard a moment after the house starts listening. */
+    const sw = p.match(/^\/bridge\/switches\/([0-9a-f]{4})(?:\/([a-z]+))?$/)
+    if (sw) {
+      const id = 'mesh-new', st = SWITCH_SETUP
+      const summary = () => ({ switch: sw[1], ...st, finished: true, device_id: id, name: unassigned.devices.find(x => x.id === id)?.name ?? null })
+      if (req.method === 'GET') return json(res, summary())
+      let raw = ''; req.on('data', c => (raw += c))
+      return req.on('end', () => {
+      let body = {}; try { body = JSON.parse(raw || '{}') } catch {}
+      if (sw[2] === 'show') return json(res, { state: 'showing', seconds: 3 })
+      if (sw[2] === 'light') { st.light = !!body.light; return json(res, summary()) }
+      if (sw[2] === 'dims') { st.dims = !!body.dims; return json(res, { state: 'done', restart: true }) }
+      if (sw[2] === 'listen') {
+        if (env.LISTEN === 'none') return setTimeout(() => json(res, { heard: null }), 1500)
+        return setTimeout(() => json(res, { heard: { switch: '0021', device_id: null, name: 'the switch at the top of the stairs' } }), 1500)
+      }
+      if (sw[2] === 'pair') { st.partner = '0021'; return json(res, { state: 'done' }) }
+      if (sw[2] === 'unpair') { st.partner = null; return json(res, { state: 'done' }) }
+      if (sw[2] === 'walkin') { st.walkin = body.mode; return json(res, summary()) }
+      if (sw[2] === 'finish') return json(res, { state: 'done', switch: sw[1], device_id: id, setup: true })
+      json(res, { state: 'failed', text: 'unknown step' })
+      })
     }
     if (p.startsWith('/bridge/') && req.method === 'POST') {
       const what = p.split('/')[2]

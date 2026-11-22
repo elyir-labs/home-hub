@@ -63,6 +63,7 @@ from .share import Share
 from .nightlight import Nightlight
 from .ears import Ears
 from .relay import Relay
+from .wallswitch import WallSwitches
 from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, from_setup, from_screen, SETUP_OPEN, away_refused, away_refusal
 from .pusher import NEEDS_ADDRESS as PUSH_NEEDS_ADDRESS, Pusher, checked as push_checked
 from . import camera
@@ -164,6 +165,7 @@ class Hub:
         self.share = Share(self)           # what this house lets a Matter bridge publish: docs/matter.md
         self.share_status: dict = {}       # what the bridge last said about itself (pairing codes, who holds it)
         self.relay = Relay(self)           # two switches on one light: the hub carries the press across
+        self.wallswitch = WallSwitches(self, self.bridge)   # a switch that joined, set up by trying it on the light
         self.nightlight = Nightlight(self)  # a bridge's own light, lifted when somebody walks past it
         self.phones = Phones(self)                     # which phones belong to the house, once it has a code
         self.pusher = Pusher(self)                     # what needs a look, told once to the phones that can act on it
@@ -2112,9 +2114,44 @@ async def bridge_switch(body: dict):
     if len(uuid) != 32 or any(c not in "0123456789abcdef" for c in uuid):
         raise HTTPException(400, "No switch was named.")
     try:
-        return await hub.bridge.let_in(uuid, oob)
+        return await hub.wallswitch.let_in(uuid, oob)
     except ValueError as e:
         raise HTTPException(409, str(e))
+
+
+def _switch_addr(addr: str) -> str:
+    a = addr.strip().lower()
+    if len(a) != 4 or any(c not in "0123456789abcdef" for c in a): raise HTTPException(400, "No switch was named.")
+    return a
+
+
+@app.get("/bridge/switches/{addr}")
+async def bridge_switch_setup(addr: str):
+    """What the house knows about one wall switch: has a light, dims, its partner, walking in."""
+    hub.ready()
+    a = _switch_addr(addr)
+    dev = await hub.wallswitch.device_of(a)
+    return {**hub.wallswitch.summary(a), "device_id": dev.id if dev else None, "name": dev.name if dev else None}
+
+
+@app.post("/bridge/switches/{addr}/{step}")
+async def bridge_switch_step(addr: str, step: str, body: dict | None = None):
+    """One step of setting a switch up on the light itself (design/switch-setup/, C)."""
+    hub.ready()
+    a, body = _switch_addr(addr), body or {}
+    ws = hub.wallswitch
+    try:
+        if step == "finish": return await ws.finish(a)
+        if step == "show": return await ws.show(a, str(body.get("what") or ""))
+        if step == "light": return await ws.has_light(a, bool(body.get("light")))
+        if step == "dims": return await ws.dims(a, bool(body.get("dims")))
+        if step == "listen": return await ws.listen(a)
+        if step == "pair": return await ws.pair(a, _switch_addr(str(body.get("with") or "")))
+        if step == "unpair": return await ws.unpair(a)
+        if step == "walkin": return await ws.walkin(a, str(body.get("mode") or ""))
+    except ValueError as e:
+        raise HTTPException(409, str(e))
+    raise HTTPException(404, "unknown step")
 
 
 @app.get("/bridge/nearby")

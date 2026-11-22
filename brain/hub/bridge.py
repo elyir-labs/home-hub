@@ -1255,7 +1255,7 @@ class Bridges:
         if len(parts) == 4 and parts[1] == "bridge":
             chip, leaf = parts[2], parts[3]
             p = self.pucks.setdefault(chip, {})
-            if leaf in ("nearby", "claimed"):
+            if leaf in ("nearby", "claimed", "configured"):
                 # An answer to something we asked. Keep the newest and wake whoever
                 # is waiting; the waiter checks what it got, because a stale reply
                 # from a previous question would otherwise look like an answer.
@@ -1325,6 +1325,8 @@ class Bridges:
             # One subscription for both, because there is only one thing to listen to (hub/relay.py).
             if (relay := getattr(self.hub, "relay", None)):
                 relay.on_message(parts[1], parts[2], parts[3], payload, bool(m.get("retain")))
+            if (ws := getattr(self.hub, "wallswitch", None)):
+                ws.heard(parts[1], parts[2], parts[3], bool(m.get("retain")))
 
     # ---- letting a switch in ----
     #
@@ -1359,7 +1361,7 @@ class Bridges:
         p.write_text(json.dumps(k, indent=1)); os.chmod(p, 0o600)
         return nxt
 
-    async def _ask(self, cmd: str, leaf: str, timeout: float) -> dict | None:
+    async def _ask(self, cmd: str, leaf: str, timeout: float, topic: str = "claim", match=None) -> dict | None:
         chip = self._our_puck()
         if not chip:
             raise ValueError("No bridge of this house is on. Plug one in, or give it a moment.")
@@ -1369,14 +1371,14 @@ class Bridges:
         # inside it -- which reads exactly like a puck that did not answer.
         self._woke = asyncio.Event()
         await self.hub.ha.call("mqtt", "publish", None,
-                               topic=f"{BASE}/bridge/{chip}/claim", payload=cmd)
+                               topic=f"{BASE}/bridge/{chip}/{topic}", payload=cmd)
         end = time.time() + timeout
         while time.time() < end:
             try: await asyncio.wait_for(self._woke.wait(), timeout=max(0.2, end - time.time()))
             except TimeoutError: break
             self._woke.clear()
             got = self._heard.get(leaf)
-            if got and got["chip"] == chip: return got["body"]
+            if got and got["chip"] == chip and (match is None or match(got["body"])): return got["body"]
         return None
 
     async def nearby(self) -> dict:
@@ -1428,6 +1430,10 @@ class Bridges:
             return {"state": "failed", "text": "The bridge stopped answering while it was letting the switch in."}
         if not body.get("ok"):
             return {"state": "failed", "text": body.get("why") or "That switch wasn\u2019t added."}
+        # Its own key comes back this once, and without it the switch can never be set up again short of
+        # starting it over at the wall -- so it is written down before anything else can go wrong.
+        if (ws := getattr(self.hub, "wallswitch", None)) and body.get("devkey") and body.get("unicast"):
+            ws.remember(str(body["unicast"]), devkey=body["devkey"], uuid=uuid, since=time.time())
         return {"state": "done", "unicast": body.get("unicast"), "devkey": body.get("devkey"),
                 "elements": body.get("elements", 1),
                 "text": "It is on the house now."}

@@ -472,6 +472,13 @@ Do not reopen these, and do not propose around them.
   card for good whose buttons work both, Two speakers keeps two cards. Home says the song once. The answer is the
   brain's (`speaker_pairs`, `/speakers/pair`), the grouping `groupOf` in `app/src/music.ts`; pinned by
   `app/e2e/speaker-pair.spec.ts` and `brain/tests/test_music.py`.
+- **A wall switch that joins is set up on its light, never just "Added."** (22 November, `design/switch-setup/`, C ending
+  on B's page). The bridge finishes a switch it lets in, and the hub keeps the switch's own key beside the mesh keys, never
+  on a screen. Then every question is what the person saw: a light came on or not, it dimmed or it didn't (or restart it
+  with its tab and watch again), and the other switch for the same light is found by pressing it. Walking in, the room and
+  the name are the only things asked in words. The end is the switch's settings page. The hub speaks to the bridge in plain
+  words (`setup`, `dims`, `pair`, `unpair`) and never knows a maker's settings. Pinned by `app/tests/switchSetup.test.ts`,
+  `app/e2e/switch-setup.spec.ts` and `brain/tests/test_wallswitch.py`; the hub's half is `brain/hub/wallswitch.py`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
   B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
   development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this
