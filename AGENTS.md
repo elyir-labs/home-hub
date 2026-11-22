@@ -474,8 +474,9 @@ Do not reopen these, and do not propose around them.
   `app/e2e/speaker-pair.spec.ts` and `brain/tests/test_music.py`.
 - **A wall switch that joins is set up on its light, never just "Added."** (22 November, `design/switch-setup/`, C ending
   on B's page). The bridge finishes a switch it lets in, and the hub keeps the switch's own key beside the mesh keys, never
-  on a screen. Then every question is what the person saw: a light came on or not, it dimmed or it didn't (or restart it
-  with its tab and watch again), and the other switch for the same light is found by pressing it. Walking in, the room and
+  on a screen. Then every question is what the person saw: a light came on or not; the house takes it slowly to almost
+  off and back, because bulbs that can't dim only show it near the bottom, and every answer to that is final -- nobody is
+  sent to the tab midway (dim test A, same day); and the other switch for the same light is found by pressing it. Walking in, the room and
   the name are the only things asked in words. The end is the switch's settings page. The hub speaks to the bridge in plain
   words (`setup`, `dims`, `pair`, `unpair`) and never knows a maker's settings. Pinned by `app/tests/switchSetup.test.ts`,
   `app/e2e/switch-setup.spec.ts` and `brain/tests/test_wallswitch.py`; the hub's half is `brain/hub/wallswitch.py`.
