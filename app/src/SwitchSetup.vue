@@ -82,7 +82,7 @@ async function go(step: Step) {
     // A switch that has just joined dims only once it is told it may, so it is told before it is tried.
     busy.value = true
     try {
-      const r = await switchDims(me.value, true)
+      const r = await switchDims(me.value, true, undefined, true)
       if (r.state === 'failed') notify(r.text ?? 'The switch didn’t take that.', 'error')
       else a.value = { ...a.value, restartOwed: true }
     } catch (e: any) { notify(e.message, 'error') }
@@ -127,7 +127,7 @@ async function pairHeard() {
     const r = await pairSwitch(me.value, heard.value.switch)
     if (r.state === 'failed') { notify(r.text ?? 'The two switches weren’t paired.', 'error'); return }
     partnerAddr.value = heard.value.switch
-    a.value = { ...a.value, partner: heard.value.name }
+    a.value = { ...a.value, partner: heard.value.name, restartOwed: a.value.restartOwed || !!r.restart }
     go(next('other', a.value))
   } catch (e: any) { notify(e.message, 'error') } finally { busy.value = false }
 }
@@ -144,14 +144,16 @@ async function otherJoined(c: Caught) {
   if (!c.switch) return addingFailed('The other switch joined, but the bridge couldn’t finish it.')
   adding.value = 'working'; addingSays.value = 'Joining the two switches…'
   const first = me.value, firstHasLight = a.value.light !== false
+  let restart = false
   try {
     await switchHasLight(c.switch, !firstHasLight)
     const r = await pairSwitch(first, c.switch)
     if (r.state === 'failed') return addingFailed(r.text ?? 'The two switches weren’t paired.')
+    restart = !!r.restart
   } catch (e: any) { return addingFailed(e.message) }
   if (firstHasLight) {
     partnerAddr.value = c.switch; otherDevice.value = c.device_id ?? null
-    a.value = { ...a.value, partner: 'the other end' }
+    a.value = { ...a.value, partner: 'the other end', restartOwed: a.value.restartOwed || restart }
     adding.value = 'joined'
     return
   }
@@ -385,7 +387,8 @@ onUnmounted(stopShowing)
       </div>
       <div class="sw-restart" v-if="a.restartOwed && a.light !== false">
         <span class="sw-pi"><Icon name="switch" :size="22" /></span>
-        <span><b>{{ settings ? 'Then restart the switch' : 'Last step: restart the switch' }}</b><small>Pull the small tab at the bottom of the switch out, then push it back in. The light goes off for a few seconds, and the switch comes back the way you set it up.</small></span>
+        <span v-if="partnerAddr"><b>{{ settings ? 'Then restart both switches' : 'Last step: restart both switches' }}</b><small>At each switch, pull the small tab at the bottom out, then push it back in. The light goes off for a few seconds, and both come back the way you set them up.</small></span>
+        <span v-else><b>{{ settings ? 'Then restart the switch' : 'Last step: restart the switch' }}</b><small>Pull the small tab at the bottom of the switch out, then push it back in. The light goes off for a few seconds, and the switch comes back the way you set it up.</small></span>
       </div>
     </template>
   </div>

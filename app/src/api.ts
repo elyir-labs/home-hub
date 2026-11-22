@@ -277,9 +277,10 @@ export async function switchSetup(addr: string): Promise<SwitchSetup> {
 export const finishSwitch = (addr: string) => post<Letting>(`/bridge/switches/${addr}/finish`, {})
 export const showOnSwitch = (addr: string, what: 'light' | 'dim') => post<{ state: string; seconds: number; every?: number; levels?: number[] }>(`/bridge/switches/${addr}/show`, { what })
 export const switchHasLight = (addr: string, light: boolean) => post<SwitchSetup>(`/bridge/switches/${addr}/light`, { light })
-export const switchDims = (addr: string, dims: boolean, found?: boolean) => post<{ state: string; text?: string; restart?: boolean }>(`/bridge/switches/${addr}/dims`, found === undefined ? { dims } : { dims, found })
+export const switchDims = (addr: string, dims: boolean, found?: boolean, alone?: boolean) =>
+  post<{ state: string; text?: string; restart?: boolean }>(`/bridge/switches/${addr}/dims`, { dims, ...(found === undefined ? {} : { found }), ...(alone ? { alone } : {}) })
 export const listenForSwitch = (addr: string) => post<{ heard: { switch: string; device_id: string | null; name: string } | null }>(`/bridge/switches/${addr}/listen`, {})
-export const pairSwitch = (addr: string, other: string) => post<{ state: string; text?: string }>(`/bridge/switches/${addr}/pair`, { with: other })
+export const pairSwitch = (addr: string, other: string) => post<{ state: string; text?: string; restart?: boolean }>(`/bridge/switches/${addr}/pair`, { with: other })
 export const unpairSwitch = (addr: string) => post<{ state: string; text?: string }>(`/bridge/switches/${addr}/unpair`, {})
 export const switchWalkIn = (addr: string, mode: 'nothing' | 'on' | 'on_off') => post<SwitchSetup>(`/bridge/switches/${addr}/walkin`, { mode })
 export const BRIDGE_STEPS = ['software', 'wifi', 'keys'] as const

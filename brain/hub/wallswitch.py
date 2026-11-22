@@ -164,21 +164,40 @@ class WallSwitches:
         self.remember(addr, light=bool(yes))
         return self.summary(addr)
 
-    async def dims(self, addr: str, yes: bool, found: bool | None = None) -> dict:
+    async def dims(self, addr: str, yes: bool, found: bool | None = None, alone: bool = False) -> dict:
         """What the switch does, chosen; and, from the dim test, what its bulbs can do, found. The two are kept
         apart because a light that can dim is not always one somebody wants dimmed (design/switch-setup/,
-        dimming is your choice, A). The test's answer repeats a choice already sent, so that is not sent again."""
+        dimming is your choice, A). The test's answer repeats a choice already sent, so that is not sent again.
+        The other end of a pair is told the same: its slider only reaches the light when it is set to dim too.
+        `alone` is the moment before the dim test, when only the switch with the light has to be ready."""
         if found is not None:
             self.remember(addr, can_dim=bool(found))
             if not found and yes: return {"state": "failed", "text": "Its bulbs can't dim, so it stays on and off."}
-            if self.get(addr).get("dims") == bool(yes): return {"state": "done", "restart": False}
         elif yes and self.get(addr).get("can_dim") is False:
             return {"state": "failed", "text": "Its bulbs can't dim, so it stays on and off."}
-        r = await self._config(f"dims {addr} {'yes' if yes else 'no'}")
-        if not r.get("ok"):
-            return {"state": "failed", "text": r.get("why") or "The switch didn't take that."}
-        self.remember(addr, dims=bool(yes))
-        return {"state": "done", "restart": bool(r.get("restart", True))}
+        restart = False
+        if found is None or self.get(addr).get("dims") != bool(yes):
+            r = await self._config(f"dims {addr} {'yes' if yes else 'no'}")
+            if not r.get("ok"):
+                return {"state": "failed", "text": r.get("why") or "The switch didn't take that."}
+            self.remember(addr, dims=bool(yes))
+            restart = bool(r.get("restart", True))
+        if not alone:
+            other = await self._same_on_partner(addr, bool(yes))
+            if other is None:
+                return {"state": "failed", "text": "This switch took it, but the switch at the other end didn't. Try again."}
+            restart = restart or other
+        return {"state": "done", "restart": restart}
+
+    async def _same_on_partner(self, addr: str, yes: bool) -> bool | None:
+        """True when the partner was changed and needs restarting, False when it had nothing to change, None when
+        it refused. A partner never told either way is still as a reset left it: on and off."""
+        partner = self.get(addr).get("partner")
+        if not partner or bool(self.get(partner).get("dims")) == yes: return False
+        r = await self._config(f"dims {partner} {'yes' if yes else 'no'}")
+        if not r.get("ok"): return None
+        self.remember(partner, dims=yes)
+        return bool(r.get("restart", True))
 
     # ---- the other switch for the same light ----
     def heard(self, net: str, addr: str, leaf: str, retained: bool) -> None:
@@ -215,7 +234,10 @@ class WallSwitches:
             return {"state": "failed", "text": r.get("why") or "The two switches weren't paired."}
         self.remember(companion, partner=main, light=False)
         self.remember(main, partner=companion)
-        return {"state": "done", "companion": companion, "main": main}
+        restart = await self._same_on_partner(main, bool(self.get(main).get("dims")))
+        if restart is None:
+            return {"state": "failed", "text": "The two switches work together, but the other end couldn't be set to dim. Try again."}
+        return {"state": "done", "companion": companion, "main": main, "restart": restart}
 
     async def unpair(self, addr: str) -> dict:
         me = self.get(addr)

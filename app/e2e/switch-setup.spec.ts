@@ -57,11 +57,11 @@ test('a switch that joins is set up on its light, then named after its room', as
   await expect(page.getByText(`${roomName} light is set up.`)).toBeVisible()
   await expect(page.getByText('From the switch')).toBeVisible()
   await expect(page.getByText('Its bulbs can dim · you saw it')).toBeVisible()
-  await expect(page.getByText('Last step: restart the switch')).toBeVisible()
+  await expect(page.getByText('Last step: restart both switches')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Not now' })).toHaveCount(0)
 
   expect(steps.filter(s => !s.startsWith('show'))).toEqual([
-    'light {"light":true}', 'dims {"dims":true}', 'dims {"dims":true,"found":true}', 'listen {}', 'pair {"with":"0021"}', 'walkin {"mode":"on_off"}',
+    'light {"light":true}', 'dims {"dims":true,"alone":true}', 'dims {"dims":true,"found":true}', 'listen {}', 'pair {"with":"0021"}', 'walkin {"mode":"on_off"}',
   ])
 })
 

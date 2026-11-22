@@ -28,7 +28,7 @@ class FakeHA:
         chip = kw["topic"].split("/")[2] if kw.get("topic", "").startswith("mesh/bridge/") else None
         if chip and verb in self.answers and self.cb:
             said = self.answers[verb]
-            leaf, body = said.pop(0) if isinstance(said, list) else said
+            leaf, body = said.pop(0) if isinstance(said, list) else said(kw["payload"]) if callable(said) else said
             self.cb({"topic": f"mesh/bridge/{chip}/{leaf}", "payload": json.dumps(body)})
 
     async def send(self, type_, **kw):
@@ -240,6 +240,46 @@ class DimmingIsAChoice(Setting):
         run(self.ws.dims("0020", False, found=False))
         self.assertEqual(run(self.ws.dims("0020", True))["state"], "failed")
         self.assertFalse(self.ws.summary("0020")["dims"])
+
+    def echo_dims(self):
+        self.hub.ha.answers["dims"] = lambda cmd: ("configured", {"op": "dims", "addr": cmd.split()[1], "ok": True, "restart": True})
+        self.hub.ha.answers["pair"] = lambda cmd: ("configured", {"op": "pair", "addr": cmd.split()[1], "ok": True})
+
+    def sent(self): return [m for _, m in self.hub.ha.published if m.split()[0] in ("dims", "pair")]
+
+    def test_the_other_end_of_a_pair_is_set_the_same_or_its_slider_does_nothing(self):
+        self.echo_dims()
+        self.ws.remember("0020", light=True, partner="0021"); self.ws.remember("0021", light=False, partner="0020")
+        out = run(self.ws.dims("0020", True))
+        self.assertEqual(out, {"state": "done", "restart": True})
+        self.assertEqual(self.sent(), ["dims 0020 yes", "dims 0021 yes"])
+        self.assertTrue(self.ws.get("0021")["dims"])
+        run(self.ws.dims("0020", False))
+        self.assertEqual(self.sent()[-1], "dims 0021 no")
+
+    def test_before_the_dim_test_only_the_switch_with_the_light_is_told(self):
+        self.echo_dims()
+        self.ws.remember("0020", light=True, partner="0021"); self.ws.remember("0021", light=False, partner="0020")
+        run(self.ws.dims("0020", True, alone=True))
+        self.assertEqual(self.sent(), ["dims 0020 yes"])
+        run(self.ws.dims("0020", True, found=True))
+        self.assertEqual(self.sent(), ["dims 0020 yes", "dims 0021 yes"])
+
+    def test_a_switch_paired_to_a_light_that_dims_is_set_to_dim_as_it_joins(self):
+        self.echo_dims()
+        self.ws.remember("0020", light=True, dims=True)
+        self.ws.remember("0021", light=False)
+        out = run(self.ws.pair("0020", "0021"))
+        self.assertEqual((out["state"], out["restart"]), ("done", True))
+        self.assertEqual(self.sent(), ["pair 0021 0020", "dims 0021 yes"])
+
+    def test_an_on_and_off_light_leaves_its_new_partner_as_the_reset_left_it(self):
+        self.echo_dims()
+        self.ws.remember("0020", light=True, dims=False)
+        self.ws.remember("0021", light=False)
+        out = run(self.ws.pair("0020", "0021"))
+        self.assertEqual((out["state"], out["restart"]), ("done", False))
+        self.assertEqual(self.sent(), ["pair 0021 0020"])
 
     def test_a_light_finds_the_switch_behind_it(self):
         self.ws.remember("0020", finished=1)
