@@ -229,6 +229,10 @@ export const MODEM = {
   alone: 'Plug the hub into your router',
   aloneMove: 'Move its cable to a spare port on your router',
   aloneWhy: 'Phones at home can’t reach it in the modem. Once it’s moved, a code to scan appears here.',
+  // On nothing, with a card that couldn't make a Wi-Fi of its own (design/own-wifi/, A).
+  noWifi: 'This computer couldn’t make a Wi‑Fi of its own',
+  noWifiWhy: 'Plug a cable from the hub into a spare port on your router, and a code to scan appears here.',
+  noWifiWords: { left: 400, top: 400, width: 640 },
   tile: { left: 330, top: 360, size: 240, pad: 19 },
   code: { center: 450, top: 628 },        // the left column: the line over the Wi-Fi's name and password
   or: { top: 672 },

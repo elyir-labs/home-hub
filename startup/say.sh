@@ -8,6 +8,7 @@
 #
 #   say.sh step preparing|moving|unpacking|setting|downloading|starting|trying|unasked|clearing|todrive
 #   say.sh first      at the very start of a boot: marks it a first start, and says it is getting ready
+#   say.sh where      which way in Ready would offer now: addr, wifi, modem, alone, nowifi, or wait
 #   say.sh end        once the hub answers: a first start ends on where to go next, any other start as it always has
 #   say.sh ask <kind> <letters> [<drive.sh describe JSON>] [<try.sh status JSON>]
 #                     asks a question on the screen (design/move-to-drive/: keys-2 and stick-try) with the answers
@@ -79,14 +80,23 @@ at_home() {
     | grep -vxFf <(printf '%s\n' "$(modem)") | grep -q .
 }
 radio() { ls -d "${HUB_NET:-/sys/class/net}"/*/phy80211 >/dev/null 2>&1; }
+# The hub's own Wi-Fi is offered only once network.sh has it up, which it says by keeping its password for this screen
+# (design/own-wifi/, A). Until then, on nothing, Ready waits; and if it couldn't make one, Ready says plug it in.
+NET_DATA="${HUB_NET_DATA:-${HOME_HUB_DIR:-/opt/home-hub}/driver-layer/brain-data}"
+own_up() { [ -s "$NET_DATA/network.setup-key" ]; }
+own_failed() { [ -e "$NET_DATA/network.setup-failed" ] || ! radio; }
 where_now() {
   local ssid on_modem; ssid="$(conf HUB_SETUP_SSID)"; on_modem="$(modem)"
   if at_home || { [ -z "$ssid" ] && [ -z "$on_modem" ]; }; then
     printf 'addr%s%s%s%s%s' "$US" "$(mdns_name)" "$US" "$US" "$(drive_waiting)"
-  elif [ -n "$ssid" ] && { [ -z "$on_modem" ] || radio; }; then
+  elif [ -n "$ssid" ] && own_up && { [ -z "$on_modem" ] || radio; }; then
     printf '%s%s%s%s%s%s%s' "$([ -n "$on_modem" ] && echo modem || echo wifi)" "$US" "$ssid" "$US" "$(conf HUB_SETUP_PASS)" "$US" "$(drive_waiting)"
-  else
+  elif [ -n "$on_modem" ]; then
     printf 'alone%s%s%s%s' "$US" "$US" "$US" "$(drive_waiting)"
+  elif own_failed; then
+    printf 'nowifi%s%s%s%s' "$US" "$US" "$US" "$(drive_waiting)"
+  else
+    echo wait
   fi
 }
 # Without a code it is the same words, under the house.
@@ -94,11 +104,11 @@ draw() {
   local kind a b q
   IFS="$US" read -r kind a b q <<< "$1"
   [ "$q" = 1 ] && tell "elyir:drive:phone" || tell "elyir:drive:none"
-  case "$kind" in modem|alone) tell "elyir:modem" ;; *) tell "elyir:nomodem" ;; esac
+  case "$kind" in modem|alone) tell "elyir:modem" ;; nowifi) tell "elyir:nowifi" ;; *) tell "elyir:nomodem" ;; esac
   if [ "$kind" = addr ]; then
     spell addr "$a"
     code "http://$a" || tell "elyir:nocode"
-  elif [ "$kind" = alone ]; then
+  elif [ "$kind" = alone ] || [ "$kind" = nowifi ]; then
     tell "elyir:nocode"
   else
     spell wifi "$a"
@@ -183,6 +193,9 @@ case "${1:-}" in
     [ -e "$DONE" ] && exit 0
     mkdir -p "$(dirname "$FIRST")" && : > "$FIRST"
     up && tell "elyir:step:preparing" ;;
+  where)
+    # Which way in Ready would offer now, for a person checking and for tests: its kind and nothing secret.
+    where_now | cut -d "$US" -f1 ;;
   end)
     [ -e "$FIRST" ] || exec "$HERE/wall.sh" wait
     until curl -fs -m 2 -o /dev/null "$READY_URL"; do follow_stick; sleep 1; done
@@ -194,7 +207,8 @@ case "${1:-}" in
     while up; do
       follow_stick
       now="$(where_now)"
-      if [ "$now" != "$shown" ]; then
+      # Not ready to say a way in yet: whatever is on screen stays, the first start's own line included.
+      if [ "$now" != wait ] && [ "$now" != "$shown" ]; then
         [ -n "$shown" ] && tell "elyir:clear"
         draw "$now"
         [ -n "$shown" ] || tell "elyir:hello"

@@ -234,6 +234,24 @@ test('Ready on a cable into the modem is where C puts it, and says what C says',
   for (const f of ['modem-picture.png', 'modem-split.png', 'modem-move.png', 'modem-alone-move.png', 'modem-tile.png']) assert.match(sc, new RegExp(`Image\\("${f}"\\)`))
 })
 
+// design/own-wifi/ (A): the hub's own Wi-Fi is offered only once it is up, and a computer that couldn't make one is
+// told to plug in, in OnlyA-4's words, where it puts them, with no cable picture.
+test('Ready offers its own Wi-Fi only once it is up, and says plug in when it can’t make one', () => {
+  const a4 = read(new URL('../design/own-wifi/OnlyA-4.dc.html', import.meta.url))
+  assert.match(a4, new RegExp(`class="say ready" style="top: ${WORDS.scanReady.top}px">${MODEM.alone}<`))
+  const [, l, t, w, big, small] = a4.match(/class="col words" style="left: (\d+)px; top: (\d+)px; width: (\d+)px"><div class="big">([^<]*)<\/div><div class="small">([^<]*)</)
+  assert.deepEqual([+l, +t, +w], [MODEM.noWifiWords.left, MODEM.noWifiWords.top, MODEM.noWifiWords.width])
+  assert.deepEqual([big, small], [MODEM.noWifi, MODEM.noWifiWhy])
+  assert.doesNotMatch(a4, /class="picture"/)
+  const sc = script()
+  assert.match(sc, /"elyir:nowifi"/); assert.match(sc, /Image\("no-wifi.png"\)/)
+  assert.match(sc, /m_picture\.SetOpacity\(hello \* global\.modem \* \(1 - global\.nowifi\)/)
+  assert.ok(existsSync(theme('no-wifi.png')))
+  const say = read(new URL('say.sh', import.meta.url))
+  assert.match(say, /own_up\(\) \{ \[ -s "\$NET_DATA\/network\.setup-key" \]; \}/)
+  assert.match(say, /\[ "\$now" != wait \]/)
+})
+
 test('a hub just moved onto its drive says the stick can come out, as the board puts it, only while the stick is in', () => {
   const c1 = move('DoneC-1.dc.html'), c2 = move('DoneC-2.dc.html')
   assert.deepEqual(text(c1, 'notice'), [ON_DRIVE.line])

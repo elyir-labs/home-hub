@@ -198,6 +198,7 @@ modem_picture_image = fit(Image("modem-picture.png"));
 modem_split_image = fit(Image("modem-split.png"));
 modem_move_image = fit(Image("modem-move.png"));
 modem_alone_move_image = fit(Image("modem-alone-move.png"));
+no_wifi_image = fit(Image("no-wifi.png"));
 m_picture = Sprite(); m_picture.SetZ(30); m_picture.SetOpacity(0);
 m_split = Sprite(); m_split.SetZ(30); m_split.SetOpacity(0);
 m_move = Sprite(); m_move.SetZ(30); m_move.SetOpacity(0);
@@ -248,6 +249,7 @@ global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0;
 global.shown_n = 0;
 global.coded = 0;
 global.modem = 0;
+global.nowifi = 0;
 global.m_two = 0;
 
 fun at_center(sprite, image, cx, top) {
@@ -450,6 +452,8 @@ fun modem_where() {
     centered(ready, modem_alone_image, 275);
     at_left(m_picture, modem_picture_image, 490, 370);
     at_left(m_move, modem_alone_move_image, 400, 650);
+    # On nothing, with no Wi-Fi of its own: no cable to move, so no picture of one (design/own-wifi/, A).
+    if (global.nowifi) { at_left(m_move, no_wifi_image, 400, 400); }
   }
   lay(450, 672);
 }
@@ -506,8 +510,9 @@ fun status(text) {
   # Ready redrawn for a network that changed under it (say.sh end): the old words go, and the code is replaced.
   if (text == "elyir:clear") { global.field = ""; global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0; where(); }
   if (text == "elyir:nocode") { global.coded = 0; where(); }
-  if (text == "elyir:modem") { global.modem = 1; where(); }
-  if (text == "elyir:nomodem") { global.modem = 0; where(); }
+  if (text == "elyir:modem") { global.modem = 1; global.nowifi = 0; where(); }
+  if (text == "elyir:nowifi") { global.modem = 1; global.nowifi = 1; where(); }
+  if (text == "elyir:nomodem") { global.modem = 0; global.nowifi = 0; where(); }
   if (text == "elyir:drive:phone") { global.drive_q = 1; where(); }
   if (text == "elyir:drive:none") { global.drive_q = 0; where(); }
   if (text == "elyir:stick:in") { global.stick_in = 1; }
@@ -646,7 +651,7 @@ fun refresh() {
   tile.SetOpacity(hello * global.coded * after_house);
   code.SetOpacity(hello * global.coded * after_house);
   scan_line.SetOpacity(hello * global.coded * after_house);
-  m_picture.SetOpacity(hello * global.modem * after_house);
+  m_picture.SetOpacity(hello * global.modem * (1 - global.nowifi) * after_house);
   m_move.SetOpacity(hello * global.modem * after_house);
   m_split.SetOpacity(hello * global.modem * global.m_two * after_house);
   i = 0;

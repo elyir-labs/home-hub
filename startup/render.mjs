@@ -213,7 +213,8 @@ const words = (big, small, width) => `<div style="width:${width * K}px;text-alig
   <div style="font-size:${MODEM.big.size * K}px;color:${MODEM.big.color};line-height:1.3">${big}</div>
   <div style="margin-top:${10 * K}px;font-size:${MODEM.small.size * K}px;color:${MODEM.small.color};line-height:1.45">${small}</div></div>`
 for (const [file, big, small, w] of [['modem-move.png', MODEM.move, MODEM.moveWhy, MODEM.words.width],
-  ['modem-alone-move.png', MODEM.aloneMove, MODEM.aloneWhy, MODEM.aloneWords.width]]) {
+  ['modem-alone-move.png', MODEM.aloneMove, MODEM.aloneWhy, MODEM.aloneWords.width],
+  ['no-wifi.png', MODEM.noWifi, MODEM.noWifiWhy, MODEM.noWifiWords.width]]) {
   const html = words(big, small, w)
   await shoot(file, w * K, await tall(html, w * K), html)
 }
