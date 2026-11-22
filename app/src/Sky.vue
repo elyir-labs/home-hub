@@ -48,13 +48,16 @@ const trees = Array.from({ length: 34 }, (_, i) => {
 let flash = 0, nextFlash = 6
 let meteor: { x: number; y: number; vx: number; vy: number; life: number } | null = null
 
+const SKY_PIXELS = 3840 * 2160
 let ctx: CanvasRenderingContext2D | null = null, W = 0, H = 0, raf = 0, last = 0, ro: ResizeObserver | undefined
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
 
 function resize() {
   const c = canvas.value; if (!c) return
-  const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
   W = c.clientWidth; H = c.clientHeight
+  // Drawn at the glass's own sharpness up to a 4K screen's worth of pixels: a cap of 1.5 left a 4K TV's sky stretched
+  // from 2400 across. The budget, not the ratio, keeps a phone at 3x from drawing more than it shows.
+  const dpr = Math.min(window.devicePixelRatio || 1, Math.sqrt(SKY_PIXELS / Math.max(1, W * H)))
   c.width = Math.round(W * dpr); c.height = Math.round(H * dpr)
   ctx = c.getContext('2d'); ctx?.setTransform(dpr, 0, 0, dpr, 0, 0)
 }

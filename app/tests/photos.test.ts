@@ -22,8 +22,8 @@ const photo = (over: Partial<Photo> = {}): Photo => ({ id: 'a', taken: null, add
 
 describe('a photo leaving the phone', () => {
   it('is redrawn no longer than the TV needs, the same shape, and never made larger', () => {
-    expect(fitted(4032, 3024)).toEqual({ w: LONGEST, h: 1536 })
-    expect(fitted(3024, 4032)).toEqual({ w: 1536, h: LONGEST })
+    expect(fitted(4032, 3024)).toEqual({ w: LONGEST, h: 2880 })
+    expect(fitted(3024, 4032)).toEqual({ w: 2880, h: LONGEST })
     expect(fitted(800, 600)).toEqual({ w: 800, h: 600 })
   })
 

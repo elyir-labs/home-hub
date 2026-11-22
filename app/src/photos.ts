@@ -11,7 +11,7 @@
 import type { ShownScreen } from './api'
 import type { Photo } from './restTv'
 
-export const LONGEST = 2048   // a 1080p TV fills 1920 across; a little more keeps a slow pan sharp
+export const LONGEST = 3840   // a 4K TV fills 3840 across; a photo made smaller is stretched on one
 
 /** The size to redraw at: the same shape, no edge longer than LONGEST, never larger than it was. */
 export function fitted(w: number, h: number, longest = LONGEST): { w: number; h: number } {
