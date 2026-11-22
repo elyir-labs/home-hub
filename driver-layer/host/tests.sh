@@ -1585,6 +1585,8 @@ SH
   printf '#!/usr/bin/env bash\necho "rsync $*" >> "$FAKES/asked"\n[ "${@: -1}" = "$FAKES/M/" ] || exit 0\nmkdir -p "$FAKES/M/etc"; echo house > "$FAKES/M/etc/house"\n' > "$bin/rsync"
   for c in dd fatlabel e2fsck partx udevadm efibootmgr growpart resize2fs; do printf '#!/usr/bin/env bash\necho "%s $*" >> "$FAKES/asked"\n' "$c" > "$bin/$c"; done
   printf '#!/usr/bin/env bash\nmkdir -p "$FAKES/M"; echo "$FAKES/M"\n' > "$bin/mktemp"
+  # Nothing mounted from the drive unless a check says so: the machine running these may have a real nvme0n1 in use.
+  printf '#!/usr/bin/env bash\n[ -n "${IN_USE:-}" ] && printf "\\n/boot\\n"\nexit 0\n' > "$bin/lsblk"
   chmod +x "$bin"/*
   move() { rm -f "$root/asked"; PATH="$bin:$PATH" FAKES="$root" HUB_TRY_RUN="$root/try" "$HERE/move-to-drive.sh" sda nvme0n1 >"$root/out" 2>&1; }
   asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
@@ -1604,10 +1606,8 @@ SH
   is "a fresh stick brings no try along" "$(asked '^rsync ') $(asked '^growpart ')" "0 0"
   SIZE=1000 move
   is "a drive too small for the system is refused before anything is written" "$(asked '^dd ')" "0"
-  printf '#!/usr/bin/env bash\n[ -n "${IN_USE:-}" ] && printf "\\n/boot\\n"\nexit 0\n' > "$bin/lsblk"; chmod +x "$bin/lsblk"
   IN_USE=1 move
   is "a drive with a filesystem in use is refused before anything is written" "$(asked '^dd ') $(grep -c 'in use (/boot )' "$root/out")" "0 1"
-  rm -f "$bin/lsblk"
 
   # Running on the stick's try: the try's partition is listed after the system on the stick, and is not copied as one.
   mkdir -p "$root/try/part/docker"; echo try > "$root/try/state"; date +%s > "$root/try/part/made"
