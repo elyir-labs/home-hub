@@ -33,6 +33,14 @@ describe('the steps of setting a switch up', () => {
   })
 })
 
+describe('two switches for one light, set up from either end (two switches, B)', () => {
+  it('started at the far end, the light is set up from the switch added second, and the other switch is not asked for again', () => {
+    const a = { light: true, otherFirst: true, partner: 'the other end' }
+    expect(next('dim', a)).toBe('walkin')
+    expect(said('walkin', a).map(r => r.answer)).toEqual(['the switch just added has the light', 'the other end'])
+  })
+})
+
 describe('dimming is a choice, apart from what the bulbs can do (dimming is your choice, A)', () => {
   it('says what was found under the choice, and nothing when it was never found', () => {
     expect(foundLine({ canDim: true })).toBe('Its bulbs can dim · you saw it')

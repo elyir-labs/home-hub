@@ -8,6 +8,8 @@
    fails on purpose if the order or the questions drift. */
 import { expect, test } from '@playwright/test'
 
+test.beforeEach(async ({ page }) => { await page.request.post('/bridge/switches/start-over') })
+
 test('a switch that joins is set up on its light, then named after its room', async ({ page }) => {
   const steps: string[] = []
   page.on('request', r => {
@@ -96,4 +98,72 @@ test('a light that can dim can still be on and off only, chosen from the light i
   await expect(page.getByText('Then restart the switch')).toBeVisible()
   await page.getByRole('button', { name: 'Done' }).click()
   await expect(page.locator('.pane-switch')).toContainText('Wall switch · on and off only')
+})
+
+/* Two switches for one light, both freshly started over, set up from whichever end somebody happens to start at
+   (design/switch-setup/, two switches for one light, B, from either end), and a room made on the way
+   (room, A). The other switch is added from inside the step, and never left half set up. */
+async function startAt(page: import('@playwright/test').Page, light: boolean) {
+  const calls: string[] = []
+  page.on('request', r => {
+    const m = new URL(r.url()).pathname.match(/^\/bridge\/switches\/([0-9a-f]{4})\/([a-z]+)$/)
+    if (m && r.method() === 'POST' && !['show', 'listen'].includes(m[2])) calls.push(`${m[1]} ${m[2]} ${r.postData() ?? ''}`.trim())
+  })
+  await page.route('**/bridge', route => route.fulfill({ json: { state: 'none', bridges: 1, waiting: 1 } }))
+  // nobody presses anything (answered, not held open: a held request ties up one of the browser's few connections)
+  await page.route('**/bridge/switches/*/listen', route => setTimeout(() => route.fulfill({ json: { heard: null } }), 300))
+  await page.goto('/?sheet=add')
+  await page.getByRole('button', { name: /A switch on the wall/ }).click()
+  await page.getByRole('button', { name: 'That’s the one' }).click()
+  await page.getByRole('button', { name: light ? /Yes, a light came on/ : /No, nothing came on/ }).click()
+  return calls
+}
+
+async function addTheOtherHere(page: import('@playwright/test').Page, label: RegExp) {
+  await page.getByRole('button', { name: label }).click()
+  await expect(page.getByText('Start the other switch over.')).toBeVisible()
+  await page.getByRole('button', { name: 'That’s the one' }).click()
+}
+
+async function inANewRoom(page: import('@playwright/test').Page) {
+  await expect(page.getByText('Which room is it in?')).toBeVisible()
+  await page.getByRole('button', { name: 'New room' }).click()
+  await page.getByLabel('The new room’s name').fill('Stairway')
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await expect(page.locator('.press-rooms .chip-btn.on')).toHaveText('Stairway')
+  await expect(page.locator('.sw-setup input.input')).toHaveValue('Stairway light')
+  await page.getByRole('button', { name: 'Next' }).click()
+}
+
+test('started at the switch with the light, the other end is added from inside the step and joins paired', async ({ page }) => {
+  const calls = await startAt(page, true)
+  await page.getByRole('button', { name: /It got dimmer, smoothly/ }).click()
+  await expect(page.getByText('If the other one is already on the house, go and press it.')).toBeVisible()
+  await addTheOtherHere(page, /There is, but it isn’t added yet/)
+  await expect(page.getByText('Both switches work this light now.')).toBeVisible()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await expect(page.getByText('Should it come on when someone walks in?')).toBeVisible()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await inANewRoom(page)
+  await expect(page.getByText('Stairway light is set up.')).toBeVisible()
+  await expect(page.getByText('Added with this one')).toBeVisible()
+  expect(calls).toContain('0021 light {"light":false}')
+  expect(calls).toContain('0020 pair {"with":"0021"}')
+})
+
+test('started at the far end, the switch added second has the light, and the light is set up from it', async ({ page }) => {
+  const calls = await startAt(page, false)
+  await expect(page.getByText('Which switch has the light?')).toBeVisible()
+  await addTheOtherHere(page, /It isn’t added yet/)
+  await expect(page.getByText('What did it do?')).toBeVisible()
+  await expect(page.getByText('the switch just added has the light')).toBeVisible()
+  await page.getByRole('button', { name: /It got dimmer, smoothly/ }).click()
+  await expect(page.getByText('Should it come on when someone walks in?')).toBeVisible()
+  await page.getByRole('button', { name: 'Next' }).click()
+  await inANewRoom(page)
+  await expect(page.getByText('Stairway light is set up.')).toBeVisible()
+  await expect(page.getByText('Its bulbs can dim · you saw it')).toBeVisible()
+  expect(calls).toContain('0021 light {"light":true}')
+  expect(calls).toContain('0020 pair {"with":"0021"}')
+  expect(calls).toContain('0021 walkin {"mode":"on_off"}')
 })

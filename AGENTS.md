@@ -479,7 +479,10 @@ Do not reopen these, and do not propose around them.
   sent to the tab midway (dim test A, same day); and the other switch for the same light is found by pressing it. Walking in, the room and
   the name are the only things asked in words. The end is the switch's settings page, and a light with a wall switch opens
   the same page from its own screen. What the bulbs can do (found) is kept apart from what the switch does (chosen): a
-  light that can dim may still be on and off only (dimming is your choice, A, same day). The hub speaks to the bridge in plain
+  light that can dim may still be on and off only (dimming is your choice, A, same day). The other switch for a light is
+  added from inside that step when it isn't on the house yet, from whichever end somebody starts at -- the one without a
+  light is told its partner, and the setup carries on as the one with the light (two switches, B) -- and a room that isn't
+  on the house yet is made from the room step (New room, A). The hub speaks to the bridge in plain
   words (`setup`, `dims`, `pair`, `unpair`) and never knows a maker's settings. Pinned by `app/tests/switchSetup.test.ts`,
   `app/e2e/switch-setup.spec.ts` and `brain/tests/test_wallswitch.py`; the hub's half is `brain/hub/wallswitch.py`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,

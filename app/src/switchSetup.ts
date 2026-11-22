@@ -24,6 +24,7 @@ export type Answers = {
   partner?: string | null      // the other switch for the same light, as the house calls it
   walkin?: WalkIn
   restartOwed?: boolean        // dimming was chosen since the last time the switch was restarted
+  otherFirst?: boolean         // set up from the far end: the switch with the light was added second, from inside the setup
 }
 
 export function steps(a: Answers): Step[] {
@@ -33,7 +34,9 @@ export function steps(a: Answers): Step[] {
 
 export function next(at: Step, a: Answers): Step {
   const s = steps(a)
-  return s[Math.min(s.indexOf(at) + 1, s.length - 1)]
+  const n = s[Math.min(s.indexOf(at) + 1, s.length - 1)]
+  // set up from the far end, the other switch was found when this one joined: it isn't asked for again
+  return n === 'other' && a.otherFirst ? next('other', a) : n
 }
 
 /** "2 of 5": the end is not a step anybody counts. */
@@ -52,7 +55,9 @@ export const WALKIN_WORDS: Record<WalkIn, string> = {
 export function said(at: Step, a: Answers): { step: Step; lead: string; answer: string }[] {
   const out: { step: Step; lead: string; answer: string }[] = []
   const before = steps(a).slice(0, steps(a).indexOf(at))
-  if (before.includes('light') && a.light != null)
+  if (before.includes('light') && a.otherFirst) {
+    out.push({ step: 'light', lead: 'Started at the other end:', answer: 'the switch just added has the light' })
+  } else if (before.includes('light') && a.light != null)
     out.push({ step: 'light', lead: a.light ? 'A light came on when the house tried it:' : 'Nothing came on when the house tried it:',
                answer: a.light ? 'it controls a light' : 'it’s the other switch for a light' })
   if (before.includes('dim') && a.dims != null)

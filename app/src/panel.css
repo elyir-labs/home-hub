@@ -12267,6 +12267,24 @@ select.input {
   line-height: 23px;
 }
 /* the switch's settings over its light: as wide as the page setup ended on, so its rows read the same */
+/* a room that isn't on the house yet, made from the switch's room step (design/switch-setup/, room A) */
+.chip-btn.sw-newroom {
+  border-style: dashed;
+}
+.chip-btn.sw-newroom.naming {
+  border-style: solid;
+  border-color: rgba(var(--lamp-rgb), 0.6);
+  padding: 4px 4px 4px 16px;
+  gap: 10px;
+}
+.sw-newroom-input {
+  width: 140px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  outline: none;
+}
 .sw-sheet {
   width: min(100%, 860px);
 }
