@@ -45,7 +45,20 @@
   "ChooseB-light.dc.html",
   "choose-b",
   "ChooseC-ask.dc.html",
-  "choose-c"
+  "choose-c",
+  "pair-why",
+  "PairToday.dc.html",
+  "PairToday-next.dc.html",
+  "pair-today",
+  "PairA-other.dc.html",
+  "PairA-end.dc.html",
+  "PairA-second.dc.html",
+  "pair-a",
+  "pair-recommended",
+  "PairB-other.dc.html",
+  "PairB-start.dc.html",
+  "PairB-joined.dc.html",
+  "pair-b"
  ],
  "pages": [
   {
@@ -86,11 +99,15 @@
   {
    "id": "choose-rejected",
    "name": "Dimming is your choice: not chosen"
+  },
+  {
+   "id": "pair",
+   "name": "Two switches for one light"
   }
  ],
  "launch": {
   "view": "canvas",
-  "page": "choose"
+  "page": "pair"
  },
  "artboards": [
   {
@@ -290,6 +307,78 @@
    "h": 900,
    "title": "C, not chosen · Asked in the flow, right after it dimmed",
    "page": "choose-rejected"
+  },
+  {
+   "file": "PairToday.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · “Go and press it”, with nothing saying it must be added first",
+   "page": "pair"
+  },
+  {
+   "file": "PairToday-next.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · After “It isn’t added yet”: the next add starts, this one left half done",
+   "page": "pair"
+  },
+  {
+   "file": "PairA-other.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · Finish this one first; the other joins this light when it’s added",
+   "page": "pair"
+  },
+  {
+   "file": "PairA-end.dc.html",
+   "x": 1560,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · The end: adding the other switch is the first button",
+   "page": "pair"
+  },
+  {
+   "file": "PairA-second.dc.html",
+   "x": 3120,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · The next switch to join is asked if it’s the other end",
+   "page": "pair"
+  },
+  {
+   "file": "PairB-other.dc.html",
+   "x": 0,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B · Add the other one from right here",
+   "page": "pair"
+  },
+  {
+   "file": "PairB-start.dc.html",
+   "x": 1560,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B · Start it over and say which is blinking, without leaving this switch",
+   "page": "pair"
+  },
+  {
+   "file": "PairB-joined.dc.html",
+   "x": 3120,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B · Joined and paired; this switch carries on where it was",
+   "page": "pair"
   }
  ],
  "annotations": [
@@ -444,6 +533,46 @@
    "w": 540,
    "page": "choose-rejected",
    "text": "C -- ASKED AS YOU GO\nNOT CHOSEN, 22 November. A was picked.\n\nRight after a light dims smoothly, the same step asks \"Should the switch dim it?\" -- yes, dim it from the switch, or no, just on and off -- with the hallway and stairs as the examples. Bulbs that can't dim are never asked. The end page and the light's screen are A's.\n\nCost: one more question for every dimmable light, and most will answer yes. The setup's rule was that the house asks only what it can't find out; this is a preference, and a default with a way to change it serves it with no extra step."
+  },
+  {
+   "id": "pair-why",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "pair",
+   "text": "WHY THIS IS BEING REDRAWN\n\nAsked 22 November at the stairs, setting up the first of a two-way pair: \"Is the second switch supposed to be blinking, reset, or already set up?\" The step says \"If there is, go and press it. The house is listening.\" -- but the house can only hear a switch that is already on it. A reset switch, blinking, is not on the house's network, so pressing it does nothing the house can hear, and nothing on the screen says so.\n\nThe way out the screen does offer, \"It isn't added yet\", starts the next switch's add straight away and drops this one where it stood: its walking in, its room and its name are never asked, and it waits in New devices."
+  },
+  {
+   "id": "pair-today",
+   "x": 4680,
+   "y": 0,
+   "w": 540,
+   "page": "pair",
+   "text": "TODAY -- FROM THE SHIPPED PANEL\n\nScreenshots of the running panel against the mock house at 1440x900: app/src/SwitchSetup.vue's step 3 while listening, and app/src/Adding.vue after \"It isn't added yet\" (SwitchSetup emits `another`, Adding closes this switch and knocks on the wall door again).\n\nWhat works today: a switch that IS on the house is heard the moment it is pressed, and the two are paired (the far one told who its partner is)."
+  },
+  {
+   "id": "pair-a",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "pair",
+   "text": "A -- FINISH THIS ONE, THE OTHER JOINS WHEN IT'S ADDED\n\nThe step says the other switch has to be on the house to be pressed. If it isn't, \"There is, but it isn't added yet\" finishes this switch as usual -- walking in, room, name -- and its end page makes adding the other switch the first button. The next switch to join is then asked one question before anything is tried: is this the other end of the Stair light? Yes pairs them and asks only its room and name.\n\nCost: the pair is finished in two sittings, and the house has to remember that a partner is owed (and forget it if nobody adds one)."
+  },
+  {
+   "id": "pair-recommended",
+   "x": 4680,
+   "y": 980,
+   "w": 540,
+   "page": "pair",
+   "text": "RECOMMENDED: B\n\nIt's the moment the person is already in: standing at the stairs, thinking about the other switch. B lets them deal with it right there and come back to the first switch where they left it -- one sitting, nothing owed, nothing to remember. The reset and the blink are the same ones every switch uses, so nothing new is taught. A is simpler to build but splits the job across two adds and needs the house to carry a promise between them."
+  },
+  {
+   "id": "pair-b",
+   "x": -640,
+   "y": 1960,
+   "w": 540,
+   "page": "pair",
+   "text": "B -- ADD THE OTHER ONE FROM RIGHT HERE\n\n\"There is, but it isn't added yet\" turns this step into adding the other switch: start it over (tab out and back, a finger on it until it blinks), the house finds it and blinks it, That's the one. It joins already paired -- it is the far switch, so it isn't tried on a light of its own -- and the step ends with \"Press either switch\" so both ends are seen to work. Then this switch carries on to walking in, room and name.\n\nCost: an add nested inside a setup, which is more for the panel to hold; and if the other switch won't join, the step needs its own way back (\"Back\" returns to the question, nothing lost)."
   }
  ]
 }
