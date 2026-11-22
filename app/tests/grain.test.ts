@@ -19,6 +19,7 @@ describe('the grain over the sky', () => {
     expect(rule).toMatch(/pointer-events: none/)
     const app = readFileSync('src/App.vue', 'utf8')
     expect(app.indexOf('class="sky-grain"')).toBeGreaterThan(app.indexOf('class="sky-veil"'))
+    expect(app).toMatch(/class="sky-grain" v-if="tv"/)
   })
   it('lies over the TV\'s resting backgrounds too, under its words', () => {
     const rest = readFileSync('src/TvRest.vue', 'utf8')

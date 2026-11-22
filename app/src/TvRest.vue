@@ -228,7 +228,7 @@ const ok = computed(() => {
         <div class="tvrest-black"></div>
       </template>
 
-      <div class="tvrest-grain" :style="grain"></div>
+      <div class="tvrest-grain" v-if="!wall" :style="grain"></div>
 
       <div class="tvrest-moves" :class="{ flip: place.flip }" :style="{ translate: `${place.x}px ${place.y}px` }">
 
