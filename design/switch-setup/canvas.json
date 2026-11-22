@@ -58,6 +58,8 @@
   "PairB-other.dc.html",
   "PairB-start.dc.html",
   "PairB-joined.dc.html",
+  "PairB-remote.dc.html",
+  "PairB-remote-joined.dc.html",
   "pair-b",
   "room-why",
   "RoomToday.dc.html",
@@ -111,11 +113,29 @@
   },
   {
    "id": "pair",
-   "name": "Two switches for one light"
+   "name": "Two switches for one light",
+   "decided": {
+    "on": "2026-11-22",
+    "chose": "B, from either end",
+    "board": "PairB-other.dc.html"
+   }
   },
   {
    "id": "room",
-   "name": "A room that isn't on the house yet"
+   "name": "A room that isn't on the house yet",
+   "decided": {
+    "on": "2026-11-22",
+    "chose": "A",
+    "board": "RoomA-added.dc.html"
+   }
+  },
+  {
+   "id": "pair-rejected",
+   "name": "Two switches for one light: not chosen"
+  },
+  {
+   "id": "room-rejected",
+   "name": "A room that isn't on the house yet: not chosen"
   }
  ],
  "launch": {
@@ -342,29 +362,29 @@
   {
    "file": "PairA-other.dc.html",
    "x": 0,
-   "y": 980,
+   "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "A · Finish this one first; the other joins this light when it’s added",
-   "page": "pair"
+   "title": "A, not chosen · Finish this one first; the other joins this light when it’s added",
+   "page": "pair-rejected"
   },
   {
    "file": "PairA-end.dc.html",
    "x": 1560,
-   "y": 980,
+   "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "A · The end: adding the other switch is the first button",
-   "page": "pair"
+   "title": "A, not chosen · The end: adding the other switch is the first button",
+   "page": "pair-rejected"
   },
   {
    "file": "PairA-second.dc.html",
    "x": 3120,
-   "y": 980,
+   "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "A · The next switch to join is asked if it’s the other end",
-   "page": "pair"
+   "title": "A, not chosen · The next switch to join is asked if it’s the other end",
+   "page": "pair-rejected"
   },
   {
    "file": "PairB-other.dc.html",
@@ -372,7 +392,7 @@
    "y": 1960,
    "w": 1440,
    "h": 900,
-   "title": "B · Add the other one from right here",
+   "title": "B, chosen 22 November · Add the other one from right here",
    "page": "pair"
   },
   {
@@ -381,7 +401,7 @@
    "y": 1960,
    "w": 1440,
    "h": 900,
-   "title": "B · Start it over and say which is blinking, without leaving this switch",
+   "title": "B, chosen 22 November · Start it over and say which is blinking, without leaving this switch",
    "page": "pair"
   },
   {
@@ -390,7 +410,7 @@
    "y": 1960,
    "w": 1440,
    "h": 900,
-   "title": "B · Joined and paired; this switch carries on where it was",
+   "title": "B, chosen 22 November · Joined and paired; this switch carries on where it was",
    "page": "pair"
   },
   {
@@ -408,7 +428,7 @@
    "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "A · New room, the last chip, becomes a field in place",
+   "title": "A, chosen 22 November · New room, the last chip, becomes a field in place",
    "page": "room"
   },
   {
@@ -417,17 +437,35 @@
    "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "A · Made, picked, and the light named after it",
+   "title": "A, chosen 22 November · Made, picked, and the light named after it",
    "page": "room"
   },
   {
    "file": "RoomB-name.dc.html",
    "x": 0,
-   "y": 1960,
+   "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "B · The name does both: a room it doesn’t have is offered",
-   "page": "room"
+   "title": "B, not chosen · The name does both: a room it doesn’t have is offered",
+   "page": "room-rejected"
+  },
+  {
+   "file": "PairB-remote.dc.html",
+   "x": 0,
+   "y": 2940,
+   "w": 1440,
+   "h": 900,
+   "title": "B, chosen 22 November · Started at the other end: the same way in, asked the other way round",
+   "page": "pair"
+  },
+  {
+   "file": "PairB-remote-joined.dc.html",
+   "x": 1560,
+   "y": 2940,
+   "w": 1440,
+   "h": 900,
+   "title": "B, chosen 22 November · The switch added second has the light, so the light is set up from it",
+   "page": "pair"
   }
  ],
  "annotations": [
@@ -602,10 +640,10 @@
   {
    "id": "pair-a",
    "x": -640,
-   "y": 980,
+   "y": 0,
    "w": 540,
-   "page": "pair",
-   "text": "A -- FINISH THIS ONE, THE OTHER JOINS WHEN IT'S ADDED\n\nThe step says the other switch has to be on the house to be pressed. If it isn't, \"There is, but it isn't added yet\" finishes this switch as usual -- walking in, room, name -- and its end page makes adding the other switch the first button. The next switch to join is then asked one question before anything is tried: is this the other end of the Stair light? Yes pairs them and asks only its room and name.\n\nCost: the pair is finished in two sittings, and the house has to remember that a partner is owed (and forget it if nobody adds one)."
+   "page": "pair-rejected",
+   "text": "A -- FINISH THIS ONE, THE OTHER JOINS WHEN IT'S ADDED\nNOT CHOSEN, 22 November. B was picked.\n\nThe step says the other switch has to be on the house to be pressed. If it isn't, \"There is, but it isn't added yet\" finishes this switch as usual -- walking in, room, name -- and its end page makes adding the other switch the first button. The next switch to join is then asked one question before anything is tried: is this the other end of the Stair light? Yes pairs them and asks only its room and name.\n\nCost: the pair is finished in two sittings, and the house has to remember that a partner is owed (and forget it if nobody adds one)."
   },
   {
    "id": "pair-recommended",
@@ -613,7 +651,7 @@
    "y": 980,
    "w": 540,
    "page": "pair",
-   "text": "RECOMMENDED: B\n\nIt's the moment the person is already in: standing at the stairs, thinking about the other switch. B lets them deal with it right there and come back to the first switch where they left it -- one sitting, nothing owed, nothing to remember. The reset and the blink are the same ones every switch uses, so nothing new is taught. A is simpler to build but splits the job across two adds and needs the house to carry a promise between them."
+   "text": "DECIDED 22 NOVEMBER 2026\n\nB, from either end. The other switch is added from inside this step with the same reset and blink as any switch (app/src/prove/Blink.vue, inside app/src/SwitchSetup.vue), joins paired (pair() in brain/hub/wallswitch.py tells the switch without a light who its partner is, whichever was added first), and the setup carries on as the switch with the light. Pinned by app/e2e/switch-setup.spec.ts.\n\nWhy B over A: one sitting at the stairs, nothing owed between two adds."
   },
   {
    "id": "pair-b",
@@ -621,7 +659,7 @@
    "y": 1960,
    "w": 540,
    "page": "pair",
-   "text": "B -- ADD THE OTHER ONE FROM RIGHT HERE\n\n\"There is, but it isn't added yet\" turns this step into adding the other switch: start it over (tab out and back, a finger on it until it blinks), the house finds it and blinks it, That's the one. It joins already paired -- it is the far switch, so it isn't tried on a light of its own -- and the step ends with \"Press either switch\" so both ends are seen to work. Then this switch carries on to walking in, room and name.\n\nCost: an add nested inside a setup, which is more for the panel to hold; and if the other switch won't join, the step needs its own way back (\"Back\" returns to the question, nothing lost)."
+   "text": "B -- ADD THE OTHER ONE FROM RIGHT HERE\nCHOSEN, 22 NOVEMBER, FROM EITHER END.\n\n\"There is, but it isn't added yet\" turns this step into adding the other switch: start it over (tab out and back, a finger on it until it blinks), the house finds it and blinks it, That's the one. It joins already paired -- it is the far switch, so it isn't tried on a light of its own -- and the step ends with \"Press either switch\" so both ends are seen to work. Then this switch carries on to walking in, room and name.\n\nCost: an add nested inside a setup, which is more for the panel to hold; and if the other switch won't join, the step needs its own way back (\"Back\" returns to the question, nothing lost).\n\nFROM EITHER END (redrawn the same day). Somebody configuring switches already in the wall doesn't know which of the two has the light, so B works from whichever they start at. Started at the switch with the light, the one added second is the other end: it joins paired and this switch carries on. Started at the other end (nothing came on, \"Which switch has the light?\"), the one added second HAS the light: it joins paired and the setup carries on as that switch -- the dim test, walking in, room and name -- and both switches go in the room."
   },
   {
    "id": "room-why",
@@ -645,7 +683,7 @@
    "y": 980,
    "w": 540,
    "page": "room",
-   "text": "A -- NEW ROOM, THE LAST CHIP\n\nThe last chip is New room. Tapped, it becomes a field in place with Add -- the same move a new wall screen makes when it asks its room. Add makes the room, picks it, and the light takes its name (\"Stairway light\") unless somebody already typed one.\n\nCost: one more chip in a row that can already wrap. It is the shape the panel already uses, so nothing new is learned."
+   "text": "A -- NEW ROOM, THE LAST CHIP\nCHOSEN, 22 NOVEMBER.\n\nThe last chip is New room. Tapped, it becomes a field in place with Add -- the same move a new wall screen makes when it asks its room. Add makes the room, picks it, and the light takes its name (\"Stairway light\") unless somebody already typed one.\n\nCost: one more chip in a row that can already wrap. It is the shape the panel already uses, so nothing new is learned."
   },
   {
    "id": "room-recommended",
@@ -653,15 +691,15 @@
    "y": 980,
    "w": 540,
    "page": "room",
-   "text": "RECOMMENDED: A\n\nIt is the same New room the wall screen already offers, so the house says it one way everywhere, and it sits where the person is already looking -- among the rooms. B is clever, but it hides making a room inside naming a light: nobody looks to the name field to make a room, and a name that happens to start with a word the house doesn't know as a room (\"Reading lamp\") would offer one nobody wanted."
+   "text": "DECIDED 22 NOVEMBER 2026\n\nA. New room is the last chip on the switch's room step; Add makes the room (addRoom(), POST /rooms), picks it, and names the light after it unless a name was typed. Pinned by app/e2e/switch-setup.spec.ts.\n\nWhy A over B: the same New room the wall screen already offers, where the person is already looking."
   },
   {
    "id": "room-b",
    "x": -640,
-   "y": 1960,
+   "y": 0,
    "w": 540,
-   "page": "room",
-   "text": "B -- THE NAME DOES BOTH\n\nNo new chip. Type a name whose first word is a room the house doesn't have, and a line under the field offers to make that room and put the light in it.\n\nCost: making a room is hidden inside naming a light, and it guesses from the first word -- \"Reading lamp\" would offer a Reading room."
+   "page": "room-rejected",
+   "text": "B -- THE NAME DOES BOTH\nNOT CHOSEN, 22 November. A was picked.\n\nNo new chip. Type a name whose first word is a room the house doesn't have, and a line under the field offers to make that room and put the light in it.\n\nCost: making a room is hidden inside naming a light, and it guesses from the first word -- \"Reading lamp\" would offer a Reading room."
   }
  ]
 }
