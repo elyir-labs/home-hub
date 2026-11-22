@@ -58,7 +58,16 @@
   "PairB-other.dc.html",
   "PairB-start.dc.html",
   "PairB-joined.dc.html",
-  "pair-b"
+  "pair-b",
+  "room-why",
+  "RoomToday.dc.html",
+  "room-today",
+  "RoomA-new.dc.html",
+  "RoomA-added.dc.html",
+  "room-a",
+  "room-recommended",
+  "RoomB-name.dc.html",
+  "room-b"
  ],
  "pages": [
   {
@@ -103,6 +112,10 @@
   {
    "id": "pair",
    "name": "Two switches for one light"
+  },
+  {
+   "id": "room",
+   "name": "A room that isn't on the house yet"
   }
  ],
  "launch": {
@@ -379,6 +392,42 @@
    "h": 900,
    "title": "B · Joined and paired; this switch carries on where it was",
    "page": "pair"
+  },
+  {
+   "file": "RoomToday.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · Only the rooms the house already has",
+   "page": "room"
+  },
+  {
+   "file": "RoomA-new.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · New room, the last chip, becomes a field in place",
+   "page": "room"
+  },
+  {
+   "file": "RoomA-added.dc.html",
+   "x": 1560,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · Made, picked, and the light named after it",
+   "page": "room"
+  },
+  {
+   "file": "RoomB-name.dc.html",
+   "x": 0,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B · The name does both: a room it doesn’t have is offered",
+   "page": "room"
   }
  ],
  "annotations": [
@@ -573,6 +622,46 @@
    "w": 540,
    "page": "pair",
    "text": "B -- ADD THE OTHER ONE FROM RIGHT HERE\n\n\"There is, but it isn't added yet\" turns this step into adding the other switch: start it over (tab out and back, a finger on it until it blinks), the house finds it and blinks it, That's the one. It joins already paired -- it is the far switch, so it isn't tried on a light of its own -- and the step ends with \"Press either switch\" so both ends are seen to work. Then this switch carries on to walking in, room and name.\n\nCost: an add nested inside a setup, which is more for the panel to hold; and if the other switch won't join, the step needs its own way back (\"Back\" returns to the question, nothing lost)."
+  },
+  {
+   "id": "room-why",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "room",
+   "text": "WHY THIS IS BEING REDRAWN\n\nSaid 22 November at the stairs: the light belongs in a Stairway, and the house has no Stairway yet. The room step offers only the rooms the house already has, so the switch has to be put somewhere wrong, or left, while a room is made somewhere else -- and then found again to be moved."
+  },
+  {
+   "id": "room-today",
+   "x": 1560,
+   "y": 0,
+   "w": 540,
+   "page": "room",
+   "text": "TODAY -- FROM THE SHIPPED PANEL\n\nScreenshot of app/src/SwitchSetup.vue's room step against the mock house at 1440x900: a chip per room the house has, and the name field.\n\nThe panel already makes a room in place in two other places: a new wall screen asking which room it's in (app/src/ScreenRoom.vue, design/companion/), and sorting new devices (app/src/SortView.vue). Both use addRoom() and the brain's POST /rooms."
+  },
+  {
+   "id": "room-a",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "room",
+   "text": "A -- NEW ROOM, THE LAST CHIP\n\nThe last chip is New room. Tapped, it becomes a field in place with Add -- the same move a new wall screen makes when it asks its room. Add makes the room, picks it, and the light takes its name (\"Stairway light\") unless somebody already typed one.\n\nCost: one more chip in a row that can already wrap. It is the shape the panel already uses, so nothing new is learned."
+  },
+  {
+   "id": "room-recommended",
+   "x": 3120,
+   "y": 980,
+   "w": 540,
+   "page": "room",
+   "text": "RECOMMENDED: A\n\nIt is the same New room the wall screen already offers, so the house says it one way everywhere, and it sits where the person is already looking -- among the rooms. B is clever, but it hides making a room inside naming a light: nobody looks to the name field to make a room, and a name that happens to start with a word the house doesn't know as a room (\"Reading lamp\") would offer one nobody wanted."
+  },
+  {
+   "id": "room-b",
+   "x": -640,
+   "y": 1960,
+   "w": 540,
+   "page": "room",
+   "text": "B -- THE NAME DOES BOTH\n\nNo new chip. Type a name whose first word is a room the house doesn't have, and a line under the field offers to make that room and put the light in it.\n\nCost: making a room is hidden inside naming a light, and it guesses from the first word -- \"Reading lamp\" would offer a Reading room."
   }
  ]
 }
