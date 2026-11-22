@@ -11,7 +11,6 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { Room } from './api'
 import { imageUrl, photoUrl, qrUrl } from './api'
 import { photosPageUrl } from './photos'
-import { grainStyle } from './grain'
 import { clockParts, restingFacts, restWeather } from './resting'
 import { countWords, drift, faceFor, funCards, paintingAt, houseToday, isMorning, localDay, morningLine, MORNING_FOR, loadRestPhotos, noteFrom, withCards, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
   SLEEP_AFTER, BEAT_FOR, beats, beatAt, dayTitle, agoLine, stillOn, type Photo, type Shape } from './restTv'
@@ -20,13 +19,14 @@ import { store } from './store'
 import { changeLine, range } from './weather'
 import Icon from './Icon.vue'
 import TvPainting from './TvPainting.vue'
+import TvBackdrop from './TvBackdrop.vue'
+import { canFloat } from './dither'
 
 const props = defineProps<{ now: Date; room: Room | null; since: number; wall?: boolean }>()
 
 const scale = ref(1)
-/* Over the backgrounds and under the words: the bedtime glow and the blurred cover banded into rings on a TV (grain.ts).
-   The screen is scaled, so the grain is drawn finer by the same amount to stay one to a device pixel. */
-const grain = computed(() => grainStyle((window.devicePixelRatio || 1) * scale.value))
+/* A TV draws its dark backgrounds between shades, with grain, so they don't band (dither.ts); a wall keeps its CSS. */
+const dithered = !props.wall && canFloat()
 const tall = ref(1080)
 const fit = () => { scale.value = innerWidth / 1920; tall.value = Math.round(1920 * innerHeight / innerWidth) }
 
@@ -159,14 +159,14 @@ const ok = computed(() => {
               <div class="tvrest-collage"><div v-for="p in beat.photos" :key="p.id"><img class="tvrest-move m1" :src="photoUrl(p.id)" alt="" /></div></div>
             </template>
             <template v-else-if="beat.kind === 'note'">
-              <img v-if="photos.length" class="tvrest-fill tvrest-fill-dim" :src="photoUrl(photos[0].id)" alt="" /><div v-else class="tvrest-night"></div>
+              <img v-if="photos.length" class="tvrest-fill tvrest-fill-dim" :src="photoUrl(photos[0].id)" alt="" /><TvBackdrop v-else kind="night" :dithered="dithered" />
               <div class="tvrest-card">
                 <div class="tvrest-paper">{{ beat.note.text }}</div>
                 <div class="tvrest-card-from">{{ noteFrom(beat.note, now, locale()) }}</div>
               </div>
             </template>
             <template v-else-if="beat.kind === 'day'">
-              <div class="tvrest-night"></div><div class="tvrest-stars"></div>
+              <TvBackdrop kind="night" :dithered="dithered" /><div class="tvrest-stars"></div>
               <div class="tvrest-card">
                 <div class="tvrest-card-cap">The house today</div>
                 <div class="tvrest-card-big">{{ today.lines.join(' ') }}</div>
@@ -174,7 +174,7 @@ const ok = computed(() => {
               </div>
             </template>
             <template v-else-if="beat.kind === 'fact' || beat.kind === 'trivia'">
-              <div class="tvrest-night"></div><div class="tvrest-stars"></div>
+              <TvBackdrop kind="night" :dithered="dithered" /><div class="tvrest-stars"></div>
               <div class="tvrest-card">
                 <div class="tvrest-card-cap">{{ beat.kind === 'fact' ? 'Something to know' : 'Who knows?' }}</div>
                 <div class="tvrest-card-big">{{ beat.first }}</div>
@@ -182,7 +182,7 @@ const ok = computed(() => {
               </div>
             </template>
             <template v-else-if="beat.kind === 'joke' || beat.kind === 'quote'">
-              <img v-if="photos.length" class="tvrest-fill tvrest-fill-dim" :src="photoUrl(photos[Math.min(1, photos.length - 1)].id)" alt="" /><div v-else class="tvrest-night"></div>
+              <img v-if="photos.length" class="tvrest-fill tvrest-fill-dim" :src="photoUrl(photos[Math.min(1, photos.length - 1)].id)" alt="" /><TvBackdrop v-else kind="night" :dithered="dithered" />
               <div class="tvrest-card">
                 <div class="tvrest-card-cap" v-if="beat.kind === 'joke'">A joke</div>
                 <div class="tvrest-card-big" :class="{ 'tvrest-quote': beat.kind === 'quote' }">{{ beat.kind === 'quote' ? `“${beat.first}”` : beat.first }}</div>
@@ -191,7 +191,7 @@ const ok = computed(() => {
             </template>
             <TvPainting v-else-if="beat.kind === 'art'" :painting="beat.painting" :tall="tall" />
             <template v-else-if="beat.kind === 'count'">
-              <img v-if="photos.length" class="tvrest-fill tvrest-fill-dim" :src="photoUrl(photos[photos.length - 1].id)" alt="" /><div v-else class="tvrest-night"></div>
+              <img v-if="photos.length" class="tvrest-fill tvrest-fill-dim" :src="photoUrl(photos[photos.length - 1].id)" alt="" /><TvBackdrop v-else kind="night" :dithered="dithered" />
               <div class="tvrest-card">
                 <div class="tvrest-card-cap">{{ beat.count.what }}</div>
                 <div class="tvrest-count display" :class="{ word: countWords(beat.count, now).big === 'Today' }">{{ countWords(beat.count, now, locale()).big }}</div>
@@ -204,16 +204,15 @@ const ok = computed(() => {
       </template>
 
       <template v-else-if="face === 'playing' && music">
-        <div class="tvrest-wash" :style="art ? { backgroundImage: `url(${art})` } : undefined"></div>
-        <div class="tvrest-dim"></div>
+        <TvBackdrop kind="wash" :art="art" :dithered="dithered" />
       </template>
 
       <template v-else-if="face === 'bedtime'">
-        <div class="tvrest-night"></div>
+        <TvBackdrop kind="night" :dithered="dithered" />
       </template>
 
       <template v-else-if="face === 'board'">
-        <div class="tvrest-boardbg"></div>
+        <TvBackdrop kind="board" :dithered="dithered" />
       </template>
 
       <template v-else-if="face === 'art' && gallery">
@@ -227,8 +226,6 @@ const ok = computed(() => {
       <template v-else-if="face === 'night'">
         <div class="tvrest-black"></div>
       </template>
-
-      <div class="tvrest-grain" v-if="!wall" :style="grain"></div>
 
       <div class="tvrest-moves" :class="{ flip: place.flip }" :style="{ translate: `${place.x}px ${place.y}px` }">
 

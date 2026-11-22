@@ -14,13 +14,15 @@ import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { store } from './store'
 import { shade } from './shade'
 import { clamp, lerp, mix, palette, rgb, starAlpha, wxOf, type RGB, type Wx } from './sky'
+import { floatContext, grain } from './dither'
+import { onTV } from './tv'
 
 /* quiet: the interface is up, so the sun and moon stay softer and the moon keeps to the open sky above the stage,
    clear of the rail and the headline; at rest and during setup they have the whole screen */
 /* held: the wall is awake, with its frosted cards over this canvas. A moving sky makes every pane re-blur each
    frame, more than the wall's GPU can do (measured on a Pi 5: the GPU 98% busy and 15 frames a second; held, 38%
    and 60). So it is drawn once and again only when the hour or the weather changes, and moves at rest. */
-const props = defineProps<{ quiet?: boolean; held?: boolean }>()
+const props = defineProps<{ quiet?: boolean; held?: boolean; resting?: boolean }>()
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 
@@ -49,6 +51,8 @@ let flash = 0, nextFlash = 6
 let meteor: { x: number; y: number; vx: number; vy: number; life: number } | null = null
 
 const SKY_PIXELS = 3840 * 2160
+const tv = onTV()
+let dither = false
 let ctx: CanvasRenderingContext2D | null = null, W = 0, H = 0, raf = 0, last = 0, ro: ResizeObserver | undefined
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
 
@@ -59,7 +63,10 @@ function resize() {
   // from 2400 across. The budget, not the ratio, keeps a phone at 3x from drawing more than it shows.
   const dpr = Math.min(window.devicePixelRatio || 1, Math.sqrt(SKY_PIXELS / Math.max(1, W * H)))
   c.width = Math.round(W * dpr); c.height = Math.round(H * dpr)
-  ctx = c.getContext('2d'); ctx?.setTransform(dpr, 0, 0, dpr, 0, 0)
+  // On a TV the sky is drawn between shades and grained before the screen rounds it, so its dark ramps don't band
+  // (dither.ts). A wall's and a phone's sky stay as they were.
+  if (tv) { const f = floatContext(c); ctx = f.ctx; dither = f.float } else ctx = c.getContext('2d')
+  ctx?.setTransform(dpr, 0, 0, dpr, 0, 0)
 }
 
 function draw(t: number, dt: number) {
@@ -203,6 +210,22 @@ function draw(t: number, dt: number) {
 
   /* land */
   land(el, sx, month, wx, hor, held)
+  if (tv) { veil(dt); if (dither) grain(ctx) }
+}
+
+/* On a TV the veil is drawn here rather than laid over by the page, so it is rounded once, with the grain, rather
+   than again on top of it. Stop for stop .sky-veil's, eased as its opacity is: a quarter while resting, none in light. */
+let veilNow = -1
+function veil(dt: number) {
+  if (!ctx) return
+  const want = shade.value === 'light' ? 0 : props.resting ? .25 : 1
+  veilNow = veilNow < 0 || !dt ? want : veilNow + (want - veilNow) * Math.min(1, dt / .4)
+  if (veilNow <= 0) return
+  const g = ctx.createLinearGradient(0, 0, 0, H)
+  g.addColorStop(0, `rgba(12, 13, 16, ${.3 * veilNow})`)
+  g.addColorStop(.45, `rgba(12, 13, 16, ${.52 * veilNow})`)
+  g.addColorStop(1, `rgba(12, 13, 16, ${.8 * veilNow})`)
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H)
 }
 
 /* ---------- the ground ---------- */
@@ -300,12 +323,13 @@ function frame(ts: number) {
 onMounted(() => {
   resize()
   ro = new ResizeObserver(() => { resize(); if (props.held) draw(performance.now() / 1000, 0) }); ro.observe(canvas.value!)
-  if (reduced.matches) { draw(0, 0); watch(() => store.sky, () => draw(0, 0), { deep: true }); return }
+  if (reduced.matches) { draw(0, 0); watch([() => store.sky, () => props.resting], () => draw(0, 0), { deep: true }); return }
   watch(() => props.held, (held) => {
     if (held) { cancelAnimationFrame(raf); raf = 0; draw(performance.now() / 1000, 0) }
     else if (!raf) raf = requestAnimationFrame(frame)
   }, { immediate: true })
   watch(() => store.sky, () => { if (props.held) draw(performance.now() / 1000, 0) }, { deep: true })
+  watch(() => props.resting, () => { if (props.held) draw(performance.now() / 1000, 0) })
 })
 onUnmounted(() => { cancelAnimationFrame(raf); ro?.disconnect() })
 </script>

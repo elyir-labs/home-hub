@@ -3,7 +3,6 @@
   SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import { grainStyle } from './grain'
 import { inApp } from './inapp'
 import { narrow } from './band'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
@@ -388,19 +387,15 @@ onUnmounted(() => {
   atRead.removeEventListener('change', measure)
   atTall.removeEventListener('change', measure)
 })
-// Only on a TV, where the banding shows: a blended layer over the whole screen costs every frame, and a wall's slides
-// were measured slower for it.
-const grain = tv ? grainStyle() : {}
 </script>
 
 <template>
   <div class="shell" :data-ringing="tv && store.ringing ? '' : null" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking, 'house-open': panel && docked, 'pane-open': !!store.opened && docked }">
-    <Sky :quiet="!idle && !setup" :held="wall && !idle" />
+    <Sky :quiet="!idle && !setup" :held="wall && !idle" :resting="idle" />
     <!-- glass lays its blooms on the sky the canvas just painted, under the veil -->
     <div class="sky-bloom" v-if="face === 'glass'"></div>
     <ArtDefs />
-    <div class="sky-veil"></div>
-    <div class="sky-grain" v-if="tv" :style="grain"></div>
+    <div class="sky-veil" v-if="!tv"></div>
     <Away v-if="lock.away" />
     <Join v-else-if="lock.unpaired" @joined="rejoin" />
     <MovePage v-else-if="store.moving" />

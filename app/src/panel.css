@@ -321,15 +321,6 @@ input:focus-visible {
   }
 }
 
-/* Over the veil, so the ramps it and the sky make together are what is smoothed (grain.ts). */
-.sky-grain {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  mix-blend-mode: overlay;
-  image-rendering: pixelated;
-}
 
 .sky-veil {
   position: absolute;
@@ -4255,12 +4246,12 @@ input:focus-visible {
 }
 
 /* E: winding down. What is still on, and one button for the night. */
-.tvrest-grain {
+.tvrest-dither {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  mix-blend-mode: overlay;
-  image-rendering: pixelated;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 .tvrest-night {
   position: absolute;
