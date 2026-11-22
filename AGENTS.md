@@ -477,7 +477,9 @@ Do not reopen these, and do not propose around them.
   on a screen. Then every question is what the person saw: a light came on or not; the house takes it slowly to almost
   off and back, because bulbs that can't dim only show it near the bottom, and every answer to that is final -- nobody is
   sent to the tab midway (dim test A, same day); and the other switch for the same light is found by pressing it. Walking in, the room and
-  the name are the only things asked in words. The end is the switch's settings page. The hub speaks to the bridge in plain
+  the name are the only things asked in words. The end is the switch's settings page, and a light with a wall switch opens
+  the same page from its own screen. What the bulbs can do (found) is kept apart from what the switch does (chosen): a
+  light that can dim may still be on and off only (dimming is your choice, A, same day). The hub speaks to the bridge in plain
   words (`setup`, `dims`, `pair`, `unpair`) and never knows a maker's settings. Pinned by `app/tests/switchSetup.test.ts`,
   `app/e2e/switch-setup.spec.ts` and `brain/tests/test_wallswitch.py`; the hub's half is `brain/hub/wallswitch.py`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,

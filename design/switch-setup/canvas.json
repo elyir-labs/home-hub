@@ -76,7 +76,16 @@
   },
   {
    "id": "choose",
-   "name": "Dimming is your choice"
+   "name": "Dimming is your choice",
+   "decided": {
+    "on": "2026-11-22",
+    "chose": "A",
+    "board": "ChooseA-end.dc.html"
+   }
+  },
+  {
+   "id": "choose-rejected",
+   "name": "Dimming is your choice: not chosen"
   }
  ],
  "launch": {
@@ -234,7 +243,7 @@
    "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "A · One choice, “From the switch”, with what the house found under it",
+   "title": "A, chosen 22 November · One choice, “From the switch”, with what the house found under it",
    "page": "choose"
   },
   {
@@ -243,7 +252,7 @@
    "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "A · Bulbs that can’t dim: Dim is shown and can’t be picked",
+   "title": "A, chosen 22 November · Bulbs that can’t dim: Dim is shown and can’t be picked",
    "page": "choose"
   },
   {
@@ -252,35 +261,35 @@
    "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "A · The light’s screen: one line about its switch, and Change",
+   "title": "A, chosen 22 November · The light’s screen: one line about its switch, and Change",
    "page": "choose"
   },
   {
    "file": "ChooseB-end.dc.html",
    "x": 0,
-   "y": 1960,
+   "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "B · Two rows: what the bulbs can do, and what the switch does",
-   "page": "choose"
+   "title": "B, not chosen · Two rows: what the bulbs can do, and what the switch does",
+   "page": "choose-rejected"
   },
   {
    "file": "ChooseB-light.dc.html",
    "x": 1560,
-   "y": 1960,
+   "y": 0,
    "w": 1440,
    "h": 900,
-   "title": "B · The light’s screen: the choice itself, changed in place",
-   "page": "choose"
+   "title": "B, not chosen · The light’s screen: the choice itself, changed in place",
+   "page": "choose-rejected"
   },
   {
    "file": "ChooseC-ask.dc.html",
    "x": 0,
-   "y": 2940,
+   "y": 980,
    "w": 1440,
    "h": 900,
-   "title": "C · Asked in the flow, right after it dimmed",
-   "page": "choose"
+   "title": "C, not chosen · Asked in the flow, right after it dimmed",
+   "page": "choose-rejected"
   }
  ],
  "annotations": [
@@ -410,7 +419,7 @@
    "y": 980,
    "w": 540,
    "page": "choose",
-   "text": "A -- ONE CHOICE, WHAT WAS FOUND UNDER IT\n\nThe end page's row becomes \"From the switch: Dim | On and off only\", and the small line under it says what the house found (\"Its bulbs can dim\" / \"can't dim\", \"you saw it\"). It starts at what was found; On and off only can always be picked; Dim can't be picked when the bulbs can't dim, and the line says why.\n\nThe light's screen gets one line about its switch, in the gap above the room's routine -- \"Wall switch · dims · comes on when someone walks in\" -- and Change opens the same page setup ended on, so there is one place the switch is set up, reached two ways. A change that needs the switch restarted says so there, as the end page does.\n\nCost: changing dimming later is two taps rather than one. That's right for something changed once a year."
+   "text": "A -- ONE CHOICE, WHAT WAS FOUND UNDER IT\nCHOSEN, 22 NOVEMBER.\n\nThe end page's row becomes \"From the switch: Dim | On and off only\", and the small line under it says what the house found (\"Its bulbs can dim\" / \"can't dim\", \"you saw it\"). It starts at what was found; On and off only can always be picked; Dim can't be picked when the bulbs can't dim, and the line says why.\n\nThe light's screen gets one line about its switch, in the gap above the room's routine -- \"Wall switch · dims · comes on when someone walks in\" -- and Change opens the same page setup ended on, so there is one place the switch is set up, reached two ways. A change that needs the switch restarted says so there, as the end page does.\n\nCost: changing dimming later is two taps rather than one. That's right for something changed once a year."
   },
   {
    "id": "choose-recommended",
@@ -418,23 +427,23 @@
    "y": 980,
    "w": 540,
    "page": "choose",
-   "text": "RECOMMENDED: A\n\nOne row, worded as the choice it is, with the fact kept in small type where it explains rather than competes. And one place the switch's settings live, reached from setup's end and from the light, rather than two different controls that have to be kept in step. B shows the same information twice on the end page and puts a control on the light's screen that is touched almost never, beside ones touched every day. C asks every household with dimmable bulbs a question most of them answer the same way."
+   "text": "DECIDED 22 NOVEMBER 2026\n\nA, as drawn. The hub keeps what the dim test found (can_dim) apart from what the switch does (dims), in brain/hub/wallswitch.py; the end page's row is From the switch, with what was found under it, and Dim can't be picked for bulbs that can't dim. A light with a wall switch says how it is set up on its own screen (app/src/Opened.vue), and Change opens the same page setup ended on (app/src/SwitchSheet.vue). Pinned by app/tests/switchSetup.test.ts and app/e2e/switch-setup.spec.ts.\n\nWhy A over B and C: one row worded as the choice, and one place the switch is set up, reached two ways."
   },
   {
    "id": "choose-b",
    "x": -640,
-   "y": 1960,
+   "y": 0,
    "w": 540,
-   "page": "choose",
-   "text": "B -- TWO ROWS: FOUND, AND CHOSEN\n\nThe end page writes the fact down as its own row (\"The bulbs: Can dim\") and asks the choice in another (\"The switch: Dims | Only turns it on and off\"). The light's screen carries the choice itself, a segmented control in the gap above the room's routine, changed in place.\n\nCost: a row that only states a fact, on a page of things to change; and a control on the light's screen for something set once, next to the ones used every day -- the kind of thing that gets flipped by a stray tap."
+   "page": "choose-rejected",
+   "text": "B -- TWO ROWS: FOUND, AND CHOSEN\nNOT CHOSEN, 22 November. A was picked.\n\nThe end page writes the fact down as its own row (\"The bulbs: Can dim\") and asks the choice in another (\"The switch: Dims | Only turns it on and off\"). The light's screen carries the choice itself, a segmented control in the gap above the room's routine, changed in place.\n\nCost: a row that only states a fact, on a page of things to change; and a control on the light's screen for something set once, next to the ones used every day -- the kind of thing that gets flipped by a stray tap."
   },
   {
    "id": "choose-c",
    "x": -640,
-   "y": 2940,
+   "y": 980,
    "w": 540,
-   "page": "choose",
-   "text": "C -- ASKED AS YOU GO\n\nRight after a light dims smoothly, the same step asks \"Should the switch dim it?\" -- yes, dim it from the switch, or no, just on and off -- with the hallway and stairs as the examples. Bulbs that can't dim are never asked. The end page and the light's screen are A's.\n\nCost: one more question for every dimmable light, and most will answer yes. The setup's rule was that the house asks only what it can't find out; this is a preference, and a default with a way to change it serves it with no extra step."
+   "page": "choose-rejected",
+   "text": "C -- ASKED AS YOU GO\nNOT CHOSEN, 22 November. A was picked.\n\nRight after a light dims smoothly, the same step asks \"Should the switch dim it?\" -- yes, dim it from the switch, or no, just on and off -- with the hallway and stairs as the examples. Bulbs that can't dim are never asked. The end page and the light's screen are A's.\n\nCost: one more question for every dimmable light, and most will answer yes. The setup's rule was that the house asks only what it can't find out; this is a preference, and a default with a way to change it serves it with no extra step."
   }
  ]
 }

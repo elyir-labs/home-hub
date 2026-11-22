@@ -45,11 +45,13 @@ test('a switch that joins is set up on its light, then named after its room', as
   await page.getByRole('button', { name: 'Next' }).click()
 
   await expect(page.getByText(`${roomName} light is set up.`)).toBeVisible()
+  await expect(page.getByText('From the switch')).toBeVisible()
+  await expect(page.getByText('Its bulbs can dim · you saw it')).toBeVisible()
   await expect(page.getByText('Last step: restart the switch')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Not now' })).toHaveCount(0)
 
   expect(steps.filter(s => !s.startsWith('show'))).toEqual([
-    'light {"light":true}', 'dims {"dims":true}', 'listen {}', 'pair {"with":"0021"}', 'walkin {"mode":"on_off"}',
+    'light {"light":true}', 'dims {"dims":true}', 'dims {"dims":true,"found":true}', 'listen {}', 'pair {"with":"0021"}', 'walkin {"mode":"on_off"}',
   ])
 })
 
@@ -64,4 +66,34 @@ test('a bulb that stays bright and then goes off is on and off only, and nobody 
   await expect(page.getByText('Restart the switch.')).toHaveCount(0)
   await expect(page.getByText('Is there another switch for this light?')).toBeVisible()
   await expect(page.getByText(/it stays on and off/)).toBeVisible()
+})
+
+test('a light that can dim can still be on and off only, chosen from the light itself', async ({ page }) => {
+  await page.route('**/bridge', route => route.fulfill({ json: { state: 'none', bridges: 1, waiting: 1 } }))
+  await page.goto('/?sheet=add')
+  await page.getByRole('button', { name: /A switch on the wall/ }).click()
+  await page.getByRole('button', { name: 'That’s the one' }).click()
+  await page.getByRole('button', { name: /Yes, a light came on/ }).click()
+  await page.getByRole('button', { name: /It got dimmer, smoothly/ }).click()
+  await page.getByRole('button', { name: 'There isn’t another' }).click()
+  await page.getByRole('button', { name: 'Next' }).click()
+  const office = page.locator('.press-rooms .chip-btn', { hasText: 'Office' })
+  await office.click()
+  await page.locator('.sw-setup input').fill('Stair light')
+  await page.getByRole('button', { name: 'Next' }).click()
+  await page.getByRole('button', { name: 'Done' }).click()
+
+  await page.goto('/?room=office')
+  const card = page.getByText('Stair light', { exact: true }).first()
+  const box = (await card.boundingBox())!
+  await page.mouse.move(box.x + 10, box.y + 10); await page.mouse.down(); await page.waitForTimeout(900); await page.mouse.up()
+  await expect(page.locator('.pane-switch')).toContainText('Wall switch · dims · comes on when someone walks in')
+
+  await page.locator('.pane-switch').getByRole('button', { name: 'Change' }).click()
+  await expect(page.getByText('How the switch for this light is set up.')).toBeVisible()
+  await expect(page.getByText('Its bulbs can dim · you saw it')).toBeVisible()
+  await page.getByRole('button', { name: 'On and off only' }).click()
+  await expect(page.getByText('Then restart the switch')).toBeVisible()
+  await page.getByRole('button', { name: 'Done' }).click()
+  await expect(page.locator('.pane-switch')).toContainText('Wall switch · on and off only')
 })

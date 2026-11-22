@@ -156,7 +156,16 @@ class WallSwitches:
         self.remember(addr, light=bool(yes))
         return self.summary(addr)
 
-    async def dims(self, addr: str, yes: bool) -> dict:
+    async def dims(self, addr: str, yes: bool, found: bool | None = None) -> dict:
+        """What the switch does, chosen; and, from the dim test, what its bulbs can do, found. The two are kept
+        apart because a light that can dim is not always one somebody wants dimmed (design/switch-setup/,
+        dimming is your choice, A). The test's answer repeats a choice already sent, so that is not sent again."""
+        if found is not None:
+            self.remember(addr, can_dim=bool(found))
+            if not found and yes: return {"state": "failed", "text": "Its bulbs can't dim, so it stays on and off."}
+            if self.get(addr).get("dims") == bool(yes): return {"state": "done", "restart": False}
+        elif yes and self.get(addr).get("can_dim") is False:
+            return {"state": "failed", "text": "Its bulbs can't dim, so it stays on and off."}
         r = await self._config(f"dims {addr} {'yes' if yes else 'no'}")
         if not r.get("ok"):
             return {"state": "failed", "text": r.get("why") or "The switch didn't take that."}
@@ -236,8 +245,15 @@ class WallSwitches:
         self.remember(addr, walkin=mode)
         return self.summary(addr)
 
+    async def of_device(self, device_id: str) -> str | None:
+        """The wall switch behind a light, for the light's own screen to say how it is set up."""
+        for addr in self.all():
+            dev = await self.device_of(addr)
+            if dev and dev.id == device_id: return addr
+        return None
+
     def summary(self, addr: str) -> dict:
         row = self.get(addr)
-        return {"switch": addr.lower(), "light": row.get("light"), "dims": row.get("dims"),
+        return {"switch": addr.lower(), "light": row.get("light"), "dims": row.get("dims"), "can_dim": row.get("can_dim"),
                 "partner": row.get("partner"), "walkin": row.get("walkin") or "nothing",
                 "finished": bool(row.get("finished"))}

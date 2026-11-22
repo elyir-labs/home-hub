@@ -12266,6 +12266,28 @@ select.input {
   font-size: 16px;
   line-height: 23px;
 }
+/* the switch's settings over its light: as wide as the page setup ended on, so its rows read the same */
+.sw-sheet {
+  width: min(100%, 860px);
+}
+/* the wall switch behind a light, one line, and Change (design/switch-setup/, dimming is your choice, A) */
+.pane-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 0;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.pane-switch-i {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--surface-hi);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
 .pane-why.roof-wrong {
   color: var(--danger-text);
 }

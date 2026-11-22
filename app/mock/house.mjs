@@ -486,7 +486,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
   /* BRIDGES=1 is a house that already HAS a bridge and is not busy -- which is the normal case, and the
      one that puts the Wall switch door on the Add screen. WAITING=1 is a new switch sitting there
      unprovisioned, which is what that door then has something to say about. */
-  const SWITCH_SETUP = { light: null, dims: null, partner: null, walkin: 'nothing' }   // the one switch the pretend house lets in
+  const SWITCH_SETUP = { light: null, dims: null, can_dim: null, partner: null, walkin: 'nothing' }   // the one switch the pretend house lets in
   const HAVE = { bridges: Number(env.BRIDGES || (env.BRIDGE ? 1 : 0)), waiting: Number(env.WAITING || 0) }
   let bridgeAt = 0                      // when "yes, that's mine" was pressed; 0 = still knocking
   let bridgePinned = null               // set by dismiss/placed, or by a pinned BRIDGE value
@@ -910,6 +910,9 @@ export function createHouse({ env = {}, qr = null } = {}) {
        the code is behind the plate. */
     if (p === '/bridge/switches' && req.method === 'POST') {
       HAVE.waiting = Math.max(0, HAVE.waiting - 1)
+      // the same one switch each time it is let in, started over: a second copy would leave the first one's room and name behind
+      for (const r of rooms) { const i = r.devices.findIndex(x => x.id === 'mesh-new'); if (i >= 0) r.devices.splice(i, 1) }
+      Object.assign(SWITCH_SETUP, { light: null, dims: null, can_dim: null, partner: null, walkin: 'nothing' })
       const d = dev('mesh-new', 'Brilliant switch 0019', 'unassigned', 'light', 'off', { brightness: 0, has_motion: true })
       unassigned.devices.push(d)
       push({ type: 'device', device: d })
@@ -917,6 +920,26 @@ export function createHouse({ env = {}, qr = null } = {}) {
     }
     /* Setting the switch up on its light (design/switch-setup/, C). LISTEN=none is nobody pressing the
        other switch; otherwise one is heard a moment after the house starts listening. */
+    // the switch's light really moves and takes its name, so its own screen can be opened in its room afterward
+    const placing = p.match(/^\/devices\/mesh-new\/(move|rename)$/)
+    if (placing && req.method === 'POST' && !PRETEND) {
+      let raw = ''; req.on('data', c => (raw += c))
+      return req.on('end', () => {
+        let b = {}; try { b = JSON.parse(raw || '{}') } catch {}
+        const from = rooms.find(r => r.devices.some(x => x.id === 'mesh-new')), d = from?.devices.find(x => x.id === 'mesh-new')
+        if (d && placing[1] === 'rename' && b.name) d.name = String(b.name)
+        const to = rooms.find(r => r.id === b.room_id)
+        if (d && placing[1] === 'move' && to && to !== from) { from.devices.splice(from.devices.indexOf(d), 1); to.devices.push(d); d.room_id = to.id }
+        if (d) push({ type: 'home', home })
+        json(res, { ok: true })
+      })
+    }
+    // the wall switch behind a light: only the one the pretend house let in has one
+    const behind = p.match(/^\/devices\/([^/]+)\/switch$/)
+    if (behind && req.method === 'GET') {
+      if (decodeURIComponent(behind[1]) !== 'mesh-new' || SWITCH_SETUP.light == null) { res.writeHead(404, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ detail: 'This light has no wall switch the house set up.' })) }
+      return json(res, { switch: '0020', ...SWITCH_SETUP, finished: true, device_id: 'mesh-new', name: unassigned.devices.find(x => x.id === 'mesh-new')?.name ?? null })
+    }
     const sw = p.match(/^\/bridge\/switches\/([0-9a-f]{4})(?:\/([a-z]+))?$/)
     if (sw) {
       const id = 'mesh-new', st = SWITCH_SETUP
@@ -931,7 +954,11 @@ export function createHouse({ env = {}, qr = null } = {}) {
         return json(res, { state: 'showing', seconds: Math.round(levels.length * 0.7), every: 0.7, levels })
       }
       if (sw[2] === 'light') { st.light = !!body.light; return json(res, summary()) }
-      if (sw[2] === 'dims') { st.dims = !!body.dims; return json(res, { state: 'done', restart: true }) }
+      if (sw[2] === 'dims') {
+        if (body.found !== undefined) st.can_dim = !!body.found
+        if (body.dims && st.can_dim === false) return json(res, { state: 'failed', text: 'Its bulbs can’t dim, so it stays on and off.' })
+        st.dims = !!body.dims; return json(res, { state: 'done', restart: true })
+      }
       if (sw[2] === 'listen') {
         if (env.LISTEN === 'none') return setTimeout(() => json(res, { heard: null }), 1500)
         return setTimeout(() => json(res, { heard: { switch: '0021', device_id: null, name: 'the switch at the top of the stairs' } }), 1500)

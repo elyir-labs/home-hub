@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { nameFor, next, progress, said, steps } from '../src/switchSetup'
+import { foundLine, nameFor, next, progress, said, steps, switchLine } from '../src/switchSetup'
 
 /* Setting a wall switch up on its light, pinned to the board that was picked (design/switch-setup/, C).
    The order is the argument: what can be seen first, what has to be said last. */
@@ -33,6 +33,19 @@ describe('the steps of setting a switch up', () => {
   })
 })
 
+describe('dimming is a choice, apart from what the bulbs can do (dimming is your choice, A)', () => {
+  it('says what was found under the choice, and nothing when it was never found', () => {
+    expect(foundLine({ canDim: true })).toBe('Its bulbs can dim · you saw it')
+    expect(foundLine({ canDim: false })).toBe('Its bulbs can’t dim · you saw it')
+    expect(foundLine({})).toBe('')
+  })
+
+  it('says how the switch is set up in one line on the light', () => {
+    expect(switchLine({ light: true, dims: true, walkin: 'on_off' })).toBe('Wall switch · dims · comes on when someone walks in')
+    expect(switchLine({ light: true, dims: false, walkin: 'nothing' })).toBe('Wall switch · on and off only')
+  })
+})
+
 describe('the board it was built from', () => {
   const canvas = JSON.parse(readFileSync('../design/switch-setup/canvas.json', 'utf8'))
 
@@ -48,6 +61,13 @@ describe('the board it was built from', () => {
       expect(board).toContain(answer)
       expect(vue).toContain(answer.replace('&rsquo;', '’'))
     }
+  })
+
+  it('names the row for the choice it is, and the light points back to it', () => {
+    const choose = canvas.pages.find((p: { id: string }) => p.id === 'choose')
+    expect(choose.decided.chose).toMatch(/^A/)
+    expect(readFileSync('src/SwitchSetup.vue', 'utf8')).toContain('From the switch')
+    expect(readFileSync('src/Opened.vue', 'utf8')).toContain('pane-switch')
   })
 
   it('never sends anybody to the tab in the middle of the dim test (dim test A, picked 22 November)', () => {

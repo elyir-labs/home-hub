@@ -2134,6 +2134,16 @@ async def bridge_switch_setup(addr: str):
     return {**hub.wallswitch.summary(a), "device_id": dev.id if dev else None, "name": dev.name if dev else None}
 
 
+@app.get("/devices/{device_id}/switch")
+async def device_wall_switch(device_id: str):
+    """The wall switch behind a light, if there is one: how it is set up, for the light's own screen."""
+    hub.ready()
+    a = await hub.wallswitch.of_device(device_id)
+    if not a: raise HTTPException(404, "This light has no wall switch the house set up.")
+    dev = await hub.wallswitch.device_of(a)
+    return {**hub.wallswitch.summary(a), "device_id": device_id, "name": dev.name if dev else None}
+
+
 @app.post("/bridge/switches/{addr}/{step}")
 async def bridge_switch_step(addr: str, step: str, body: dict | None = None):
     """One step of setting a switch up on the light itself (design/switch-setup/, C)."""
@@ -2144,7 +2154,7 @@ async def bridge_switch_step(addr: str, step: str, body: dict | None = None):
         if step == "finish": return await ws.finish(a)
         if step == "show": return await ws.show(a, str(body.get("what") or ""))
         if step == "light": return await ws.has_light(a, bool(body.get("light")))
-        if step == "dims": return await ws.dims(a, bool(body.get("dims")))
+        if step == "dims": return await ws.dims(a, bool(body.get("dims")), None if body.get("found") is None else bool(body["found"]))
         if step == "listen": return await ws.listen(a)
         if step == "pair": return await ws.pair(a, _switch_addr(str(body.get("with") or "")))
         if step == "unpair": return await ws.unpair(a)

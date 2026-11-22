@@ -204,6 +204,37 @@ class WalkingIn(Setting):
             run(self.ws.walkin("0020", "on"))
 
 
+class DimmingIsAChoice(Setting):
+    def dims_ok(self): self.hub.ha.answers["dims"] = ("configured", {"op": "dims", "addr": "0020", "ok": True, "restart": True})
+
+    def test_what_the_bulbs_can_do_is_kept_apart_from_what_the_switch_does(self):
+        self.dims_ok()
+        run(self.ws.dims("0020", True))
+        run(self.ws.dims("0020", True, found=True))
+        run(self.ws.dims("0020", False))
+        s = self.ws.summary("0020")
+        self.assertEqual((s["can_dim"], s["dims"]), (True, False))
+
+    def test_the_test_answer_does_not_send_a_choice_already_sent(self):
+        self.dims_ok()
+        run(self.ws.dims("0020", True))
+        sent = len(self.hub.ha.published)
+        self.assertEqual(run(self.ws.dims("0020", True, found=True))["state"], "done")
+        self.assertEqual(len(self.hub.ha.published), sent)
+
+    def test_bulbs_that_cannot_dim_are_not_dimmed(self):
+        self.dims_ok()
+        run(self.ws.dims("0020", False, found=False))
+        self.assertEqual(run(self.ws.dims("0020", True))["state"], "failed")
+        self.assertFalse(self.ws.summary("0020")["dims"])
+
+    def test_a_light_finds_the_switch_behind_it(self):
+        self.ws.remember("0020", finished=1)
+        dev = self.a_light("0020")
+        self.assertEqual(run(self.ws.of_device(dev.id)), "0020")
+        self.assertIsNone(run(self.ws.of_device("light.somebody_else")))
+
+
 class TryingItOnTheLight(Setting):
     def test_a_dim_goes_slowly_to_almost_off_and_back_twice_and_ends_full(self):
         async def go():

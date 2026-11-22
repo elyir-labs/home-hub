@@ -19,7 +19,8 @@ export type WalkIn = 'nothing' | 'on' | 'on_off'
 
 export type Answers = {
   light?: boolean | null       // a light came on when the house tried it
-  dims?: boolean | null        // the person saw it dim (true) or flicker / stay on and off (false)
+  dims?: boolean | null        // what the switch does: dims (true) or only turns it on and off (false), chosen
+  canDim?: boolean | null      // what its bulbs can do, found by the dim test; null for a switch set up before it asked
   partner?: string | null      // the other switch for the same light, as the house calls it
   walkin?: WalkIn
   restartOwed?: boolean        // dimming was chosen since the last time the switch was restarted
@@ -61,6 +62,21 @@ export function said(at: Step, a: Answers): { step: Step; lead: string; answer: 
   if (before.includes('walkin') && a.walkin)
     out.push({ step: 'walkin', lead: 'When someone walks in:', answer: WALKIN_WORDS[a.walkin].toLowerCase() })
   return out
+}
+
+/** Under "From the switch" on the settings page: what the house found, so the choice above it reads as one. */
+export function foundLine(a: Answers): string {
+  if (a.canDim === true) return 'Its bulbs can dim · you saw it'
+  if (a.canDim === false) return 'Its bulbs can’t dim · you saw it'
+  return ''
+}
+
+/** The one line on a light's own screen about the switch on the wall behind it. */
+export function switchLine(a: Answers): string {
+  const parts = ['Wall switch', a.dims ? 'dims' : 'on and off only']
+  if (a.light !== false && a.walkin === 'on_off') parts.push('comes on when someone walks in')
+  else if (a.light !== false && a.walkin === 'on') parts.push('turns on when someone walks in')
+  return parts.join(' · ')
 }
 
 /** A room's light, named after the room, unless somebody already typed a name of their own. */

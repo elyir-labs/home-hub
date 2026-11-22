@@ -8,7 +8,7 @@ import { listenForSwitch, moveDevice, pairSwitch, renameDevice, showOnSwitch, sw
          switchSetup, switchWalkIn, unpairSwitch } from './api'
 import { store, notify } from './store'
 import type { Act } from './adding'
-import { next, nameFor, progress, said as saidRows, WALKIN_WORDS, type Answers, type Step, type WalkIn } from './switchSetup'
+import { foundLine, next, nameFor, progress, said as saidRows, WALKIN_WORDS, type Answers, type Step, type WalkIn } from './switchSetup'
 import Icon from './Icon.vue'
 
 /*
@@ -16,7 +16,9 @@ import Icon from './Icon.vue'
  * which step follows which are switchSetup.ts's; this draws one step at a time and hands its buttons to
  * the Add shell, which puts them where every other route's are.
  */
-const props = defineProps<{ addr: string; deviceId?: string | null; name?: string | null }>()
+/* `settings`: opened from the light's own screen, on the page setup ended on, with what the house already
+   knows about the switch (design/switch-setup/, dimming is your choice, A). */
+const props = defineProps<{ addr: string; deviceId?: string | null; name?: string | null; settings?: boolean }>()
 const emit = defineEmits<{ acts: [Act[]]; head: [string]; another: []; done: [] }>()
 
 const at = ref<Step>('light')
@@ -24,7 +26,6 @@ const a = ref<Answers>({ walkin: 'on_off' })
 const device = ref<string | null>(props.deviceId ?? null)
 const showing = ref('')                 // what the light is doing right now, said while it does it
 const busy = ref(false)
-const dimSeen = ref('')                 // what they saw when it dimmed, said again on the end page
 const heard = ref<{ switch: string; name: string } | null>(null)
 const listening = ref(false)
 const room = ref('')
@@ -90,16 +91,13 @@ async function lightCame(yes: boolean) {
   go(next('light', a.value))
 }
 
-async function dimmed(yes: boolean, seen: string) {
+async function dimmed(yes: boolean) {
   stopShowing()
-  dimSeen.value = seen
   busy.value = true
   try {
-    if (!yes) {
-      const r = await switchDims(props.addr, false)
-      if (r.state === 'failed') { notify(r.text ?? 'The switch didn’t take that.', 'error'); return }
-    }
-    a.value = { ...a.value, dims: yes, restartOwed: true }
+    const r = await switchDims(props.addr, yes, yes)
+    if (r.state === 'failed') { notify(r.text ?? 'The switch didn’t take that.', 'error'); return }
+    a.value = { ...a.value, dims: yes, canDim: yes, restartOwed: true }
     go(next('dim', a.value))
   } catch (e: any) { notify(e.message, 'error') } finally { busy.value = false }
 }
@@ -149,7 +147,7 @@ async function placeAndName() {
 
 /* The end is the switch's settings page: changing a row here does the same as answering it did. */
 async function changeDims(yes: boolean) {
-  if (a.value.dims === yes) return
+  if (a.value.dims === yes || (yes && a.value.canDim === false)) return
   try {
     const r = await switchDims(props.addr, yes)
     if (r.state === 'failed') return notify(r.text ?? 'The switch didn’t take that.', 'error')
@@ -173,13 +171,28 @@ watch([at, heard, listening, room, busy, () => a.value.light], () => {
     emit('acts', acts)
   } else if (s === 'walkin') emit('acts', [{ label: 'Next', primary: true, run: () => go(next('walkin', a.value)) }])
   else if (s === 'room') emit('acts', room.value && device.value ? [{ label: 'Next', primary: true, run: placeAndName }] : [])
-  else if (s === 'end') emit('acts', [{ label: 'Done', primary: true, run: () => emit('done') },
-                                      { label: 'Add another switch', run: () => emit('another') }])
+  else if (s === 'end') emit('acts', props.settings ? [{ label: 'Done', primary: true, run: () => emit('done') }]
+                                    : [{ label: 'Done', primary: true, run: () => emit('done') },
+                                       { label: 'Add another switch', run: () => emit('another') }])
   else emit('acts', [])
-  emit('head', s === 'end' ? `${lightName.value} is set up.` : '')
+  emit('head', s === 'end' ? (props.settings ? `${lightName.value} and its switch` : `${lightName.value} is set up.`) : '')
 }, { immediate: true })
 
-onMounted(() => go('light'))
+async function openSettings() {
+  try {
+    const s = await switchSetup(props.addr)
+    let partner: string | null = null
+    if (s.partner) { try { partner = (await switchSetup(s.partner)).name ?? 'another switch' } catch { partner = 'another switch' } }
+    a.value = { light: s.light, dims: s.dims, canDim: s.can_dim ?? null, walkin: s.walkin, partner }
+    partnerAddr.value = s.partner
+    device.value = s.device_id ?? device.value
+    room.value = store.rooms.flatMap(r => r.devices.map(d => ({ room: r.id, id: d.id }))).find(d => d.id === device.value)?.room ?? ''
+    if (!name.value) name.value = s.name ?? ''
+  } catch (e: any) { notify(e.message, 'error') }
+  at.value = 'end'
+}
+
+onMounted(() => props.settings ? openSettings() : go('light'))
 onUnmounted(stopShowing)
 </script>
 
@@ -219,11 +232,11 @@ onUnmounted(stopShowing)
         <span class="sw-live" v-if="showing || busy"><i></i>{{ busy ? 'Getting the switch ready…' : showing }}</span>
       </div>
       <div class="sw-picks">
-        <button class="sw-pick" :disabled="busy" @click="dimmed(true, 'You saw it dim')"><span class="sw-pi"><Icon name="sun" :size="20" /></span>
+        <button class="sw-pick" :disabled="busy" @click="dimmed(true)"><span class="sw-pi"><Icon name="sun" :size="20" /></span>
           <span>It got dimmer, smoothly, all the way down<small>It becomes a dimmer: slide to set how bright</small></span></button>
-        <button class="sw-pick" :disabled="busy" @click="dimmed(false, 'It stayed bright, then went off')"><span class="sw-pi"><Icon name="power" :size="20" /></span>
+        <button class="sw-pick" :disabled="busy" @click="dimmed(false)"><span class="sw-pi"><Icon name="power" :size="20" /></span>
           <span>It stayed bright, then went off near the end<small>Or nothing changed at all. Then it stays on and off only</small></span></button>
-        <button class="sw-pick" :disabled="busy" @click="dimmed(false, 'It flickered or buzzed')"><span class="sw-pi"><Icon name="wave" :size="20" /></span>
+        <button class="sw-pick" :disabled="busy" @click="dimmed(false)"><span class="sw-pi"><Icon name="wave" :size="20" /></span>
           <span>It flickered or buzzed<small>Then it stays on and off only. Some bulbs can’t dim</small></span></button>
         <button class="sw-pick" :disabled="busy" @click="show('dim')"><span class="sw-pi"><Icon name="eye" :size="20" /></span>
           <span>I can’t see it from here<small>Show it again, or go and stand by it</small></span></button>
@@ -270,14 +283,15 @@ onUnmounted(stopShowing)
 
     <!-- the end: what was found and chosen, and the switch's settings from now on -->
     <template v-else>
-      <p class="flow-desc">This is what the house found out, and what you chose. Change any of it here, or later from the light.</p>
+      <p class="flow-desc" v-if="settings">How the switch for this light is set up. Change any of it here.</p>
+      <p class="flow-desc" v-else>This is what the house found out, and what you chose. Change any of it here, or later from the light.</p>
       <div class="sw-set">
         <span class="sw-k">Name and room</span>
         <span class="sw-seg plain"><b>{{ lightName }}</b><span class="chip-btn on"><Icon name="check" :size="14" />{{ rooms.find(r => r.id === room)?.name }}</span><button class="button small ghost" @click="go('room')">Change</button></span>
       </div>
       <div class="sw-set" v-if="a.light !== false">
-        <span class="sw-k">The bulbs<small>{{ dimSeen || (a.dims ? 'You saw them dim' : 'You said they don’t dim') }}</small></span>
-        <span class="sw-seg"><button :class="{ on: a.dims }" @click="changeDims(true)">Dim</button><button :class="{ on: a.dims === false }" @click="changeDims(false)">On and off only</button></span>
+        <span class="sw-k">From the switch<small v-if="foundLine(a)">{{ foundLine(a) }}</small></span>
+        <span class="sw-seg"><button :class="{ on: a.dims }" :disabled="a.canDim === false" @click="changeDims(true)">Dim</button><button :class="{ on: a.dims === false }" @click="changeDims(false)">On and off only</button></span>
       </div>
       <div class="sw-set">
         <span class="sw-k">Other switches<small v-if="a.partner">You pressed it</small></span>
@@ -289,7 +303,7 @@ onUnmounted(stopShowing)
       </div>
       <div class="sw-restart" v-if="a.restartOwed && a.light !== false">
         <span class="sw-pi"><Icon name="switch" :size="22" /></span>
-        <span><b>Last step: restart the switch</b><small>Pull the small tab at the bottom of the switch out, then push it back in. The light goes off for a few seconds, and the switch comes back the way you set it up.</small></span>
+        <span><b>{{ settings ? 'Then restart the switch' : 'Last step: restart the switch' }}</b><small>Pull the small tab at the bottom of the switch out, then push it back in. The light goes off for a few seconds, and the switch comes back the way you set it up.</small></span>
       </div>
     </template>
   </div>
