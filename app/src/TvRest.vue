@@ -11,6 +11,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { Room } from './api'
 import { imageUrl, photoUrl, qrUrl } from './api'
 import { photosPageUrl } from './photos'
+import { grainStyle } from './grain'
 import { clockParts, restingFacts, restWeather } from './resting'
 import { countWords, drift, faceFor, funCards, paintingAt, houseToday, isMorning, localDay, morningLine, MORNING_FOR, loadRestPhotos, noteFrom, withCards, bedtimeLine, mmss, nightOf, photoLine, playingNow, playingRooms, position, rest, shapeOf,
   SLEEP_AFTER, BEAT_FOR, beats, beatAt, dayTitle, agoLine, stillOn, type Photo, type Shape } from './restTv'
@@ -23,6 +24,9 @@ import TvPainting from './TvPainting.vue'
 const props = defineProps<{ now: Date; room: Room | null; since: number; wall?: boolean }>()
 
 const scale = ref(1)
+/* Over the backgrounds and under the words: the bedtime glow and the blurred cover banded into rings on a TV (grain.ts).
+   The screen is scaled, so the grain is drawn finer by the same amount to stay one to a device pixel. */
+const grain = computed(() => grainStyle((window.devicePixelRatio || 1) * scale.value))
 const tall = ref(1080)
 const fit = () => { scale.value = innerWidth / 1920; tall.value = Math.round(1920 * innerHeight / innerWidth) }
 
@@ -223,6 +227,8 @@ const ok = computed(() => {
       <template v-else-if="face === 'night'">
         <div class="tvrest-black"></div>
       </template>
+
+      <div class="tvrest-grain" :style="grain"></div>
 
       <div class="tvrest-moves" :class="{ flip: place.flip }" :style="{ translate: `${place.x}px ${place.y}px` }">
 

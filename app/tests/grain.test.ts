@@ -20,4 +20,13 @@ describe('the grain over the sky', () => {
     const app = readFileSync('src/App.vue', 'utf8')
     expect(app.indexOf('class="sky-grain"')).toBeGreaterThan(app.indexOf('class="sky-veil"'))
   })
+  it('lies over the TV\'s resting backgrounds too, under its words', () => {
+    const rest = readFileSync('src/TvRest.vue', 'utf8')
+    const at = rest.indexOf('class="tvrest-grain"')
+    expect(at).toBeGreaterThan(rest.indexOf('class="tvrest-night"'))
+    expect(at).toBeGreaterThan(rest.indexOf('class="tvrest-wash"'))
+    expect(at).toBeLessThan(rest.indexOf('class="tvrest-moves"'))
+    const css = readFileSync('src/panel.css', 'utf8')
+    expect(css.match(/\n\.tvrest-grain \{([^}]*)\}/)![1]).toMatch(/mix-blend-mode: overlay/)
+  })
 })

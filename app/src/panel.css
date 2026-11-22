@@ -4255,6 +4255,13 @@ input:focus-visible {
 }
 
 /* E: winding down. What is still on, and one button for the night. */
+.tvrest-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  image-rendering: pixelated;
+}
 .tvrest-night {
   position: absolute;
   inset: 0;
