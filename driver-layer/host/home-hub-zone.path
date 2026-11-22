@@ -1,0 +1,11 @@
+# Watches for the house's time zone, written by the brain when it learns it. install.sh copies this (with its own
+# directory in place of /opt/home-hub) and enables it.
+[Unit]
+Description=Home Hub: watch for the house's time zone
+
+[Path]
+PathExists=/opt/home-hub/driver-layer/brain-data/zone.request
+Unit=home-hub-zone.service
+
+[Install]
+WantedBy=multi-user.target
