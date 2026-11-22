@@ -9,3 +9,4 @@ bleak>=0.22
 protobuf>=4
 cryptography>=42
 pywebpush==2.5.0    # a phone told what needs a look, signed with its own key: hub/pusher.py
+zeroconf>=0.136   # hears speakers that say they are one stereo pair: hub/stereo.py

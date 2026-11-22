@@ -471,7 +471,10 @@ Do not reopen these, and do not propose around them.
   `design/speaker-pair/`, B with C). Until answered, the first leads and the other is a line under it; One pair is one
   card for good whose buttons work both, Two speakers keeps two cards. Home says the song once. The answer is the
   brain's (`speaker_pairs`, `/speakers/pair`), the grouping `groupOf` in `app/src/music.ts`; pinned by
-  `app/e2e/speaker-pair.spec.ts` and `brain/tests/test_music.py`.
+  `app/e2e/speaker-pair.spec.ts` and `brain/tests/test_music.py`. **Speakers that say they are a stereo pair are never
+  asked** (22 November, the same collection's "told" page, A): two AirPlay speakers announcing one pair id are one card
+  from the start, and their word outranks an earlier Two speakers. `brain/hub/stereo.py`, pinned by
+  `brain/tests/test_stereo.py`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
   B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
   development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this

@@ -38,6 +38,7 @@ from .restart import Restart
 from .developer import Developer
 from .sounds import Sounds, DIR as SOUNDS_DIR
 from .music import Music, MusicError
+from .stereo import Stereo
 from .commands import Commands, NotUnderstood, refusal_aloud
 from .voice import Voice
 from .suggest import Suggestions
@@ -183,6 +184,7 @@ class Hub:
         self.developer = Developer(self)               # for working on the hub: what it follows, SSH, the screens (design/developer/)
         self.sounds = Sounds(self)                     # noise and rain on a speaker, looped here, with a sleep timer
         self.music = Music(self)                       # radio and the household's own music, on any speaker the engine reaches
+        self.stereo = Stereo(self._stereo_changed)     # speakers that say they are one pair
         self.commands = Commands(self)                 # plain words into moves, by a fixed grammar first and the assistant after
         self.voice = Voice(self)                       # the same answers, said out loud -- inert until a hub has an engine
         self.suggest = Suggestions(self)               # names and rooms for things not placed yet; proposes, never moves
@@ -195,6 +197,7 @@ class Hub:
         self._wake = asyncio.Event()
         self._rebuild_task = None
         self._music_task = None
+        self._stereo_task = None
         self._loop_task = None
         self._loop: asyncio.AbstractEventLoop | None = None   # the server's loop, for broadcasts from worker threads
         self.roofline._fold()                          # the boxes folded into the roofline's one tile, before the first build
@@ -306,6 +309,7 @@ class Hub:
         asyncio.create_task(self.provision.refresh())   # look at the driver layer now, not at the next half-minute
         asyncio.create_task(self.sounds.ensure())        # the generated noises, once
         if not self._music_task or self._music_task.done(): self._music_task = asyncio.create_task(self._keep_music())   # the music engine, set up unseen
+        if not self._stereo_task or self._stereo_task.done(): self._stereo_task = asyncio.create_task(self.stereo.watch())
         asyncio.create_task(self.bridge.watch())         # what appears on the USB from now on
         asyncio.create_task(self.bridge.firmware.watch())   # a build parked by tools/dev.sh puck
         asyncio.create_task(self.strip.listen())         # the strips the house already has
@@ -506,6 +510,9 @@ class Hub:
         try: asyncio.get_running_loop(); asyncio.create_task(fan_out())
         except RuntimeError:
             if self._loop: asyncio.run_coroutine_threadsafe(fan_out(), self._loop)
+
+    def _stereo_changed(self, pairs):
+        for d in self.home.set_stereo(pairs): self._broadcast(json.dumps({"type": "device", "device": d.__dict__}))
 
     def _on_event(self, ev):
         if ev["event_type"] == "state_changed":
