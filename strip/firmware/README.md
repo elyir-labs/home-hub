@@ -132,6 +132,24 @@ lengths sets them. A one-wire strip may flicker for an instant during it.
 **The button is GPIO 4**, sealed into the wall of the box, with the devkit's rules and one more: a press
 shorter than 30 ms is a contact bouncing, not a finger.
 
+## The roofline's devkit box
+
+Until rev A is made, the roofline runs on devkits in printed boxes (home-hub-hardware, `strip/devkit/`).
+Each box's first light on the wire is a WS2812B inside it, fed about 4 V through a diode: it reads the
+devkit's 3.3 V and passes on a full-height picture, so it is the level shifter, and it glows behind the
+box's window. It is not one of the roof's lights, so it is a board of its own:
+
+    idf.py -B build-roofbox -DSTRIP_BOARD=roofbox set-target esp32s3
+    idf.py -B build-roofbox -DSTRIP_BOARD=roofbox build
+    idf.py -B build-roofbox -p <port> flash monitor
+
+The pins are the devkit's (data on GPIO 5, the press on BOOT, both still settable). The box's light goes
+out ahead of the roof's picture and shows the roof's first light, in its own green-red-blue whatever the
+strip's order (`main/pixels.h`, `one_wire`). The image is `build-roofbox/strip-roofbox.bin`, and as with
+rev A the name is what makes a box refuse a plain devkit image: one would light the box as the roof's first
+light and put every light on the roof one place out. Only the one-wire picture has the box's light; a
+two-wire strip can't run through a WS2812B.
+
 ## When a strip stays dark, run this first
 
     idf.py -p <port> -DSELFTEST=1 -DDATA_PIN=48 build flash monitor
@@ -195,6 +213,7 @@ a strip that paired once and never again. (`main/press.h`, held to it by `test_p
 
     c++ -std=c++17 -O1 -o /tmp/px test_pixels_native.cpp && /tmp/px
     c++ -std=c++17 -O1 -DSTRIP_BOARD_REVA -o /tmp/px test_pixels_native.cpp && /tmp/px
+    c++ -std=c++17 -O1 -DSTRIP_BOARD_ROOFBOX -o /tmp/px test_pixels_native.cpp && /tmp/px
     c++ -std=c++17 -O1 -DSTRIP_BOARD_REVA -o /tmp/guard test_guard_native.cpp && /tmp/guard
     c++ -std=c++17 -O1 -o /tmp/press test_press_native.cpp && /tmp/press
     c++ -std=c++17 -O1 -o /tmp/uri test_hub_uri_native.cpp && /tmp/uri

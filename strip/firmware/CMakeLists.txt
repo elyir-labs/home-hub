@@ -44,10 +44,19 @@ if(STRIP_BOARD STREQUAL "reva")
         set(SDKCONFIG "${CMAKE_BINARY_DIR}/sdkconfig")
     endif()
     set(STRIP_PROJECT strip-reva)
+elseif(STRIP_BOARD STREQUAL "roofbox")
+    # The roofline's devkit box (main/board.h): the devkit's settings, but its own sdkconfig and its
+    # own project name, so a devkit image and a roof box image refuse each other.
+    #     idf.py -B build-roofbox -DSTRIP_BOARD=roofbox set-target esp32s3
+    #     idf.py -B build-roofbox -DSTRIP_BOARD=roofbox build
+    if(NOT DEFINED SDKCONFIG)
+        set(SDKCONFIG "${CMAKE_BINARY_DIR}/sdkconfig")
+    endif()
+    set(STRIP_PROJECT strip-roofbox)
 elseif(STRIP_BOARD STREQUAL "devkit")
     set(STRIP_PROJECT strip)
 else()
-    message(FATAL_ERROR "STRIP_BOARD is \"${STRIP_BOARD}\": it is devkit (or unset) or reva")
+    message(FATAL_ERROR "STRIP_BOARD is \"${STRIP_BOARD}\": it is devkit (or unset), roofbox or reva")
 endif()
 
 set(PROJECT_VER "0.3.0")

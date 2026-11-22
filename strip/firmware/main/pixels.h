@@ -361,13 +361,32 @@ namespace px
         return 4 + (size_t)count * 4 + 4 + ((size_t)count + 15) / 16;
     }
 
-    // One-wire: the picture's own bytes, dimmed.
-    static inline size_t one_wire(const Pixels &p, uint16_t scale, uint8_t *out)
+    // One-wire: the picture's own bytes, dimmed, after the box's own lights if it has any.
+    //
+    // THE BOX'S LIGHT (board::BOX_LIGHTS) is not one of the roof's: the picture starts after it, so
+    // nothing above this knows it is there. It shows the roof's first light, so the box glows what the
+    // run starts with, a setup question included. It is always a WS2812B, so it takes three bytes in
+    // its own green-red-blue whatever order the strip wants, even ahead of a strip with a white, and
+    // a white is folded into it rather than lost.
+    static inline size_t one_wire(const Pixels &p, uint16_t scale, uint8_t *out, int box = board::BOX_LIGHTS)
     {
+        size_t k = 0;
+        if (box > 0)
+        {
+            const uint8_t w = p.order.white ? p.buf[3] : 0;
+            const auto plus = [w](uint8_t c) { return (uint8_t)(c + w > 255 ? 255 : c + w); };
+            const uint8_t r = plus(p.buf[p.order.at[0]]), g = plus(p.buf[p.order.at[1]]), b = plus(p.buf[p.order.at[2]]);
+            for (int i = 0; i < box; i++)
+            {
+                out[k++] = dim(g, scale);
+                out[k++] = dim(r, scale);
+                out[k++] = dim(b, scale);
+            }
+        }
         const size_t n = p.bytes_used();
         for (size_t i = 0; i < n; i++)
-            out[i] = dim(p.buf[i], scale);
-        return n;
+            out[k + i] = dim(p.buf[i], scale);
+        return k + n;
     }
 
     // Two-wire, which is the APA102 frame and also the SK9822's, because the SK9822 differs in one
