@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from hub import wallswitch as ws_mod
 from hub.bridge import Bridges
 from hub.settings import Settings
+from hub.rules import validate
 from hub.wallswitch import WallSwitches
 
 NET = "ab" * 8
@@ -34,16 +35,23 @@ class FakeHA:
 
 
 class FakeRules:
-    def __init__(self): self.raw = {"rules": [{"id": "welcome-home", "room": "entry"}]}
+    """The hub's routine engine (hub.engine), refusing what the real one refuses."""
+    def __init__(self, hub):
+        self.hub = hub
+        self.raw = {"rules": [{"id": "welcome-home", "room": "entry", "when": {"presence": "somebody"},
+                               "then": {"intent": "occupied"}}]}
     def as_data(self): return {**self.raw, "valid": True, "errors": []}
-    def save(self, raw): self.raw = raw
+    def save(self, raw):
+        _, errors = validate(raw, set(self.hub.home.rooms))
+        if errors: raise ValueError("; ".join(errors))
+        self.raw = raw
 
 
 class FakeHub:
     def __init__(self, tmp):
         self.settings = Settings(Path(tmp) / "settings.json")
         self.settings.set(bridges={"c8ebba": {"since": 0}})
-        self.ha, self.rules = FakeHA(), FakeRules()
+        self.ha, self.engine = FakeHA(), FakeRules(self)
         self.log = SimpleNamespace(add=lambda *a, **k: None)
         self.home = SimpleNamespace(devices={}, rooms={"hall": SimpleNamespace(name="Hallway")})
     def _broadcast(self, msg): pass
@@ -177,9 +185,9 @@ class WalkingIn(Setting):
     def test_on_then_off_is_two_routines_beside_the_others(self):
         self.a_light(room="hall")
         run(self.ws.walkin("0020", "on_off"))
-        ids = [r["id"] for r in self.hub.rules.raw["rules"]]
+        ids = [r["id"] for r in self.hub.engine.raw["rules"]]
         self.assertEqual(ids, ["welcome-home", "switch-0020-walkin", "switch-0020-leave"])
-        leave = self.hub.rules.raw["rules"][-1]
+        leave = self.hub.engine.raw["rules"][-1]
         self.assertEqual(leave["when"], {"idle": ws_mod.LEAVE_AFTER})
         self.assertEqual(leave["then"], {"device": "light.switch_0020", "action": "off"})
 
@@ -187,7 +195,7 @@ class WalkingIn(Setting):
         self.a_light(room="hall")
         run(self.ws.walkin("0020", "on_off"))
         run(self.ws.walkin("0020", "nothing"))
-        self.assertEqual([r["id"] for r in self.hub.rules.raw["rules"]], ["welcome-home"])
+        self.assertEqual([r["id"] for r in self.hub.engine.raw["rules"]], ["welcome-home"])
         self.assertEqual(self.ws.summary("0020")["walkin"], "nothing")
 
     def test_it_needs_a_room_to_know_where_walking_in_is(self):

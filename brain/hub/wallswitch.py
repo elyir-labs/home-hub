@@ -207,7 +207,7 @@ class WallSwitches:
         if mode not in WALKIN: raise ValueError("Walking in is nothing, on, or on then off.")
         dev = await self.device_of(addr)
         if not dev: raise ValueError("The house can't see that light yet.")
-        rules = getattr(self.hub, "rules", None)
+        rules = getattr(self.hub, "engine", None)
         if not rules: raise ValueError("Routines aren't running.")
         mine = (f"switch-{addr}-walkin", f"switch-{addr}-leave")
         raw = dict(rules.as_data()); raw.pop("valid", None); raw.pop("errors", None)
