@@ -18,7 +18,20 @@
   "AskA-end.dc.html",
   "a",
   "OnePageB.dc.html",
-  "b"
+  "b",
+  "dim-why",
+  "DimToday.dc.html",
+  "DimToday-tab.dc.html",
+  "dim-today",
+  "DimDownA.dc.html",
+  "DimDownA-end.dc.html",
+  "dim-a",
+  "dim-recommended",
+  "DimTwiceB.dc.html",
+  "DimTwiceB-low.dc.html",
+  "dim-b",
+  "DimSlideC.dc.html",
+  "dim-c"
  ],
  "pages": [
   {
@@ -33,11 +46,15 @@
   {
    "id": "switch-setup-rejected",
    "name": "Setting up a wall switch: not chosen"
+  },
+  {
+   "id": "dim-test",
+   "name": "Testing whether the bulbs dim"
   }
  ],
  "launch": {
   "view": "canvas",
-  "page": "switch-setup"
+  "page": "dim-test"
  },
  "artboards": [
   {
@@ -102,6 +119,69 @@
    "h": 900,
    "title": "C, chosen 22 November · The end: B's page, filled in by what was seen",
    "page": "switch-setup"
+  },
+  {
+   "file": "DimToday.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · Full and half, and “It didn’t change” sends you to the tab",
+   "page": "dim-test"
+  },
+  {
+   "file": "DimToday-tab.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · After “It didn’t change”: the tab, in the middle of setting up",
+   "page": "dim-test"
+  },
+  {
+   "file": "DimDownA.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · One slow look, all the way down to almost off",
+   "page": "dim-test"
+  },
+  {
+   "file": "DimDownA-end.dc.html",
+   "x": 1560,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A · The end, for a bulb that can’t dim: the restart stays here, once",
+   "page": "dim-test"
+  },
+  {
+   "file": "DimTwiceB.dc.html",
+   "x": 0,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B · Half first, as today; “It didn’t change” tries it lower",
+   "page": "dim-test"
+  },
+  {
+   "file": "DimTwiceB-low.dc.html",
+   "x": 1560,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B · The second, lower look, only when half showed nothing",
+   "page": "dim-test"
+  },
+  {
+   "file": "DimSlideC.dc.html",
+   "x": 0,
+   "y": 2940,
+   "w": 1440,
+   "h": 900,
+   "title": "C · You slide it down yourself and say what it did",
+   "page": "dim-test"
   }
  ],
  "annotations": [
@@ -160,6 +240,54 @@
    "w": 540,
    "page": "switch-setup",
    "text": "DECIDED 22 NOVEMBER 2026\n\nC, ending on B's page. Built with the add underneath fixed: the bridge finishes a switch it lets in (its key, its controls, its announcements), and the hub keeps the switch's own key so it can be set up again later."
+  },
+  {
+   "id": "dim-why",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "dim-test",
+   "text": "WHY THIS IS BEING REDRAWN\n\nReported 22 November, setting up a second switch in the living room house, this one on bulbs that can't dim. The house dimmed the light to half and back. The bulbs didn't change: many LED bulbs that can't dim ignore half and only react near the bottom, where they cut out. They didn't flicker or buzz either, so none of the answers fit but \"It didn't change\" -- and that one asked for the switch to be restarted with its tab, which reads as starting it over.\n\nTwo things are wrong. The test stops at half, which is exactly where a bulb that can't dim gives nothing away. And \"It didn't change\" guesses that the switch hasn't taken dimming yet. That only happens on a switch that was set to on and off before; a switch that was just started over dims from the start, so on the switch this flow mostly meets, the guess is wrong."
+  },
+  {
+   "id": "dim-today",
+   "x": 3120,
+   "y": 0,
+   "w": 540,
+   "page": "dim-test",
+   "text": "TODAY -- FROM THE SHIPPED PANEL\n\napp/src/SwitchSetup.vue, step 2. The house sends full, half, full three times (show() in brain/hub/wallswitch.py). The four answers are the ones C was picked with. \"It didn't change\" opens the second board: pull the tab, push it back, Watch again -- in the middle of the setup, where the end page already asks for the one restart the switch needs."
+  },
+  {
+   "id": "dim-a",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "dim-test",
+   "text": "A -- ONE SLOW LOOK, ALL THE WAY DOWN\n\nThe house takes the light slowly from full to almost off and back, twice, about five seconds each way. That one look answers it for every kind of bulb: a dimmable one gets dimmer the whole way, one that can't dim stays bright and then cuts out near the bottom (or never changes at all), and a poor one flickers or buzzes on the way.\n\nThe answers are what was seen, in those words, and each is final: no answer sends anybody to the tab. \"Nothing changed at all\" sits under \"stayed bright, then went off\" because it means the same thing -- on and off only. The one restart stays where it already was, at the end, once.\n\nCost: one more second of watching than today. The house never learns whether it was the bulb or the switch's mode that didn't dim, and doesn't need to: either way the right answer is on and off, and it can be changed on the light later."
+  },
+  {
+   "id": "dim-recommended",
+   "x": 3120,
+   "y": 980,
+   "w": 540,
+   "page": "dim-test",
+   "text": "RECOMMENDED: A\n\nOne look, one question, every answer final. It fixes both faults -- the test reaches the bottom, where the bulbs that can't dim show themselves, and the tab is never asked for mid-step -- without adding a screen. B keeps today's gentle look but spends a second screen on the very bulbs this question exists for. C is the most direct, but it asks the person to do the testing, and on the wall the screen is often in another room from the light."
+  },
+  {
+   "id": "dim-b",
+   "x": -640,
+   "y": 1960,
+   "w": 540,
+   "page": "dim-test",
+   "text": "B -- HALF FIRST, THEN LOWER IF NOTHING CHANGED\n\nToday's first look, unchanged, so a dimmable bulb is still settled in one look at half. \"It didn't change\" no longer goes to the tab: it starts a second look, down to almost off, with three answers -- it got dimmer, it went off or flickered, still nothing -- and the last two mean on and off only.\n\nCost: a second screen for exactly the bulbs that can't dim, which is the case that went wrong; and \"It didn't change\" at half still reads like a fault before the second look explains it."
+  },
+  {
+   "id": "dim-c",
+   "x": -640,
+   "y": 2940,
+   "w": 540,
+   "page": "dim-test",
+   "text": "C -- YOU SLIDE IT DOWN YOURSELF\n\nThe person drags a slider on the screen and the light follows their finger, at their pace, stopping where they like. Then the same three answers as A.\n\nCost: it asks them to do the test rather than watch it, which needs the screen and the light in view at once -- true on a phone at the switch, often not on the wall. And a slow hand at the bottom is what shows a bulb that can't dim; a quick one can miss it."
   }
  ]
 }
