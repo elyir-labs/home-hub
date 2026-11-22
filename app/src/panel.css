@@ -16438,9 +16438,12 @@ html[data-wall-keys] .shell {
   animation-play-state: paused;
 }
 
-/* The wall is touched, not pointed at: a mouse plugged in for setting it up shows no arrow on the panel. */
+/* The wall is touched, not pointed at: a mouse plugged in for setting it up shows no arrow on the panel. Nor does a
+   TV, which is worked with a remote: a mouse in the hub drew a gray disc there (App.vue). */
 html[data-wall],
-html[data-wall] * {
+html[data-wall] *,
+html[data-tv-screen],
+html[data-tv-screen] * {
   cursor: none !important;
 }
 

@@ -131,6 +131,9 @@ if (wall) {
    the TV's own room, and while it rests, that room as a band over the picture. */
 const tv = onTV()
 if (tv) document.documentElement.dataset.onTv = ''
+// A TV is worked with a remote: a mouse left plugged into the hub draws no pointer on it, as on a wall. Only on the
+// hub's own screen, so a preview with ?tv=1 on a computer keeps its pointer.
+if (tv && isScreen()) document.documentElement.dataset.tvScreen = ''
 const tvHome = computed(() => homeRoom(rooms.value) ?? params.get('room')
   ?? rooms.value.find(r => r.devices.some(d => cap(d) === 'light'))?.id ?? rooms.value[0]?.id ?? null)
 const tvRoom = computed(() => room.value ?? rooms.value.find(r => r.id === tvHome.value) ?? null)
