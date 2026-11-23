@@ -268,8 +268,8 @@ glowing; pulling the broker has not been watched. The default brightness (110) w
 
 **Power the LED from a charger, not a computer's USB port.** On the hub's own USB port the warm glow showed green:
 red needs the most voltage of the three, and it was the one that dropped out, which leaves the glow's green and
-blue -- almost exactly the instrument's green. The status colors still looked right, because none of them leans
-on red at a level the weak supply could not carry. A puck that glows green when it should be warm is on weak power
+blue -- almost exactly the instrument's green.
+A puck that glows green when it should be warm is on weak power
 before it is anything else.
 
 ## Open
