@@ -156,7 +156,7 @@ class Hub:
         self.photos = Photos()             # the household's own photos, for a TV at rest: design/rest-tv/
         self.screens = Screens()           # the house's screens, which are TVs and which show photos: design/which-tv/
         self.board = Board()               # notes and countdowns the household leaves for its screens: design/tv-moments/
-        self.art = Art()                   # paintings between the photos, or all day: design/tv-art/
+        self.art = Art(arrived=self.rest_changed)   # paintings between the photos, or all day: design/tv-art/
         self.power = Power()               # the sun on the roof, the battery and the grid: hub/power.py
         self._power_sent: tuple[float, tuple | None] = (0.0, None)
         self.net = Network(self)           # how this hub is connected, and what it hands out: docs/network.md
@@ -506,6 +506,12 @@ class Hub:
         try: asyncio.get_running_loop(); asyncio.create_task(fan_out())
         except RuntimeError:
             if self._loop: asyncio.run_coroutine_threadsafe(fan_out(), self._loop)
+
+    def rest_changed(self):
+        """Photos, the board, the paintings or what a screen shows changed. A screen already resting would otherwise
+        keep what it had until it next woke and rested, so each is nudged to ask again; like the phones' nudge, it
+        carries nothing, since what a screen shows depends on which screen it is."""
+        self._broadcast(json.dumps({"type": "rest"}))
 
     def _on_event(self, ev):
         if ev["event_type"] == "state_changed":
@@ -2943,6 +2949,11 @@ def _music_rooms(room: str | None) -> list[dict]:
 
 
 # ---------- the household's photos, for a TV at rest (design/rest-tv/, A) ----------
+def _for_screens(answer):
+    hub.rest_changed()
+    return answer
+
+
 @app.get("/photos")
 def photos_list():
     return {"photos": hub.photos.list(), "screens": [_named(s) for s in hub.screens.listed()]}
@@ -2974,7 +2985,7 @@ def board_note(body: dict, request: Request):
     """{"text", "until"}: a note for the screens. `until` is when it comes down, in seconds, worked out by the phone in
     its own day (tonight, tomorrow), or null to stay until somebody takes it down. Signed with the phone's name."""
     phone = hub.phones.identify(_phone_token(request))
-    try: return hub.board.leave(body.get("text"), by=(phone or {}).get("name"), until=body.get("until"))
+    try: return _for_screens(hub.board.leave(body.get("text"), by=(phone or {}).get("name"), until=body.get("until")))
     except ValueError as e: raise HTTPException(400, str(e))
 
 
@@ -2982,7 +2993,7 @@ def board_note(body: dict, request: Request):
 def board_countdown(body: dict, request: Request):
     """{"what", "date"}: a countdown to a day, "YYYY-MM-DD". A birthday or an anniversary comes round every year."""
     phone = hub.phones.identify(_phone_token(request))
-    try: return hub.board.count_to(body.get("what"), body.get("date"), by=(phone or {}).get("name"))
+    try: return _for_screens(hub.board.count_to(body.get("what"), body.get("date"), by=(phone or {}).get("name")))
     except ValueError as e: raise HTTPException(400, str(e))
 
 
@@ -2990,7 +3001,7 @@ def board_countdown(body: dict, request: Request):
 def board_morning(body: dict, request: Request):
     """{"text", "day"}: a line left for the morning of `day`, the phone's tomorrow. It greets the first screen to wake."""
     phone = hub.phones.identify(_phone_token(request))
-    try: return hub.board.for_morning(body.get("text"), body.get("day"), by=(phone or {}).get("name"))
+    try: return _for_screens(hub.board.for_morning(body.get("text"), body.get("day"), by=(phone or {}).get("name")))
     except ValueError as e: raise HTTPException(400, str(e))
 
 
@@ -3005,7 +3016,7 @@ def words_today(day: str):
 @app.delete("/board/{item_id}")
 def board_remove(item_id: str):
     if not hub.board.remove(item_id): raise HTTPException(404, "Nothing like that is up.")
-    return {"ok": True}
+    return _for_screens({"ok": True})
 
 
 @app.post("/photos/screens/{screen_id}")
@@ -3019,7 +3030,7 @@ def photos_screen(screen_id: str, body: dict):
     screen = hub.screens.show(screen_id, on=on, play=body.get("play"), notes=notes, shows=body.get("shows"), lines=said, cards=cards)
     if not screen: raise HTTPException(404, "No such screen.")
     if "art" in cards or body.get("shows"): hub.art.poke()
-    return _named(screen)
+    return _for_screens(_named(screen))
 
 
 # ---------- paintings (design/tv-art/, C and a channel too) ----------
@@ -3057,13 +3068,13 @@ async def photos_add(request: Request):
         photo = hub.photos.add(await request.body(), by=(phone or {}).get("name"), taken=taken, size=size)
     except ValueError as e:
         raise HTTPException(400, str(e))
-    return photo
+    return _for_screens(photo)
 
 
 @app.delete("/photos/{photo_id}")
 def photos_remove(photo_id: str):
     if not hub.photos.remove(photo_id): raise HTTPException(404, "no such photo")
-    return {"ok": True}
+    return _for_screens({"ok": True})
 
 
 @app.get("/music")
