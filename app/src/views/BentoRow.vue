@@ -21,7 +21,8 @@
  */
 import { TALL_AT } from '../look'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import { ago, cap, deviceById, done, justDone, keptPrints, scenesFor, store, whatsOn } from '../store'
+import { ago, cap, deviceById, done, justDone, keptPrints, roomOf, scenesFor, store, whatsOn } from '../store'
+import { follows } from '../music'
 import { printCards } from '../printers'
 import PrintCard from '../tiles/PrintCard.vue'
 import { leave } from '../leaving'
@@ -57,7 +58,8 @@ const climates = computed(() => props.rooms.flatMap(r => r.devices.filter(d => c
    another room. Nobody's hand is on the screen for that one, so it reads itself off and goes.
    Held rather than computed, because a card keeping its place is the whole point, and a row rebuilt
    from what is still on has no place to keep. */
-const live = computed(() => whatsOn().filter(d => cap(d) !== 'camera' && cap(d) !== 'climate'))
+const followsLead = (d: Device) => { const r = cap(d) === 'media' && roomOf(d); return !!r && follows(d, r) }   // a song on a pair of speakers is one card (design/speaker-pair/)
+const live = computed(() => whatsOn().filter(d => cap(d) !== 'camera' && cap(d) !== 'climate' && !followsLead(d)))
 const going = reactive<Record<string, true>>({})   // still in the row, on its way out
 const gone = reactive<Record<string, true>>({})    // and now faded
 const on = ref<Device[]>([])
