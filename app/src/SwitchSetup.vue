@@ -144,7 +144,7 @@ async function otherJoined(c: Caught) {
   if (!c.switch) return addingFailed('The other switch joined, but the bridge couldn’t finish it.')
   adding.value = 'working'; addingSays.value = 'Joining the two switches…'
   const first = me.value, firstHasLight = a.value.light !== false
-  let restart = false
+  let restart: boolean
   try {
     await switchHasLight(c.switch, !firstHasLight)
     const r = await pairSwitch(first, c.switch)
@@ -226,9 +226,8 @@ watch([at, heard, listening, room, busy, () => a.value.light, adding, blinkActs]
     else emit('acts', [])
   } else if (s === 'other') {
     const acts: Act[] = []
-    if (busy.value) {}
-    else if (heard.value) acts.push({ label: 'Next', primary: true, run: pairHeard })
-    else if (!listening.value) acts.push({ label: 'Listen again', primary: true, run: listen })
+    if (!busy.value && heard.value) acts.push({ label: 'Next', primary: true, run: pairHeard })
+    else if (!busy.value && !listening.value) acts.push({ label: 'Listen again', primary: true, run: listen })
     if (!busy.value && a.value.light !== false) acts.push({ label: 'There isn’t another', run: noPartner })
     emit('acts', acts)
   } else if (s === 'walkin') emit('acts', [{ label: 'Next', primary: true, run: () => go(next('walkin', a.value)) }])
