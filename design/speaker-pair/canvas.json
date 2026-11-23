@@ -11,6 +11,14 @@
     {
       "id": "pair-rejected",
       "name": "Two speakers in a room playing the same song: not chosen"
+    },
+    {
+      "id": "told",
+      "name": "Two speakers that say they are a pair"
+    },
+    {
+      "id": "told-rejected",
+      "name": "Two speakers that say they are a pair: not chosen"
     }
   ],
   "artboards": [
@@ -50,6 +58,44 @@
       "w": 390,
       "h": 844,
       "title": "C: one card leads, the other is a line under it"
+    },
+    {
+      "file": "ToldToday.dc.html",
+      "page": "told",
+      "x": 0,
+      "y": 0,
+      "w": 820,
+      "h": 844,
+      "title": "Today: a stereo pair is still asked, and shown as a card and a line"
+    },
+    {
+      "file": "ToldA.dc.html",
+      "page": "told",
+      "x": 0,
+      "y": 1100,
+      "w": 820,
+      "h": 844,
+      "title": "A: told by the speakers, one card from the start"
+    },
+    {
+      "file": "ToldB.dc.html",
+      "page": "told-rejected",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "B: asked, with the answer already given",
+      "is_interactive": false
+    },
+    {
+      "file": "ToldC.dc.html",
+      "page": "told-rejected",
+      "x": 0,
+      "y": 1100,
+      "w": 390,
+      "h": 844,
+      "title": "C: told, and named for the room",
+      "is_interactive": false
     }
   ],
   "annotations": [
@@ -100,6 +146,46 @@
       "y": 2200,
       "w": 500,
       "text": "DECIDED 20 NOVEMBER 2026\n\nB, with C until it is answered. Until the household says, the first speaker keeps its card and the other is a line under it (C). The house asks once whether they are one pair: One pair makes them one card for good, Two speakers keeps two whole cards."
+    },
+    {
+      "id": "told-why",
+      "page": "told",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "WHY THIS EXISTS\n\n22 November 2026: two HomePods set up as a stereo pair beside an Apple TV, named Left and Right. The room drew Right as a line under Left and asked whether they were one pair, and the Home row on a computer showed the film twice. But the speakers had already said so: each tells the network the pair it belongs to and which side it is. They cannot be played apart, so Two speakers was never a true answer for them."
+    },
+    {
+      "id": "told-a",
+      "page": "told",
+      "x": 900,
+      "y": 1100,
+      "w": 560,
+      "text": "A: TOLD BY THE SPEAKERS, ONE CARD FROM THE START\n\nA pair the speakers announce is a pair, with no question: one card from the first moment, playing or quiet, named for both, exactly as a pair the household said yes to. Music sent there goes to the pair. There is nothing to split here; a pair is unmade on the speakers, and the card follows.\n\nFOR: nothing to answer, and nothing on screen that isn't true of the speakers.\n\nAGAINST: the name is the two names joined, which reads a little long for Left and Right."
+    },
+    {
+      "id": "told-b",
+      "page": "told-rejected",
+      "x": 480,
+      "y": 0,
+      "w": 560,
+      "text": "B: ASKED, WITH THE ANSWER ALREADY GIVEN\n\nThe sheet still comes up once, but says what the speakers said and has one button.\n\nAGAINST: a sheet that asks nothing is an interruption at the moment somebody wanted to listen."
+    },
+    {
+      "id": "told-c",
+      "page": "told-rejected",
+      "x": 480,
+      "y": 1100,
+      "w": 560,
+      "text": "C: TOLD, AND NAMED FOR THE ROOM\n\nLike A, but the card is called Living room speakers.\n\nAGAINST: a name the household never gave, and wrong the day a second pair or a speaker of another kind joins the room. The pair's own names are what the household will say in the command box."
+    },
+    {
+      "id": "told-decided",
+      "page": "told",
+      "x": -620,
+      "y": 1100,
+      "w": 500,
+      "text": "DECIDED 22 NOVEMBER 2026\n\nA. Speakers that say they are one pair are one card with no question; the question stays for two speakers that only happen to play the same song."
     }
   ]
 }

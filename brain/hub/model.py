@@ -251,6 +251,9 @@ class Home:
         # a screen's, because a plug that is noise on the wall is noise on every phone. Kept in settings.
         self.off_home: set[str] = set()
         self.speaker_pairs: list[dict] = []    # {"speakers": [a, b], "pair": bool}: the household's answer (design/speaker-pair/, B)
+        self.stereo_ids: set[frozenset] = set()   # the pairs speakers announce, by network address (stereo.py)
+        self.stereo: dict[str, str] = {}          # speaker id -> its other half, from those
+        self._airplay: dict[str, str] = {}        # network address -> speaker id
         self.room_colors: dict[str, list] = {}   # kept per room, from settings, so a restore brings them back
         self.bells: dict[str, str] = {}    # a doorbell's button entity -> the camera in the same unit (doorbell.py)
         self.lamps: dict[str, str] = {}    # camera id -> the light built into the same unit (Ring floodlight and spotlight cams)
@@ -297,7 +300,8 @@ class Home:
         if eid in self.eyes: out["motion"] = self.eyes[eid]
         out.update(self.fixtures.get(eid, {}))
         out.update(self.reports.get(eid, {}))
-        if cap == "media":
+        if cap == "media" and eid in self.stereo: out["pair"] = self.stereo[eid]   # the speakers' own word; no answer here overrides it
+        elif cap == "media":
             for p in self.speaker_pairs:
                 if eid in p["speakers"]:
                     other = next(x for x in p["speakers"] if x != eid)
@@ -373,6 +377,11 @@ class Home:
         camera_devices = {e["device_id"] for e in entities if e["entity_id"].startswith("camera.") and e.get("device_id")}
         self.devices = {}
         self.twins = {e: own for e, own in self.engine_players(entities).items() if own != e}
+        self._airplay = {}
+        for e in entities:
+            m = e.get("platform") == "music_assistant" and re.fullmatch(r"ap([0-9a-f]{12})", str(e.get("unique_id") or "").lower())
+            if m: self._airplay[m.group(1)] = self.twins.get(e["entity_id"], e["entity_id"])
+        self.stereo = self._told()
         self._engine = {e: st[e] for e in self.engine_players(entities) if e in st}
         self._own = {own: st[own] for own in self.twins.values() if own in st}
         units = chargers(entities, st)
@@ -544,6 +553,26 @@ class Home:
             d.attrs.pop("pair", None); d.attrs.pop("apart", None)
             d.attrs.update({k: v for k, v in self.attrs_for(d.id, d.capability, {}).items() if k in ("pair", "apart")})
         return [da, db]
+
+    def _told(self) -> dict[str, str]:
+        out = {}
+        for pair in self.stereo_ids:
+            a, b = (self._airplay.get(x) for x in sorted(pair))
+            if a and b and a != b: out[a], out[b] = b, a
+        return out
+
+    def set_stereo(self, pairs) -> list[Device]:
+        """The pairs the speakers announce (stereo.py). Returns the speakers whose card changed, for the panel."""
+        self.stereo_ids = set(pairs)
+        was, self.stereo = self.stereo, self._told()
+        changed = []
+        for eid in sorted(set(was) | set(self.stereo)):
+            d = self.devices.get(eid)
+            if not d or was.get(eid) == self.stereo.get(eid): continue
+            d.attrs.pop("pair", None); d.attrs.pop("apart", None)
+            d.attrs.update({k: v for k, v in self.attrs_for(d.id, d.capability, {}).items() if k in ("pair", "apart")})
+            changed.append(d)
+        return changed
 
     def apply_state(self, entity_id, new_state) -> Device | None:
         if entity_id in self._engine or entity_id in self.twins:
