@@ -1549,9 +1549,14 @@ class AStripTakesItsFixesTheSameWay(unittest.TestCase):
     def tearDown(self):
         bridge_mod.SHIP, bridge_mod.RELEASES = self._ship, self._releases; self.tmp.cleanup()
 
-    def strip(self, id_="2e4258", fw="0.4.0-d1", online=True):
-        self.hub.strip.strips[id_] = {"online": online}
+    def strip(self, id_="2e4258", fw="0.4.0-d1", online=True, board=None):
+        self.hub.strip.strips[id_] = {"online": online, **({"board": board} if board else {})}
         self.fw.heard_fw(id_, fw, kind="strip")
+
+    def release(self, board, fw):
+        d = bridge_mod.RELEASES / "strip"
+        (d / f"esp32s3-{board}-ship.bin").write_bytes(merged_image(b"\xe9" + board.encode() * 40))
+        (d / f"esp32s3-{board}-ship.json").write_text(json.dumps({"fw": fw, "board": board}))
 
     def offers(self):
         return [(t, p) for t, p in self.hub.ha.published if t and t.endswith("/offer")]
@@ -1585,6 +1590,37 @@ class AStripTakesItsFixesTheSameWay(unittest.TestCase):
         self.assertEqual((kind, subject, new), ("strip", "2e4258", "updated"))
         self.assertNotIn("offer", self.hub.settings.get("strip_fw")["2e4258"])
 
+    def test_a_roof_box_is_offered_its_own_boards_image(self):
+        """A strip refuses an image built for another board, so it is only ever offered its own."""
+        self.release("roofbox", "0.4.1")
+        self.strip(fw="0.4.0", board="roofbox")
+        run(self.fw.tick(now=1000))
+        img = self.fw.image("strip", "roofbox")
+        self.assertEqual(self.offers(), [("strip/2e4258/offer",
+                                          f"0.4.1 {img['size']} {img['sha256']} 8300 /bridge/firmware/{img['sha256']}.bin")])
+        self.assertNotEqual(img["sha256"], self.fw.image("strip")["sha256"])
+        self.assertEqual(self.fw.served(f"{img['sha256']}.bin"), img["body"])
+
+    def test_a_board_with_no_release_is_offered_nothing(self):
+        """Not the devkit's image, which it would only refuse and remember."""
+        self.strip(fw="0.3.9", board="roofbox")
+        run(self.fw.tick(now=1000))
+        self.assertEqual(self.offers(), [])
+
+    def test_a_devkit_still_gets_the_devkits_image_beside_a_roof_box_release(self):
+        self.release("roofbox", "0.4.1")
+        self.strip(fw="0.3.9", board="devkit")
+        run(self.fw.tick(now=1000))
+        img = self.fw.image("strip")
+        self.assertEqual([p.split()[0] for t, p in self.offers()], ["0.4.0"])
+        self.assertIn(img["sha256"], self.offers()[0][1])
+
+    def test_a_roof_box_at_its_release_is_left_alone(self):
+        self.release("roofbox", "0.4.1")
+        self.strip(fw="0.4.1", board="roofbox")
+        run(self.fw.tick(now=1000))
+        self.assertEqual(self.offers(), [])
+
     def test_the_tool_lists_strips_too(self):
         push = Path(self.tmp.name) / "bridge-push"
         was, bridge_mod_updates.PUSH = bridge_mod_updates.PUSH, push
@@ -1592,7 +1628,7 @@ class AStripTakesItsFixesTheSameWay(unittest.TestCase):
             self.strip()
             self.fw.list_for_tool(kind="strip")
             self.assertEqual(json.loads((push / "strips.json").read_text()),
-                             [{"chip": "2e4258", "room": None, "fw": "0.4.0-d1", "online": True}])
+                             [{"chip": "2e4258", "room": None, "fw": "0.4.0-d1", "online": True, "board": "devkit"}])
         finally:
             bridge_mod_updates.PUSH = was
 

@@ -395,7 +395,7 @@ def line(b):
 if w == "list" or not bs:
     print("\n".join(map(line, bs)) or f"  this hub knows no {thing}", file=sys.stderr); sys.exit(2)
 hits = [b for b in bs if w in (b["chip"].lower(), (b["room"] or "").lower())] if w else [b for b in bs if b["online"]]
-if len(hits) == 1: print(hits[0]["chip"], hits[0]["fw"] or ""); sys.exit(0)
+if len(hits) == 1: print(hits[0]["chip"], hits[0]["fw"] or "-", hits[0].get("board") or "devkit"); sys.exit(0)
 print(f"no {thing} is {w!r}:" if w and not hits else "which one?" if hits else "none of them is on the broker:", file=sys.stderr)
 print("\n".join(map(line, hits or bs)), file=sys.stderr)
 print(f"  tools/dev.sh {kind} <room or chip>", file=sys.stderr); sys.exit(1)
@@ -404,7 +404,8 @@ PY
          set -e
          [ $rc -eq 2 ] && exit 0
          [ $rc -eq 0 ] || exit 1
-         read -r chip runs <<< "$chip"
+         read -r chip runs board <<< "$chip"
+         [ "$runs" = - ] && runs=""
          stamp="-d$(( ($(date -u +%s) - 1767225600) / 60 ))"     # minutes since 2026: short, and always rising
          # A test build of a version comes BEFORE that version, so one built on the release a device
          # already runs is refused as older -- after a whole build and a send. Said here instead.
@@ -442,18 +443,24 @@ sys.exit(0 if "+mesh" in v or (m and tuple(map(int, m.groups())) < (0, 7, 0)) el
            grep -aq "bridge puck $fw ===" "$img" || { echo "${Y}the image does not carry $fw${R} ${D}— BRIDGE_FW did not take${R}" >&2; exit 1; }
          else
            fw="$base$stamp"
-           row "strip" "$chip ${D}via $house${R}"
-           row "build" "$fw ${D}— strip/firmware, from this tree as it is${R}"
+           # The board the strip says it is, so it is built the image it will take: a strip refuses
+           # one built for another board (strip/firmware/main/fwupdate.cpp). The devkit builds where
+           # it always has; any other board in its own build directory.
+           board=${board:-devkit}
+           if [ "$board" = devkit ]; then bdir=build; idf=(idf.py); img=strip/firmware/build/strip.bin
+           else bdir=build-$board; idf=(idf.py -B "$bdir" -DSTRIP_BOARD="$board"); img=strip/firmware/$bdir/strip-$board.bin; fi
+           row "strip" "$chip ${D}via $house, a $board${R}"
+           row "build" "$fw ${D}— strip/firmware for the $board, from this tree as it is${R}"
            # The environment strip/firmware/README.md sets up, in a subshell so it does not leak. The
            # version is a CMake cache entry and would stick, so the next plain build is told it is
            # not a test build any more (-DSTRIP_FW= is read as unset by main/CMakeLists.txt).
            ( export IDF_PYTHON_ENV_PATH="${IDF_PYTHON_ENV_PATH:-$HOME/.espressif/python_env/idf6.0_py3.10_env}"
              set +u                          # esp-matter's export.sh reads ESP_MATTER_PATH before setting it
              . "${IDF_PATH:-$HOME/esp/esp-idf-v6.0.2}/export.sh" >/dev/null 2>&1 && . "$HOME/esp/esp-matter/export.sh" >/dev/null 2>&1 \
-             && cd strip/firmware && idf.py -DSTRIP_FW="$fw" build >/dev/null 2>&1; rc=$?
-             idf.py -DSTRIP_FW= reconfigure >/dev/null 2>&1; exit $rc ) \
-             || { echo "${Y}the build failed${R} ${D}— cd strip/firmware && idf.py build${R}" >&2; exit 1; }
-           img=strip/firmware/build/strip.bin
+             && cd strip/firmware && { [ "$board" = devkit ] || [ -f "$bdir/sdkconfig" ] || "${idf[@]}" set-target esp32s3 >/dev/null 2>&1; } \
+             && "${idf[@]}" -DSTRIP_FW="$fw" build >/dev/null 2>&1; rc=$?
+             "${idf[@]}" -DSTRIP_FW= reconfigure >/dev/null 2>&1; exit $rc ) \
+             || { echo "${Y}the build failed${R} ${D}— cd strip/firmware && ${idf[*]} build${R}" >&2; exit 1; }
            grep -aq "$fw  chip" "$img" || { echo "${Y}the image does not carry $fw${R} ${D}— STRIP_FW did not take${R}" >&2; exit 1; }
          fi
          # Copied to the hub first and then into the brain, and every step on the hub under a timeout:

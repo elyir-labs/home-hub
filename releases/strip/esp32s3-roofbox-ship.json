@@ -1,0 +1,2 @@
+{"env": "strip-roofbox", "board": "roofbox", "chip": "esp32s3", "fw": "0.4.1", "offset": 0, "flash_mode": "dio", "flash_freq": "80m", "flash_size": "8MB",
+ "sha256": "21bac080300db9912144cd1b5853447b5bb0f8888251b40784631719b465618e", "built": "2026-11-23T16:06:41Z", "commit": "2402c2d0"}
