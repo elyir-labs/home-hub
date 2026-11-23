@@ -15,6 +15,7 @@ import Code from './prove/Code.vue'
 import SignIn from './prove/SignIn.vue'
 import House from './prove/House.vue'
 import AddPrinters from './AddPrinters.vue'
+import SwitchSetup from './SwitchSetup.vue'
 
 /*
  * THE SHELL. It owns the four beats and every button on them, and it knows nothing about radios.
@@ -37,7 +38,7 @@ const emit = defineEmits<{ busy: [boolean] }>()
 const props = defineProps<{ resume?: string | null }>()
 
 const PIECE = { blink: Blink, press: Press, code: Code, signin: SignIn, house: House }
-type Beat = 'choose' | 'prove' | 'working' | 'in' | 'wrong'
+type Beat = 'choose' | 'prove' | 'working' | 'in' | 'wrong' | 'switch'
 
 const beat = ref<Beat>('choose')
 /* What the conversation is about, in the door's own words. It is a string and not the door itself
@@ -64,9 +65,11 @@ watch(open, v => emit('busy', v), { immediate: true })
 
 /* The heading is the door's, for the whole conversation. What you touched stays put: choosing a door
    does not make it vanish, it becomes the name of the screen it opened. */
+const switchDone = computed(() => beat.value === 'switch' && !!said.value)
 const heading = computed(() => {
   if (beat.value === 'prove' && said.value) return said.value
   if (beat.value === 'in') return 'Added.'
+  if (beat.value === 'switch') return said.value || where.value
   if (beat.value === 'wrong') return 'It wasn’t added.'
   if (beat.value === 'working') return work.value?.text ?? 'Adding it…'
   return where.value || 'What are you adding?'
@@ -95,6 +98,8 @@ function caught(c: Caught) {
   acts.value = []
   got.value = c; name.value = c.name ?? ''; placed.value = ''
   guessed.value = {}; changing.value = {}; chosen.value = {}
+  // A wall switch is not finished by a room and a name: it is set up on its light (design/switch-setup/, C).
+  if (c.switch) { said.value = ''; beat.value = 'switch'; return }
   beat.value = 'in'
   refreshFound(); loadHealth()
   if (several.value.length) guess()
@@ -288,8 +293,8 @@ if (props.resume) open_('signin', props.resume, store.resumeName || 'Sign in aga
 
     <!-- ===== beats two, three and four: one shell, and the piece inside it ===== -->
     <div class="flow" v-else>
-      <h3 class="flow-title" :class="{ landed: beat === 'in' }">
-        <span class="done-icon" v-if="beat === 'in'"><Icon name="check" :size="20" /></span>{{ heading }}
+      <h3 class="flow-title" :class="{ landed: beat === 'in' || switchDone }">
+        <span class="done-icon" v-if="beat === 'in' || switchDone"><Icon name="check" :size="20" /></span>{{ heading }}
       </h3>
 
       <!-- the piece draws beat two's middle. It stays mounted while beat three runs: it is the one
@@ -299,6 +304,10 @@ if (props.resume) open_('signin', props.resume, store.resumeName || 'Sign in aga
                    @working="working" @caught="caught" @wrong="failed" @acts="(a: Act[]) => acts = a" @head="(h: string) => said = h"
                    @proof="(p: Proof, h: string | null = null) => { proof = p; hint = h; acts = []; said = '' }" />
       </div>
+
+      <SwitchSetup v-if="beat === 'switch' && got?.switch" :addr="got.switch" :device-id="got.device_id" :name="got.name"
+                   @acts="(a: Act[]) => acts = a" @head="(h: string) => said = h"
+                   @done="notNow" @another="() => { notNow(); knock(doors().find(d => d.id === 'wall')!) }" />
 
       <!-- beat three -->
       <template v-if="beat === 'working'">
@@ -368,7 +377,7 @@ if (props.resume) open_('signin', props.resume, store.resumeName || 'Sign in aga
         </template>
         <template v-else>
           <button v-for="a in acts" :key="a.label" class="button" :class="{ ghost: !a.primary }" @click="a.run()">{{ a.label }}</button>
-          <button class="button ghost" @click="notNow">Not now</button>
+          <button class="button ghost" v-if="!switchDone" @click="notNow">Not now</button>
         </template>
       </div>
     </div>

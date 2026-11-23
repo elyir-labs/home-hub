@@ -102,7 +102,7 @@ async function letIn(code: string) {
   try {
     const r = await addSwitch(code)
     if (r.state === 'failed') return emit('wrong', r.text ?? 'That code was not one this house could use.', true)
-    emit('caught', { device_id: r.device_id, name: r.name, what: asThing(r.text) || 'a light that dims, and a motion sensor' })
+    emit('caught', { device_id: r.device_id, name: r.name, switch: r.setup ? r.switch : undefined, what: asThing(r.text) || 'a light that dims, and a motion sensor' })
   } catch (e: any) { emit('wrong', e.message, true) }
 }
 function stop() { clearTimeout(hunting); stream?.getTracks().forEach(t => t.stop()); stream = null }

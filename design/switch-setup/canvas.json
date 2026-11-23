@@ -1,0 +1,722 @@
+{
+ "name": "Setting up a wall switch",
+ "areas": [
+  "Adding things",
+  "Light switches"
+ ],
+ "reading": [
+  "why",
+  "Today.dc.html",
+  "today",
+  "can",
+  "decided",
+  "ShowC.dc.html",
+  "ShowC-pair.dc.html",
+  "ShowC-end.dc.html",
+  "c",
+  "AskA.dc.html",
+  "AskA-end.dc.html",
+  "a",
+  "OnePageB.dc.html",
+  "b",
+  "dim-why",
+  "DimToday.dc.html",
+  "DimToday-tab.dc.html",
+  "dim-today",
+  "DimDownA.dc.html",
+  "DimDownA-end.dc.html",
+  "dim-a",
+  "dim-recommended",
+  "DimTwiceB.dc.html",
+  "DimTwiceB-low.dc.html",
+  "dim-b",
+  "DimSlideC.dc.html",
+  "dim-c",
+  "choose-why",
+  "ChooseToday-end.dc.html",
+  "ChooseToday-light.dc.html",
+  "choose-today",
+  "ChooseA-end.dc.html",
+  "ChooseA-cant.dc.html",
+  "ChooseA-light.dc.html",
+  "choose-a",
+  "choose-recommended",
+  "ChooseB-end.dc.html",
+  "ChooseB-light.dc.html",
+  "choose-b",
+  "ChooseC-ask.dc.html",
+  "choose-c",
+  "pair-why",
+  "PairToday.dc.html",
+  "PairToday-next.dc.html",
+  "pair-today",
+  "PairA-other.dc.html",
+  "PairA-end.dc.html",
+  "PairA-second.dc.html",
+  "pair-a",
+  "pair-recommended",
+  "PairB-other.dc.html",
+  "PairB-start.dc.html",
+  "PairB-joined.dc.html",
+  "PairB-remote.dc.html",
+  "PairB-remote-joined.dc.html",
+  "pair-b",
+  "room-why",
+  "RoomToday.dc.html",
+  "room-today",
+  "RoomA-new.dc.html",
+  "RoomA-added.dc.html",
+  "room-a",
+  "room-recommended",
+  "RoomB-name.dc.html",
+  "room-b"
+ ],
+ "pages": [
+  {
+   "id": "switch-setup",
+   "name": "Setting up a wall switch",
+   "decided": {
+    "on": "2026-11-22",
+    "chose": "C, ending on B's page",
+    "board": "ShowC.dc.html"
+   }
+  },
+  {
+   "id": "switch-setup-rejected",
+   "name": "Setting up a wall switch: not chosen"
+  },
+  {
+   "id": "dim-test",
+   "name": "Testing whether the bulbs dim",
+   "decided": {
+    "on": "2026-11-22",
+    "chose": "A",
+    "board": "DimDownA.dc.html"
+   }
+  },
+  {
+   "id": "dim-test-rejected",
+   "name": "Testing whether the bulbs dim: not chosen"
+  },
+  {
+   "id": "choose",
+   "name": "Dimming is your choice",
+   "decided": {
+    "on": "2026-11-22",
+    "chose": "A",
+    "board": "ChooseA-end.dc.html"
+   }
+  },
+  {
+   "id": "choose-rejected",
+   "name": "Dimming is your choice: not chosen"
+  },
+  {
+   "id": "pair",
+   "name": "Two switches for one light",
+   "decided": {
+    "on": "2026-11-22",
+    "chose": "B, from either end",
+    "board": "PairB-other.dc.html"
+   }
+  },
+  {
+   "id": "room",
+   "name": "A room that isn't on the house yet",
+   "decided": {
+    "on": "2026-11-22",
+    "chose": "A",
+    "board": "RoomA-added.dc.html"
+   }
+  },
+  {
+   "id": "pair-rejected",
+   "name": "Two switches for one light: not chosen"
+  },
+  {
+   "id": "room-rejected",
+   "name": "A room that isn't on the house yet: not chosen"
+  }
+ ],
+ "launch": {
+  "view": "canvas",
+  "page": "pair"
+ },
+ "artboards": [
+  {
+   "file": "Today.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · Added., and nothing else: no name, no room, no questions",
+   "page": "switch-setup"
+  },
+  {
+   "file": "AskA.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "A, not chosen · Asked in words, one question at a time",
+   "page": "switch-setup-rejected"
+  },
+  {
+   "file": "AskA-end.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "A, not chosen · The end: what you told it, and the restart",
+   "page": "switch-setup-rejected"
+  },
+  {
+   "file": "OnePageB.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "B, not chosen · One page, the usual answers already filled in",
+   "page": "switch-setup-rejected"
+  },
+  {
+   "file": "ShowC.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "C, chosen 22 November · The house tries it on the light, you say what you saw",
+   "page": "switch-setup"
+  },
+  {
+   "file": "ShowC-pair.dc.html",
+   "x": 1560,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "C, chosen 22 November · The other switch is found by pressing it",
+   "page": "switch-setup"
+  },
+  {
+   "file": "ShowC-end.dc.html",
+   "x": 3120,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "C, chosen 22 November · The end: B's page, filled in by what was seen",
+   "page": "switch-setup"
+  },
+  {
+   "file": "DimToday.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · Full and half, and “It didn’t change” sends you to the tab",
+   "page": "dim-test"
+  },
+  {
+   "file": "DimToday-tab.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · After “It didn’t change”: the tab, in the middle of setting up",
+   "page": "dim-test"
+  },
+  {
+   "file": "DimDownA.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A, chosen 22 November · One slow look, all the way down to almost off",
+   "page": "dim-test"
+  },
+  {
+   "file": "DimDownA-end.dc.html",
+   "x": 1560,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A, chosen 22 November · The end, for a bulb that can’t dim: the restart stays here, once",
+   "page": "dim-test"
+  },
+  {
+   "file": "DimTwiceB.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "B, not chosen · Half first, as today; “It didn’t change” tries it lower",
+   "page": "dim-test-rejected"
+  },
+  {
+   "file": "DimTwiceB-low.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "B, not chosen · The second, lower look, only when half showed nothing",
+   "page": "dim-test-rejected"
+  },
+  {
+   "file": "DimSlideC.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "C, not chosen · You slide it down yourself and say what it did",
+   "page": "dim-test-rejected"
+  },
+  {
+   "file": "ChooseToday-end.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · The end page: “The bulbs”, a fact worded as a choice",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseToday-light.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · A light’s own screen: nothing about its switch",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseA-end.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A, chosen 22 November · One choice, “From the switch”, with what the house found under it",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseA-cant.dc.html",
+   "x": 1560,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A, chosen 22 November · Bulbs that can’t dim: Dim is shown and can’t be picked",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseA-light.dc.html",
+   "x": 3120,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A, chosen 22 November · The light’s screen: one line about its switch, and Change",
+   "page": "choose"
+  },
+  {
+   "file": "ChooseB-end.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "B, not chosen · Two rows: what the bulbs can do, and what the switch does",
+   "page": "choose-rejected"
+  },
+  {
+   "file": "ChooseB-light.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "B, not chosen · The light’s screen: the choice itself, changed in place",
+   "page": "choose-rejected"
+  },
+  {
+   "file": "ChooseC-ask.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "C, not chosen · Asked in the flow, right after it dimmed",
+   "page": "choose-rejected"
+  },
+  {
+   "file": "PairToday.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · “Go and press it”, with nothing saying it must be added first",
+   "page": "pair"
+  },
+  {
+   "file": "PairToday-next.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · After “It isn’t added yet”: the next add starts, this one left half done",
+   "page": "pair"
+  },
+  {
+   "file": "PairA-other.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "A, not chosen · Finish this one first; the other joins this light when it’s added",
+   "page": "pair-rejected"
+  },
+  {
+   "file": "PairA-end.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "A, not chosen · The end: adding the other switch is the first button",
+   "page": "pair-rejected"
+  },
+  {
+   "file": "PairA-second.dc.html",
+   "x": 3120,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "A, not chosen · The next switch to join is asked if it’s the other end",
+   "page": "pair-rejected"
+  },
+  {
+   "file": "PairB-other.dc.html",
+   "x": 0,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B, chosen 22 November · Add the other one from right here",
+   "page": "pair"
+  },
+  {
+   "file": "PairB-start.dc.html",
+   "x": 1560,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B, chosen 22 November · Start it over and say which is blinking, without leaving this switch",
+   "page": "pair"
+  },
+  {
+   "file": "PairB-joined.dc.html",
+   "x": 3120,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "title": "B, chosen 22 November · Joined and paired; this switch carries on where it was",
+   "page": "pair"
+  },
+  {
+   "file": "RoomToday.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · Only the rooms the house already has",
+   "page": "room"
+  },
+  {
+   "file": "RoomA-new.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A, chosen 22 November · New room, the last chip, becomes a field in place",
+   "page": "room"
+  },
+  {
+   "file": "RoomA-added.dc.html",
+   "x": 1560,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "A, chosen 22 November · Made, picked, and the light named after it",
+   "page": "room"
+  },
+  {
+   "file": "RoomB-name.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "B, not chosen · The name does both: a room it doesn’t have is offered",
+   "page": "room-rejected"
+  },
+  {
+   "file": "PairB-remote.dc.html",
+   "x": 0,
+   "y": 2940,
+   "w": 1440,
+   "h": 900,
+   "title": "B, chosen 22 November · Started at the other end: the same way in, asked the other way round",
+   "page": "pair"
+  },
+  {
+   "file": "PairB-remote-joined.dc.html",
+   "x": 1560,
+   "y": 2940,
+   "w": 1440,
+   "h": 900,
+   "title": "B, chosen 22 November · The switch added second has the light, so the light is set up from it",
+   "page": "pair"
+  },
+  {
+   "file": "PairB-end.dc.html",
+   "x": 3120,
+   "y": 2940,
+   "w": 1440,
+   "h": 900,
+   "title": "B, chosen 22 November · The end of a pair: both switches dim, so both are restarted",
+   "page": "pair"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "why",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "WHY THIS EXISTS\n\nReported 22 November, setting up a new hub from scratch in the living room. A reset Brilliant switch was added through Add > A switch on the wall: it blinked, That's the one, and the page said Added. Nothing else happened. Nothing asked whether it dims, whether it has a motion sensor to use, how much light is on it, or whether it is one of a pair of switches for the same light. Afterward there was no way to tell what the switch was called or where it had gone.\n\nThe Brilliant app asked all of that when a switch was set up, and a switch that has been reset has forgotten every answer. Without them a dimmer comes back as on and off, the motion sensor stays silent, and the far switch of a stairway pair works nothing."
+  },
+  {
+   "id": "today",
+   "x": 1560,
+   "y": 0,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "TODAY -- FROM THE SHIPPED PANEL\n\napp/src/Adding.vue, beat four. let_in() in brain/hub/bridge.py answers with no device, so the page has no room and no name to offer, and the hub's own sentence (\"It is on the house now.\") lands inside \"It turned out to be ...\".\n\nUnderneath, the add stops after the first step. The bridge joins the switch to the network and nothing more: the switch is not given the key it needs to take commands, its own models are not bound, it is not told to report presses, and the key that would let the house set it up later is handed to the screen and thrown away. So the switch is on the network but is not yet a light anybody can use, which is why there was nothing to name. That half is not visual and gets fixed whatever is picked here."
+  },
+  {
+   "id": "can",
+   "x": 3120,
+   "y": 0,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "WHAT A SWITCH CAN BE TOLD TODAY\n\nEvery board assumes only what has been proven on a real switch, and says so where it can't.\n\nProven:\n- Pairing with another switch for the same light: the far switch can be told which switch is its partner, and to pass each press along. Done by hand on the stairway pair in September.\n- Dimming: giving a switch a working dimmer's whole setup makes it dim. The setting is read only when the switch starts, so the person restarts it (the tab at the bottom) once at the end.\n- Presence: a switch can report somebody walking up to it once it is told to. The house, not the switch, decides what to do with that, so On / On then off is a routine the house runs.\n\nNot known yet:\n- Which single setting means dimmer. Until it is found, On and off only gives the switch a non-dimming switch's setup instead.\n- Wattage. Nowhere to write it has been found. B is the only board that asks it; A and C leave it out until there is."
+  },
+  {
+   "id": "a",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "switch-setup-rejected",
+   "text": "A -- ASKED IN WORDS, ONE QUESTION AT A TIME\nNOT CHOSEN, 22 November. C was picked.\n\nFive questions, in the order that matters: what it controls, whether the bulbs dim, whether there is another switch for the same light, what to do when someone walks in, then its room and name. Answers so far stay above the question as sentences you can change. The end repeats them, then asks for the restart.\n\nFOR: nothing new to learn, every answer is one tap, and \"I'm not sure\" hands the bulb question to the house.\nAGAINST: it asks people things they often don't know (do my bulbs dim?), and it asks about a pair of switches without any way to point at the other one."
+  },
+  {
+   "id": "b",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "switch-setup-rejected",
+   "text": "B -- ONE PAGE, THE USUAL ANSWERS ALREADY IN\nNOT CHOSEN, 22 November -- and not gone: C ends on B's page, and it is the switch's settings afterward.\n\nEverything on one page as settings, each starting at the usual answer: dims, a light, just this one switch, on then off when someone walks in. Change what is wrong, Blink the light to check which one it is, Save, restart.\n\nFOR: fastest for somebody who knows their wiring, and the same page can be the switch's settings later, so there is one place to learn.\nAGAINST: a page of settings is the opposite of a conversation, and its defaults will be wrong in silence. It is the only board that asks for watts, which most people would have to guess, and nothing on the hub can use it yet."
+  },
+  {
+   "id": "c",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "C -- THE HOUSE TRIES IT ON THE LIGHT, YOU SAY WHAT YOU SAW\nCHOSEN, 22 NOVEMBER.\n\nThe same five steps as A, but the questions are about what the person can see, not what they know. The house switches the light on to find out it controls one (\"nothing came on\" means it is the far switch of a pair). It dims it and asks whether it got dimmer, so nobody has to know their bulbs. It listens while you press the other switch for the same light, so a pair is made by touching it, the only way a person can point at a switch. Only walking in, room and name are asked in words. It ends on B's page, every row saying how it was found, which is also the switch's settings page later.\n\nFOR: everything a person can't know is found out on the real thing while they stand next to it, which is where design/adding says setup happens. It's the only direction where pairing is something you do, not something you pick.\nAGAINST: slower, and it needs the person by the light. \"I can't see it from here\" covers a wall screen in another room.\n\nAdded when it was picked: Did it get dimmer? has a fourth answer, It didn't change, because a freshly set-up switch sometimes reads its load type only after a restart. It asks for the tab, then dims again."
+  },
+  {
+   "id": "decided",
+   "x": 4680,
+   "y": 980,
+   "w": 540,
+   "page": "switch-setup",
+   "text": "DECIDED 22 NOVEMBER 2026\n\nC, ending on B's page. Built with the add underneath fixed: the bridge finishes a switch it lets in (its key, its controls, its announcements), and the hub keeps the switch's own key so it can be set up again later."
+  },
+  {
+   "id": "dim-why",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "dim-test",
+   "text": "WHY THIS IS BEING REDRAWN\n\nReported 22 November, setting up a second switch in the living room house, this one on bulbs that can't dim. The house dimmed the light to half and back. The bulbs didn't change: many LED bulbs that can't dim ignore half and only react near the bottom, where they cut out. They didn't flicker or buzz either, so none of the answers fit but \"It didn't change\" -- and that one asked for the switch to be restarted with its tab, which reads as starting it over.\n\nTwo things are wrong. The test stops at half, which is exactly where a bulb that can't dim gives nothing away. And \"It didn't change\" guesses that the switch hasn't taken dimming yet. That only happens on a switch that was set to on and off before; a switch that was just started over dims from the start, so on the switch this flow mostly meets, the guess is wrong."
+  },
+  {
+   "id": "dim-today",
+   "x": 3120,
+   "y": 0,
+   "w": 540,
+   "page": "dim-test",
+   "text": "TODAY -- FROM THE SHIPPED PANEL\n\napp/src/SwitchSetup.vue, step 2. The house sends full, half, full three times (show() in brain/hub/wallswitch.py). The four answers are the ones C was picked with. \"It didn't change\" opens the second board: pull the tab, push it back, Watch again -- in the middle of the setup, where the end page already asks for the one restart the switch needs."
+  },
+  {
+   "id": "dim-a",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "dim-test",
+   "text": "A -- ONE SLOW LOOK, ALL THE WAY DOWN\nCHOSEN, 22 NOVEMBER.\n\nThe house takes the light slowly from full to almost off and back, twice, about five seconds each way. That one look answers it for every kind of bulb: a dimmable one gets dimmer the whole way, one that can't dim stays bright and then cuts out near the bottom (or never changes at all), and a poor one flickers or buzzes on the way.\n\nThe answers are what was seen, in those words, and each is final: no answer sends anybody to the tab. \"Nothing changed at all\" sits under \"stayed bright, then went off\" because it means the same thing -- on and off only. The one restart stays where it already was, at the end, once.\n\nCost: one more second of watching than today. The house never learns whether it was the bulb or the switch's mode that didn't dim, and doesn't need to: either way the right answer is on and off, and it can be changed on the light later."
+  },
+  {
+   "id": "dim-recommended",
+   "x": 3120,
+   "y": 980,
+   "w": 540,
+   "page": "dim-test",
+   "text": "DECIDED 22 NOVEMBER 2026\n\nA, as drawn. The house takes the light slowly to almost off and back, twice (show() in brain/hub/wallswitch.py); the four answers are the board's; no answer sends anybody to the tab, and the one restart stays on the end page. Pinned by app/tests/switchSetup.test.ts and app/e2e/switch-setup.spec.ts.\n\nWhy A over B and C: one look and one question, every answer final. B spent a second screen on the very bulbs the question exists for; C needed the screen and the light in view at once."
+  },
+  {
+   "id": "dim-b",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "dim-test-rejected",
+   "text": "B -- HALF FIRST, THEN LOWER IF NOTHING CHANGED\nNOT CHOSEN, 22 November. A was picked.\n\nToday's first look, unchanged, so a dimmable bulb is still settled in one look at half. \"It didn't change\" no longer goes to the tab: it starts a second look, down to almost off, with three answers -- it got dimmer, it went off or flickered, still nothing -- and the last two mean on and off only.\n\nCost: a second screen for exactly the bulbs that can't dim, which is the case that went wrong; and \"It didn't change\" at half still reads like a fault before the second look explains it."
+  },
+  {
+   "id": "dim-c",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "dim-test-rejected",
+   "text": "C -- YOU SLIDE IT DOWN YOURSELF\nNOT CHOSEN, 22 November. A was picked.\n\nThe person drags a slider on the screen and the light follows their finger, at their pace, stopping where they like. Then the same three answers as A.\n\nCost: it asks them to do the test rather than watch it, which needs the screen and the light in view at once -- true on a phone at the switch, often not on the wall. And a slow hand at the bottom is what shows a bulb that can't dim; a quick one can miss it."
+  },
+  {
+   "id": "choose-why",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "choose",
+   "text": "WHY THIS IS BEING REDRAWN\n\nSaid 22 November, after setting up two switches: a light whose bulbs can dim isn't always a light you want to dim. The hallway, the stairs: on and off, full, every time, even on dimmable bulbs.\n\nThe setup treats the two as one. The dim test decides it, and the only way past that is the end page's row \"The bulbs: Dim | On and off only\" -- which reads as a fact about the bulbs, so it doesn't look like a choice, and picking On and off only there writes down something untrue about them.\n\nAnd once setup is closed there is nowhere to change it. The end page says \"Change any of it here, or later from the light\", but no light's screen has the switch's settings: that sentence promises a place that doesn't exist."
+  },
+  {
+   "id": "choose-today",
+   "x": 4680,
+   "y": 0,
+   "w": 540,
+   "page": "choose",
+   "text": "TODAY -- FROM THE SHIPPED PANEL\n\nScreenshots of the running panel against the mock house at 1440x900. The end page is app/src/SwitchSetup.vue's last step after a switch whose light dimmed. The light's screen is app/src/panes/LightPane.vue, the same screen a wall switch's light opens on (held open on the floor lamp here). Neither changes dimming after setup."
+  },
+  {
+   "id": "choose-a",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "choose",
+   "text": "A -- ONE CHOICE, WHAT WAS FOUND UNDER IT\nCHOSEN, 22 NOVEMBER.\n\nThe end page's row becomes \"From the switch: Dim | On and off only\", and the small line under it says what the house found (\"Its bulbs can dim\" / \"can't dim\", \"you saw it\"). It starts at what was found; On and off only can always be picked; Dim can't be picked when the bulbs can't dim, and the line says why.\n\nThe light's screen gets one line about its switch, in the gap above the room's routine -- \"Wall switch · dims · comes on when someone walks in\" -- and Change opens the same page setup ended on, so there is one place the switch is set up, reached two ways. A change that needs the switch restarted says so there, as the end page does.\n\nCost: changing dimming later is two taps rather than one. That's right for something changed once a year."
+  },
+  {
+   "id": "choose-recommended",
+   "x": 4680,
+   "y": 980,
+   "w": 540,
+   "page": "choose",
+   "text": "DECIDED 22 NOVEMBER 2026\n\nA, as drawn. The hub keeps what the dim test found (can_dim) apart from what the switch does (dims), in brain/hub/wallswitch.py; the end page's row is From the switch, with what was found under it, and Dim can't be picked for bulbs that can't dim. A light with a wall switch says how it is set up on its own screen (app/src/Opened.vue), and Change opens the same page setup ended on (app/src/SwitchSheet.vue). Pinned by app/tests/switchSetup.test.ts and app/e2e/switch-setup.spec.ts.\n\nWhy A over B and C: one row worded as the choice, and one place the switch is set up, reached two ways."
+  },
+  {
+   "id": "choose-b",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "choose-rejected",
+   "text": "B -- TWO ROWS: FOUND, AND CHOSEN\nNOT CHOSEN, 22 November. A was picked.\n\nThe end page writes the fact down as its own row (\"The bulbs: Can dim\") and asks the choice in another (\"The switch: Dims | Only turns it on and off\"). The light's screen carries the choice itself, a segmented control in the gap above the room's routine, changed in place.\n\nCost: a row that only states a fact, on a page of things to change; and a control on the light's screen for something set once, next to the ones used every day -- the kind of thing that gets flipped by a stray tap."
+  },
+  {
+   "id": "choose-c",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "choose-rejected",
+   "text": "C -- ASKED AS YOU GO\nNOT CHOSEN, 22 November. A was picked.\n\nRight after a light dims smoothly, the same step asks \"Should the switch dim it?\" -- yes, dim it from the switch, or no, just on and off -- with the hallway and stairs as the examples. Bulbs that can't dim are never asked. The end page and the light's screen are A's.\n\nCost: one more question for every dimmable light, and most will answer yes. The setup's rule was that the house asks only what it can't find out; this is a preference, and a default with a way to change it serves it with no extra step."
+  },
+  {
+   "id": "pair-why",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "pair",
+   "text": "WHY THIS IS BEING REDRAWN\n\nAsked 22 November at the stairs, setting up the first of a two-way pair: \"Is the second switch supposed to be blinking, reset, or already set up?\" The step says \"If there is, go and press it. The house is listening.\" -- but the house can only hear a switch that is already on it. A reset switch, blinking, is not on the house's network, so pressing it does nothing the house can hear, and nothing on the screen says so.\n\nThe way out the screen does offer, \"It isn't added yet\", starts the next switch's add straight away and drops this one where it stood: its walking in, its room and its name are never asked, and it waits in New devices."
+  },
+  {
+   "id": "pair-today",
+   "x": 4680,
+   "y": 0,
+   "w": 540,
+   "page": "pair",
+   "text": "TODAY -- FROM THE SHIPPED PANEL\n\nScreenshots of the running panel against the mock house at 1440x900: app/src/SwitchSetup.vue's step 3 while listening, and app/src/Adding.vue after \"It isn't added yet\" (SwitchSetup emits `another`, Adding closes this switch and knocks on the wall door again).\n\nWhat works today: a switch that IS on the house is heard the moment it is pressed, and the two are paired (the far one told who its partner is)."
+  },
+  {
+   "id": "pair-a",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "pair-rejected",
+   "text": "A -- FINISH THIS ONE, THE OTHER JOINS WHEN IT'S ADDED\nNOT CHOSEN, 22 November. B was picked.\n\nThe step says the other switch has to be on the house to be pressed. If it isn't, \"There is, but it isn't added yet\" finishes this switch as usual -- walking in, room, name -- and its end page makes adding the other switch the first button. The next switch to join is then asked one question before anything is tried: is this the other end of the Stair light? Yes pairs them and asks only its room and name.\n\nCost: the pair is finished in two sittings, and the house has to remember that a partner is owed (and forget it if nobody adds one)."
+  },
+  {
+   "id": "pair-recommended",
+   "x": 4680,
+   "y": 980,
+   "w": 540,
+   "page": "pair",
+   "text": "DECIDED 22 NOVEMBER 2026\n\nB, from either end. The other switch is added from inside this step with the same reset and blink as any switch (app/src/prove/Blink.vue, inside app/src/SwitchSetup.vue), joins paired (pair() in brain/hub/wallswitch.py tells the switch without a light who its partner is, whichever was added first), and the setup carries on as the switch with the light. Pinned by app/e2e/switch-setup.spec.ts.\n\nWhy B over A: one sitting at the stairs, nothing owed between two adds."
+  },
+  {
+   "id": "pair-b",
+   "x": -640,
+   "y": 1960,
+   "w": 540,
+   "page": "pair",
+   "text": "B -- ADD THE OTHER ONE FROM RIGHT HERE\nCHOSEN, 22 NOVEMBER, FROM EITHER END.\n\n\"There is, but it isn't added yet\" turns this step into adding the other switch: start it over (tab out and back, a finger on it until it blinks), the house finds it and blinks it, That's the one. It joins already paired -- it is the far switch, so it isn't tried on a light of its own -- and the step ends with \"Press either switch\" so both ends are seen to work. Then this switch carries on to walking in, room and name.\n\nCost: an add nested inside a setup, which is more for the panel to hold; and if the other switch won't join, the step needs its own way back (\"Back\" returns to the question, nothing lost).\n\nFROM EITHER END (redrawn the same day). Somebody configuring switches already in the wall doesn't know which of the two has the light, so B works from whichever they start at. Started at the switch with the light, the one added second is the other end: it joins paired and this switch carries on. Started at the other end (nothing came on, \"Which switch has the light?\"), the one added second HAS the light: it joins paired and the setup carries on as that switch -- the dim test, walking in, room and name -- and both switches go in the room."
+  },
+  {
+   "id": "room-why",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "room",
+   "text": "WHY THIS IS BEING REDRAWN\n\nSaid 22 November at the stairs: the light belongs in a Stairway, and the house has no Stairway yet. The room step offers only the rooms the house already has, so the switch has to be put somewhere wrong, or left, while a room is made somewhere else -- and then found again to be moved."
+  },
+  {
+   "id": "room-today",
+   "x": 1560,
+   "y": 0,
+   "w": 540,
+   "page": "room",
+   "text": "TODAY -- FROM THE SHIPPED PANEL\n\nScreenshot of app/src/SwitchSetup.vue's room step against the mock house at 1440x900: a chip per room the house has, and the name field.\n\nThe panel already makes a room in place in two other places: a new wall screen asking which room it's in (app/src/ScreenRoom.vue, design/companion/), and sorting new devices (app/src/SortView.vue). Both use addRoom() and the brain's POST /rooms."
+  },
+  {
+   "id": "room-a",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "page": "room",
+   "text": "A -- NEW ROOM, THE LAST CHIP\nCHOSEN, 22 NOVEMBER.\n\nThe last chip is New room. Tapped, it becomes a field in place with Add -- the same move a new wall screen makes when it asks its room. Add makes the room, picks it, and the light takes its name (\"Stairway light\") unless somebody already typed one.\n\nCost: one more chip in a row that can already wrap. It is the shape the panel already uses, so nothing new is learned."
+  },
+  {
+   "id": "room-recommended",
+   "x": 3120,
+   "y": 980,
+   "w": 540,
+   "page": "room",
+   "text": "DECIDED 22 NOVEMBER 2026\n\nA. New room is the last chip on the switch's room step; Add makes the room (addRoom(), POST /rooms), picks it, and names the light after it unless a name was typed. Pinned by app/e2e/switch-setup.spec.ts.\n\nWhy A over B: the same New room the wall screen already offers, where the person is already looking."
+  },
+  {
+   "id": "room-b",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "page": "room-rejected",
+   "text": "B -- THE NAME DOES BOTH\nNOT CHOSEN, 22 November. A was picked.\n\nNo new chip. Type a name whose first word is a room the house doesn't have, and a line under the field offers to make that room and put the light in it.\n\nCost: making a room is hidden inside naming a light, and it guesses from the first word -- \"Reading lamp\" would offer a Reading room."
+  },
+  {
+   "id": "pair-both-dim",
+   "x": 4680,
+   "y": 2940,
+   "w": 540,
+   "page": "pair",
+   "text": "BOTH ENDS DIM, OR NEITHER\nADDED 22 NOVEMBER, AFTER THE STAIRWAY.\n\nFound at the stairs: the switch with the light dimmed, the far end only turned it on and off. The far switch's slider only reaches the light when it is set to dim too, and a reset leaves it on and off. Setting it to dim and restarting it made it dim the light, switch to switch.\n\nSo Dim and On and off only are one choice for the pair. It is made once, at the dim test or from the light's own page, and the hub sends it to both switches (wallswitch.py, dims() and pair()). The far switch is not touched before the dim test, so the test starts as quickly as before.\n\nA switch reads that choice only when it starts. So when two switches are involved, the last step says \"restart both switches\" and the tab instruction says \"at each switch\". With one switch it stays as it was."
+  }
+ ]
+}

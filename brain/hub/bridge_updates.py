@@ -48,7 +48,7 @@ TRIES = 2                    # the puck's GIVE_UP_AFTER, the same number
 RETRY = 12 * 3600            # a try a night, as the hub gives itself
 PUSH = DATA / "bridge-push"   # request.json + image.bin from tools/dev.sh puck|strip; state.json back
 PUSH_EVERY = 2
-DEV_VERSION = re.compile(r"^\d+\.\d+\.\d+(-d\d+)?$")
+DEV_VERSION = re.compile(r"^\d+\.\d+\.\d+(-d\d+)?(\+[a-z]+)?$")   # a kind after the +, as the puck names itself
 PART_TABLE, PART_MAGIC = 0x8000, b"\xaa\x50"
 IMAGE_MAGIC = 0xE9
 
@@ -342,7 +342,7 @@ class Firmware:
                f"{kind!r} is not something this hub updates" if k is None else
                f"{id_ or 'that'} is not a {k.noun} this hub knows" if not k.known(id_) else
                f"{id_} is not on the broker right now" if not k.online(id_) else
-               f"{fw!r} is not a version (0.6.1, or 0.6.1-d<n>)" if not DEV_VERSION.match(fw) else
+               f"{fw!r} is not a version (0.7.0, 0.7.0-d<n>, or either +mesh)" if not DEV_VERSION.match(fw) else
                "that is not an ESP32 app image" if body[:1] != bytes([IMAGE_MAGIC]) else "")
         if why:
             log.info("%s: refused a pushed build for %s: %s", kind, id_, why)

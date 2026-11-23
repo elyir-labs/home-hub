@@ -482,6 +482,20 @@ Do not reopen these, and do not propose around them.
   card for good whose buttons work both, Two speakers keeps two cards. Home says the song once. The answer is the
   brain's (`speaker_pairs`, `/speakers/pair`), the grouping `groupOf` in `app/src/music.ts`; pinned by
   `app/e2e/speaker-pair.spec.ts` and `brain/tests/test_music.py`.
+- **A wall switch that joins is set up on its light, never just "Added."** (22 November, `design/switch-setup/`, C ending
+  on B's page). The bridge finishes a switch it lets in, and the hub keeps the switch's own key beside the mesh keys, never
+  on a screen. Then every question is what the person saw: a light came on or not; the house takes it slowly to almost
+  off and back, because bulbs that can't dim only show it near the bottom, and every answer to that is final -- nobody is
+  sent to the tab midway (dim test A, same day); and the other switch for the same light is found by pressing it. Walking in, the room and
+  the name are the only things asked in words. The end is the switch's settings page, and a light with a wall switch opens
+  the same page from its own screen. What the bulbs can do (found) is kept apart from what the switch does (chosen): a
+  light that can dim may still be on and off only (dimming is your choice, A, same day). The other switch for a light is
+  added from inside that step when it isn't on the house yet, from whichever end somebody starts at -- the one without a
+  light is told its partner, and the setup carries on as the one with the light (two switches, B); both ends are set to dim
+  or not together, because the far end's slider only reaches the light when it is set to dim too -- and a room that isn't
+  on the house yet is made from the room step (New room, A). The hub speaks to the bridge in plain
+  words (`setup`, `dims`, `pair`, `unpair`) and never knows a maker's settings. Pinned by `app/tests/switchSetup.test.ts`,
+  `app/e2e/switch-setup.spec.ts` and `brain/tests/test_wallswitch.py`; the hub's half is `brain/hub/wallswitch.py`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
   B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
   development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this

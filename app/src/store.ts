@@ -110,6 +110,7 @@ export const store = reactive({
   strip: null as Strip | null,   // a light strip being set up; hub/strip.py. One at a time, same as a bridge
   roofline: null as Roofline | null,   // the light outside made of several boxes; hub/roofline.py. Null on a hub that predates it
   yard: false,                         // the way round being shown on the roof, from a phone in the yard (design/roofline/TapA)
+  switchSettings: null as { addr: string; deviceId: string; name: string } | null,   // the wall switch behind a light, opened from it
   /* The house's 3D printers, as the brain follows them (brain/hub/printers.py): what each is doing, the
      ones found on the Wi-Fi, and any ask waiting at a printer. Null on a hub that predates them. */
   printers: null as Printers | null,

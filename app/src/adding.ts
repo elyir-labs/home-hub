@@ -62,6 +62,7 @@ export type Caught = {
   unit?: boolean         // the one thing has more than one part, so a name given is the unit's
   ids?: string[]         // what arrived, when the house could see it: asked here if it fits, first in New devices if not
   from?: string          // what brought them, as it was named: "My ecobee"
+  switch?: string        // a wall switch that joined and can be set up on its light (design/switch-setup/, C)
 }
 
 /** How many things beat four asks the rooms of on one screen (design/arrived/, C). Past this the room is
