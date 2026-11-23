@@ -466,6 +466,15 @@
    "h": 900,
    "title": "B, chosen 22 November · The switch added second has the light, so the light is set up from it",
    "page": "pair"
+  },
+  {
+   "file": "PairB-end.dc.html",
+   "x": 3120,
+   "y": 2940,
+   "w": 1440,
+   "h": 900,
+   "title": "B, chosen 22 November · The end of a pair: both switches dim, so both are restarted",
+   "page": "pair"
   }
  ],
  "annotations": [
@@ -700,6 +709,14 @@
    "w": 540,
    "page": "room-rejected",
    "text": "B -- THE NAME DOES BOTH\nNOT CHOSEN, 22 November. A was picked.\n\nNo new chip. Type a name whose first word is a room the house doesn't have, and a line under the field offers to make that room and put the light in it.\n\nCost: making a room is hidden inside naming a light, and it guesses from the first word -- \"Reading lamp\" would offer a Reading room."
+  },
+  {
+   "id": "pair-both-dim",
+   "x": 4680,
+   "y": 2940,
+   "w": 540,
+   "page": "pair",
+   "text": "BOTH ENDS DIM, OR NEITHER\nADDED 22 NOVEMBER, AFTER THE STAIRWAY.\n\nFound at the stairs: the switch with the light dimmed, the far end only turned it on and off. The far switch's slider only reaches the light when it is set to dim too, and a reset leaves it on and off. Setting it to dim and restarting it made it dim the light, switch to switch.\n\nSo Dim and On and off only are one choice for the pair. It is made once, at the dim test or from the light's own page, and the hub sends it to both switches (wallswitch.py, dims() and pair()). The far switch is not touched before the dim test, so the test starts as quickly as before.\n\nA switch reads that choice only when it starts. So when two switches are involved, the last step says \"restart both switches\" and the tab instruction says \"at each switch\". With one switch it stays as it was."
   }
  ]
 }
