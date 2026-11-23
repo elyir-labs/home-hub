@@ -150,6 +150,10 @@ rev A the name is what makes a box refuse a plain devkit image: one would light 
 light and put every light on the roof one place out. Only the one-wire picture has the box's light; a
 two-wire strip can't run through a WS2812B.
 
+Its updates come from the hub like any strip's, but from its own release: `tools/build-strip.sh roofbox`
+builds `releases/strip/esp32s3-roofbox-ship.bin`, and the hub offers each strip the release for the board
+it reports (`brain/hub/bridge_updates.py`, `StripKind`). `tools/dev.sh strip` builds the board the strip says it is.
+
 ## When a strip stays dark, run this first
 
     idf.py -p <port> -DSELFTEST=1 -DDATA_PIN=48 build flash monitor

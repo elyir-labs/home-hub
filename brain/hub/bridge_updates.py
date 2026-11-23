@@ -28,6 +28,13 @@ copy of this file. Each kind says where its image is, where its offer goes, and 
 each of its devices; everything else -- the window, the tries, the tool -- is shared. And ONE AT A TIME
 IS ACROSS THE HOUSE: a strip and a puck dark at once is still two things dark.
 
+A STRIP IS GIVEN ITS OWN BOARD'S IMAGE. The same firmware is built for more than one board (the
+devkit, the roofline's devkit box, rev A), each under its own name, and a strip refuses an image built
+for another (strip/firmware/main/fwupdate.cpp). So a kind may have variants: a strip's is the board it
+says it is, and it is offered only the image released for that board, esp32s3-<board>-ship.bin beside
+the devkit's esp32s3-ship.bin. A board with no release is offered nothing, rather than an image it
+would refuse.
+
 A BUILD FROM A WORKING TREE, NOW. On a hub that follows a branch -- a hub being worked on -- a
 developer can hand one puck a build straight from their checkout (tools/dev.sh puck) and have it
 offered at once rather than at three in the morning. It arrives over ssh, not over HTTP: the tool
@@ -72,20 +79,23 @@ def app_image(merged: bytes) -> bytes | None:
 
 class Kind:
     """What the updater needs to know about one kind of device. Records are the updater's own
-    bookkeeping per device: `fw` (what it last said it runs), `offer` and `tries`."""
+    bookkeeping per device: `fw` (what it last said it runs), `offer` and `tries`. A kind with only one
+    image has one variant, None."""
     key = noun = ""
     tool_list = ""
 
     def __init__(self, fw: "Firmware"): self.fw = fw
     @property
     def hub(self): return self.fw.hub
-    def image_path(self): raise NotImplementedError
+    def image_path(self, variant: str | None = None): raise NotImplementedError
+    def variants(self) -> list: return [None]
+    def variant(self, id_: str) -> str | None: return None
     def topic(self, id_: str) -> str: raise NotImplementedError
     def records(self) -> dict: raise NotImplementedError
     def save(self, id_: str, rec: dict) -> None: raise NotImplementedError
     def known(self, id_: str) -> bool: return id_ in self.records()
     def online(self, id_: str) -> bool: raise NotImplementedError
-    def behind(self, img: dict) -> list[str]: raise NotImplementedError
+    def behind(self, img: dict, variant: str | None = None) -> list[str]: raise NotImplementedError
     def listing(self) -> list[dict]: raise NotImplementedError
     def where(self, id_: str) -> str | None: return None
 
@@ -95,7 +105,7 @@ class BridgeKind(Kind):
     cable wrote about them."""
     key, noun, tool_list = "bridge", "bridge", "bridges.json"
 
-    def image_path(self): return self.fw.b.cable.image
+    def image_path(self, variant=None): return self.fw.b.cable.image
     def topic(self, id_): return f"mesh/bridge/{id_}/offer"
     def records(self): return self.hub.settings.get("bridges") or {}
 
@@ -105,7 +115,7 @@ class BridgeKind(Kind):
 
     def online(self, id_): return bool((self.fw.b.pucks.get(id_) or {}).get("online"))
 
-    def behind(self, img):
+    def behind(self, img, variant=None):
         return [b["chip"] for b in self.fw.b.behind() if b["online"] and b["latest"] == img["fw"]]
 
     def listing(self):
@@ -118,10 +128,24 @@ class StripKind(Kind):
     from before updates never does, and that is right: it has nothing that could take one."""
     key, noun, tool_list = "strip", "light strip", "strips.json"
 
-    def image_path(self):
+    DEVKIT = "devkit"
+
+    def image_path(self, variant=None):
         # Always the image's own: HUB_PUCK_FIRMWARE moves the bridge's firmware, never the strip's.
         from .bridge import RELEASES
-        return RELEASES / "strip" / "esp32s3-ship.bin"
+        board = variant or StripKind.DEVKIT
+        return RELEASES / "strip" / ("esp32s3-ship.bin" if board == StripKind.DEVKIT else f"esp32s3-{board}-ship.bin")
+
+    def variants(self):
+        """The devkit, and every other board with a release beside it."""
+        from .bridge import RELEASES
+        others = sorted(p.name[len("esp32s3-"):-len("-ship.bin")] for p in (RELEASES / "strip").glob("esp32s3-*-ship.bin"))
+        return [StripKind.DEVKIT, *others]
+
+    def variant(self, id_):
+        """The board a strip says it is; one that has never said is a devkit, as every strip from
+        before boards were named was."""
+        return (self._strips().get(id_) or {}).get("board") or StripKind.DEVKIT
 
     def topic(self, id_):
         from .strip import BASE
@@ -139,10 +163,11 @@ class StripKind(Kind):
     def known(self, id_): return id_ in self._strips()
     def online(self, id_): return bool((self._strips().get(id_) or {}).get("online"))
 
-    def behind(self, img):
+    def behind(self, img, variant=None):
         from .bridge import Bridges
+        board = variant or StripKind.DEVKIT
         return sorted(i for i, r in self.records().items()
-                      if self.online(i) and Bridges._older(str(r.get("fw") or ""), img["fw"]))
+                      if self.online(i) and self.variant(i) == board and Bridges._older(str(r.get("fw") or ""), img["fw"]))
 
     def where(self, id_: str) -> str | None:
         """The room it is in, through the house's own device for it -- known once the panel has
@@ -158,40 +183,42 @@ class StripKind(Kind):
 
     def listing(self):
         return [{"chip": i, "room": self.where(i), "fw": (self.records().get(i) or {}).get("fw"),
-                 "online": self.online(i)} for i in sorted(self._strips())]
+                 "online": self.online(i), "board": self.variant(i)} for i in sorted(self._strips())]
 
 
 class Firmware:
     def __init__(self, bridges):
         self.b = bridges
         self.kinds = {k.key: k for k in (BridgeKind(self), StripKind(self))}
-        self._cache: dict[str, tuple] = {}      # kind -> (stamp, image): a MB file is not re-read every tick
+        self._cache: dict[tuple, tuple] = {}    # (kind, variant) -> (stamp, image): a MB file is not re-read every tick
         self.dev: dict | None = None            # a working-tree build being offered to one device
 
     @property
     def hub(self): return self.b.hub
 
     # ---- the image ----
-    def image(self, kind: str = "bridge") -> dict | None:
-        """{"fw", "sha256", "size", "body"} of the app this house would give a device, or None."""
-        path = self.kinds[kind].image_path()
+    def image(self, kind: str = "bridge", variant: str | None = None) -> dict | None:
+        """{"fw", "sha256", "size", "body"} of the app this house would give a device of that kind (and
+        variant: a strip's board), or None."""
+        path = self.kinds[kind].image_path(variant)
+        key = (kind, variant)
         try:
             st = path.stat()
             stamp = (st.st_mtime_ns, st.st_size)
-            if kind in self._cache and self._cache[kind][0] == stamp: return self._cache[kind][1]
+            if key in self._cache and self._cache[key][0] == stamp: return self._cache[key][1]
             fw = str(json.loads(path.with_suffix(".json").read_text()).get("fw") or "")
             body = app_image(path.read_bytes())
         except (OSError, ValueError):
             return None
         img = {"fw": fw, "sha256": hashlib.sha256(body).hexdigest(), "size": len(body), "body": body} \
             if fw and body else None
-        self._cache[kind] = (stamp, img)
+        self._cache[key] = (stamp, img)
         return img
 
     def served(self, name: str) -> bytes | None:
         """The bytes at PATH<sha>.bin -- today's images and no others, so a device can only ever be
         handed what the hub is offering."""
-        for img in (*(self.image(k) for k in self.kinds), self.dev):
+        for img in (*(self.image(k, v) for k, kind in self.kinds.items() for v in kind.variants()), self.dev):
             if img and name == f"{img['sha256']}.bin": return img["body"]
         return None
 
@@ -268,10 +295,10 @@ class Firmware:
         may = self._may(now)
         busy = False
         for key, k in self.kinds.items():
-            img = self.image(key)
             for id_, rec in list(k.records().items()):
                 o = rec.get("offer")
                 if not o: continue
+                img = self.image(key, k.variant(id_))
                 # A working-tree build is not the shipped image and does not wait for the night:
                 # only silence ends it, and silence is not held against the version.
                 if o.get("dev"):
@@ -287,13 +314,14 @@ class Firmware:
                 else: busy = True
         if busy or not may: return
         for key, k in self.kinds.items():
-            img = self.image(key)
-            if not img: continue
-            for id_ in k.behind(img):
-                t = (k.records().get(id_) or {}).get("tries") or {}
-                if t.get("fw") == img["fw"] and (t.get("n", 0) >= TRIES or now - t.get("at", 0) < RETRY): continue
-                await self.offer(id_, img, now, kind=key)
-                return
+            for v in k.variants():
+                img = self.image(key, v)
+                if not img: continue
+                for id_ in k.behind(img, v):
+                    t = (k.records().get(id_) or {}).get("tries") or {}
+                    if t.get("fw") == img["fw"] and (t.get("n", 0) >= TRIES or now - t.get("at", 0) < RETRY): continue
+                    await self.offer(id_, img, now, kind=key)
+                    return
 
     # ---- a build from a working tree, now ----
     def _tell_tool(self, id_: str, fw: str, state: str, why: str = "") -> None:
