@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Instrument Sans", -apple-system, "SF Pro Text", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      /* the panel's own tokens, unchanged -- app/src/panel.css */
+      --bg: #0c0d10; --surface: rgba(26,28,34,.68); --surface-hi: rgba(255,255,255,.08);
+      --edge: rgba(255,255,255,.1); --edge-hi: rgba(255,255,255,.18);
+      --ink: #f1eee8; --ink-2: #b9b5ad; --muted: #7f7d77;
+      --lamp: #e9b872; --lamp-ink: #2a1c07; --live: #74c69d; --danger: #e08a8a;
+    }
+    .dsp { font-weight: 400; letter-spacing: -.025em; text-wrap: balance; }
+    .cap { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .lane { position: relative; height: 26px; border-radius: 7px; overflow: hidden; background: rgba(255,255,255,.04); }
+    .lane i { position: absolute; top: 0; bottom: 0; }
+    .lab { font-size: 13px; color: var(--muted); }
+    .chip { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-2); }
+    .chip b { width: 22px; height: 14px; border-radius: 4px; display: inline-block; }
+  </style>
+</helmet>
+
+<!-- TODAY: drawn from puck/src/lightrule.h and the mesh module's three-scan 'far'. -->
+<div style="position: relative; width: 1440px; height: 900px; overflow: hidden; background: #0c0d10; color: var(--ink); font-size: 17px; line-height: 1.4;">
+  <div style="position: absolute; inset: 0; background: radial-gradient(64% 54% at 26% 22%, rgba(72,63,135,.18), transparent 70%), radial-gradient(56% 48% at 84% 84%, rgba(92,63,57,.16), transparent 72%);"></div>
+  <div style="position: absolute; top: 52px; left: 56px; right: 56px;">
+    <h1 class="dsp" style="margin: 0; font-size: 38px;">Today: every drop shows at once, and red comes after about 24 seconds.</h1>
+    <p style="margin: 10px 0 0; font-size: 16.5px; color: var(--ink-2); max-width: 104ch;">A placed bridge with its nightlight on. The light follows the link second by second (lightrule.h and puck-mesh's three empty scans), so a link that comes and goes is a light that goes warm, amber, red, warm, over and over.</p>
+  </div>
+  <div style="position: absolute; top: 200px; left: 56px; right: 56px; display: flex; gap: 26px; flex-wrap: wrap;"><span class="chip"><b style="background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></b>The nightlight (or dark, if it is off)</span><span class="chip"><b style="background: repeating-linear-gradient(90deg, #e39a3b 0 5px, rgba(227,154,59,.15) 5px 10px);"></b>Blinking amber: looking for a switch</span><span class="chip"><b style="background: linear-gradient(90deg, rgba(224,138,138,.45), #e08a8a, rgba(224,138,138,.45));"></b>Breathing red: no switch in reach, move me</span></div>
+  
+  <div style="position: absolute; left: 56px; right: 56px; top: 262px;">
+    <div style="font-size: 17px; font-weight: 500;">A switch is restarted</div>
+    <div class="lab" style="margin-top: 2px;">Somebody pulls a switch's tab: the switch the bridge reaches the house through is gone for 25 seconds.</div>
+    <div style="display: grid; grid-template-columns: 170px 1080px; align-items: center; gap: 8px 8px; margin-top: 14px;">
+      <span class="lab">Link to the switches</span><div class="lane" style="height: 12px;"><i style="left: 0.0px; width: 135.0px; background: rgba(116,198,157,.55);"></i><i style="left: 191.2px; width: 888.8px; background: rgba(116,198,157,.55);"></i></div>
+      <span class="lab">The light</span><div class="lane"><i style="left: 0.0px; width: 135.0px; background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></i><i style="left: 135.0px; width: 54.0px; background: repeating-linear-gradient(90deg, #e39a3b 0 5px, rgba(227,154,59,.15) 5px 10px);"></i><i style="left: 189.0px; width: 2.2px; background: linear-gradient(90deg, rgba(224,138,138,.45), #e08a8a, rgba(224,138,138,.45));"></i><i style="left: 191.2px; width: 888.8px; background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></i></div>
+    </div>
+  </div>
+  <div style="position: absolute; left: 56px; right: 56px; top: 458px;">
+    <div style="font-size: 17px; font-weight: 500;">The link comes and goes</div>
+    <div class="lab" style="margin-top: 2px;">The link drops for 8 to 30 seconds at a time, every minute or so, then settles. What was seen at the stairs.</div>
+    <div style="display: grid; grid-template-columns: 170px 1080px; align-items: center; gap: 8px 8px; margin-top: 14px;">
+      <span class="lab">Link to the switches</span><div class="lane" style="height: 12px;"><i style="left: 0.0px; width: 67.5px; background: rgba(116,198,157,.55);"></i><i style="left: 85.5px; width: 94.5px; background: rgba(116,198,157,.55);"></i><i style="left: 236.2px; width: 78.8px; background: rgba(116,198,157,.55);"></i><i style="left: 342.0px; width: 85.5px; background: rgba(116,198,157,.55);"></i><i style="left: 495.0px; width: 67.5px; background: rgba(116,198,157,.55);"></i><i style="left: 582.8px; width: 92.2px; background: rgba(116,198,157,.55);"></i><i style="left: 733.5px; width: 346.5px; background: rgba(116,198,157,.55);"></i></div>
+      <span class="lab">The light</span><div class="lane"><i style="left: 0.0px; width: 67.5px; background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></i><i style="left: 67.5px; width: 18.0px; background: repeating-linear-gradient(90deg, #e39a3b 0 5px, rgba(227,154,59,.15) 5px 10px);"></i><i style="left: 85.5px; width: 94.5px; background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></i><i style="left: 180.0px; width: 54.0px; background: repeating-linear-gradient(90deg, #e39a3b 0 5px, rgba(227,154,59,.15) 5px 10px);"></i><i style="left: 234.0px; width: 2.2px; background: linear-gradient(90deg, rgba(224,138,138,.45), #e08a8a, rgba(224,138,138,.45));"></i><i style="left: 236.2px; width: 78.8px; background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></i><i style="left: 315.0px; width: 27.0px; background: repeating-linear-gradient(90deg, #e39a3b 0 5px, rgba(227,154,59,.15) 5px 10px);"></i><i style="left: 342.0px; width: 85.5px; background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></i><i style="left: 427.5px; width: 54.0px; background: repeating-linear-gradient(90deg, #e39a3b 0 5px, rgba(227,154,59,.15) 5px 10px);"></i><i style="left: 481.5px; width: 13.5px; background: linear-gradient(90deg, rgba(224,138,138,.45), #e08a8a, rgba(224,138,138,.45));"></i><i style="left: 495.0px; width: 67.5px; background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></i><i style="left: 562.5px; width: 20.2px; background: repeating-linear-gradient(90deg, #e39a3b 0 5px, rgba(227,154,59,.15) 5px 10px);"></i><i style="left: 582.8px; width: 92.2px; background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></i><i style="left: 675.0px; width: 54.0px; background: repeating-linear-gradient(90deg, #e39a3b 0 5px, rgba(227,154,59,.15) 5px 10px);"></i><i style="left: 729.0px; width: 4.5px; background: linear-gradient(90deg, rgba(224,138,138,.45), #e08a8a, rgba(224,138,138,.45));"></i><i style="left: 733.5px; width: 346.5px; background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></i></div>
+    </div>
+  </div>
+  <div style="position: absolute; left: 56px; right: 56px; top: 654px;">
+    <div style="font-size: 17px; font-weight: 500;">Out of reach</div>
+    <div class="lab" style="margin-top: 2px;">The bridge is on a socket too far from every switch, or the switches lose power for six minutes.</div>
+    <div style="display: grid; grid-template-columns: 170px 1080px; align-items: center; gap: 8px 8px; margin-top: 14px;">
+      <span class="lab">Link to the switches</span><div class="lane" style="height: 12px;"><i style="left: 0.0px; width: 135.0px; background: rgba(116,198,157,.55);"></i><i style="left: 945.0px; width: 135.0px; background: rgba(116,198,157,.55);"></i></div>
+      <span class="lab">The light</span><div class="lane"><i style="left: 0.0px; width: 135.0px; background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></i><i style="left: 135.0px; width: 54.0px; background: repeating-linear-gradient(90deg, #e39a3b 0 5px, rgba(227,154,59,.15) 5px 10px);"></i><i style="left: 189.0px; width: 756.0px; background: linear-gradient(90deg, rgba(224,138,138,.45), #e08a8a, rgba(224,138,138,.45));"></i><i style="left: 945.0px; width: 135.0px; background: radial-gradient(120% 140% at 50% 50%, #ffe2b0, #e9b872);"></i></div>
+    </div>
+  </div>
+  <div style="position: absolute; left: 56px; right: 56px; top: 852px;"><span style="position: absolute; left: 178px; font-size: 12px; color: var(--muted);">0 min</span><span style="position: absolute; left: 448px; font-size: 12px; color: var(--muted);">2 min</span><span style="position: absolute; left: 718px; font-size: 12px; color: var(--muted);">4 min</span><span style="position: absolute; left: 988px; font-size: 12px; color: var(--muted);">6 min</span><span style="position: absolute; left: 1258px; font-size: 12px; color: var(--muted);">8 min</span></div>
+</div>
+</x-dc>
+</body>
+</html>
