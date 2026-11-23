@@ -9,7 +9,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from hub import wallswitch as ws_mod
-from hub.bridge import Bridges
+from hub.bridge import Bridges, network_id
+from hub.model import Home
 from hub.settings import Settings
 from hub.rules import validate
 from hub.wallswitch import WallSwitches
@@ -286,6 +287,34 @@ class DimmingIsAChoice(Setting):
         dev = self.a_light("0020")
         self.assertEqual(run(self.ws.of_device(dev.id)), "0020")
         self.assertIsNone(run(self.ws.of_device("light.somebody_else")))
+
+
+class TheFarEndIsNotALight(Setting):
+    def test_a_switch_with_no_light_leaves_its_room_and_stays_a_device(self):
+        home = Home()
+        home.not_lights = {f"mesh_{NET}_0021"}
+        areas = [{"area_id": "stairs", "name": "Stairway"}]
+        devs = [{"id": "hwA", "area_id": "stairs", "identifiers": [["mqtt", f"mesh_{NET}_0020"]]},
+                {"id": "hwB", "area_id": "stairs", "identifiers": [["mqtt", f"mesh_{NET}_0021"]]}]
+        ents = [{"entity_id": "light.a", "device_id": "hwA"}, {"entity_id": "light.b", "device_id": "hwB"}]
+        states = [{"entity_id": e, "state": "on", "attributes": {}} for e in ("light.a", "light.b")]
+        home.build(areas, devs, ents, states)
+        self.assertEqual([d.id for d in home.rooms["stairs"].devices], ["light.a"])
+        self.assertIn("light.b", home.devices)
+
+    def test_pairing_and_saying_there_is_no_light_are_what_take_it_out(self):
+        self.b.keys()
+        self.hub.home.not_lights = set()
+        rebuilt = []
+        self.hub.rebuild_soon = lambda: rebuilt.append(1)
+        net = network_id(bytes.fromhex(self.b.keys()["netkey"]))
+        run(self.ws.has_light("0020", True))
+        self.assertEqual(self.hub.home.not_lights, set())
+        self.ws.remember("0021", light=None)
+        self.hub.ha.answers["pair"] = ("configured", {"op": "pair", "addr": "0021", "ok": True})
+        run(self.ws.has_light("0021", False))
+        self.assertEqual(self.hub.home.not_lights, {f"mesh_{net}_0021"})
+        self.assertEqual(len(rebuilt), 1)
 
 
 class TryingItOnTheLight(Setting):

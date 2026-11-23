@@ -28,6 +28,7 @@ const a = ref<Answers>({ walkin: 'on_off' })
 const device = ref<string | null>(props.deviceId ?? null)
 const showing = ref('')                 // what the light is doing right now, said while it does it
 const busy = ref(false)
+const changing = ref(false)   // a setting on the end page is on its way to the switches, which takes tens of seconds
 const heard = ref<{ switch: string; name: string } | null>(null)
 const listening = ref(false)
 const room = ref('')
@@ -177,8 +178,14 @@ async function makeRoom() {
 }
 
 async function noPartner() {
-  if (partnerAddr.value) { try { await unpairSwitch(me.value) } catch {} partnerAddr.value = null }
+  if (changing.value) return
+  if (partnerAddr.value) {
+    changing.value = true
+    try { await unpairSwitch(me.value) } catch {} finally { changing.value = false }
+    partnerAddr.value = null
+  }
   a.value = { ...a.value, partner: null }
+  if (at.value === 'end') return
   go(next('other', a.value))
 }
 
@@ -203,12 +210,13 @@ async function placeAndName() {
 
 /* The end is the switch's settings page: changing a row here does the same as answering it did. */
 async function changeDims(yes: boolean) {
-  if (a.value.dims === yes || (yes && a.value.canDim === false)) return
+  if (changing.value || a.value.dims === yes || (yes && a.value.canDim === false)) return
+  changing.value = true
   try {
     const r = await switchDims(me.value, yes)
     if (r.state === 'failed') return notify(r.text ?? 'The switch didn’t take that.', 'error')
     a.value = { ...a.value, dims: yes, restartOwed: true }
-  } catch (e: any) { notify(e.message, 'error') }
+  } catch (e: any) { notify(e.message, 'error') } finally { changing.value = false }
 }
 async function changeWalkIn(mode: WalkIn) {
   const was = a.value.walkin

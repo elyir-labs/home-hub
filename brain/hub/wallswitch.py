@@ -162,7 +162,24 @@ class WallSwitches:
 
     async def has_light(self, addr: str, yes: bool) -> dict:
         self.remember(addr, light=bool(yes))
+        self.fold()
         return self.summary(addr)
+
+    def fold(self) -> None:
+        """A switch found to have no light of its own is not a light on any screen, though the driver reports one.
+        Its light stays a device, so a press and its motion still reach the house; it only leaves its room's list.
+        Read from the house's own mesh key rather than a bridge's word, so it holds before any bridge is online."""
+        home = getattr(self.hub, "home", None)
+        if home is None or not hasattr(home, "not_lights"): return
+        try:
+            from .bridge import network_id
+            net = network_id(bytes.fromhex(json.loads(self._path().read_text())["netkey"]))
+        except Exception: return
+        marks = {f"mesh_{net}_{a}" for a, row in self.all().items() if row.get("light") is False}
+        if marks == home.not_lights: return
+        home.not_lights = marks
+        rebuild = getattr(self.hub, "rebuild_soon", None)
+        if rebuild: rebuild()
 
     async def dims(self, addr: str, yes: bool, found: bool | None = None, alone: bool = False) -> dict:
         """What the switch does, chosen; and, from the dim test, what its bulbs can do, found. The two are kept
@@ -234,6 +251,7 @@ class WallSwitches:
             return {"state": "failed", "text": r.get("why") or "The two switches weren't paired."}
         self.remember(companion, partner=main, light=False)
         self.remember(main, partner=companion)
+        self.fold()
         restart = await self._same_on_partner(main, bool(self.get(main).get("dims")))
         if restart is None:
             return {"state": "failed", "text": "The two switches work together, but the other end couldn't be set to dim. Try again."}

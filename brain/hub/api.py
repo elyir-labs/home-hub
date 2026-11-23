@@ -209,6 +209,7 @@ class Hub:
         self._loop_task = None
         self._loop: asyncio.AbstractEventLoop | None = None   # the server's loop, for broadcasts from worker threads
         self.roofline._fold()                          # the boxes folded into the roofline's one tile, before the first build
+        self.wallswitch.fold()                         # wall switches wired to no light, likewise
 
     def rebuild_soon(self):
         """Rebuild the house from the driver's registry, once, a moment from now -- the same debounce a
