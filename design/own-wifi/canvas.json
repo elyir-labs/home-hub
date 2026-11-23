@@ -1,0 +1,151 @@
+{
+  "name": "Ready, while the hub's own Wi-Fi starts",
+  "areas": [
+    "First run"
+  ],
+  "reading": [
+    "decided",
+    "why",
+    "today",
+    "Today.dc.html",
+    "a",
+    "OnlyA-1.dc.html",
+    "OnlyA-2.dc.html",
+    "OnlyA-3.dc.html",
+    "OnlyA-4.dc.html",
+    "rec",
+    "b",
+    "SayB-1.dc.html",
+    "SayB-2.dc.html"
+  ],
+  "artboards": [
+    {
+      "file": "Today.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Today: a code for a Wi-Fi that never started",
+      "page": "own-wifi"
+    },
+    {
+      "file": "OnlyA-1.dc.html",
+      "x": 0,
+      "y": 1100,
+      "w": 1440,
+      "h": 900,
+      "title": "A, in the modem while its Wi-Fi starts: the cable alone",
+      "page": "own-wifi"
+    },
+    {
+      "file": "OnlyA-2.dc.html",
+      "x": 1540,
+      "y": 1100,
+      "w": 1440,
+      "h": 900,
+      "title": "A, in the modem once its Wi-Fi is up: both, as decided",
+      "page": "own-wifi"
+    },
+    {
+      "file": "OnlyA-3.dc.html",
+      "x": 0,
+      "y": 2200,
+      "w": 1440,
+      "h": 900,
+      "title": "A, on nothing while its Wi-Fi starts: not ready yet",
+      "page": "own-wifi"
+    },
+    {
+      "file": "OnlyA-4.dc.html",
+      "x": 1540,
+      "y": 2200,
+      "w": 1440,
+      "h": 900,
+      "title": "A, on nothing when it can’t make a Wi-Fi: the cable",
+      "page": "own-wifi"
+    },
+    {
+      "file": "SayB-1.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "B, in the modem while its Wi-Fi starts: the left half says so",
+      "page": "own-wifi-rejected"
+    },
+    {
+      "file": "SayB-2.dc.html",
+      "x": 1540,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "B, in the modem when it can’t make a Wi-Fi: the left half says that too",
+      "page": "own-wifi-rejected"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "own-wifi",
+      "x": -620,
+      "y": -700,
+      "w": 500,
+      "text": "WHY THIS EXISTS (21 NOVEMBER 2026)\n\nThe living room NUC was flashed with its cable in the modem. Ready showed the hub's own Wi-Fi as a code to scan, and no such Wi-Fi existed: its Realtek card listed hosting and joining at once and then refused the second interface, every minute, and the hub never tried the card alone. That is fixed in network.sh (the card hosts it on its own interface).\n\nWhat is left is the screen: the splash drew the code from the unit's settings whenever there was a Wi-Fi card, without asking whether the Wi-Fi had started. So for the first minute or two of every first start, and forever on a card that can't host one, it shows a way in that isn't there."
+    },
+    {
+      "id": "today",
+      "page": "own-wifi",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "TODAY\n\nC from design/modem-cable, drawn the moment Ready is reached, whether or not the hub's own Wi-Fi is up. Scanning it joins nothing; typing the name finds nothing."
+    },
+    {
+      "id": "a",
+      "page": "own-wifi",
+      "x": -620,
+      "y": 1100,
+      "w": 500,
+      "text": "A: DRAW ONLY WHAT WORKS\n\nA way in is on the screen only once it works. In the modem, Ready is the cable alone (AloneC, already decided) until the hub's own Wi-Fi is really up, then the code joins it as C. On nothing, the first start keeps saying what it is doing until its Wi-Fi is up, and Ready arrives with the code. If the card can't make one, Ready says plug it into the router.\n\nThe case: no new layout in the modem, nothing on screen that is untrue for even a minute, and every board but the last is already decided.\n\nThe cost: in the modem, the screen changes shape once, a minute or so after Ready, when the code arrives."
+    },
+    {
+      "id": "rec",
+      "page": "own-wifi",
+      "x": -620,
+      "y": 2200,
+      "w": 500,
+      "text": "RECOMMENDED: A\n\nThe screen already follows the network every five seconds, so the code arriving when the Wi-Fi does is what Ready does for a cable today. B adds a waiting tile and two new sentences to explain a minute nobody needs explained."
+    },
+    {
+      "id": "decided",
+      "page": "own-wifi",
+      "x": -620,
+      "y": 2700,
+      "w": 500,
+      "text": "DECIDED 21 NOVEMBER 2026\n\nA. The recommended direction was asked to be built without stopping to pick."
+    },
+    {
+      "id": "b",
+      "page": "own-wifi-rejected",
+      "x": -620,
+      "y": 0,
+      "w": 500,
+      "text": "B: SAY IT'S STARTING\n\nC's layout from the first moment, with the left half honest about its state: an empty tile and \"Starting its own Wi-Fi\" until the code is there, and \"Its own Wi-Fi didn't start\" if it never is.\n\nThe case: the screen never changes shape.\n\nThe cost: Ready is claimed with only one way in that works, and a household reads a waiting tile as the thing to wait for, when the cable is the faster answer."
+    }
+  ],
+  "pages": [
+    {
+      "id": "own-wifi",
+      "name": "Ready, while the hub's own Wi-Fi starts",
+      "decided": {
+        "on": "2026-11-21",
+        "chose": "A",
+        "board": "OnlyA-1.dc.html"
+      }
+    },
+    {
+      "id": "own-wifi-rejected",
+      "name": "Ready, while the hub's own Wi-Fi starts: not chosen"
+    }
+  ]
+}

@@ -77,3 +77,16 @@ test('Home says the song once, for both speakers', async ({ page }) => {
   await expect(page.locator('.onnow')).toContainText('Left Pod and Right Pod, Drowning')
   expect(((await page.locator('.onnow').textContent()) ?? '').split('Drowning').length - 1).toBe(1)
 })
+
+test.describe('on a wall or a computer', () => {
+  test.use({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, isMobile: false, hasTouch: false,
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36' })
+
+  test('Home\'s row gives the song one card, for both speakers', async ({ page }) => {
+    await twoPods(page)
+    await page.goto('/?at=10:10', { waitUntil: 'networkidle' })
+    const row = page.locator('.bento')
+    await expect(row.locator('.tile.media').filter({ hasText: 'Drowning' })).toHaveCount(1)
+    await expect(row).not.toContainText('Right Pod')
+  })
+})

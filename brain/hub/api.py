@@ -64,6 +64,7 @@ from .share import Share
 from .nightlight import Nightlight
 from .ears import Ears
 from .relay import Relay
+from .wallswitch import WallSwitches
 from .phones import Phones, COOKIE, holds_keys, open_to_strangers, from_away, from_setup, from_screen, SETUP_OPEN, away_refused, away_refusal
 from .pusher import NEEDS_ADDRESS as PUSH_NEEDS_ADDRESS, Pusher, checked as push_checked
 from . import camera
@@ -106,6 +107,12 @@ def qr_svg_bytes(text: str) -> bytes:
     b = io.BytesIO(); q.make_image().save(b)
     return b.getvalue()
 
+
+
+def tell_host_zone(zone: str) -> None:
+    """The house's time zone, for the computer's own clock: a screen on the hub draws the time in it (host/zone.sh)."""
+    try: (DATA / "zone.request").write_text(json.dumps({"zone": str(zone)}))
+    except OSError as e: log.warning("could not tell the host the time zone: %s", e)
 
 class Hub:
     """Keeps the house model alive whatever the driver layer is doing.
@@ -157,7 +164,7 @@ class Hub:
         self.photos = Photos()             # the household's own photos, for a TV at rest: design/rest-tv/
         self.screens = Screens()           # the house's screens, which are TVs and which show photos: design/which-tv/
         self.board = Board()               # notes and countdowns the household leaves for its screens: design/tv-moments/
-        self.art = Art()                   # paintings between the photos, or all day: design/tv-art/
+        self.art = Art(arrived=self.rest_changed)   # paintings between the photos, or all day: design/tv-art/
         self.power = Power()               # the sun on the roof, the battery and the grid: hub/power.py
         self._power_sent: tuple[float, tuple | None] = (0.0, None)
         self.net = Network(self)           # how this hub is connected, and what it hands out: docs/network.md
@@ -165,6 +172,7 @@ class Hub:
         self.share = Share(self)           # what this house lets a Matter bridge publish: docs/matter.md
         self.share_status: dict = {}       # what the bridge last said about itself (pairing codes, who holds it)
         self.relay = Relay(self)           # two switches on one light: the hub carries the press across
+        self.wallswitch = WallSwitches(self, self.bridge)   # a switch that joined, set up by trying it on the light
         self.nightlight = Nightlight(self)  # a bridge's own light, lifted when somebody walks past it
         self.phones = Phones(self)                     # which phones belong to the house, once it has a code
         self.pusher = Pusher(self)                     # what needs a look, told once to the phones that can act on it
@@ -289,7 +297,7 @@ class Hub:
         cfg = await self.ha.send("get_config")
         self.temp_unit = (cfg.get("unit_system") or {}).get("temperature", "°F")
         if cfg.get("time_zone"):
-            try: self.tz = ZoneInfo(cfg["time_zone"])
+            try: self.tz = ZoneInfo(cfg["time_zone"]); tell_host_zone(cfg["time_zone"])
             except Exception: log.warning("unknown time zone %r; using the host's", cfg["time_zone"])
         lat, lon = cfg.get("latitude") or 0, cfg.get("longitude") or 0
         if self.settings.get("location"): self.location = self.settings.get("location")
@@ -470,6 +478,7 @@ class Hub:
         core = {"latitude": place["lat"], "longitude": place["lon"], "location_name": place["name"]}
         if place.get("tz"):
             core["time_zone"] = place["tz"]
+            tell_host_zone(place["tz"])
             core["unit_system"] = unit_system_for(place["tz"])   # a house in the US reads in °F; everyone else in °C
         weather = None
         if self.driver == "ready":
@@ -513,6 +522,12 @@ class Hub:
 
     def _stereo_changed(self, pairs):
         for d in self.home.set_stereo(pairs): self._broadcast(json.dumps({"type": "device", "device": d.__dict__}))
+
+    def rest_changed(self):
+        """Photos, the board, the paintings or what a screen shows changed. A screen already resting would otherwise
+        keep what it had until it next woke and rested, so each is nudged to ask again; like the phones' nudge, it
+        carries nothing, since what a screen shows depends on which screen it is."""
+        self._broadcast(json.dumps({"type": "rest"}))
 
     def _on_event(self, ev):
         if ev["event_type"] == "state_changed":
@@ -2119,9 +2134,55 @@ async def bridge_switch(body: dict):
     if len(uuid) != 32 or any(c not in "0123456789abcdef" for c in uuid):
         raise HTTPException(400, "No switch was named.")
     try:
-        return await hub.bridge.let_in(uuid, oob)
+        return await hub.wallswitch.let_in(uuid, oob)
     except ValueError as e:
         raise HTTPException(409, str(e))
+
+
+def _switch_addr(addr: str) -> str:
+    a = addr.strip().lower()
+    if len(a) != 4 or any(c not in "0123456789abcdef" for c in a): raise HTTPException(400, "No switch was named.")
+    return a
+
+
+@app.get("/bridge/switches/{addr}")
+async def bridge_switch_setup(addr: str):
+    """What the house knows about one wall switch: has a light, dims, its partner, walking in."""
+    hub.ready()
+    a = _switch_addr(addr)
+    dev = await hub.wallswitch.device_of(a)
+    return {**hub.wallswitch.summary(a), "device_id": dev.id if dev else None, "name": dev.name if dev else None}
+
+
+@app.get("/devices/{device_id}/switch")
+async def device_wall_switch(device_id: str):
+    """The wall switch behind a light, if there is one: how it is set up, for the light's own screen."""
+    hub.ready()
+    a = await hub.wallswitch.of_device(device_id)
+    if not a: raise HTTPException(404, "This light has no wall switch the house set up.")
+    dev = await hub.wallswitch.device_of(a)
+    return {**hub.wallswitch.summary(a), "device_id": device_id, "name": dev.name if dev else None}
+
+
+@app.post("/bridge/switches/{addr}/{step}")
+async def bridge_switch_step(addr: str, step: str, body: dict | None = None):
+    """One step of setting a switch up on the light itself (design/switch-setup/, C)."""
+    hub.ready()
+    a, body = _switch_addr(addr), body or {}
+    ws = hub.wallswitch
+    try:
+        if step == "finish": return await ws.finish(a)
+        if step == "show": return await ws.show(a, str(body.get("what") or ""))
+        if step == "light": return await ws.has_light(a, bool(body.get("light")))
+        if step == "dims": return await ws.dims(a, bool(body.get("dims")), None if body.get("found") is None else bool(body["found"]),
+                                                  alone=bool(body.get("alone")))
+        if step == "listen": return await ws.listen(a)
+        if step == "pair": return await ws.pair(a, _switch_addr(str(body.get("with") or "")))
+        if step == "unpair": return await ws.unpair(a)
+        if step == "walkin": return await ws.walkin(a, str(body.get("mode") or ""))
+    except ValueError as e:
+        raise HTTPException(409, str(e))
+    raise HTTPException(404, "unknown step")
 
 
 @app.get("/bridge/nearby")
@@ -2950,6 +3011,11 @@ def _music_rooms(room: str | None) -> list[dict]:
 
 
 # ---------- the household's photos, for a TV at rest (design/rest-tv/, A) ----------
+def _for_screens(answer):
+    hub.rest_changed()
+    return answer
+
+
 @app.get("/photos")
 def photos_list():
     return {"photos": hub.photos.list(), "screens": [_named(s) for s in hub.screens.listed()]}
@@ -2981,7 +3047,7 @@ def board_note(body: dict, request: Request):
     """{"text", "until"}: a note for the screens. `until` is when it comes down, in seconds, worked out by the phone in
     its own day (tonight, tomorrow), or null to stay until somebody takes it down. Signed with the phone's name."""
     phone = hub.phones.identify(_phone_token(request))
-    try: return hub.board.leave(body.get("text"), by=(phone or {}).get("name"), until=body.get("until"))
+    try: return _for_screens(hub.board.leave(body.get("text"), by=(phone or {}).get("name"), until=body.get("until")))
     except ValueError as e: raise HTTPException(400, str(e))
 
 
@@ -2989,7 +3055,7 @@ def board_note(body: dict, request: Request):
 def board_countdown(body: dict, request: Request):
     """{"what", "date"}: a countdown to a day, "YYYY-MM-DD". A birthday or an anniversary comes round every year."""
     phone = hub.phones.identify(_phone_token(request))
-    try: return hub.board.count_to(body.get("what"), body.get("date"), by=(phone or {}).get("name"))
+    try: return _for_screens(hub.board.count_to(body.get("what"), body.get("date"), by=(phone or {}).get("name")))
     except ValueError as e: raise HTTPException(400, str(e))
 
 
@@ -2997,7 +3063,7 @@ def board_countdown(body: dict, request: Request):
 def board_morning(body: dict, request: Request):
     """{"text", "day"}: a line left for the morning of `day`, the phone's tomorrow. It greets the first screen to wake."""
     phone = hub.phones.identify(_phone_token(request))
-    try: return hub.board.for_morning(body.get("text"), body.get("day"), by=(phone or {}).get("name"))
+    try: return _for_screens(hub.board.for_morning(body.get("text"), body.get("day"), by=(phone or {}).get("name")))
     except ValueError as e: raise HTTPException(400, str(e))
 
 
@@ -3012,7 +3078,7 @@ def words_today(day: str):
 @app.delete("/board/{item_id}")
 def board_remove(item_id: str):
     if not hub.board.remove(item_id): raise HTTPException(404, "Nothing like that is up.")
-    return {"ok": True}
+    return _for_screens({"ok": True})
 
 
 @app.post("/photos/screens/{screen_id}")
@@ -3026,7 +3092,7 @@ def photos_screen(screen_id: str, body: dict):
     screen = hub.screens.show(screen_id, on=on, play=body.get("play"), notes=notes, shows=body.get("shows"), lines=said, cards=cards)
     if not screen: raise HTTPException(404, "No such screen.")
     if "art" in cards or body.get("shows"): hub.art.poke()
-    return _named(screen)
+    return _for_screens(_named(screen))
 
 
 # ---------- paintings (design/tv-art/, C and a channel too) ----------
@@ -3064,13 +3130,13 @@ async def photos_add(request: Request):
         photo = hub.photos.add(await request.body(), by=(phone or {}).get("name"), taken=taken, size=size)
     except ValueError as e:
         raise HTTPException(400, str(e))
-    return photo
+    return _for_screens(photo)
 
 
 @app.delete("/photos/{photo_id}")
 def photos_remove(photo_id: str):
     if not hub.photos.remove(photo_id): raise HTTPException(404, "no such photo")
-    return {"ok": True}
+    return _for_screens({"ok": True})
 
 
 @app.get("/music")

@@ -37,6 +37,7 @@ import HomeView from './views/HomeView.vue'
 import RoomView from './views/RoomView.vue'
 import Viewer from './Viewer.vue'
 import WhySheet from './WhySheet.vue'
+import SwitchSheet from './SwitchSheet.vue'
 import BridgeSheet from './BridgeSheet.vue'
 import StripSheet from './StripSheet.vue'
 import YardSheet from './YardSheet.vue'
@@ -131,6 +132,9 @@ if (wall) {
    the TV's own room, and while it rests, that room as a band over the picture. */
 const tv = onTV()
 if (tv) document.documentElement.dataset.onTv = ''
+// A TV is worked with a remote: a mouse left plugged into the hub draws no pointer on it, as on a wall. Only on the
+// hub's own screen, so a preview with ?tv=1 on a computer keeps its pointer.
+if (tv && isScreen()) document.documentElement.dataset.tvScreen = ''
 const tvHome = computed(() => homeRoom(rooms.value) ?? params.get('room')
   ?? rooms.value.find(r => r.devices.some(d => cap(d) === 'light'))?.id ?? rooms.value[0]?.id ?? null)
 const tvRoom = computed(() => room.value ?? rooms.value.find(r => r.id === tvHome.value) ?? null)
@@ -262,6 +266,8 @@ watch(idle, v => { if (v) { restSince.value = Date.now(); slept = false; if (tv 
 /* A screen says what it is once the house is read, then again at each rest; a wall with its photos switched on rests
    on them (design/which-tv/, Wall A), and without them, or with none yet, as it always has. */
 watch(() => store.loaded, l => { if (l && (tv || screen)) { reportScreen(tv); loadRestPhotos() } }, { immediate: true })
+// A photo added or a switch flipped on a phone reaches a screen that is already resting, not only its next rest.
+watch(() => store.restTick, () => { if (tv || screen) { reportScreen(tv); loadRestPhotos() } })
 const wallPhotos = computed(() => !tv && screen && (rest.view === 'board' || (rest.view === 'art' && rest.paintings.length > 0) || (rest.shows && rest.photos.length > 0)))
 function touched(e?: Event) {
   lastTouch = Date.now()
@@ -391,11 +397,11 @@ onUnmounted(() => {
 
 <template>
   <div class="shell" :data-ringing="tv && store.ringing ? '' : null" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking, 'house-open': panel && docked, 'pane-open': !!store.opened && docked }">
-    <Sky :quiet="!idle && !setup" :held="wall && !idle" />
+    <Sky :quiet="!idle && !setup" :held="wall && !idle" :resting="idle" />
     <!-- glass lays its blooms on the sky the canvas just painted, under the veil -->
     <div class="sky-bloom" v-if="face === 'glass'"></div>
     <ArtDefs />
-    <div class="sky-veil"></div>
+    <div class="sky-veil" v-if="!tv"></div>
     <Away v-if="lock.away" />
     <Join v-else-if="lock.unpaired" @joined="rejoin" />
     <MovePage v-else-if="store.moving" />
@@ -503,6 +509,7 @@ onUnmounted(() => {
          These two numbers are the panel's own slide and the veil's fade. -->
     <Transition name="house" :duration="{ enter: 420, leave: 320 }"><HousePanel v-if="panel" :docked="docked" /></Transition>
     <Transition name="sheet"><WhySheet v-if="store.sheet === 'why'" /></Transition>
+    <Transition name="sheet"><SwitchSheet v-if="store.switchSettings" /></Transition>
     <!-- A bridge being set up opens itself: somebody has just plugged a thing in, in this room, and
          is standing here. It is not a place in the house to navigate to. -->
     <Transition name="sheet"><BridgeSheet v-if="store.bridge && store.bridge.state !== 'none'" /></Transition>

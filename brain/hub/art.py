@@ -50,8 +50,9 @@ def public(p: dict) -> dict:
 
 
 class Art:
-    def __init__(self, fetch=None):
+    def __init__(self, fetch=None, arrived=None):
         self.fetch = fetch or self._download
+        self.arrived = arrived   # told when paintings land, so a screen showing art doesn't wait for its next rest
         self.getting = False
         self.failed_at = 0.0
         self._poke = asyncio.Event()
@@ -120,8 +121,8 @@ class Art:
         self.failed_at = 0.0
 
     async def settle(self, wanted: bool):
-        if wanted: await self.get_missing()
-        else: self.free()
+        if not wanted: return self.free()
+        if await self.get_missing() and self.arrived: self.arrived()
 
     async def run(self, wanted):
         """Keep the paintings here while any screen wants them, and gone when none does. `wanted` is asked each time."""

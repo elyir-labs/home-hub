@@ -26,6 +26,8 @@
 # the disk; on the stick it is not, because the stick's system stays as flashed and its free space is the try's.
 set -euo pipefail
 MARK=${HUB_FIRSTBOOT_MARK:-/var/lib/home-hub/firstboot.done}
+# A screen whose startup could not be set up, most often for want of internet: install.sh sets it up once online.
+SCREEN_PENDING=${HUB_SCREEN_PENDING:-/var/lib/home-hub/screen-pending}
 CONF=${HUB_CONF:-/etc/home-hub.conf}
 DIR="${HOME_HUB_DIR:-/opt/home-hub}"
 # shellcheck disable=SC1090
@@ -180,7 +182,8 @@ fi
 # A unit with a screen of its own starts the way every Elyir product does.
 if screen_here; then
   log "a screen of its own: Elyir's startup"
-  HOME_HUB_DIR="$DIR" "$DIR/startup/install.sh" && wall_now || log "could not set up the screen's startup; the hub is unaffected"
+  if HOME_HUB_DIR="$DIR" "$DIR/startup/install.sh"; then wall_now
+  else touch "$SCREEN_PENDING"; log "could not set up the screen's startup; the hub is unaffected, and tries again once it is online"; fi
 fi
 touch "$MARK"
 log "done"

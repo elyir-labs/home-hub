@@ -62,10 +62,29 @@ import SensePane from './panes/SensePane.vue'
 import RoofPane from './panes/RoofPane.vue'
 import RoofPlate from './RoofPlate.vue'
 import { roofSentence } from './roof'
+import { switchOfDevice, type SwitchSetup } from './api'
+import { switchLine } from './switchSetup'
 import { ON_HOME_SAY, alwaysIds, keepAlways, offersOnHome, onHomeOf, onHomeWhy, type OnHome } from './onhome'
 
 const dev = computed(() => store.opened)
 const kind = computed(() => dev.value ? cap(dev.value) : '')
+
+/* A light with a wall switch the house set up says how the switch is set up, and Change opens the page
+   its setup ended on (design/switch-setup/, dimming is your choice, A). */
+const wallSwitch = ref<SwitchSetup | null>(null)
+async function lookForSwitch() {
+  const d = dev.value
+  if (!d || kind.value !== 'light') { wallSwitch.value = null; return }
+  try { const s = await switchOfDevice(d.id); if (dev.value?.id === d.id) wallSwitch.value = s } catch { wallSwitch.value = null }
+}
+watch(() => [dev.value?.id, kind.value], lookForSwitch, { immediate: true })
+watch(() => store.switchSettings, (now, was) => { if (was && !now) lookForSwitch() })
+const switchSays = computed(() => wallSwitch.value
+  ? switchLine({ light: wallSwitch.value.light, dims: wallSwitch.value.dims, walkin: wallSwitch.value.walkin }) : '')
+function openSwitch() {
+  if (!wallSwitch.value || !dev.value) return
+  store.switchSettings = { addr: wallSwitch.value.switch, deviceId: dev.value.id, name: dev.value.name }
+}
 
 /*
  * What lamplight IS, while a colored bulb is open.
@@ -528,6 +547,10 @@ onUnmounted(() => {
             <p class="pane-why" :class="{ 'roof-wrong': roofSaid.wrong }" v-else-if="roofSaid">{{ roofSaid.text }}</p>
             <p class="pane-why" v-else-if="why">{{ why }}<template v-if="quiet"> {{ quiet }}</template></p>
             <p class="pane-why" v-else-if="quiet">{{ quiet }}</p>
+            <p class="pane-switch" v-if="wallSwitch && !held">
+              <span class="pane-switch-i"><Icon name="plate" :size="17" /></span><span>{{ switchSays }}</span>
+              <button class="linkish" @click="openSwitch">Change</button>
+            </p>
           </div>
 
         </div>

@@ -239,7 +239,7 @@ radios and no host networking (Docker Desktop on macOS cannot do mDNS discovery,
 added by IP or by brand). Run `driver-layer/mqtt-auth.sh` once first: Mosquitto refuses to start
 without its password file, and the brain reads the same `.env` to give the engine the password.
 The brain runs from its venv (`cd brain && .venv/bin/python main.py`) and
-finds HA at `http://localhost:8123`. Panel: `http://localhost:8300/` (or `:8088` through Caddy).
+finds HA at `http://localhost:8123`. Panel: `http://localhost:8300/` (or `:8089` through Caddy).
 
 The brain keeps what it learns in `brain/settings.json` (gitignored): the engine login it created,
 the owner's and home's names, the location, whether setup finished. Delete the file to run setup

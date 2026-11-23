@@ -393,7 +393,7 @@ class Bridges:
         self._heard: dict[str, dict] = {}       # the last answer to a claim command, per leaf
         self.moving: dict | None = None         # every bridge being handed a new Wi-Fi at once
         self._move_task: asyncio.Task | None = None
-        self._woke: asyncio.Event | None = None  # made per question, inside the loop asking it
+        self._waiting: set[asyncio.Event] = set()  # one per question in flight, made inside the loop asking it
         self._first = True
         from .bridge_updates import Firmware
         self.firmware = Firmware(self)          # a fix that reaches a bridge where it is
@@ -1255,13 +1255,13 @@ class Bridges:
         if len(parts) == 4 and parts[1] == "bridge":
             chip, leaf = parts[2], parts[3]
             p = self.pucks.setdefault(chip, {})
-            if leaf in ("nearby", "claimed"):
+            if leaf in ("nearby", "claimed", "configured"):
                 # An answer to something we asked. Keep the newest and wake whoever
                 # is waiting; the waiter checks what it got, because a stale reply
                 # from a previous question would otherwise look like an answer.
                 try: self._heard[leaf] = {"at": time.time(), "body": json.loads(payload), "chip": chip}
                 except Exception: self._heard[leaf] = {"at": time.time(), "body": None, "chip": chip}
-                if self._woke: self._woke.set()
+                for ev in self._waiting: ev.set()
                 return
             if leaf == "heard":
                 # A strip knocking near this puck (hub/ears.py). Not a state of the puck's, so it
@@ -1325,6 +1325,8 @@ class Bridges:
             # One subscription for both, because there is only one thing to listen to (hub/relay.py).
             if (relay := getattr(self.hub, "relay", None)):
                 relay.on_message(parts[1], parts[2], parts[3], payload, bool(m.get("retain")))
+            if (ws := getattr(self.hub, "wallswitch", None)):
+                ws.heard(parts[1], parts[2], parts[3], bool(m.get("retain")))
 
     # ---- letting a switch in ----
     #
@@ -1359,25 +1361,33 @@ class Bridges:
         p.write_text(json.dumps(k, indent=1)); os.chmod(p, 0o600)
         return nxt
 
-    async def _ask(self, cmd: str, leaf: str, timeout: float) -> dict | None:
+    async def _ask(self, cmd: str, leaf: str, timeout: float, topic: str = "claim", match=None) -> dict | None:
         chip = self._our_puck()
         if not chip:
             raise ValueError("No bridge of this house is on. Plug one in, or give it a moment.")
-        self._heard.pop(leaf, None)
-        # Made here rather than in __init__: an Event belongs to the loop it was
-        # created in, and one made outside a running loop never wakes a waiter
-        # inside it -- which reads exactly like a puck that did not answer.
-        self._woke = asyncio.Event()
-        await self.hub.ha.call("mqtt", "publish", None,
-                               topic=f"{BASE}/bridge/{chip}/claim", payload=cmd)
-        end = time.time() + timeout
-        while time.time() < end:
-            try: await asyncio.wait_for(self._woke.wait(), timeout=max(0.2, end - time.time()))
-            except TimeoutError: break
-            self._woke.clear()
-            got = self._heard.get(leaf)
-            if got and got["chip"] == chip: return got["body"]
-        return None
+        # Two questions can be in flight at once: the panel's blink is still waiting when somebody taps
+        # That's the one. Both answers arrive on `claimed`, so each question keeps its own wake-up and
+        # takes only a reply that came after it asked and that `match` says is its own. With one shared
+        # wake-up the blink's "ok" was taken as the add's answer, and the switch's key was never kept.
+        # The Event is made here rather than in __init__: one made outside a running loop never wakes
+        # a waiter inside it, which reads exactly like a puck that did not answer.
+        woke = asyncio.Event()
+        self._waiting.add(woke)
+        asked = time.time()
+        try:
+            await self.hub.ha.call("mqtt", "publish", None,
+                                   topic=f"{BASE}/bridge/{chip}/{topic}", payload=cmd)
+            end = asked + timeout
+            while time.time() < end:
+                try: await asyncio.wait_for(woke.wait(), timeout=max(0.2, end - time.time()))
+                except TimeoutError: break
+                woke.clear()
+                got = self._heard.get(leaf)
+                if (got and got["chip"] == chip and got["at"] >= asked
+                        and (match is None or match(got["body"]))): return got["body"]
+            return None
+        finally:
+            self._waiting.discard(woke)
 
     async def nearby(self) -> dict:
         """What the puck can hear, and whose side each one is on. Read-only."""
@@ -1402,7 +1412,9 @@ class Bridges:
         This is the whole identity check when there is no code to scan, so a
         failure here is not cosmetic -- it means the next question cannot be
         asked honestly."""
-        body = await self._ask(f"blink {uuid} {int(seconds)}", "claimed", seconds + SURVEY_WAIT)
+        body = await self._ask(f"blink {uuid} {int(seconds)}", "claimed", seconds + SURVEY_WAIT,
+                               match=lambda b: isinstance(b, dict) and (b.get("what") == "blink"
+                                                                        or b.get("why") == "not in the last survey"))
         if not body or not body.get("ok"):
             return {"state": "failed", "text": (body or {}).get("why") or "The bridge could not reach that switch."}
         return {"state": "done"}
@@ -1423,11 +1435,16 @@ class Bridges:
                 await self.hub.ha.call("mqtt", "publish", None,
                                        topic=f"{BASE}/{net}/{addr:04x}/forget", payload="", retain=True)
         cmd = f"add {uuid} {addr:04x}" + (f" {oob}" if oob else "")
-        body = await self._ask(cmd, "claimed", CLAIM_WAIT)
+        body = await self._ask(cmd, "claimed", CLAIM_WAIT,
+                               match=lambda b: isinstance(b, dict) and b.get("what") != "blink")
         if body is None:
             return {"state": "failed", "text": "The bridge stopped answering while it was letting the switch in."}
         if not body.get("ok"):
             return {"state": "failed", "text": body.get("why") or "That switch wasn\u2019t added."}
+        # Its own key comes back this once, and without it the switch can never be set up again short of
+        # starting it over at the wall -- so it is written down before anything else can go wrong.
+        if (ws := getattr(self.hub, "wallswitch", None)) and body.get("devkey") and body.get("unicast"):
+            ws.remember(str(body["unicast"]), devkey=body["devkey"], uuid=uuid, since=time.time())
         return {"state": "done", "unicast": body.get("unicast"), "devkey": body.get("devkey"),
                 "elements": body.get("elements", 1),
                 "text": "It is on the house now."}

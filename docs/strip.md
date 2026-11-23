@@ -797,6 +797,18 @@ the house, which is how these things get returned. The camera route avoids all o
 pointed into a living room. **The cheap next step is neither: a capture stick and HyperHDR on a bench,
 to find out whether it feels like the screen extended or like a gimmick, before any of it is paid for.**
 
+**53. The roofline runs on devkits in printed boxes until rev A, and the box's own light is not the roof's.**
+22 November 2026. Rev A misses the holidays (its sealed sockets alone are 13 to 18 weeks), so the roofline,
+5 V one-wire, one length today from one SP107E, is cut at its joints and run by one devkit box per section,
+each on its own 5 V 10 A brick: home-hub-hardware `strip/devkit/` (D1, chosen the same day). The level
+shifter is a WS2812B in the box, first on the wire, which is why the firmware has a third board,
+`roofbox`: the roof's picture starts after it, it shows the roof's first light, and its own project name
+keeps a plain devkit image off it (`strip/firmware/README.md`, "The roofline's devkit box"). The hub needs
+nothing new: several boxes are already one Roofline (item 52). **Not proven:** pixels.h's tests pass for all
+three boards on a Mac, and the image builds (22 November, esp-matter 70039c3: `strip-roofbox.bin`, 1.65 MB, 56%
+of its slot free, its name in the image); nothing has run on a box. A roof box takes an update only from a `strip-roofbox` image, and no release builds one yet
+(`tools/build-strip.sh` builds the devkit's).
+
 **52. The wall says what the strip controller says, and the roofline is one light that keeps its evenings
 and does its holidays. Built from the boards chosen on 1 October; none of it has met a rev A board.** The
 household decided `design/controller-panel/` (held: A with B's row; runs: C; wire: C falling back to A)

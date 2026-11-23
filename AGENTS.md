@@ -324,6 +324,11 @@ Do not reopen these, and do not propose around them.
   give the hub a Wi-Fi and nothing else. B (the same over Bluetooth, no network switch) waits for an app, because
   Safari has no Bluetooth. Pinned by `app/tests/wifi.test.ts`, `app/e2e/setup-wifi.spec.ts`, `brain/tests/test_setup_wifi.py` and the
   `setting_up` group in `driver-layer/host/tests.sh`; the host's half is `host/network.sh`.
+  **A way in is on the screen only once it works** (21 November, `design/own-wifi/`, A). The first start offers the
+  hub's own Wi-Fi only when `network.sh` has it up: in the modem, the cable alone until then; on nothing, the first
+  start's own line until then, and "Plug the hub into your router" if the card couldn't make one. A card that lists
+  hosting and joining at once and refuses the second interface hosts on its own. Pinned by the `offering` and
+  `setting_up` groups and `startup/startup.test.mjs`.
 - **A hub with a screen and no network asks which Wi-Fi on that screen** (22 October, `design/screen-wifi/`, C). The
   question is the phone's, before Welcome home, with the hub's own Wi-Fi as a code beside it; whichever is started
   first wins, and a phone on the hub's Wi-Fi gets the screen to step aside. A screen nobody can touch or point at shows
@@ -346,6 +351,11 @@ Do not reopen these, and do not propose around them.
   is read-only before anything mounts it (`x86-image/try-premount.sh`, `try-root.sh`, `host/try.sh`); a move takes the
   try along and empties it. Pinned by the `trying`, `stick_root` and `growing` groups and by `x86-image/stick-e2e.sh`,
   which starts the image as a USB stick beside a drive on every change to it.
+  **Done is said by the drive; a failed move says so** (21 November, `design/move-to-drive/`, after-move: C, and B).
+  A hub just moved onto its drive starts there even with the stick left in, and its first start says the stick can
+  come out while it is still plugged in. A move that stops asks whoever typed erase to try again or carry on from the
+  stick, never saying the drive is unchanged, and keeps what the copy said with the try. Pinned by
+  `startup/startup.test.mjs`, the `moving_in` group and the stick e2e's D.
 - **Leaving a house: erasing is on The hub, handing over is on People** (1 November, `design/leaving/`, B). Start over
   is the last row of The hub: behind the passcode, refused outright on a hub with none, only in the house, and a hold.
   It erases everything that is the house, keeps what is the unit's (what it updates from, its name on the network, its
@@ -475,6 +485,20 @@ Do not reopen these, and do not propose around them.
   asked** (22 November, the same collection's "told" page, A): two AirPlay speakers announcing one pair id are one card
   from the start, and their word outranks an earlier Two speakers. `brain/hub/stereo.py`, pinned by
   `brain/tests/test_stereo.py`.
+- **A wall switch that joins is set up on its light, never just "Added."** (22 November, `design/switch-setup/`, C ending
+  on B's page). The bridge finishes a switch it lets in, and the hub keeps the switch's own key beside the mesh keys, never
+  on a screen. Then every question is what the person saw: a light came on or not; the house takes it slowly to almost
+  off and back, because bulbs that can't dim only show it near the bottom, and every answer to that is final -- nobody is
+  sent to the tab midway (dim test A, same day); and the other switch for the same light is found by pressing it. Walking in, the room and
+  the name are the only things asked in words. The end is the switch's settings page, and a light with a wall switch opens
+  the same page from its own screen. What the bulbs can do (found) is kept apart from what the switch does (chosen): a
+  light that can dim may still be on and off only (dimming is your choice, A, same day). The other switch for a light is
+  added from inside that step when it isn't on the house yet, from whichever end somebody starts at -- the one without a
+  light is told its partner, and the setup carries on as the one with the light (two switches, B); both ends are set to dim
+  or not together, because the far end's slider only reaches the light when it is set to dim too -- and a room that isn't
+  on the house yet is made from the room step (New room, A). The hub speaks to the bridge in plain
+  words (`setup`, `dims`, `pair`, `unpair`) and never knows a maker's settings. Pinned by `app/tests/switchSetup.test.ts`,
+  `app/e2e/switch-setup.spec.ts` and `brain/tests/test_wallswitch.py`; the hub's half is `brain/hub/wallswitch.py`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
   B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
   development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this

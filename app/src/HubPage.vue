@@ -68,6 +68,9 @@ const busyUpdating = computed(() => !!store.updating || !!update.value?.requeste
    piece 1). Home stops nudging for it; here it is still one tap, because this page is where a person
    is the one choosing, and trying it a second time is often what fixes it. */
 const rolledBack = computed(() => update.value?.state?.state === 'reverted' ? (update.value?.state?.bad || update.value?.rejected || 'That update') : '')
+/* One the installer couldn't finish, or that came back on the brain it already had, and was put back. Said, because
+   otherwise the row reads exactly as it did before the tap, and a hub flashed from a branch was tapped five times. */
+const unfinished = computed(() => update.value?.state?.state === 'failed' ? (update.value?.state?.bad || 'The update') : '')
 /* A release the hub would not vouch for: no signed record of what it is, or one signed by a key this
    hub does not know (docs/updates.md, piece 2). Nothing was installed and nothing is broken, and no
    button appears -- the same tap would refuse the same release, and this one is not the household's
@@ -292,12 +295,12 @@ const when = (ts?: number | null) => ts ? new Date(ts * 1000).toLocaleString(loc
           </span>
         </template>
         <template v-else>
-        <span class="hub-v"><span class="hub-version" @click="tapVersion">{{ versionLabel(store.status?.version) }}</span><span class="hub-sub" v-if="held"> · {{ update?.latest?.version }} was paused by the people who make the hub</span><span class="hub-sub" v-else-if="refused"> · {{ refused }} couldn’t be checked, so it wasn’t installed</span><span class="hub-sub" v-else-if="rolledBack"> · {{ rolledBack }} didn’t start, so this one was put back</span><span class="hub-sub" v-else-if="update?.checked"> · checked {{ when(update.checked) }}</span>
+        <span class="hub-v"><span class="hub-version" @click="tapVersion">{{ versionLabel(store.status?.version) }}</span><span class="hub-sub" v-if="held"> · {{ update?.latest?.version }} was paused by the people who make the hub</span><span class="hub-sub" v-else-if="refused"> · {{ refused }} couldn’t be checked, so it wasn’t installed</span><span class="hub-sub" v-else-if="rolledBack"> · {{ rolledBack }} didn’t start, so this one was put back</span><span class="hub-sub" v-else-if="unfinished"> · {{ unfinished }} didn’t finish installing, so this one was put back</span><span class="hub-sub" v-else-if="update?.checked"> · checked {{ when(update.checked) }}</span>
           <!-- What the hub is doing right now, said in its own words rather than three dots. It is a
                line here and not a screen over the panel because the house still works: for all of
                this but the last stretch the brain is up and every light still answers. -->
           <span class="hub-sub line" v-if="busyUpdating">{{ phase?.says || 'Starting.' }} {{ (phase?.notices ?? []).join(' ') }}</span></span>
-        <button class="button small" v-if="update?.available && !refused && !held && !busyUpdating" @click="openInstall">{{ rolledBack ? 'Try again' : 'Install the update' }}</button>
+        <button class="button small" v-if="update?.available && !refused && !held && !busyUpdating" @click="openInstall">{{ rolledBack || unfinished ? 'Try again' : 'Install the update' }}</button>
         <span class="hub-sub" v-else-if="busyUpdating">{{ phase?.step ? `Step ${phase.step} of ${phase.steps}` : 'Updating…' }}</span>
         <span class="hub-sub" v-else-if="update?.available === false">Up to date</span>
         <span class="hub-sub" v-else-if="update?.error">Couldn't check: no internet?</span>

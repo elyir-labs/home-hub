@@ -95,6 +95,7 @@ export const store = reactive({
   /* Sharing changed, or somebody scanned the code: a counter rather than the state itself, because
      only This hub draws it and a page that is not open should not be kept up to date. */
   shareTick: 0,
+  restTick: 0,
   /* a knock that has been put aside: the pane is down, the ask still stands, and the chip in the
      band carries it. A NEW knock clears this (App.vue), because putting one phone aside must not
      silence the next one. */
@@ -110,6 +111,7 @@ export const store = reactive({
   strip: null as Strip | null,   // a light strip being set up; hub/strip.py. One at a time, same as a bridge
   roofline: null as Roofline | null,   // the light outside made of several boxes; hub/roofline.py. Null on a hub that predates it
   yard: false,                         // the way round being shown on the roof, from a phone in the yard (design/roofline/TapA)
+  switchSettings: null as { addr: string; deviceId: string; name: string } | null,   // the wall switch behind a light, opened from it
   /* The house's 3D printers, as the brain follows them (brain/hub/printers.py): what each is doing, the
      ones found on the Wi-Fi, and any ask waiting at a printer. Null on a hub that predates them. */
   printers: null as Printers | null,
@@ -1057,7 +1059,7 @@ export async function start() {
   refreshBridge()
   refreshStrip()
   watchReach()
-  stop = connect({ device: applyDevice, home: applyHome, intent: applyIntent, drafts: d => { store.drafts = d; eventsSoon() }, presence: p => { store.presence = p; eventsSoon() }, phones: () => loadPhones(true), share: () => { store.shareTick++; loadShare() }, signals: t => { store.signalTry = t; if (store.signals) loadSignals() }, roofline: r => { if (!ROOF_PARAM) store.roofline = r }, printers: applyPrinters, power: p => { store.power = p }, ring: rang, note: m => notify(m.text), ambient: a => { store.ambient = a; updateSky() }, status: s => {
+  stop = connect({ device: applyDevice, home: applyHome, intent: applyIntent, drafts: d => { store.drafts = d; eventsSoon() }, presence: p => { store.presence = p; eventsSoon() }, phones: () => loadPhones(true), share: () => { store.shareTick++; loadShare() }, rest: () => { store.restTick++ }, signals: t => { store.signalTry = t; if (store.signals) loadSignals() }, roofline: r => { if (!ROOF_PARAM) store.roofline = r }, printers: applyPrinters, power: p => { store.power = p }, ring: rang, note: m => notify(m.text), ambient: a => { store.ambient = a; updateSky() }, status: s => {
     const was = store.status?.driver, version = store.status?.version
     store.status = s
     if (newBuild(version, s.version)) {

@@ -1465,6 +1465,12 @@ class ABuildFromAWorkingTreeNow(unittest.TestCase):
         self.assertEqual(self.state()["state"], "offered")
         self.assertFalse((self.push / "request.json").exists())    # taken once
 
+    def test_a_build_is_named_with_its_kind_as_the_puck_names_itself(self):
+        # Pushed without its "+mesh", a mesh build is "another kind" to a puck already on 0.7.0 and refused.
+        self.park(fw="0.7.0-d922864+mesh")
+        self.assertEqual(self.state()["state"], "offered")
+        self.assertTrue(self.offers()[0].startswith("0.7.0-d922864+mesh "))
+
     def test_a_release_hub_refuses_whoever_asks(self):
         self.hub.updates.channel = "release"
         self.park()

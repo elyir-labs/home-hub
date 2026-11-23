@@ -43,6 +43,7 @@ struct Run {
 
 constexpr const char *NAME = "reva";
 constexpr int OUTPUTS = 2;
+constexpr int BOX_LIGHTS = 0;
 
 // Module pin -> GPIO, read off gen_sch.py's U1 and the per-run loop (ESP32-S3-WROOM-1 pinout):
 //   19/20 -> 11/12 D1/C1     21/22 -> 13/14 D2/C2     23/24 -> 21/47 EN1/EN2
@@ -89,9 +90,21 @@ constexpr uint32_t PRESS_SHORTEST_MS = 30;
 //   Power: at 5 A a run the limiter is dimming long before a thousand lights are all lit anyway.
 #define PX_MOST 1000
 
-#else  // the devkit: today's board, unchanged
+#else  // the devkit: today's board, unchanged -- or the roofline's devkit box, which is one with a light in front
 
+#if defined(STRIP_BOARD_ROOFBOX)
+// THE ROOFLINE'S DEVKIT BOX (home-hub-hardware, strip/devkit), until rev A is made: a devkit whose
+// first light on the wire is a WS2812B inside the box, fed about 4 V through a diode so it reads the
+// devkit's 3.3 V and passes on a full-height picture. It is the level shifter, and the box's window.
+// It is not the roof's, so it is a board of its own: an ordinary devkit image would light it as the
+// roof's first light and put every light on the roof one place out, so the two must refuse each
+// other's updates (fwupdate.cpp), which a project name of its own gives them.
+constexpr const char *NAME = "roofbox";
+constexpr int BOX_LIGHTS = 1;
+#else
 constexpr const char *NAME = "devkit";
+constexpr int BOX_LIGHTS = 0;
+#endif
 constexpr int OUTPUTS = 1;
 
 #ifndef DATA_PIN

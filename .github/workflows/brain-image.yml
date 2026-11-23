@@ -7,11 +7,14 @@
 #   main, development,   whatever that branch is at. For a hub being worked on (HUB_CHANNEL=main or
 #   sha-<sha>            development) and for looking at a build before tagging it. Never what a
 #                        family gets.
+#   <any other branch>   the same, for a branch a hub was flashed from (an x86 or Pi image built there),
+#                        which that hub follows. Other branches build nothing; install.sh builds on the
+#                        hub when the image is older than its code.
 name: brain image
 
 on:
   push:
-    branches: [main, development]
+    branches: ["**"]
     tags: ["v*"]
     # Every file a hub runs, not only the ones inside the image: a branch hub is offered the newest
     # commit that built here (brain/hub/updates.py), so a change to the host scripts or the compose
@@ -21,6 +24,7 @@ on:
 
 permissions:
   contents: read
+  actions: read        # to ask whether a hub was flashed from this branch
   packages: write
   id-token: write      # cosign signs with the workflow's own OIDC identity; there is no key to keep
 
@@ -34,10 +38,33 @@ jobs:
     if: github.ref_type == 'tag'
     uses: ./.github/workflows/ci.yml
 
+  # A push to any other branch builds only if a hub follows it: one was flashed from an image built there. Without this,
+  # such a hub's updates restarted it on the brain its image brought (21 November 2026), and now they build on the hub.
+  followed:
+    if: github.event_name == 'push' && github.ref_type == 'branch' && github.ref_name != 'main' && github.ref_name != 'development'
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.look.outputs.build }}
+    steps:
+      - id: look
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          n=0
+          for w in x86-image.yml pi-image.yml; do
+            c="$(gh run list -R "$GITHUB_REPOSITORY" --workflow "$w" --branch "$BRANCH" --status success --limit 1 --json databaseId --jq length)"
+            n=$((n + ${c:-0}))
+          done
+          echo "build=$([ "$n" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          [ "$n" -gt 0 ] && echo "a hub was flashed from $BRANCH: building its brain" || echo "no hub follows $BRANCH: nothing to build"
+
   build:
-    needs: verify
+    needs: [verify, followed]
     # `always()` so a push to a branch, where verify is skipped rather than run, still builds.
-    if: always() && needs.verify.result != 'failure' && needs.verify.result != 'cancelled'
+    if: >-
+      always() && needs.verify.result != 'failure' && needs.verify.result != 'cancelled'
+      && (needs.followed.result == 'skipped' || needs.followed.outputs.build == 'true')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

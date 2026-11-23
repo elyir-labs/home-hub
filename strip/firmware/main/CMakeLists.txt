@@ -15,6 +15,8 @@ endforeach()
 # The board (../CMakeLists.txt, board.h). The devkit is the absence of this, so its build is unchanged.
 if("${STRIP_BOARD}" STREQUAL "reva")
     target_compile_definitions(${COMPONENT_LIB} PRIVATE STRIP_BOARD_REVA=1)
+elseif("${STRIP_BOARD}" STREQUAL "roofbox")
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE STRIP_BOARD_ROOFBOX=1)
 endif()
 
 # A working-tree build's version, from tools/dev.sh strip: `idf.py -DSTRIP_FW=0.4.0-d384085 build`.

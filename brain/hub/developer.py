@@ -164,7 +164,8 @@ class Developer:
             k.update(name=k["name"] or (f"{user} on GitHub" if user else k["type"]), added=int(time.time()), source=source)
             w["keys"].append(k); have.add(k["fingerprint"])
         if len(w["keys"]) > MAX_KEYS: raise ValueError(f"That would be more than {MAX_KEYS} keys.")
-        self._want(w["on"], w["keys"])
+        # The page says adding a key is how SSH is turned on, and has no other switch for it while it is off.
+        self._want(True, w["keys"])
         return self.summary()
 
     def remove_key(self, fingerprint: str) -> dict:
@@ -206,7 +207,7 @@ class Developer:
         asked = self.hub.settings.get("developer_ssh") is not None
         pending = SSH_REQUEST.exists() or (asked and wanted != done)
         keys = [{k: key.get(k) for k in ("name", "type", "fingerprint", "added", "source")} for key in w["keys"]]
-        return {"on": done_on, "user": did.get("user") or "pi", "host": f"{socket.gethostname().split('.')[0]}.local",
+        return {"on": done_on, "user": did.get("user") or "elyir", "host": f"{socket.gethostname().split('.')[0]}.local",
                 "ip": _address(), "keys": keys, "pending": bool(pending)}
 
     # ---------- screens ----------

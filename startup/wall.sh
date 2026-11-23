@@ -148,7 +148,7 @@ old_cage() { cage -v 2>&1 | grep -q 'version 0\.1\.'; }
 
 browser() {
   local b
-  for b in chromium chromium-browser; do command -v "$b" >/dev/null 2>&1 && { echo "$b"; return; }; done
+  for b in chromium /snap/bin/chromium; do command -v "$b" >/dev/null 2>&1 && { echo "$b"; return; }; done
   echo chromium
 }
 
@@ -199,7 +199,7 @@ case "${1:-}" in
     # Chromium locks its profile under this machine's name and refuses to start, exit 21, when the name has changed
     # since -- which first boot does, to hub or to screen. Only this service runs a browser as this user, one at a
     # time, so a lock found here is always left over.
-    rm -f "${XDG_CONFIG_HOME:-$HOME/.config}"/chromium/Singleton{Lock,Cookie,Socket}
+    rm -f "${XDG_CONFIG_HOME:-$HOME/.config}"/chromium/Singleton{Lock,Cookie,Socket} "$HOME"/snap/chromium/common/chromium/Singleton{Lock,Cookie,Socket}
     # A desktop browser ignores the panel's user-scalable=no, so a stray two-finger touch would zoom
     # the wall and a sideways swipe would go back a page; both are switched off here instead. Nobody may be standing
     # at the wall when it is asked to speak, so a sound plays without a tap first, as the Android kiosk's does.

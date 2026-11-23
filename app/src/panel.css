@@ -321,6 +321,7 @@ input:focus-visible {
   }
 }
 
+
 .sky-veil {
   position: absolute;
   inset: 0;
@@ -4245,6 +4246,13 @@ input:focus-visible {
 }
 
 /* E: winding down. What is still on, and one button for the night. */
+.tvrest-dither {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
 .tvrest-night {
   position: absolute;
   inset: 0;
@@ -12266,6 +12274,46 @@ select.input {
   font-size: 16px;
   line-height: 23px;
 }
+/* the switch's settings over its light: as wide as the page setup ended on, so its rows read the same */
+/* a room that isn't on the house yet, made from the switch's room step (design/switch-setup/, room A) */
+.chip-btn.sw-newroom {
+  border-style: dashed;
+}
+.chip-btn.sw-newroom.naming {
+  border-style: solid;
+  border-color: rgba(var(--lamp-rgb), 0.6);
+  padding: 4px 4px 4px 16px;
+  gap: 10px;
+}
+.sw-newroom-input {
+  width: 140px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  outline: none;
+}
+.sw-sheet {
+  width: min(100%, 860px);
+}
+/* the wall switch behind a light, one line, and Change (design/switch-setup/, dimming is your choice, A) */
+.pane-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 0;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.pane-switch-i {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--surface-hi);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
 .pane-why.roof-wrong {
   color: var(--danger-text);
 }
@@ -16430,9 +16478,12 @@ html[data-wall-keys] .shell {
   animation-play-state: paused;
 }
 
-/* The wall is touched, not pointed at: a mouse plugged in for setting it up shows no arrow on the panel. */
+/* The wall is touched, not pointed at: a mouse plugged in for setting it up shows no arrow on the panel. Nor does a
+   TV, which is worked with a remote: a mouse in the hub drew a gray disc there (App.vue). */
 html[data-wall],
-html[data-wall] * {
+html[data-wall] *,
+html[data-tv-screen],
+html[data-tv-screen] * {
   cursor: none !important;
 }
 
@@ -16849,4 +16900,226 @@ html[data-wall] [data-moving] *::after {
 }
 .glow-where {
   margin-top: 8px;
+}
+
+/* A wall switch set up on its light (SwitchSetup.vue, design/switch-setup/ C): the answers so far as
+   sentences above one question, answered with large picks, and the end as rows of settings. */
+.sw-setup {
+  max-width: 760px;
+}
+.sw-count {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.sw-dots {
+  display: flex;
+  gap: 6px;
+}
+.sw-dots i {
+  width: 22px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--edge-hi);
+}
+.sw-dots i.on {
+  background: var(--ink);
+}
+.sw-said {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: 15px;
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--edge);
+}
+.sw-said b {
+  color: var(--ink);
+  font-weight: 500;
+}
+.sw-tick {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: rgba(var(--live-rgb), 0.9);
+  color: var(--bg);
+}
+.sw-change {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.sw-ask {
+  margin: 10px 0 4px;
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.sw-ask.small {
+  margin-top: 8px;
+  font-size: 22px;
+}
+.sw-q {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.sw-q .sw-live {
+  margin-top: 8px;
+}
+.sw-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  margin-top: 12px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 15px;
+  color: var(--lamp-text);
+  background: rgba(var(--lamp-rgb), 0.14);
+  border: 1px solid rgba(var(--lamp-rgb), 0.35);
+}
+.sw-live i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--lamp);
+  box-shadow: 0 0 0 5px rgba(var(--lamp-rgb), 0.22);
+}
+.sw-picks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.sw-pick {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 48px;
+  padding: 5px 18px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--edge);
+  background: var(--surface-hi);
+  color: var(--ink);
+  font-size: 17px;
+  text-align: left;
+}
+.sw-pick small {
+  display: block;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.sw-pick.on {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: transparent;
+}
+.sw-pick.on small {
+  color: var(--bg);
+  opacity: 0.65;
+}
+.sw-pick:disabled {
+  opacity: 0.5;
+}
+.sw-pi {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-sm);
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: var(--surface-hi);
+  color: var(--ink-2);
+}
+.sw-pick.on .sw-pi {
+  background: transparent;
+  color: var(--bg);
+}
+.sw-set {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  align-items: center;
+  justify-items: start;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--edge);
+}
+.sw-k {
+  font-size: 15px;
+}
+.sw-k small {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.sw-seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: var(--surface-hi);
+}
+.sw-seg button {
+  padding: 8px 15px;
+  border-radius: 999px;
+  font-size: 14.5px;
+  color: var(--ink-2);
+}
+.sw-seg button.on {
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 500;
+}
+.sw-seg.plain {
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.sw-restart {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+  padding: 12px 18px;
+  border-radius: var(--r-md);
+  background: rgba(var(--lamp-rgb), 0.08);
+  border: 1px solid rgba(var(--lamp-rgb), 0.3);
+}
+.sw-restart b {
+  font-weight: 500;
+}
+.sw-restart small {
+  display: block;
+  margin-top: 3px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.sw-restart .sw-pi {
+  background: rgba(var(--lamp-rgb), 0.18);
+  color: var(--lamp-text);
+}
+@media (max-width: 640px) {
+  .sw-set {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }

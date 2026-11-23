@@ -242,7 +242,8 @@ export const networkDone = () => post<Bridge>('/network/done')
    route has to prove that another way: ask the house what is waiting, make one of them announce itself,
    and let a person say whether the blinking one is the switch they just touched. No camera in any of it,
    so the wall can run the whole job on its own (design/puck/Held.dc.html and Waiting.dc.html). */
-export type Letting = { state: 'working' | 'done' | 'failed'; text?: string; device_id?: string; name?: string }
+export type Letting = { state: 'working' | 'done' | 'failed'; text?: string; device_id?: string; name?: string
+                        switch?: string; setup?: boolean; retry?: boolean }
 export const addSwitch = (code: string) => post<Letting>('/bridge/switches', { code })
 export const letSwitchIn = (uuid: string) => post<Letting>('/bridge/switches', { uuid })
 
@@ -259,6 +260,29 @@ export async function nearbySwitches(): Promise<Nearby> {
    touched from any other unclaimed one in radio range, so a failure here is not cosmetic: it means
    the next question cannot honestly be asked. */
 export const blinkSwitch = (uuid: string, seconds = 5) => post<{ state: string; text?: string }>('/bridge/blink', { uuid, seconds })
+/* A wall switch after it joins, set up by trying it on the light (design/switch-setup/, C). The switch is
+   named by the address the house gave it; the bridge keeps what each answer means on the switch. */
+export type SwitchSetup = { switch: string; light: boolean | null; dims: boolean | null; can_dim?: boolean | null; partner: string | null
+                            walkin: 'nothing' | 'on' | 'on_off'; finished: boolean; device_id?: string | null; name?: string | null }
+/** The wall switch behind a light, or null for a light that has none. */
+export async function switchOfDevice(id: string): Promise<SwitchSetup | null> {
+  const r = await request(`/devices/${encodeURIComponent(id)}/switch`)
+  if (r.status === 404) return null
+  if (!r.ok) await fail(r)
+  return r.json()
+}
+export async function switchSetup(addr: string): Promise<SwitchSetup> {
+  const r = await request(`/bridge/switches/${addr}`); if (!r.ok) await fail(r); return r.json()
+}
+export const finishSwitch = (addr: string) => post<Letting>(`/bridge/switches/${addr}/finish`, {})
+export const showOnSwitch = (addr: string, what: 'light' | 'dim') => post<{ state: string; seconds: number; every?: number; levels?: number[] }>(`/bridge/switches/${addr}/show`, { what })
+export const switchHasLight = (addr: string, light: boolean) => post<SwitchSetup>(`/bridge/switches/${addr}/light`, { light })
+export const switchDims = (addr: string, dims: boolean, found?: boolean, alone?: boolean) =>
+  post<{ state: string; text?: string; restart?: boolean }>(`/bridge/switches/${addr}/dims`, { dims, ...(found === undefined ? {} : { found }), ...(alone ? { alone } : {}) })
+export const listenForSwitch = (addr: string) => post<{ heard: { switch: string; device_id: string | null; name: string } | null }>(`/bridge/switches/${addr}/listen`, {})
+export const pairSwitch = (addr: string, other: string) => post<{ state: string; text?: string; restart?: boolean }>(`/bridge/switches/${addr}/pair`, { with: other })
+export const unpairSwitch = (addr: string) => post<{ state: string; text?: string }>(`/bridge/switches/${addr}/unpair`, {})
+export const switchWalkIn = (addr: string, mode: 'nothing' | 'on' | 'on_off') => post<SwitchSetup>(`/bridge/switches/${addr}/walkin`, { mode })
 export const BRIDGE_STEPS = ['software', 'wifi', 'keys'] as const
 /* The states that have nothing left to say once somebody has read them.
  *
@@ -913,7 +937,7 @@ let live: WebSocket | null = null
 export function kickStream() { live?.close() }
 
 /** Live updates from the brain. Reconnects with backoff; reports link state. */
-export function connect(on: { device: (d: Device) => void; home: (h: Home) => void; ambient: (a: Ambient) => void; status: (s: Status) => void; intent: (i: Intent) => void; drafts: (d: Routine[]) => void; presence: (p: Presence) => void; phones: () => void; share: () => void; signals: (t: TryBrief | null) => void; roofline?: (r: Roofline) => void; printers?: (p: Printers) => void; power?: (p: Power | null) => void; note?: (m: Message) => void; ring?: (r: Ring) => void; link: (up: boolean) => void }) {
+export function connect(on: { device: (d: Device) => void; home: (h: Home) => void; ambient: (a: Ambient) => void; status: (s: Status) => void; intent: (i: Intent) => void; drafts: (d: Routine[]) => void; presence: (p: Presence) => void; phones: () => void; share: () => void; rest?: () => void; signals: (t: TryBrief | null) => void; roofline?: (r: Roofline) => void; printers?: (p: Printers) => void; power?: (p: Power | null) => void; note?: (m: Message) => void; ring?: (r: Ring) => void; link: (up: boolean) => void }) {
   let delay = 1000, ws: WebSocket | null = null, closed = false
   const open = () => {
     ws = live = new WebSocket(wsUrl('/stream'), wsProtocols())   // the token rides as a subprotocol, never in the URL (door.ts)
@@ -929,6 +953,7 @@ export function connect(on: { device: (d: Device) => void; home: (h: Home) => vo
       else if (m.type === 'presence') on.presence(m.presence)
       else if (m.type === 'phones') on.phones()   // a nudge, not the roster: what this phone may see is /phones' answer to ask for
       else if (m.type === 'share') on.share()    // the same shape: what is shared, and who holds it, is /share's answer to give
+      else if (m.type === 'rest') on.rest?.()    // photos, the board, the paintings or what a screen shows: each screen asks for its own
       else if (m.type === 'signals') on.signals(m.trying ?? null)   // a try moved on, or a row was switched; the brief is for the band
       else if (m.type === 'roofline') on.roofline?.(m.roofline)   // its evenings, its look, the way round, a box gone dark
       else if (m.type === 'printers') on.printers?.(m.printers)   // the whole printer status: what each is doing, found, asking
