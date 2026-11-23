@@ -356,6 +356,9 @@ class Changes:
             return "showed the code that adds the house to another app."
         # kind == "home": the subject says which sort of change it was
         if subject == "room": return f"added the room {new}."
+        if subject == "room-renamed": return f"renamed the {old} to {new}."
+        if subject == "room-removed": return f"removed the {old}, and moved what was in it to the {new}." if new else f"removed the {old}."
+        if subject == "room-back": return f"brought the {new} back."
         if subject == "location": return f"set where home is to {new}."
         if subject == "entry": return "changed which rooms are the entrance."
         if subject == "backup": return "took a backup of the house."

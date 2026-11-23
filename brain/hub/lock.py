@@ -19,7 +19,7 @@ def needs_code(method: str, path: str) -> bool:
     if path == "/setup/advanced": return True
     if path.startswith("/setup/") and m == "POST": return path != "/setup/status"
     if path == "/rooms" and m == "POST": return True
-    if path.startswith("/rooms/") and (m == "DELETE" or path.endswith("/rename")): return True
+    if path.startswith("/rooms/") and (m == "DELETE" or path.endswith(("/rename", "/back"))): return True
     if path.startswith("/devices/") and path.endswith(("/move", "/rename", "/share")): return True   # what leaves the house is a change to it
     if path.startswith("/devices/") and m == "DELETE": return True           # forgetting one is a change to the house, not a tap
     if path.startswith(("/flows", "/credentials")): return True

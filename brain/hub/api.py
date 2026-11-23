@@ -21,6 +21,7 @@ from .onboarding import Onboarding
 from .provision import Provision
 from .comfort import Comfort
 from .rules import Engine
+from . import rooms as rooms_mod
 from .presence import Presence, WATCHED, word as presence_word
 from .assistant import Assistant, AssistantError
 from . import notes as notes_mod
@@ -1110,21 +1111,32 @@ async def add_room(body: dict):
 @app.post("/rooms/{room_id}/rename")
 async def rename_room(room_id: str, body: dict):
     hub.ready()
-    if room_id == "unassigned" or room_id not in hub.home.rooms: raise HTTPException(404, "unknown room")
-    name = (body.get("name") or "").strip()
-    if not name: raise HTTPException(400, "A room needs a name.")
-    try: await hub.ha.send("config/area_registry/update", area_id=room_id, name=name)
-    except Exception as e: raise HTTPException(502, f"could not rename the room: {e}")
-    return {"ok": True}
+    try: return await rooms_mod.rename(hub, room_id, body.get("name") or "")
+    except rooms_mod.RoomError as e: raise HTTPException(e.status, e.words)
+
+
+@app.get("/rooms/{room_id}/removing")
+def removing_room(room_id: str):
+    """What taking this room away would touch, for the question asked before it is done."""
+    hub.ready()
+    try: return rooms_mod.follows(hub, room_id)
+    except rooms_mod.RoomError as e: raise HTTPException(e.status, e.words)
 
 
 @app.delete("/rooms/{room_id}")
-async def remove_room(room_id: str):
+async def remove_room(room_id: str, to: str | None = None):
+    """Take a room away. Its things go to `to` first, or wait in New devices when it is left out (design/room-edit/, A)."""
     hub.ready()
-    if room_id == "unassigned" or room_id not in hub.home.rooms: raise HTTPException(404, "unknown room")
-    try: await hub.ha.send("config/area_registry/delete", area_id=room_id)
-    except Exception as e: raise HTTPException(502, f"could not remove the room: {e}")
-    return {"ok": True}
+    try: return await rooms_mod.remove(hub, room_id, to)
+    except rooms_mod.RoomError as e: raise HTTPException(e.status, e.words)
+
+
+@app.post("/rooms/{room_id}/back")
+async def bring_room_back(room_id: str):
+    """Bring it back: the drained card's undo, for a room removed since the hub started."""
+    hub.ready()
+    try: return await rooms_mod.bring_back(hub, room_id)
+    except rooms_mod.RoomError as e: raise HTTPException(e.status, e.words)
 
 
 @app.post("/devices/{device_id}/move")
