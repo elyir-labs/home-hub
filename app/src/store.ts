@@ -95,6 +95,7 @@ export const store = reactive({
   /* Sharing changed, or somebody scanned the code: a counter rather than the state itself, because
      only This hub draws it and a page that is not open should not be kept up to date. */
   shareTick: 0,
+  restTick: 0,
   /* a knock that has been put aside: the pane is down, the ask still stands, and the chip in the
      band carries it. A NEW knock clears this (App.vue), because putting one phone aside must not
      silence the next one. */
@@ -1058,7 +1059,7 @@ export async function start() {
   refreshBridge()
   refreshStrip()
   watchReach()
-  stop = connect({ device: applyDevice, home: applyHome, intent: applyIntent, drafts: d => { store.drafts = d; eventsSoon() }, presence: p => { store.presence = p; eventsSoon() }, phones: () => loadPhones(true), share: () => { store.shareTick++; loadShare() }, signals: t => { store.signalTry = t; if (store.signals) loadSignals() }, roofline: r => { if (!ROOF_PARAM) store.roofline = r }, printers: applyPrinters, power: p => { store.power = p }, ring: rang, note: m => notify(m.text), ambient: a => { store.ambient = a; updateSky() }, status: s => {
+  stop = connect({ device: applyDevice, home: applyHome, intent: applyIntent, drafts: d => { store.drafts = d; eventsSoon() }, presence: p => { store.presence = p; eventsSoon() }, phones: () => loadPhones(true), share: () => { store.shareTick++; loadShare() }, rest: () => { store.restTick++ }, signals: t => { store.signalTry = t; if (store.signals) loadSignals() }, roofline: r => { if (!ROOF_PARAM) store.roofline = r }, printers: applyPrinters, power: p => { store.power = p }, ring: rang, note: m => notify(m.text), ambient: a => { store.ambient = a; updateSky() }, status: s => {
     const was = store.status?.driver, version = store.status?.version
     store.status = s
     if (newBuild(version, s.version)) {

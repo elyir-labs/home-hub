@@ -59,6 +59,13 @@ class Store(unittest.TestCase):
         asyncio.run(a.settle(True))
         self.assertEqual(len(self.asked), 2, "a painting already here is not downloaded again")
 
+    def test_paintings_arriving_nudge_the_screens_once_and_nothing_new_does_not(self):
+        told = []
+        a = Art(fetch=self.fetch, arrived=lambda: told.append(1))
+        asyncio.run(a.settle(True))
+        asyncio.run(a.settle(True))
+        self.assertEqual(told, [1], "a screen showing art hears when they land, and not again when nothing new did")
+
     def test_a_picture_that_is_not_the_one_we_prepared_is_refused_and_the_rest_still_arrive(self):
         self.served["field.jpg"] = OTHER
         a = Art(fetch=self.fetch)
