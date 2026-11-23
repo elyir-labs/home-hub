@@ -189,10 +189,11 @@ void show(const Pixels *const ps[], const uint16_t scale[], int n) {
         if (o.wire == Wire::ONE) {
             if (!o.chan || !o.encoder) continue;
             // Untouched, it goes straight from the picture -- which is the devkit's whole path, as it
-            // was before there was a copy to make.
+            // was before there was a copy to make. A box with a light of its own always copies, because
+            // that light goes out first (pixels.h, one_wire).
             const uint8_t *bytes = p.buf;
             size_t len = p.bytes_used();
-            if (scale[i] < 256) {
+            if (scale[i] < 256 || board::BOX_LIGHTS > 0) {
                 if (!have_copy(o)) continue;
                 len = one_wire(p, scale[i], o.copy);
                 bytes = o.copy;

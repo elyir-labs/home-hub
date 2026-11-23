@@ -5,6 +5,7 @@
 //
 //     c++ -std=c++17 -O1 -o /tmp/px test_pixels_native.cpp && /tmp/px
 //     c++ -std=c++17 -O1 -DSTRIP_BOARD_REVA -o /tmp/px test_pixels_native.cpp && /tmp/px    (rev A's limits)
+//     c++ -std=c++17 -O1 -DSTRIP_BOARD_ROOFBOX -o /tmp/px test_pixels_native.cpp && /tmp/px (the roof box's light)
 //
 // This exists because a strip with its red and green swapped LOOKS LIKE IT IS WORKING. Everything
 // lights, everything dims, every tile is right, and the only symptom is that the household's idea of
@@ -251,7 +252,7 @@ static void undimmed_is_the_picture_byte_for_byte() {
     px::Pixels p; p.set_count(50); p.order.white = true;
     for (size_t i = 0; i < p.bytes_used(); i++) p.buf[i] = (uint8_t)(i * 37 + 11);
     static uint8_t wire[16384];
-    const size_t n = px::one_wire(p, 256, wire);
+    const size_t n = px::one_wire(p, 256, wire, 0);
     CHECK(n == p.bytes_used(), "one-wire copy is %zu bytes, want %zu", n, p.bytes_used());
     CHECK(memcmp(wire, p.buf, n) == 0, "a full-scale copy changed the picture");
 }
@@ -262,11 +263,11 @@ static void dimming_never_brightens_and_leaves_the_picture_alone() {
     p.solid(255, 128, 1);
     uint8_t before[12]; memcpy(before, p.buf, 12);
     static uint8_t wire[64];
-    px::one_wire(p, 128, wire);
+    px::one_wire(p, 128, wire, 0);
     CHECK(memcmp(before, p.buf, 12) == 0, "dimming wrote into the picture");
     for (int i = 0; i < 12; i++) CHECK(wire[i] <= p.buf[i], "byte %d went from %d up to %d", i, p.buf[i], wire[i]);
     CHECK(wire[p.order.at[0]] == 128, "255 at half is 128, got %d", wire[p.order.at[0]]);
-    px::one_wire(p, 0, wire);
+    px::one_wire(p, 0, wire, 0);
     for (int i = 0; i < 12; i++) CHECK(wire[i] == 0, "a scale of nothing should be dark");
 }
 
@@ -306,10 +307,51 @@ static void two_wire_skips_a_white_it_cannot_carry() {
 static void the_largest_frame_fits_its_copy() {
     printf("the most lights, on either wire, fit the copy pixels.cpp asks for\n");
     px::Pixels p; p.set_count(PX_MOST); p.order.white = true;
-    CHECK(p.bytes_used() <= px::wire_most(PX_MOST), "one-wire at PX_MOST is larger than its copy");
+    CHECK(p.bytes_used() + 3 * board::BOX_LIGHTS <= px::wire_most(PX_MOST), "one-wire at PX_MOST is larger than its copy");
     p.order.white = false;
     static uint8_t wire[4 + PX_MOST * 4 + 4 + (PX_MOST + 15) / 16];
     CHECK(px::two_wire(p, 256, wire) <= px::wire_most(PX_MOST), "two-wire at PX_MOST is larger than its copy");
+}
+
+// ---- the roof box's own light (board::BOX_LIGHTS, pixels.h one_wire) ----
+
+static void the_box_light_goes_first_and_the_picture_follows_untouched() {
+    printf("the box's light goes out first, and the roof's picture follows it byte for byte\n");
+    px::Pixels p; p.set_count(30);
+    for (size_t i = 0; i < p.bytes_used(); i++) p.buf[i] = (uint8_t)(i * 29 + 7);
+    static uint8_t wire[256];
+    const size_t n = px::one_wire(p, 256, wire, 1);
+    CHECK(n == 3 + p.bytes_used(), "with a box light the copy is %zu bytes, want %zu", n, 3 + p.bytes_used());
+    CHECK(memcmp(wire + 3, p.buf, p.bytes_used()) == 0, "the roof's picture changed behind the box's light");
+}
+
+static void the_box_light_is_the_roofs_first_light_in_its_own_order() {
+    printf("the box shows the roof's first light, in its own green-red-blue, whatever the strip's order\n");
+    for (int o = 0; o < 6; o++) {
+        px::Pixels p; p.set_count(5);
+        CHECK(p.order.set(ORDERS[o]), "%s", ORDERS[o]);
+        p.solid(200, 100, 50);
+        static uint8_t wire[64];
+        px::one_wire(p, 256, wire, 1);
+        CHECK(wire[0] == 100 && wire[1] == 200 && wire[2] == 50,
+              "on a %s strip the box is %d,%d,%d, want grb 100,200,50", ORDERS[o], wire[0], wire[1], wire[2]);
+    }
+}
+
+static void the_box_light_dims_with_the_roof_and_keeps_a_white() {
+    printf("the box dims with the roof, and a strip's white is folded into it, not lost\n");
+    px::Pixels p; p.set_count(4);
+    p.solid(200, 0, 0);
+    static uint8_t wire[64];
+    px::one_wire(p, 128, wire, 1);
+    CHECK(wire[1] == 100 && wire[0] == 0, "red 200 at half should be 100 on the box, got r %d g %d", wire[1], wire[0]);
+    px::one_wire(p, 0, wire, 1);
+    CHECK(!wire[0] && !wire[1] && !wire[2], "a dark roof should leave the box dark");
+    p.order.white = true;
+    p.solid(0, 0, 0, 180);
+    px::one_wire(p, 256, wire, 1);
+    CHECK(wire[0] == 180 && wire[1] == 180 && wire[2] == 180, "a white-only roof should light the box white, got %d,%d,%d", wire[0], wire[1], wire[2]);
+    CHECK(px::one_wire(p, 256, wire, 1) == 3 + 4 * 4, "ahead of a four-byte strip the box still takes three bytes");
 }
 
 int main() {
@@ -331,6 +373,9 @@ int main() {
     two_wire_is_an_apa102_frame_an_sk9822_also_reads();
     two_wire_skips_a_white_it_cannot_carry();
     the_largest_frame_fits_its_copy();
+    the_box_light_goes_first_and_the_picture_follows_untouched();
+    the_box_light_is_the_roofs_first_light_in_its_own_order();
+    the_box_light_dims_with_the_roof_and_keeps_a_white();
     printf(failures ? "\n%d failed\n" : "\nall good\n", failures);
     return failures ? 1 : 0;
 }
