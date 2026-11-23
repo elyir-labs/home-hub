@@ -32,7 +32,7 @@ curl -fsSL -o "$WORK/SHA256SUMS" "$BASE/SHA256SUMS"
 # Raw, so it can be written to a disk as it is, and with room for a kernel that knows real hardware, its
 # firmware, Docker and the containers. first boot grows it again to fill whatever disk it lands on.
 qemu-img convert -O raw "$WORK/$CLOUD" "$OUT"
-qemu-img resize -f raw "$OUT" "${HUB_IMAGE_SIZE:-9G}"
+qemu-img resize -f raw "$OUT" "${HUB_IMAGE_SIZE:-10G}"
 LOOP="$(losetup -fP --show "$OUT")"
 growpart "$LOOP" 1
 e2fsck -pf "${LOOP}p1" || [ $? -le 1 ]   # 1 is "fixed something", which a fresh image may well need

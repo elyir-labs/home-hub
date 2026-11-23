@@ -131,6 +131,9 @@ if (wall) {
    the TV's own room, and while it rests, that room as a band over the picture. */
 const tv = onTV()
 if (tv) document.documentElement.dataset.onTv = ''
+// A TV is worked with a remote: a mouse left plugged into the hub draws no pointer on it, as on a wall. Only on the
+// hub's own screen, so a preview with ?tv=1 on a computer keeps its pointer.
+if (tv && isScreen()) document.documentElement.dataset.tvScreen = ''
 const tvHome = computed(() => homeRoom(rooms.value) ?? params.get('room')
   ?? rooms.value.find(r => r.devices.some(d => cap(d) === 'light'))?.id ?? rooms.value[0]?.id ?? null)
 const tvRoom = computed(() => room.value ?? rooms.value.find(r => r.id === tvHome.value) ?? null)
@@ -391,11 +394,11 @@ onUnmounted(() => {
 
 <template>
   <div class="shell" :data-ringing="tv && store.ringing ? '' : null" :data-held="wall && !idle ? '' : null" :data-ambient="ambient" :data-nav="nav" :data-face="face" :data-layout="layout" :data-flat="face === 'glass' && flat ? '' : null" :style="[tone, glass, openTint]" :class="{ resting: idle, 'in-setup': setup || shut, 'opened-shell': !!store.opened || !!store.printer || store.outside || panel || asking, 'house-open': panel && docked, 'pane-open': !!store.opened && docked }">
-    <Sky :quiet="!idle && !setup" :held="wall && !idle" />
+    <Sky :quiet="!idle && !setup" :held="wall && !idle" :resting="idle" />
     <!-- glass lays its blooms on the sky the canvas just painted, under the veil -->
     <div class="sky-bloom" v-if="face === 'glass'"></div>
     <ArtDefs />
-    <div class="sky-veil"></div>
+    <div class="sky-veil" v-if="!tv"></div>
     <Away v-if="lock.away" />
     <Join v-else-if="lock.unpaired" @joined="rejoin" />
     <MovePage v-else-if="store.moving" />

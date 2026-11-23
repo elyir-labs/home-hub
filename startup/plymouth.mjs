@@ -6,7 +6,7 @@
 // check what is committed without drawing anything; render.mjs draws the images and writes these.
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
-import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST_BREATH, FIRST, GLYPHS, WORDS, SCAN, ASK, ASK_AT, MODEM } from './sequence.mjs'
+import { SPACE, COLOR, NAME, HOUSE, TIME, BREATH, FIRST_BREATH, FIRST, GLYPHS, WORDS, SCAN, ASK, ASK_AT, MODEM, ON_DRIVE } from './sequence.mjs'
 
 export const THEME = 'elyir'
 export const DIR = `/usr/share/plymouth/themes/${THEME}`
@@ -144,6 +144,10 @@ where_image["pass"] = fit(Image("where-password.png"));
 line = Sprite(); line.SetZ(30); line.SetOpacity(0);
 quiet = Sprite(); quiet.SetZ(30); quiet.SetOpacity(0);
 ready = Sprite(ready_image); ready.SetZ(30); ready.SetOpacity(0);
+# The first start of a hub just moved onto its drive, with the stick still in (after-move, C): elyir:stick:in and :out.
+on_drive_image = fit(Image("on-drive.png"));
+on_drive = Sprite(on_drive_image); on_drive.SetZ(30); on_drive.SetOpacity(0);
+on_drive.SetPosition(Math.Int((screen_w - on_drive_image.GetWidth()) / 2), Math.Int(oy + ${ON_DRIVE.top} * s), 30);
 ready.SetPosition(Math.Int((screen_w - ready_image.GetWidth()) / 2), Math.Int(oy + ${WORDS.ready.top} * s), 30);
 
 # Ready with a code to scan (E): elyir:code says startup/say.sh has left this hub's code where CODE points. The house
@@ -172,6 +176,7 @@ modem_picture_image = fit(Image("modem-picture.png"));
 modem_split_image = fit(Image("modem-split.png"));
 modem_move_image = fit(Image("modem-move.png"));
 modem_alone_move_image = fit(Image("modem-alone-move.png"));
+no_wifi_image = fit(Image("no-wifi.png"));
 m_picture = Sprite(); m_picture.SetZ(30); m_picture.SetOpacity(0);
 m_split = Sprite(); m_split.SetZ(30); m_split.SetOpacity(0);
 m_move = Sprite(); m_move.SetZ(30); m_move.SetOpacity(0);
@@ -218,6 +223,7 @@ global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0;
 global.shown_n = 0;
 global.coded = 0;
 global.modem = 0;
+global.nowifi = 0;
 global.m_two = 0;
 
 fun at_center(sprite, image, cx, top) {
@@ -420,6 +426,8 @@ fun modem_where() {
     centered(ready, modem_alone_image, ${WORDS.scanReady.top});
     at_left(m_picture, modem_picture_image, ${MODEM.alonePicture.left}, ${MODEM.alonePicture.top});
     at_left(m_move, modem_alone_move_image, ${MODEM.aloneWords.left}, ${MODEM.aloneWords.top});
+    # On nothing, with no Wi-Fi of its own: no cable to move, so no picture of one (design/own-wifi/, A).
+    if (global.nowifi) { at_left(m_move, no_wifi_image, ${MODEM.noWifiWords.left}, ${MODEM.noWifiWords.top}); }
   }
   lay(${MODEM.code.center}, ${MODEM.or.top});
 }
@@ -466,10 +474,13 @@ ${Object.keys(FIRST).map((id) => `  if (text == "elyir:step:${id}") { step("${id
   # Ready redrawn for a network that changed under it (say.sh end): the old words go, and the code is replaced.
   if (text == "elyir:clear") { global.field = ""; global.n["addr"] = 0; global.n["wifi"] = 0; global.n["pass"] = 0; where(); }
   if (text == "elyir:nocode") { global.coded = 0; where(); }
-  if (text == "elyir:modem") { global.modem = 1; where(); }
-  if (text == "elyir:nomodem") { global.modem = 0; where(); }
+  if (text == "elyir:modem") { global.modem = 1; global.nowifi = 0; where(); }
+  if (text == "elyir:nowifi") { global.modem = 1; global.nowifi = 1; where(); }
+  if (text == "elyir:nomodem") { global.modem = 0; global.nowifi = 0; where(); }
   if (text == "elyir:drive:phone") { global.drive_q = 1; where(); }
   if (text == "elyir:drive:none") { global.drive_q = 0; where(); }
+  if (text == "elyir:stick:in") { global.stick_in = 1; }
+  if (text == "elyir:stick:out") { global.stick_in = 0; }
 ${KINDS.map((k) => `  if (text == "elyir:ask:${k}") { global.kind = "${k}"; global.optn = 0; global.pick = 0; global.page = "choose"; global.n["dtyped"] = 0; global.first = 1; if (!global.asking) { global.asking = 1; global.ask_at = global.frame / 50; } ask_layout(); }`).join('\n')}
 ${KINDS.flatMap((k) => ASK.kinds[k].options.map((o) => `  if (text == "elyir:opt:${k}:${o.key}") { global.opt[global.optn] = "${o.key}"; global.optn = global.optn + 1; ask_layout(); }`)).join('\n')}
 ${[0, 1, 2, 3].map((i) => `  if (text == "elyir:pick:${i}") { global.pick = ${i}; ask_layout(); }`).join('\n')}
@@ -580,10 +591,11 @@ fun refresh() {
   i = 0;
   while (i < global.dln) { global.dl[i].SetOpacity(global.dw[i] * askv * after_house); i = i + 1; }
   ready.SetOpacity(hello * after_house);
+  on_drive.SetOpacity(global.stick_in * after_house * (1 - out));
   tile.SetOpacity(hello * global.coded * after_house);
   code.SetOpacity(hello * global.coded * after_house);
   scan_line.SetOpacity(hello * global.coded * after_house);
-  m_picture.SetOpacity(hello * global.modem * after_house);
+  m_picture.SetOpacity(hello * global.modem * (1 - global.nowifi) * after_house);
   m_move.SetOpacity(hello * global.modem * after_house);
   m_split.SetOpacity(hello * global.modem * global.m_two * after_house);
   i = 0;

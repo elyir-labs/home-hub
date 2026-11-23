@@ -106,6 +106,12 @@ def qr_svg_bytes(text: str) -> bytes:
     return b.getvalue()
 
 
+
+def tell_host_zone(zone: str) -> None:
+    """The house's time zone, for the computer's own clock: a screen on the hub draws the time in it (host/zone.sh)."""
+    try: (DATA / "zone.request").write_text(json.dumps({"zone": str(zone)}))
+    except OSError as e: log.warning("could not tell the host the time zone: %s", e)
+
 class Hub:
     """Keeps the house model alive whatever the driver layer is doing.
 
@@ -286,7 +292,7 @@ class Hub:
         cfg = await self.ha.send("get_config")
         self.temp_unit = (cfg.get("unit_system") or {}).get("temperature", "°F")
         if cfg.get("time_zone"):
-            try: self.tz = ZoneInfo(cfg["time_zone"])
+            try: self.tz = ZoneInfo(cfg["time_zone"]); tell_host_zone(cfg["time_zone"])
             except Exception: log.warning("unknown time zone %r; using the host's", cfg["time_zone"])
         lat, lon = cfg.get("latitude") or 0, cfg.get("longitude") or 0
         if self.settings.get("location"): self.location = self.settings.get("location")
@@ -466,6 +472,7 @@ class Hub:
         core = {"latitude": place["lat"], "longitude": place["lon"], "location_name": place["name"]}
         if place.get("tz"):
             core["time_zone"] = place["tz"]
+            tell_host_zone(place["tz"])
             core["unit_system"] = unit_system_for(place["tz"])   # a house in the US reads in °F; everyone else in °C
         weather = None
         if self.driver == "ready":

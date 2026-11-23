@@ -27,9 +27,9 @@ printf '%s\n' 'path-exclude=/usr/share/doc/*' 'path-include=/usr/share/doc/*/cop
   'path-exclude=/usr/share/info/*' 'path-exclude=/usr/share/locale/*' 'path-include=/usr/share/locale/en*' > /etc/dpkg/dpkg.cfg.d/91-home-hub-docs
 rm -rf /usr/share/man/* /usr/share/info/* /usr/share/doc/*/[!c]* 2>/dev/null || true
 
-# Snaps are not how anything on a hub is installed, and the cloud image seeds several.
-apt-get purge -y snapd || true
-rm -rf /var/lib/snapd /snap /var/snap /var/cache/snapd
+# The cloud image seeds several snaps a hub has no use for. Snap stays for one thing: Chromium, which Ubuntu packages
+# no other way, for a screen on the hub (decided 22 November 2026). It is seeded below with the screen's other parts.
+rm -rf /var/lib/snapd/seed
 
 # The hardware-enablement kernel, not the release's own: Hub Plus is an N100/N150, and 24.04's first kernel (6.8)
 # has no driver for the N150's graphics, which leaves it with no video encoder, no HDMI sound and the firmware's
@@ -37,7 +37,15 @@ rm -rf /var/lib/snapd /snap /var/snap /var/cache/snapd
 KERNEL=linux-image-generic-hwe-24.04
 apt-get update
 apt-get install -y --no-install-recommends "$KERNEL" linux-firmware wireless-regdb network-manager wpasupplicant \
-  iw dnsmasq-base avahi-daemon git curl ca-certificates python3 cloud-guest-utils efibootmgr dosfstools uuid-runtime rsync e2fsprogs
+  iw dnsmasq-base avahi-daemon git curl ca-certificates python3 cloud-guest-utils efibootmgr dosfstools uuid-runtime rsync e2fsprogs \
+  snapd cage wlr-randr xwayland
+# What a screen on the hub shows the panel with, carried rather than downloaded, so a first start with no internet
+# (its own Wi-Fi, a cable into the modem) still shows the house on the TV: cage and its tools above, and Chromium as a
+# seeded snap, installed by snapd on the first start. Its base and content snaps are named, as prepare-image wants.
+snap known --remote model series=16 brand-id=generic model=generic-classic > /tmp/model.assert
+snap prepare-image --classic --arch=amd64 --snap snapd --snap core26 --snap bare --snap chromium --snap gnome-core26 \
+  --snap mesa-2604 --snap gtk-common-themes --snap cups /tmp/model.assert /
+rm -f /tmp/model.assert
 # One kernel: the newest generic one just installed. The cloud image's own and every header package go, because
 # nothing on a hub builds a kernel module. And the extras that only make sense in somebody's cloud. Only what is
 # installed is named, because apt refuses a whole purge over one name it does not know.

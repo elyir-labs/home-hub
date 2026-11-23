@@ -196,7 +196,9 @@ esac
 D
   cat > "$bin/curl" <<'C'
 #!/usr/bin/env bash
-[ -f "$FAKE/answering" ]
+[ -f "$FAKE/answering" ] || exit 7
+[ -f "$FAKE/said" ] && printf '{"ok":true,"commit":"%s"}' "$(cat "$FAKE/said")"
+exit 0
 C
   cat > "$bin/systemctl" <<'S'
 #!/usr/bin/env bash
@@ -253,6 +255,19 @@ I
   start ok ok; run >/dev/null
   [ -f "$data/update.request" ] && no "the request never survives a run" "it is still there" \
                                 || ok "the request never survives a run, so a hub cannot loop"
+
+  # The brain answers with the commit it was built from, the same one before and after: a flashed image's own copy.
+  mkdir -p "$dir/brain"; echo two > "$dir/brain/x"; git -C "$dir" add brain; git -C "$dir" commit -qm brain; git -C "$dir" tag v0.4.0
+  local brainy; brainy="$(git -C "$dir" rev-list -n 1 v0.4.0)"
+  echo 0123456789ab > "$fake/said"
+  start ok ok; touch "$fake/answering"; run
+  is "code that changed nothing the brain is built from, and the same brain: done" "$(state)" 'done'
+  new="$brainy"; start ok ok; touch "$fake/answering"; run
+  is "code that changed the brain, and the same brain answering after: not done" "$(state)" failed
+  is "...said as an older brain, so the panel doesn't call it ready again" "$(grep -c '"stale":true' "$data/update.json")" "1"
+  is "...and the hub is put back where it was" "$(at)" "$old"
+  start ok ok; touch "$fake/answering"; printf '#!/usr/bin/env bash\ngit -C "%s" reset -q --hard "%s"; echo fedcba987654 > "%s/said"; exit 0\n' "$dir" "$new" "$fake" > "$dir/install.sh"; run
+  is "...and once a new brain answers: done" "$(state)" 'done'
   rm -rf "$root"
 }
 
@@ -825,11 +840,16 @@ exit 0
 SH
   printf '#!/usr/bin/env bash\ncase "$1" in -lf) read -r l; case "$l" in *SHORT*) echo "2048 SHA256:x (RSA)" ;; *) echo "3072 SHA256:x (RSA)" ;; esac ;; esac\nexit 0\n' > "$bin/ssh-keygen"
   printf '#!/usr/bin/env bash\nexit 0\n' > "$bin/chown"
+  printf '#!/usr/bin/env bash\n[ -f "$ROOT/users/$1" ]\n' > "$bin/id"
+  printf '#!/usr/bin/env bash\necho "useradd $*" >> "$ROOT/asked"; touch "$ROOT/users/${@: -1}"\n' > "$bin/useradd"
+  printf '#!/usr/bin/env bash\necho "usermod $*" >> "$ROOT/asked"\n' > "$bin/usermod"
+  printf '#!/usr/bin/env bash\n[ "$2" = docker ] || [ "$2" = sudo ]\n' > "$bin/getent"
   chmod +x "$bin"/*
+  mkdir -p "$root/users"; touch "$root/users/pi"
   run() {
     rm -f "$root/asked"
-    PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_CONF=/dev/null HUB_SSH_USER=pi HUB_KEYS_DIR="$root/keys" \
-      HUB_SSHD_CONF="$root/sshd/10-home-hub.conf" "$HERE/developer.sh" >/dev/null 2>&1
+    PATH="$bin:$PATH" ROOT="$root" HOME_HUB_DIR="$dir" HUB_CONF=/dev/null HUB_SSH_USER="${SSH_AS:-pi}" HUB_KEYS_DIR="$root/keys" \
+      HUB_SSHD_CONF="$root/sshd/10-home-hub.conf" HUB_SUDOERS_DIR="$root/sudoers" "$HERE/developer.sh" >/dev/null 2>&1
   }
   says() { python3 -c 'import json, sys; d = json.load(open(sys.argv[1])); print(d["on"], len(d["keys"]), d["user"])' "$data/ssh.json"; }
   asked() { grep -c "$1" "$root/asked" 2>/dev/null || true; }
@@ -857,6 +877,7 @@ SH
     "$(grep -c -e '^PasswordAuthentication no' -e '^KbdInteractiveAuthentication no' -e "^AuthorizedKeysFile .ssh/authorized_keys $root/keys/%u.keys" "$root/sshd/10-home-hub.conf")" "3"
   is "...the server is started" "$(asked 'enable --now ssh')" "1"
   is "...and ssh.json says so" "$(says)" "True 1 pi"
+  is "...as a user that was already there" "$(asked useradd)" "0"
   printf '{"on": true, "keys": ["ssh-rsa AAAASHORT"]}\n' > "$data/ssh.request"; run
   is "on with no key it would take: off, rather than open to nobody in particular" "$(says) $(asked 'disable --now ssh')" "False 0 pi 1"
   printf '{"on": true, "keys": ["%s"]}\n' "$key" > "$data/ssh.request"; run
@@ -864,6 +885,15 @@ SH
   is "off: the server stops and the file is emptied" "$(says) $(wc -c < "$root/keys/pi.keys" | tr -d ' ')" "False 0 pi 0"
   touch "$root/ssh-on"; run
   is "a server somebody started some other way is reported as on" "$(says)" "True 0 pi"
+  rm -f "$root/ssh-on"
+  printf '{"on": true, "keys": ["%s"]}\n' "$key" > "$data/ssh.request"; SSH_AS=hub run
+  is "a computer flashed with no user gets one to sign in as, not locked" \
+    "$(asked 'useradd --create-home --shell /bin/bash hub') $(asked "usermod -p \\* hub") $(says)" "1 1 True 1 hub"
+  is "...in the groups it has, docker and sudo here, and sudo without a password, as the Pi image's has" \
+    "$(grep -o 'usermod -aG [a-z]* hub' "$root/asked" | tr '\n' ' ')$(cat "$root/sudoers/90-home-hub-hub")" \
+    "usermod -aG sudo hub usermod -aG docker hub hub ALL=(ALL) NOPASSWD:ALL"
+  printf '{"on": false, "keys": []}\n' > "$data/ssh.request"; SSH_AS=nobody run
+  is "...and turning it off makes nobody" "$(asked useradd)" "0"
   rm -rf "$root"
 }
 
@@ -989,6 +1019,40 @@ SH
 }
 
 
+# Ready offers a way in only once it works (design/own-wifi/, A): the hub's own Wi-Fi is offered once network.sh has
+# it up, on nothing Ready waits until then, and a computer that couldn't make one is told to plug in. The routes, the
+# radio and network.sh's files are stood in for; say.sh itself decides.
+offering() {
+  group "Ready offers the hub's own Wi-Fi only once it is up"
+  local root bin net data; root=$(mktemp -d); bin="$root/bin"; net="$root/net"; data="$root/data"
+  mkdir -p "$bin" "$net/wlp1s0/phy80211" "$data"
+  printf 'HUB_SETUP_SSID="Elyir Hub 4F2A"\nHUB_SETUP_PASS="kite-maple-41"\n' > "$root/conf"
+  cat > "$bin/ip" <<'SH'
+#!/usr/bin/env bash
+case "$*" in
+  "-4 route show default") [ -n "${ROUTE:-}" ] && echo "default via 192.168.1.1 dev enp3s0" ;;
+  "-4 -o addr show scope global") [ -n "${MODEM:-}" ] && echo "2: enp3s0    inet 1.2.3.4/24 brd 1.2.3.255 scope global enp3s0"
+    [ -n "${HOME_NET:-}" ] && echo "2: enp3s0    inet 192.168.1.9/24 brd 192.168.1.255 scope global enp3s0" ;;
+esac
+exit 0
+SH
+  printf '#!/usr/bin/env bash\nexit 1\n' > "$bin/curl"; cp "$bin/curl" "$bin/busctl"
+  chmod +x "$bin"/*
+  where() { PATH="$bin:$PATH" HUB_CONF="$root/conf" HUB_NET="$net" HUB_NET_DATA="$data" "$HERE/../../startup/say.sh" where 2>/dev/null; }
+  is "in the modem, before its own Wi-Fi is up: the cable alone" "$(MODEM=1 ROUTE=1 where)" "alone"
+  is "on nothing, before its own Wi-Fi is up: not ready to say" "$(where)" "wait"
+  echo kite-maple-41 > "$data/network.setup-key"
+  is "in the modem, once it is up: both ways" "$(MODEM=1 ROUTE=1 where)" "modem"
+  is "on nothing, once it is up: its code" "$(where)" "wifi"
+  is "on the house's network: its address, whatever its own Wi-Fi is doing" "$(HOME_NET=1 ROUTE=1 where)" "addr"
+  rm "$data/network.setup-key"; touch "$data/network.setup-failed"
+  is "on nothing, when it couldn't make one: plug it in" "$(where)" "nowifi"
+  is "...and in the modem, the cable alone as before" "$(MODEM=1 ROUTE=1 where)" "alone"
+  rm -f "$data/network.setup-failed"; rm -rf "$net/wlp1s0"
+  is "on nothing, with no Wi-Fi card at all: plug it in" "$(where)" "nowifi"
+  rm -rf "$root"
+}
+
 # A hub with no cable and no Wi-Fi makes one of its own for a phone to set it up from (docs/network.md,
 # piece 5; design/setup-network/, A). NetworkManager, the kernel's radio and the routing table are
 # scripts on PATH; each says what this house looks like and writes down what it was asked.
@@ -1009,7 +1073,8 @@ case "$*" in
   "-t -f NAME,TYPE connection show") [ -n "${SAVED:-}" ] && echo "$SAVED:802-11-wireless" ;;
   "-t -f NAME,DEVICE connection show --active") ;;
   "-t -f NAME connection show --active") [ -f "$ROOT/ap" ] && echo home-hub-setup ;;
-  "connection up home-hub-setup") touch "$ROOT/ap" ;;
+  "connection add type wifi ifname "*) echo "$6" > "$ROOT/apif" ;;
+  "connection up home-hub-setup") [ -n "${DEAD:-}" ] && exit 4; [ -n "${BUSY:-}" ] && [ "$(cat "$ROOT/apif")" = hubsetup0 ] && exit 4; touch "$ROOT/ap" ;;
   "connection delete home-hub-setup") rm -f "$ROOT/ap" ;;
   *"device wifi connect"*) if [ -n "${WRONG:-}" ]; then echo "Error: Connection activation failed: Secrets were required, but not provided."; exit 4; fi
     touch "$ROOT/up" ;;
@@ -1049,7 +1114,7 @@ SH
 v=json.load(open(sys.argv[1]))
 for k in sys.argv[2].split("."): v=v.get(k) if isinstance(v,dict) else None
 print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
-  fresh() { rm -f "$root"/asked "$root"/ap "$root"/iface "$root"/up "$data"/network.*; }
+  fresh() { rm -f "$root"/asked "$root"/ap "$root"/iface "$root"/up "$root"/apif "$data"/network.*; }
 
   printf '' > "$root/conf"; fresh; tick
   is "with no password to put on it, it is never started" "$(grep -c 'con-name home-hub-setup' "$root/asked")" "0"
@@ -1081,7 +1146,15 @@ print("" if v is None else str(v).lower())' "$data/network.json" "$1"; }
   fresh; mkdir -p "$net/wlp1s0/device"; ln -s ../../../bus/sdio/drivers/brcmfmac "$net/wlp1s0/device/driver"; BOTH=1 tick
   is "the Pi's chip says it can do both and cannot: its own Wi-Fi goes on the card itself" \
     "$(grep -c 'interface add hubsetup0' "$root/asked") $(field setup.both)" "0 false"
-  rm -rf "$net/wlp1s0/device"; fresh; BOTH=1 tick
+  rm -rf "$net/wlp1s0/device"; fresh; BUSY=1 BOTH=1 tick
+  is "a card that says it can do both and then refuses the second interface: its own Wi-Fi goes on the card itself" \
+    "$(cat "$root/apif") $(field setup.both) $([ -f "$root/ap" ] && echo up) $(grep -c 'iw dev hubsetup0 del' "$root/asked")" "wlp1s0 false up 1"
+  fresh; DEAD=1 BOTH=1 tick
+  is "a card that can't make one either way says so, for the first start's screen" \
+    "$([ -e "$data/network.setup-failed" ] && echo said) $([ -e "$data/network.setup-key" ] && echo key || echo nokey)" "said nokey"
+  BOTH=1 tick
+  is "...and once it does make one, takes it back" "$([ -e "$data/network.setup-failed" ] && echo said || echo gone) $(cat "$data/network.setup-key")" "gone kite-maple-41"
+  fresh; BOTH=1 tick
   BOTH=1 ask '{"do": "join", "ssid": "Bluebell", "password": "right"}'
   is "the house's Wi-Fi is tried on its 2.4 GHz side, so the phone on the hub's stays on" \
     "$(grep -c 'device wifi connect Bluebell password right ifname wlp1s0 bssid AA:BB:CC:00:00:01' "$root/asked")" "1"
@@ -1184,7 +1257,7 @@ SH
   early() {
     rm -f "$root/asked"; printf 'HUB_IMAGE=x86\n%s\n' "${EXTRA:-}" > "$root/conf"; echo 0 > "$sys/sda/removable"
     PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" HUB_INPUT="$root/${INPUT:-buttons}" \
-      HUB_KEYBOARD_WAIT=0 HUB_SAY_HOLD=0 "$HERE/move-early.sh" >/dev/null 2>&1
+      HUB_KEYBOARD_WAIT=0 HUB_SAY_HOLD=0 HUB_MOVE_LOG="$root/move-run.log" "$HERE/move-early.sh" >/dev/null 2>&1
   }
   ask() { printf '{"disk": "nvme0n1", "serial": "%s"}\n' "${1:-S6P7NS0T}" > "$var/move.request"; }
   asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
@@ -1221,7 +1294,7 @@ SH
   ask; TRAN=nvme ROOTDEV=/dev/nvme0n1p1 early
   is "already on the drive: nothing moves, and a request copied over with it is dropped" "$(asked '^move ') $([ -f "$var/move.request" ] && echo kept || echo gone)" "0 gone"
   printf 'HUB_IMAGE=\n' > "$root/conf"; rm -f "$root/asked"
-  PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" "$HERE/move-early.sh" >/dev/null 2>&1
+  PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" HUB_MOVE_LOG="$root/move-run.log" "$HERE/move-early.sh" >/dev/null 2>&1
   is "anywhere but the x86 image, it does nothing at all" "$(asked '.')" "0"
   rm -rf "$root"
 }
@@ -1233,7 +1306,7 @@ asking_first() {
   local root dir bin sys var; root=$(mktemp -d); dir="$root/opt"; bin="$root/bin"; sys="$root/sys"; var="$root/var"
   mkdir -p "$dir/driver-layer/host" "$dir/startup" "$bin" "$sys/sda" "$var"
   printf '#!/usr/bin/env bash\necho "move $*" >> "%s/asked"\n[ -z "${MOVE_FAILS:-}" ]\n' "$root" > "$dir/driver-layer/host/move-to-drive.sh"
-  printf '#!/usr/bin/env bash\necho "say $*" >> "%s/asked"\n[ "$1" = ask ] && echo "${ANSWER:-}"\nexit 0\n' "$root" > "$dir/startup/say.sh"
+  printf '#!/usr/bin/env bash\necho "say $*" >> "%s/asked"\n[ "$1" = ask ] && { [ "$2" = failed ] && echo "${AGAIN:-}" || echo "${ANSWER:-}"; }\nexit 0\n' "$root" > "$dir/startup/say.sh"
   printf '#!/usr/bin/env bash\necho "try $*" >> "%s/asked"\n[ "$1" = status ] && { [ -n "${TRYJ:-}" ] && echo "$TRYJ" || echo "{}"; }\nexit 0\n' "$root" > "$dir/driver-layer/host/try.sh"
   printf '#!/usr/bin/env bash\necho "describe $*" >> "%s/asked"\necho "{\\"name\\": \\"$2\\"}"\n' "$root" > "$dir/driver-layer/host/drive.sh"
   printf '#!/usr/bin/env bash\necho "boot-next $*" >> "%s/asked"\n' "$root" > "$dir/driver-layer/host/boot-next.sh"
@@ -1259,7 +1332,7 @@ SH
   early() {
     rm -f "$root/asked"; printf 'HUB_IMAGE=x86\n' > "$root/conf"; echo 0 > "$sys/sda/removable"
     PATH="$bin:$PATH" HOME_HUB_DIR="$dir" HUB_CONF="$root/conf" HUB_VAR="$var" HUB_SYS_BLOCK="$sys" HUB_INPUT="$root/${INPUT:-keyboard}" \
-      HUB_KEYBOARD_WAIT=0 HUB_SAY_HOLD=0 "$HERE/move-early.sh" >/dev/null 2>&1
+      HUB_KEYBOARD_WAIT=0 HUB_SAY_HOLD=0 HUB_MOVE_LOG="$root/move-run.log" "$HERE/move-early.sh" >/dev/null 2>&1
   }
   asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
   told() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]])' "$var/drive.screen" "$1" 2>/dev/null || echo none; }
@@ -1270,8 +1343,14 @@ SH
   is "erase typed: the system moves there" "$(asked '^move sda nvme0n1$') $(asked 'systemctl --no-block reboot')" "1 1"
   is "...the answer is kept, with the drive's serial, so the phone never asks it" "$(told answer) $(told serial)" "erase S6P7NS0T"
   is "...and the stick's start-next entry goes once it has moved" "$(asked '^boot-next gone$') $(asked '^boot-next stick')" "1 0"
+  is "...and the restart is the new hub on the drive, even with the stick left in" "$(asked '^boot-next drive nvme0n1$')" "1"
   fresh; ANSWER=erase MOVE_FAILS=1 early
   is "erase typed and the copy failed: said, and it carries on in a try, coming back to the stick after a restart" "$([ -s "$var/move.failed" ] && echo said) $(asked '^try make$') $(asked '^boot-next stick sda$')" "said 1 1"
+  is "...the screen says the move failed, never that a try was picked, and asks whoever typed erase" "$(asked '^say step failed$') $(asked '^say step trying$') $(asked '^say ask failed AC ')" "1 0 1"
+  is "...and what the copy said is kept with the try" "$([ -f "$var/move.log" ] && echo kept)" "kept"
+  fresh; rm -f "$var/move.request"; ANSWER=erase MOVE_FAILS=1 AGAIN=again early
+  is "Try again: the drive is asked for again, kept in a new try, and it restarts to copy afresh" "$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["disk"])' "$var/move.request" 2>/dev/null) $(asked '^try make$') $(asked 'systemctl --no-block reboot') $(asked '^say step failed$')" "nvme0n1 1 1 0"
+  rm -f "$var/move.request"
   fresh; ANSWER=try early
   is "Try picked: the drive is kept, nothing moves, a try is made, and the screen says so" "$(asked '^move ') $(told answer) $(asked '^try make$') $(asked '^say step trying$')" "0 keep 1 1"
   is "...and it restarts onto the try, coming back to the stick" "$(asked 'systemctl --no-block reboot') $(asked '^boot-next stick sda$')" "1 1"
@@ -1506,6 +1585,8 @@ SH
   printf '#!/usr/bin/env bash\necho "rsync $*" >> "$FAKES/asked"\n[ "${@: -1}" = "$FAKES/M/" ] || exit 0\nmkdir -p "$FAKES/M/etc"; echo house > "$FAKES/M/etc/house"\n' > "$bin/rsync"
   for c in dd fatlabel e2fsck partx udevadm efibootmgr growpart resize2fs; do printf '#!/usr/bin/env bash\necho "%s $*" >> "$FAKES/asked"\n' "$c" > "$bin/$c"; done
   printf '#!/usr/bin/env bash\nmkdir -p "$FAKES/M"; echo "$FAKES/M"\n' > "$bin/mktemp"
+  # Nothing mounted from the drive unless a check says so: the machine running these may have a real nvme0n1 in use.
+  printf '#!/usr/bin/env bash\n[ -n "${IN_USE:-}" ] && printf "\\n/boot\\n"\nexit 0\n' > "$bin/lsblk"
   chmod +x "$bin"/*
   move() { rm -f "$root/asked"; PATH="$bin:$PATH" FAKES="$root" HUB_TRY_RUN="$root/try" "$HERE/move-to-drive.sh" sda nvme0n1 >"$root/out" 2>&1; }
   asked() { if [ -f "$root/asked" ]; then grep -c -- "$1" "$root/asked" || true; else echo 0; fi; }
@@ -1525,6 +1606,8 @@ SH
   is "a fresh stick brings no try along" "$(asked '^rsync ') $(asked '^growpart ')" "0 0"
   SIZE=1000 move
   is "a drive too small for the system is refused before anything is written" "$(asked '^dd ')" "0"
+  IN_USE=1 move
+  is "a drive with a filesystem in use is refused before anything is written" "$(asked '^dd ') $(grep -c 'in use (/boot )' "$root/out")" "0 1"
 
   # Running on the stick's try: the try's partition is listed after the system on the stick, and is not copied as one.
   mkdir -p "$root/try/part/docker"; echo try > "$root/try/state"; date +%s > "$root/try/part/made"
@@ -1646,12 +1729,12 @@ SH
 # does, which is let the stick's own system be written.
 stick_root() {
   group "a start from the stick runs on an overlay over the stick's system, never on the system itself"
-  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin" "$root/sys/devices/usb/sda/sda1" "$root/sys/devices/usb/sda/sda2" "$root/sys/class/block"
-  touch "$root/sys/devices/usb/sda/sda1/partition"
+  local root bin; root=$(mktemp -d); bin="$root/bin"; mkdir -p "$bin" "$root/sys/devices/usb/sda/sda1" "$root/sys/devices/usb/sda/sda15" "$root/sys/devices/usb/sda/sda16" "$root/sys/devices/usb/sda/sda2" "$root/sys/class/block"
+  touch "$root/sys/devices/usb/sda/sda1/partition" "$root/sys/devices/usb/sda/sda15/partition" "$root/sys/devices/usb/sda/sda16/partition"
   ln -s ../../devices/usb/sda/sda1 "$root/sys/class/block/sda1"; ln -s ../../devices/usb/sda "$root/sys/class/block/sda"
   cat > "$bin/blkid" <<'SH'
 #!/bin/sh
-case "$5" in /dev/sda1) echo "${LABEL:-cloudimg-rootfs}" ;; /dev/sda2) [ -e "$FAKES/sys/devices/usb/sda/sda2/partition" ] && echo hub-try ;; esac
+case "$5" in /dev/sda1) echo "${LABEL:-cloudimg-rootfs}" ;; /dev/sda15) echo UEFI ;; /dev/sda16) echo BOOT ;; /dev/sda2) [ -e "$FAKES/sys/devices/usb/sda/sda2/partition" ] && echo hub-try ;; esac
 exit 0
 SH
   cat > "$bin/mount" <<'SH'
@@ -1685,6 +1768,7 @@ SH
   is "...Docker's and containerd's layers on a filesystem of their own" "$(asked "mount -o bind $root/run/hht/fresh/docker $root/rootmnt/var/lib/docker") $(asked "mount -o bind $root/run/hht/fresh/containerd $root/rootmnt/var/lib/containerd")" "1 1"
   is "...and says what it started on, for try.sh" "$(cat "$root/run/hht/state") $(cat "$root/run/hht/disk") $(cat "$root/run/hht/system")" "fresh sda /dev/sda1"
   is "the fstab it starts with has no root line, and the stick's boot partitions read-only and unchecked" "$(grep -c 'cloudimg-rootfs' "$root/run/hht/fstab") $(awk '$2 ~ /^\/boot/ {printf "%s %s ", $4, $6}' "$root/run/hht/fstab")" "0 defaults,ro,noload 0 umask=0077,ro 0 "
+  is "...named by the stick's own partitions, so a half-moved drive's BOOT and UEFI are never mounted in their place" "$(awk '$2 ~ /^\/boot/ {printf "%s ", $1}' "$root/run/hht/fstab")" "/dev/sda16 /dev/sda15 "
   is "...in place of the stick's own, which is never edited" "$(asked "mount -o bind $root/run/hht/fstab $root/rootmnt/etc/fstab") $(grep -c cloudimg-rootfs "$root/rootmnt/etc/fstab")" "1 1"
   is "...and nothing ever mounts the stick's system writable" "$(never_rw)" "0"
 
@@ -2058,6 +2142,6 @@ zigbee_kept() {
 for need in git openssl curl python3; do
   command -v "$need" >/dev/null 2>&1 || { echo "these tests need $need"; exit 2; }
 done
-signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; remote; sizing; guessing; awake; setting_up; moving_in; asking_first; starting_next; moving; trying; stick_root; growing; describing; starting_over; shutting; zigbee_kept
+signatures; holds; undo; radios; tiers; watchdog; away; finding; becoming; changing; usb_first; following; developing; reporting; catching_up; keeping; speaking; remote; sizing; guessing; awake; setting_up; offering; moving_in; asking_first; starting_next; moving; trying; stick_root; growing; describing; starting_over; shutting; zigbee_kept
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

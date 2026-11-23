@@ -46,6 +46,7 @@ SETUP="$DATA/network.setup"; JOINED="$DATA/network.joined"; OFFLINE="$DATA/netwo
 # file of its own because network.setup is copied whole into network.json, which anything can read; this
 # one is root's alone, and exists only while that Wi-Fi does.
 KEY="$DATA/network.setup-key"
+FAILED="$DATA/network.setup-failed"   # no Wi-Fi of its own could be made: the first start says plug it in instead
 # How long a hub is on nothing before it offers its own Wi-Fi. Short on a hub that has never had a
 # Wi-Fi, because somebody is standing there with the box; long on one that had one, because a router
 # rebooting is not a reason to start broadcasting.
@@ -219,7 +220,7 @@ setup_up() {
   # Raspberry Pi OS starts with Wi-Fi switched off until a country is set, which left a hub on nothing with no way on.
   nmcli radio wifi on >/dev/null 2>&1
   dev="$(wifi_dev)"
-  [ -n "$dev" ] || return 1
+  [ -n "$dev" ] || { touch "$FAILED"; return 1; }
   scan                       # before the radio is busy: a card hosting a network may not scan at all
   # The strongest 2.4 GHz channel nearby is most likely the house's own, which is the channel the hub
   # will have to be on to try it without dropping the phone.
@@ -233,23 +234,33 @@ print(c[0] if c else 6)' "$DATA/network.scan" 2>/dev/null || echo 6)"
       nmcli device set "$SETUP_IF" managed yes >/dev/null 2>&1; ifname="$SETUP_IF"; both=true
     fi
   fi
+  if ! setup_on "$ifname" "$chan"; then
+    [ "$ifname" = "$SETUP_IF" ] || { touch "$FAILED"; return 1; }
+    # A card can list both at once and still refuse the second interface: the RTL8852BE in a NUC (rtw89, 21 November
+    # 2026) answered "Device or resource busy" every minute. Its own interface hosts it fine, one thing at a time.
+    say "setup: $SETUP_IF would not start; using $dev alone"
+    iw dev "$SETUP_IF" del >/dev/null 2>&1
+    ifname="$dev"; both=false
+    setup_on "$ifname" "$chan" || { touch "$FAILED"; return 1; }
+  fi
+  rm -f "$FAILED"
+  printf '{"ssid": %s, "both": %s, "since": %s, "chan": "%s"}' "$(json_str "$SETUP_SSID")" "$both" "$(date +%s)" "$chan" > "$SETUP"
+  (umask 077; printf '%s' "$SETUP_PASS" > "$KEY")
+  say "setup: $SETUP_SSID up on $ifname, channel $chan (both at once: $both)"
+}
+
+setup_on() {  # interface, channel
   nmcli connection delete "$SETUP_CON" >/dev/null 2>&1
   # The password reaches nmcli as one argument, as the house's own does in join().
-  nmcli connection add type wifi ifname "$ifname" con-name "$SETUP_CON" autoconnect no ssid "$SETUP_SSID" \
-    802-11-wireless.mode ap 802-11-wireless.band bg 802-11-wireless.channel "$chan" \
+  nmcli connection add type wifi ifname "$1" con-name "$SETUP_CON" autoconnect no ssid "$SETUP_SSID" \
+    802-11-wireless.mode ap 802-11-wireless.band bg 802-11-wireless.channel "$2" \
     ipv4.method shared ipv4.addresses "$SETUP_ADDR/24" ipv6.method disabled \
     wifi-sec.key-mgmt wpa-psk wifi-sec.proto rsn wifi-sec.pairwise ccmp wifi-sec.group ccmp wifi-sec.pmf disable \
     wifi-sec.psk "$SETUP_PASS" >/dev/null 2>&1
-  if nmcli connection up "$SETUP_CON" >/dev/null 2>&1; then
-    printf '{"ssid": %s, "both": %s, "since": %s, "chan": "%s"}' "$(json_str "$SETUP_SSID")" "$both" "$(date +%s)" "$chan" > "$SETUP"
-    (umask 077; printf '%s' "$SETUP_PASS" > "$KEY")
-    say "setup: $SETUP_SSID up on $ifname, channel $chan (both at once: $both)"
-  else
-    say "setup: $SETUP_SSID would not start on $ifname"
-    nmcli connection delete "$SETUP_CON" >/dev/null 2>&1
-    [ "$ifname" = "$SETUP_IF" ] && iw dev "$SETUP_IF" del >/dev/null 2>&1
-    return 1
-  fi
+  nmcli connection up "$SETUP_CON" >/dev/null 2>&1 && return 0
+  say "setup: $SETUP_SSID would not start on $1"
+  nmcli connection delete "$SETUP_CON" >/dev/null 2>&1
+  return 1
 }
 
 setup_down() {

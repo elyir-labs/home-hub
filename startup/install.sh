@@ -24,9 +24,26 @@ if [ "${1:-}" = --if-changed ] && [ -n "$SUM" ] && [ "$(cat "$STAMP" 2>/dev/null
 
 log "packages: a one-window compositor, its display scaling and a browser"
 export DEBIAN_FRONTEND=noninteractive
+# The PC image ships with apt's lists emptied to keep it small, and a package it doesn't carry is then unknown.
+for p in cage wlr-randr xwayland; do
+  dpkg-query -W -f='${Status}' "$p" 2>/dev/null | grep -q 'ok installed' || { apt-get update -qq >/dev/null 2>&1 || true; break; }
+done
 apt-get install -y --no-install-recommends cage wlr-randr xwayland curl python3-minimal >/dev/null
-apt-get install -y --no-install-recommends chromium >/dev/null 2>&1 \
-  || apt-get install -y --no-install-recommends chromium-browser >/dev/null
+# Raspberry Pi OS and Debian package Chromium; Ubuntu 24.04 has it only as a snap, so a PC hub runs the snap (decided
+# 22 November 2026, over Google's Chrome, which reports to Google, and WPE, which the panel was never built on). The
+# PC image carries it seeded, so a first start with no internet still has it.
+have_browser() { command -v chromium >/dev/null 2>&1 || [ -x /snap/bin/chromium ]; }
+if ! have_browser; then
+  if apt-cache policy chromium 2>/dev/null | grep -q 'Candidate: [0-9]'; then
+    apt-get install -y --no-install-recommends chromium >/dev/null
+  else
+    command -v snap >/dev/null 2>&1 || apt-get install -y --no-install-recommends snapd >/dev/null
+    snap wait system seed.loaded >/dev/null 2>&1 || true
+    snap install chromium >/dev/null
+  fi
+fi
+# A snap refreshes itself and restarts what runs it; at night, when the screen is resting, rather than mid-film.
+command -v snap >/dev/null 2>&1 && snap set system refresh.timer=03:00-05:00 2>/dev/null || true
 
 HOME_HUB_DIR="$DIR" "$HERE/splash.sh"
 

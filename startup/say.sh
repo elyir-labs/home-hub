@@ -8,6 +8,7 @@
 #
 #   say.sh step preparing|moving|unpacking|setting|downloading|starting|trying|unasked|clearing|todrive
 #   say.sh first      at the very start of a boot: marks it a first start, and says it is getting ready
+#   say.sh where      which way in Ready would offer now: addr, wifi, modem, alone, nowifi, or wait
 #   say.sh end        once the hub answers: a first start ends on where to go next, any other start as it always has
 #   say.sh ask <kind> <letters> [<drive.sh describe JSON>] [<try.sh status JSON>]
 #                     asks a question on the screen (design/move-to-drive/: keys-2 and stick-try) with the answers
@@ -16,6 +17,7 @@
 #                       here (C D S)   carry | move | over   a try made on this computer
 #                       away (N B)     new | bring           a try from another computer
 #                       hub (H T R)    drive | try | erase   a hub already on the drive
+#                       failed (A C)   again | carry         a move onto the drive that stopped partway
 #                     exits 3 with no splash to ask on
 set -uo pipefail
 # Letters, not bytes: spelling a · or a ’ a byte at a time sends the splash halves it has no picture for. Early in a
@@ -29,6 +31,7 @@ READY_URL=${ELYIR_READY_URL:-http://localhost/alive}
 DRIVE_URL=${ELYIR_DRIVE_URL:-${READY_URL%/alive}/drive}
 CODE_DIR="${ELYIR_CODE_DIR:-/run/elyir}"    # where the splash looks for the code (CODE in startup/plymouth.mjs)
 
+MOVED="${HUB_MOVED:-/var/lib/home-hub/moved}"
 up() { command -v plymouth >/dev/null 2>&1 && plymouth --ping 2>/dev/null; }
 tell() { plymouth update --status="$1" 2>/dev/null || true; }
 # This hub's own words go a character at a time: Plymouth's scripts can read a string no other way.
@@ -77,14 +80,23 @@ at_home() {
     | grep -vxFf <(printf '%s\n' "$(modem)") | grep -q .
 }
 radio() { ls -d "${HUB_NET:-/sys/class/net}"/*/phy80211 >/dev/null 2>&1; }
+# The hub's own Wi-Fi is offered only once network.sh has it up, which it says by keeping its password for this screen
+# (design/own-wifi/, A). Until then, on nothing, Ready waits; and if it couldn't make one, Ready says plug it in.
+NET_DATA="${HUB_NET_DATA:-${HOME_HUB_DIR:-/opt/home-hub}/driver-layer/brain-data}"
+own_up() { [ -s "$NET_DATA/network.setup-key" ]; }
+own_failed() { [ -e "$NET_DATA/network.setup-failed" ] || ! radio; }
 where_now() {
   local ssid on_modem; ssid="$(conf HUB_SETUP_SSID)"; on_modem="$(modem)"
   if at_home || { [ -z "$ssid" ] && [ -z "$on_modem" ]; }; then
     printf 'addr%s%s%s%s%s' "$US" "$(mdns_name)" "$US" "$US" "$(drive_waiting)"
-  elif [ -n "$ssid" ] && { [ -z "$on_modem" ] || radio; }; then
+  elif [ -n "$ssid" ] && own_up && { [ -z "$on_modem" ] || radio; }; then
     printf '%s%s%s%s%s%s%s' "$([ -n "$on_modem" ] && echo modem || echo wifi)" "$US" "$ssid" "$US" "$(conf HUB_SETUP_PASS)" "$US" "$(drive_waiting)"
-  else
+  elif [ -n "$on_modem" ]; then
     printf 'alone%s%s%s%s' "$US" "$US" "$US" "$(drive_waiting)"
+  elif own_failed; then
+    printf 'nowifi%s%s%s%s' "$US" "$US" "$US" "$(drive_waiting)"
+  else
+    echo wait
   fi
 }
 # Without a code it is the same words, under the house.
@@ -92,17 +104,33 @@ draw() {
   local kind a b q
   IFS="$US" read -r kind a b q <<< "$1"
   [ "$q" = 1 ] && tell "elyir:drive:phone" || tell "elyir:drive:none"
-  case "$kind" in modem|alone) tell "elyir:modem" ;; *) tell "elyir:nomodem" ;; esac
+  case "$kind" in modem|alone) tell "elyir:modem" ;; nowifi) tell "elyir:nowifi" ;; *) tell "elyir:nomodem" ;; esac
   if [ "$kind" = addr ]; then
     spell addr "$a"
     code "http://$a" || tell "elyir:nocode"
-  elif [ "$kind" = alone ]; then
+  elif [ "$kind" = alone ] || [ "$kind" = nowifi ]; then
     tell "elyir:nocode"
   else
     spell wifi "$a"
     spell pass "$b"
     code "WIFI:T:WPA;S:$(wifi_escape "$a");P:$(wifi_escape "$b");;" || tell "elyir:nocode"
   fi
+}
+
+# The first start of a hub a stick just moved onto this drive, while the stick is still in (design/move-to-drive/,
+# after-move: C): our stick is a USB disk whose system keeps the label it was flashed with; the drive's is hub-root.
+stick_plugged() {
+  local d
+  for d in $(lsblk -dnro NAME,TRAN 2>/dev/null | awk '$2 == "usb" {print $1}'); do
+    lsblk -nro LABEL "/dev/$d" 2>/dev/null | grep -qx cloudimg-rootfs && return 0
+  done
+  return 1
+}
+stick_said=""
+follow_stick() {
+  [ -e "$MOVED" ] || return 0
+  local now=out; stick_plugged && now=in
+  [ "$now" = "$stick_said" ] || { tell "elyir:stick:$now"; stick_said="$now"; }
 }
 
 # The drive in the words the card and the warning use (design/move-to-drive/, KeysA-1 and KeysA-2): its name and size,
@@ -128,6 +156,10 @@ else: lost = system or files or "everything on it"
 if sys.argv[2:] == ["hub"]:
     print("A hub on this computer\u2019s drive")
     print(f"{model} · {size(d.get("bytes") or 0)}")
+elif sys.argv[2:] == ["failed"]:
+    print(f"{model} · {size(d.get("bytes") or 0)}")
+    print("Partly written")
+    rest = " · it won\u2019t start by itself"
 else:
     print(f"{model} · {size(d.get("bytes") or 0)}")
     print((system or "Something the hub can\u2019t read") + (", with a hub on it" if hub else ""))
@@ -161,17 +193,22 @@ case "${1:-}" in
     [ -e "$DONE" ] && exit 0
     mkdir -p "$(dirname "$FIRST")" && : > "$FIRST"
     up && tell "elyir:step:preparing" ;;
+  where)
+    # Which way in Ready would offer now, for a person checking and for tests: its kind and nothing secret.
+    where_now | cut -d "$US" -f1 ;;
   end)
     [ -e "$FIRST" ] || exec "$HERE/wall.sh" wait
-    until curl -fs -m 2 -o /dev/null "$READY_URL"; do sleep 1; done
+    until curl -fs -m 2 -o /dev/null "$READY_URL"; do follow_stick; sleep 1; done
     up || exit 0
     tell "elyir:step:starting"
     # Ready follows the network for as long as it is on screen: a cable plugged in after it was drawn turns the
     # Wi-Fi's code into the address, and a name avahi changed (another hub already has hub.local) is redrawn.
     shown=""
     while up; do
+      follow_stick
       now="$(where_now)"
-      if [ "$now" != "$shown" ]; then
+      # Not ready to say a way in yet: whatever is on screen stays, the first start's own line included.
+      if [ "$now" != wait ] && [ "$now" != "$shown" ]; then
         [ -n "$shown" ] && tell "elyir:clear"
         draw "$now"
         [ -n "$shown" ] || tell "elyir:hello"
@@ -182,7 +219,7 @@ case "${1:-}" in
   ask)
     up || exit 3
     kind="${2:-}"; letters="${3:-}"; drive="${4:-}"; try="${5:-}"
-    case "$kind" in drive) safe=T; wait=120 ;; here) safe=C; wait=30 ;; away) safe=B; wait=120 ;; hub) safe=H; wait=120 ;;
+    case "$kind" in drive) safe=T; wait=120 ;; here) safe=C; wait=30 ;; away) safe=B; wait=120 ;; hub) safe=H; wait=120 ;; failed) safe=A; wait=120 ;;
       *) echo "say.sh: no question called $kind" >&2; exit 2 ;; esac
     [ -n "$letters" ] || exit 2
     wait="${ELYIR_ASK_FOR:-$wait}"
@@ -224,6 +261,8 @@ case "${1:-}" in
         away:N) answer=new ;;
         away:B) answer=bring ;;
         hub:H) answer=drive ;;
+        failed:A) answer=again ;;
+        failed:C) answer=carry ;;
       esac
     }
     back() { to_page choose; }

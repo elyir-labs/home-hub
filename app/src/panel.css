@@ -321,6 +321,7 @@ input:focus-visible {
   }
 }
 
+
 .sky-veil {
   position: absolute;
   inset: 0;
@@ -4245,6 +4246,13 @@ input:focus-visible {
 }
 
 /* E: winding down. What is still on, and one button for the night. */
+.tvrest-dither {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
 .tvrest-night {
   position: absolute;
   inset: 0;
@@ -16430,9 +16438,12 @@ html[data-wall-keys] .shell {
   animation-play-state: paused;
 }
 
-/* The wall is touched, not pointed at: a mouse plugged in for setting it up shows no arrow on the panel. */
+/* The wall is touched, not pointed at: a mouse plugged in for setting it up shows no arrow on the panel. Nor does a
+   TV, which is worked with a remote: a mouse in the hub drew a gray disc there (App.vue). */
 html[data-wall],
-html[data-wall] * {
+html[data-wall] *,
+html[data-tv-screen],
+html[data-tv-screen] * {
   cursor: none !important;
 }
 

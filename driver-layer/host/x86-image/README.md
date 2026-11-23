@@ -51,7 +51,8 @@ Wi‑Fi step works before the hub has any internet; the engine and the rest down
 
 **What it changes from Ubuntu's cloud image** (`inside.sh`): the full kernel and firmware, because the cloud kernel has
 no drivers for real Wi‑Fi cards; NetworkManager running every link; Docker; no cloud-init, no login and no SSH, like the
-Pi image; the hub's code at the tag and its first-boot unit; and after the maker's logo, Elyir's startup splash with no boot
+Pi image; the hub's code at the tag and its first-boot unit; what a screen on the hub shows the panel with (cage, and Chromium
+as a seeded snap, since Ubuntu packages it no other way), so a TV shows the house with no internet; and after the maker's logo, Elyir's startup splash with no boot
 menu or text between them (`startup/splash.sh`), which stays up on a monitor until the hub answers. The maker's logo
 itself is in the computer's firmware and no image can change it. The machine id is emptied so every unit makes its own.
 

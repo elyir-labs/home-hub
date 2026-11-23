@@ -41,10 +41,14 @@ dev="$(awk -v m="$root" '$2 == m { d = $1 } END { print d }' "$MOUNTS")"
 mount -o remount,ro "$root" || stop "the stick's system would not stay read-only; not starting"
 disk="$(basename "$(dirname "$(readlink -f "$BLOCK/${dev##*/}")")")"
 
-part=""
+part=""; boot=""; efi=""
 for p in "$BLOCK/$disk/$disk"*; do
   [ -e "$p/partition" ] || continue
-  [ "$(label "/dev/${p##*/}")" = hub-try ] && { part="/dev/${p##*/}"; break; }
+  case "$(label "/dev/${p##*/}")" in
+    hub-try) [ -n "$part" ] || part="/dev/${p##*/}" ;;
+    BOOT) boot="/dev/${p##*/}" ;;
+    UEFI) efi="/dev/${p##*/}" ;;
+  esac
 done
 
 mkdir -p "$RUN/lower"
@@ -100,11 +104,15 @@ done
 
 # The stick's fstab, but with no root line (the root is this overlay, never the stick's partition) and the stick's
 # boot partitions read-only and never checked: a check can write, and a kernel update can't land on a stick whose
-# system underneath stays as flashed.
-awk 'BEGIN { OFS = "\t" }
+# system underneath stays as flashed. They are named by this start's device names, not their labels: a drive a move
+# stopped partway through carries the same BOOT and UEFI, and mounted from the drive, they stop the next move too.
+awk -v boot="$boot" -v efi="$efi" 'BEGIN { OFS = "\t" }
   /^[ \t]*#/ || NF < 4 { print; next }
   $2 == "/" { print "# / is the stick under a try (home-hub-try)"; next }
-  $2 == "/boot" || $2 ~ /^\/boot\// { $4 = $4 ",ro"; if ($3 ~ /^ext/) $4 = $4 ",noload"; $6 = 0; print; next }
+  $2 == "/boot" || $2 ~ /^\/boot\// {
+    if ($2 == "/boot" && boot != "") $1 = boot
+    if ($2 == "/boot/efi" && efi != "") $1 = efi
+    $4 = $4 ",ro"; if ($3 ~ /^ext/) $4 = $4 ",noload"; $6 = 0; print; next }
   { print }' "$root/etc/fstab" > "$RUN/fstab" && mount -o bind "$RUN/fstab" "$root/etc/fstab" \
   || stop "could not keep the stick's boot partitions read-only"
 

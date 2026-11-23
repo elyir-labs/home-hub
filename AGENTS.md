@@ -324,6 +324,11 @@ Do not reopen these, and do not propose around them.
   give the hub a Wi-Fi and nothing else. B (the same over Bluetooth, no network switch) waits for an app, because
   Safari has no Bluetooth. Pinned by `app/tests/wifi.test.ts`, `app/e2e/setup-wifi.spec.ts`, `brain/tests/test_setup_wifi.py` and the
   `setting_up` group in `driver-layer/host/tests.sh`; the host's half is `host/network.sh`.
+  **A way in is on the screen only once it works** (21 November, `design/own-wifi/`, A). The first start offers the
+  hub's own Wi-Fi only when `network.sh` has it up: in the modem, the cable alone until then; on nothing, the first
+  start's own line until then, and "Plug the hub into your router" if the card couldn't make one. A card that lists
+  hosting and joining at once and refuses the second interface hosts on its own. Pinned by the `offering` and
+  `setting_up` groups and `startup/startup.test.mjs`.
 - **A hub with a screen and no network asks which Wi-Fi on that screen** (22 October, `design/screen-wifi/`, C). The
   question is the phone's, before Welcome home, with the hub's own Wi-Fi as a code beside it; whichever is started
   first wins, and a phone on the hub's Wi-Fi gets the screen to step aside. A screen nobody can touch or point at shows
@@ -346,6 +351,11 @@ Do not reopen these, and do not propose around them.
   is read-only before anything mounts it (`x86-image/try-premount.sh`, `try-root.sh`, `host/try.sh`); a move takes the
   try along and empties it. Pinned by the `trying`, `stick_root` and `growing` groups and by `x86-image/stick-e2e.sh`,
   which starts the image as a USB stick beside a drive on every change to it.
+  **Done is said by the drive; a failed move says so** (21 November, `design/move-to-drive/`, after-move: C, and B).
+  A hub just moved onto its drive starts there even with the stick left in, and its first start says the stick can
+  come out while it is still plugged in. A move that stops asks whoever typed erase to try again or carry on from the
+  stick, never saying the drive is unchanged, and keeps what the copy said with the try. Pinned by
+  `startup/startup.test.mjs`, the `moving_in` group and the stick e2e's D.
 - **Leaving a house: erasing is on The hub, handing over is on People** (1 November, `design/leaving/`, B). Start over
   is the last row of The hub: behind the passcode, refused outright on a hub with none, only in the house, and a hold.
   It erases everything that is the house, keeps what is the unit's (what it updates from, its name on the network, its

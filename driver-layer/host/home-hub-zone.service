@@ -1,0 +1,9 @@
+# Runs zone.sh once per request. Started by home-hub-zone.path.
+[Unit]
+Description=Home Hub: the house's time zone on this computer's clock
+
+[Service]
+Type=oneshot
+Environment=HOME_HUB_DIR=/opt/home-hub
+ExecStart=/opt/home-hub/driver-layer/host/zone.sh
+StandardOutput=journal

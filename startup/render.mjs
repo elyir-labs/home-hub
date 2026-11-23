@@ -9,7 +9,7 @@
 // It borrows the panel's Playwright (app/node_modules) to draw; PLAYWRIGHT=<path to the package's
 // index.mjs> points it at another copy.
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
-import { COLOR, NAME, HOUSE, TIME, SLOW, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, ASK, ASK_AT, MODEM } from './sequence.mjs'
+import { COLOR, NAME, HOUSE, TIME, SLOW, ONCE, FIRST, READY, GLYPHS, WORDS, SCAN, ASK, ASK_AT, MODEM, ON_DRIVE } from './sequence.mjs'
 import { THEME, K, NAME_FRAMES, fingerprint, themeFile, timingSh, script, glyphFile, smallFile, driveFile, DRIVE_SETS, optionFile } from './plymouth.mjs'
 
 const OUT = new URL(`plymouth/${THEME}/`, import.meta.url)
@@ -87,6 +87,7 @@ for (const [id, w] of Object.entries(FIRST)) {
   if (w.quiet) await across(`quiet-${id}.png`, WORDS.quiet, w.quiet)
 }
 await across('quiet-once.png', WORDS.quiet, ONCE)
+await across('on-drive.png', ON_DRIVE, ON_DRIVE.line)
 await across('ready.png', WORDS.ready, READY.line)
 
 // Where to go next is set on the unit from pieces laid side by side: the words, and this hub's own address, Wi-Fi
@@ -212,7 +213,8 @@ const words = (big, small, width) => `<div style="width:${width * K}px;text-alig
   <div style="font-size:${MODEM.big.size * K}px;color:${MODEM.big.color};line-height:1.3">${big}</div>
   <div style="margin-top:${10 * K}px;font-size:${MODEM.small.size * K}px;color:${MODEM.small.color};line-height:1.45">${small}</div></div>`
 for (const [file, big, small, w] of [['modem-move.png', MODEM.move, MODEM.moveWhy, MODEM.words.width],
-  ['modem-alone-move.png', MODEM.aloneMove, MODEM.aloneWhy, MODEM.aloneWords.width]]) {
+  ['modem-alone-move.png', MODEM.aloneMove, MODEM.aloneWhy, MODEM.aloneWords.width],
+  ['no-wifi.png', MODEM.noWifi, MODEM.noWifiWhy, MODEM.noWifiWords.width]]) {
   const html = words(big, small, w)
   await shoot(file, w * K, await tall(html, w * K), html)
 }

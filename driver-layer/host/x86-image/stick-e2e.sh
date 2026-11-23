@@ -16,6 +16,7 @@
 #   B  a drive with a filesystem: a try is made, a file written on it survives a restart, Docker's layers work on it,
 #      and Start over leaves no trace
 #   C  a move from a try: the drive starts as that house with no overlay, and the try on the stick is emptied
+#   D  a drive a move stopped partway through: the stick keeps to its own boot partitions, and the move finishes
 set -uo pipefail
 IMG="$(readlink -f "${1:?the image}")"; W="$(mkdir -p "${2:-e2e}" && readlink -f "${2:-e2e}")"
 # KVM on the runner; E2E_ACCEL=tcg anywhere without it, slowly.
@@ -272,7 +273,54 @@ is "...and with the stick still in, the try left on it is emptied for good" "$(t
 as_flashed "the stick's system, after all of it, is as flashed"
 }
 
-for s in ${E2E_ONLY:-a b c}; do "$s"; done
+# ------------------------------------------------- D: a drive a move stopped partway through, moved onto again
+# What a move leaves when it stops after the system's own id: the copy's system relabeled, but its BOOT and UEFI still
+# the stick's, ids and all. A start from the stick must not take them for its own, or the next move stops there too.
+# Its system is not labeled hub-root here, so that a start with nobody at the keyboard makes a try beside it rather
+# than restarting into it.
+half_moved_drive() {
+  cp --sparse=always "$W/base.img" "$W/drive.img"; truncate -s 20G "$W/drive.img"
+  sfdisk -q --relocate gpt-bak-std "$W/drive.img"
+  local n; for n in $(sfdisk -J "$W/drive.img" | python3 -c 'import json, re, sys
+for x in json.load(sys.stdin)["partitiontable"]["partitions"]: print(re.search(r"(\d+)$", x["node"]).group(1))'); do
+    sfdisk -q --part-uuid "$W/drive.img" "$n" "$(uuidgen)"
+  done
+  local dl; dl="$(attach "$W/drive.img")"; e2fsck -fy "${dl}p1" >/dev/null 2>&1; tune2fs -U random "${dl}p1" >/dev/null; e2label "${dl}p1" half-moved; detach "$dl"
+}
+d() {
+say "D: a drive a move stopped partway through: the stick keeps to its own boot partitions, and the next move finishes"
+fresh_stick; half_moved_drive
+before="$(P1)"
+step <<S
+echo poweroff > next
+S
+start D1 0 1
+step <<S
+findmnt -no SOURCE /boot > boot-from; findmnt -no SOURCE /boot/efi > efi-from
+d="\$(lsblk -dno NAME,TRAN | awk '\$2=="nvme" {print \$1}')"
+python3 -c 'import json,sys; print(json.dumps({"disk": sys.argv[1], "serial": sys.argv[2]}))' "\$d" "\$(lsblk -dno SERIAL /dev/\$d | tr -d ' ')" > /var/lib/home-hub/move.request
+echo reboot > next
+S
+start D2 0 1
+is "on the stick, /boot and /boot/efi are the stick's, not the drive's copies of them" "$(got D2 boot-from) $(got D2 efi-from)" "/dev/sda16 /dev/sda15"
+step <<'S'
+echo "not moved" > not-moved; echo poweroff > next
+S
+start D3 0 1
+is "the move happens at the very start of the next" "$(got D3 not-moved)" ""
+dl="$(attach "$W/drive.img" ro)"
+is "...and gives the drive its own boot partitions" "$([ -n "$(bylabel "$dl" hub-boot)" ] && echo yes) $([ -n "$(bylabel "$dl" BOOT)" ] && echo still-BOOT)" "yes "
+detach "$dl"
+step <<S
+findmnt -no FSTYPE / > fstype; e2label "\$(findmnt -no SOURCE /)" > label
+echo poweroff > next
+S
+start D4 - 0
+is "the drive starts on its own, as an ordinary system" "$(got D4 fstype) $(got D4 label)" "ext4 hub-root"
+as_flashed "the stick's system is as flashed"
+}
+
+for s in ${E2E_ONLY:-a b c d}; do "$s"; done
 
 printf '\n%s passed, %s failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

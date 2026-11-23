@@ -97,7 +97,7 @@ class SSH(DeveloperTest):
         d = self.client.post("/developer/ssh/keys", json={"keys": [ed25519()], "source": "pasted"}).json()
         self.assertEqual([(k["name"], k["type"], k["source"]) for k in d["ssh"]["keys"]], [("jordan@laptop", "ssh-ed25519", "pasted")])
         self.assertTrue(d["ssh"]["keys"][0]["fingerprint"].startswith("SHA256:"))
-        self.assertEqual(self.read("ssh.request")["on"], False)
+        self.assertEqual(self.read("ssh.request")["on"], True)
         self.assertEqual(self.read("ssh.request")["keys"], [ed25519()])
 
     def test_the_same_key_twice_is_one_key(self):
@@ -126,6 +126,9 @@ class SSH(DeveloperTest):
         d = self.client.get("/developer").json()["ssh"]
         self.assertEqual((d["on"], d["pending"], d["user"]), (True, False, "pi"))
         self.assertTrue(d["host"].endswith(".local"))
+
+    def test_a_hub_whose_host_has_not_said_who_signs_in_says_elyir(self):
+        self.assertEqual(self.client.get("/developer").json()["ssh"]["user"], "elyir")
 
     def test_ssh_turned_on_when_the_card_was_flashed_is_on_and_nothing_is_waiting(self):
         (self.data / "ssh.json").write_text(json.dumps({"on": True, "keys": [], "user": "pi"}))
