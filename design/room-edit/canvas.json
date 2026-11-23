@@ -3,6 +3,20 @@
   "areas": [
     "Wall screens"
   ],
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Renaming and removing a room",
+      "decided": {
+        "on": "2026-11-22",
+        "chose": "A"
+      }
+    },
+    {
+      "id": "page-2",
+      "name": "Renaming and removing a room: not chosen"
+    }
+  ],
   "artboards": [
     {
       "file": "Today.dc.html",
@@ -10,7 +24,8 @@
       "y": 0,
       "w": 1440,
       "h": 900,
-      "title": "Today — a room can be made, and never renamed or taken away"
+      "title": "Today — a room can be made, and never renamed or taken away",
+      "page": "page-1"
     },
     {
       "file": "NamedHereA.dc.html",
@@ -18,23 +33,26 @@
       "y": 0,
       "w": 1440,
       "h": 900,
-      "title": "A — named where it’s edited"
+      "title": "A — named where it’s edited",
+      "page": "page-1"
     },
     {
       "file": "HouseListB.dc.html",
-      "x": 3120,
+      "x": 0,
       "y": 0,
       "w": 1440,
       "h": 900,
-      "title": "B — one list of rooms, in This house"
+      "title": "B — one list of rooms, in This house (not chosen, 22 November)",
+      "page": "page-2"
     },
     {
       "file": "RoomPaneC.dc.html",
-      "x": 4680,
+      "x": 1560,
       "y": 0,
       "w": 1440,
       "h": 900,
-      "title": "C — hold a room to open it"
+      "title": "C — hold a room to open it (not chosen, 22 November)",
+      "page": "page-2"
     }
   ],
   "annotations": [
@@ -43,49 +61,56 @@
       "x": -620,
       "y": 0,
       "w": 500,
-      "text": "THE QUESTION, 22 NOVEMBER 2026: \"HOW DO I RENAME OR DELETE A ROOM?\"\n\nThe answer was: you can't, from the panel. The brain has had both for a while -- POST /rooms/{id}/rename and DELETE /rooms/{id}, both behind the passcode (brain/hub/api.py, lock.py) -- and the panel has a renameRoom() in api.ts that nothing calls. There is no client for removing one at all.\n\nSo this collection is not about adding two buttons. Two things decide it:\n\nWHERE YOU STAND. Inside the room under its pencil (A), in a list of every room in This house (B), or on a pane of the room's own, opened by holding it (C).\n\nWHAT HAPPENS TO WHAT THE ROOM HOLDS. A room is not empty just because it is a name. It holds things, sometimes a wall screen that opens on it, and routines that name it. Removed the way the brain does it today, the things drop into New devices without being asked, the routines point at nothing and the screen wakes to a room that is gone. Every direction asks where the things go before anything moves, and says what else follows -- that ask is the same on all three boards on purpose, so the boards can be judged on where you meet it.\n\nDrawn on the mock house, the Kitchen, 1440x900, 7:30 PM."
+      "text": "THE QUESTION, 22 NOVEMBER 2026: \"HOW DO I RENAME OR DELETE A ROOM?\"\n\nThe answer was: you can't, from the panel. The brain has had both for a while -- POST /rooms/{id}/rename and DELETE /rooms/{id}, both behind the passcode (brain/hub/api.py, lock.py) -- and the panel has a renameRoom() in api.ts that nothing calls. There is no client for removing one at all.\n\nSo this collection is not about adding two buttons. Two things decide it:\n\nWHERE YOU STAND. Inside the room under its pencil (A), in a list of every room in This house (B), or on a pane of the room's own, opened by holding it (C).\n\nWHAT HAPPENS TO WHAT THE ROOM HOLDS. A room is not empty just because it is a name. It holds things, sometimes a wall screen that opens on it, and routines that name it. Removed the way the brain does it today, the things drop into New devices without being asked, the routines point at nothing and the screen wakes to a room that is gone. Every direction asks where the things go before anything moves, and says what else follows -- that ask is the same on all three boards on purpose, so the boards can be judged on where you meet it.\n\nDrawn on the mock house, the Kitchen, 1440x900, 7:30 PM.",
+      "page": "page-1"
     },
     {
       "id": "today",
       "x": 0,
       "y": 960,
       "w": 700,
-      "text": "TODAY -- FROM THE SHIPPED PANEL\n\nThe pencil inside a room opens the room's edit. Its sentence is \"Rename anything, move it to another room, or remove it for good\", and it keeps that promise for every thing on it. The one name it cannot change is the room's, which is a heading, not a field.\n\nA room is made only from \"A new room...\" at the foot of a thing's room picker, so a room only exists because something was moved into it. After that it stays. The Bathroom in the mock house came over with nothing in it, and the Rooms tab shows it as \"Nothing here yet\", for good.\n\nTraced in the mock at 1440x900 and 390x844; the phone stacks the same rows and has the same gap."
+      "text": "TODAY -- FROM THE SHIPPED PANEL\n\nThe pencil inside a room opens the room's edit. Its sentence is \"Rename anything, move it to another room, or remove it for good\", and it keeps that promise for every thing on it. The one name it cannot change is the room's, which is a heading, not a field.\n\nA room is made only from \"A new room...\" at the foot of a thing's room picker, so a room only exists because something was moved into it. After that it stays. The Bathroom in the mock house came over with nothing in it, and the Rooms tab shows it as \"Nothing here yet\", for good.\n\nTraced in the mock at 1440x900 and 390x844; the phone stacks the same rows and has the same gap.",
+      "page": "page-1"
     },
     {
       "id": "a",
       "x": 1560,
       "y": 960,
       "w": 700,
-      "text": "A -- NAMED WHERE IT'S EDITED\n\nUnder the same pencil, the room's heading becomes a field, saved when you leave it like every name under it. The last card in the list, after the things, is \"Remove the Kitchen\", and it opens into the ask: where its 12 things go (the other rooms as chips, or \"Leave them to place later\", which is New devices), and what else follows, in one sentence each. The button says the whole act: \"Remove the Kitchen, move 12 things to the Living room\". Afterwards you land on the Rooms tab, where the Kitchen's card keeps its place, drained, saying what happened, with Bring it back.\n\nFOR: it is where a person already goes, and the screen already says \"Rename anything\" -- this makes the sentence true rather than adding a new one. No new screen, no new gesture. The remove card comes after the things, so you have seen what is in the room before you are asked to take it away. On a phone it is the same shape: the field at the top, the last card at the foot.\n\nAGAINST: in a busy room the remove card is a scroll away, at the bottom of twelve rows (though that is the room least likely to be removed lightly). Tidying five rooms is five trips. And a room still cannot be made without moving a thing into it."
+      "text": "A -- NAMED WHERE IT'S EDITED\n\nUnder the same pencil, the room's heading becomes a field, saved when you leave it like every name under it. The last card in the list, after the things, is \"Remove the Kitchen\", and it opens into the ask: where its 12 things go (the other rooms as chips, or \"Leave them to place later\", which is New devices), and what else follows, in one sentence each. The button says the whole act: \"Remove the Kitchen, move 12 things to the Living room\". Afterwards you land on the Rooms tab, where the Kitchen's card keeps its place, drained, saying what happened, with Bring it back.\n\nFOR: it is where a person already goes, and the screen already says \"Rename anything\" -- this makes the sentence true rather than adding a new one. No new screen, no new gesture. The remove card comes after the things, so you have seen what is in the room before you are asked to take it away. On a phone it is the same shape: the field at the top, the last card at the foot.\n\nAGAINST: in a busy room the remove card is a scroll away, at the bottom of twelve rows (though that is the room least likely to be removed lightly). Tidying five rooms is five trips. And a room still cannot be made without moving a thing into it.",
+      "page": "page-1"
     },
     {
       "id": "b",
-      "x": 3120,
+      "x": 0,
       "y": 960,
       "w": 700,
-      "text": "B -- ONE LIST OF ROOMS, IN THIS HOUSE\n\nA Rooms page under The house, beside Where home is, its side row saying how many rooms there are and how many have nothing in them. Each room is a row: its name a field, what it holds underneath (\"12 things · the Hallway screen opens here\"), Remove at the end, opening into the same ask as A. At the foot, a room can be made before anything is in it.\n\nFOR: tidying is one trip. A house that arrives from Google Home or Home Assistant with rooms nobody uses (\"Bathroom\", \"Garage 2\") is put right in one place. It is the only direction where a household can lay out its rooms first and add things after. And This house is already where the passcode is asked.\n\nAGAINST: nobody standing in the Kitchen looks in This house to rename the Kitchen, and the pencil there would still say \"Rename anything\" and still not mean it. This house is \"everything about the house that is not a light, a scene or a lock\"; rooms are how the whole panel is arranged, and filing them under settings hides the thing people think in. It needs a way across from inside the room, which is one more line to read."
+      "text": "NOT CHOSEN, 22 November 2026. A was built: the room is renamed and removed under its own pencil. Kept for the case it made.\n\nB -- ONE LIST OF ROOMS, IN THIS HOUSE\n\nA Rooms page under The house, beside Where home is, its side row saying how many rooms there are and how many have nothing in them. Each room is a row: its name a field, what it holds underneath (\"12 things · the Hallway screen opens here\"), Remove at the end, opening into the same ask as A. At the foot, a room can be made before anything is in it.\n\nFOR: tidying is one trip. A house that arrives from Google Home or Home Assistant with rooms nobody uses (\"Bathroom\", \"Garage 2\") is put right in one place. It is the only direction where a household can lay out its rooms first and add things after. And This house is already where the passcode is asked.\n\nAGAINST: nobody standing in the Kitchen looks in This house to rename the Kitchen, and the pencil there would still say \"Rename anything\" and still not mean it. This house is \"everything about the house that is not a light, a scene or a lock\"; rooms are how the whole panel is arranged, and filing them under settings hides the thing people think in. It needs a way across from inside the room, which is one more line to read.",
+      "page": "page-2"
     },
     {
       "id": "c",
-      "x": 4680,
+      "x": 1560,
       "y": 960,
       "w": 700,
-      "text": "C -- HOLD A ROOM TO OPEN IT\n\nHolding a thing opens its pane; holding a room -- its card on the Rooms tab, or its name inside it -- opens the room's own. Its name and Rename at the left, what the room holds at the right (its things, the screen that opens on it, the routines that light it, its ways to set it), and Remove this room last, in the same quiet row a thing's pane uses to remove it.\n\nFOR: one gesture for \"tell me about this and let me change it\", the same for a lamp and a room. It is the only direction that shows everything a room holds before anyone asks to remove it, which is the real content of the question. And it gives later room settings a home -- people come in through here is already a per-room choice made somewhere else.\n\nAGAINST: a hold is invisible, and nobody finds it untold. The Living room's card has sliders and a button inside it, so a hold has to land on the card and not on them. It makes two ways into a room's settings, the pencil for its things and a hold for the room, and moving \"people come in through here\" here is a change of its own."
+      "text": "NOT CHOSEN, 22 November 2026. A was built: the room is renamed and removed under its own pencil. Kept for the case it made.\n\nC -- HOLD A ROOM TO OPEN IT\n\nHolding a thing opens its pane; holding a room -- its card on the Rooms tab, or its name inside it -- opens the room's own. Its name and Rename at the left, what the room holds at the right (its things, the screen that opens on it, the routines that light it, its ways to set it), and Remove this room last, in the same quiet row a thing's pane uses to remove it.\n\nFOR: one gesture for \"tell me about this and let me change it\", the same for a lamp and a room. It is the only direction that shows everything a room holds before anyone asks to remove it, which is the real content of the question. And it gives later room settings a home -- people come in through here is already a per-room choice made somewhere else.\n\nAGAINST: a hold is invisible, and nobody finds it untold. The Living room's card has sliders and a button inside it, so a hold has to land on the card and not on them. It makes two ways into a room's settings, the pencil for its things and a hold for the room, and moving \"people come in through here\" here is a change of its own.",
+      "page": "page-2"
     },
     {
       "id": "recommended",
-      "x": 6240,
+      "x": 3120,
       "y": 0,
       "w": 520,
-      "text": "RECOMMENDED: A\n\nThe question was asked from inside a room, and A answers it there. The edit screen already promises \"Rename anything\"; A makes that true of the biggest name on it and adds no screen and no gesture.\n\nThe ask is what matters most, and it is the same on all three boards -- where the things go, what else follows, the act written on the button, and the drained card as the undo. So the choice is only where you meet it, and A puts it where the person already is.\n\nIf tidying many rooms at once turns out to be common (a house brought over from another app), B's list can come later as well, using the same rows and the same ask."
+      "text": "DECIDED 22 NOVEMBER 2026: A, as drawn\n\nThe question was asked from inside a room, and A answers it there. The edit screen already promises \"Rename anything\"; A makes that true of the biggest name on it and adds no screen and no gesture.\n\nThe ask is what matters most, and it is the same on all three boards -- where the things go, what else follows, the act written on the button, and the drained card as the undo. So the choice is only where you meet it, and A puts it where the person already is.\n\nIf tidying many rooms at once turns out to be common (a house brought over from another app), B's list can come later as well, using the same rows and the same ask.",
+      "page": "page-1"
     },
     {
       "id": "built",
-      "x": 6240,
+      "x": 3120,
       "y": 520,
       "w": 520,
-      "text": "WHAT IS BUILT WHICHEVER IS CHOSEN\n\n1. REMOVING ASKS WHERE THE THINGS GO. The brain moves them first, to the chosen room or to New devices, in one call. Nothing is dropped without being asked.\n\n2. WHAT FOLLOWS IS SAID AND DONE. A screen that opens on the room opens on the room the things went to. A routine that names only this room is switched off and waits in Routines for a room; one that names it among others just loses it.\n\n3. BRING IT BACK. The brain keeps what the room was -- its name, its things, its screen, its routines -- until the drained card goes, and Bring it back puts every part of it back.\n\n4. A NAME THE HOUSE ALREADY HAS IS REFUSED, IN WORDS. So is an empty one. The command box answers to the new name at once.\n\n5. AN EMPTY ROOM SKIPS THE QUESTION. \"Remove the Bathroom? Nothing is in it.\" Remove, or Keep it.\n\n6. NEW DEVICES IS NOT A ROOM, and cannot be renamed or removed (the brain already refuses it).\n\n7. BOTH STAY BEHIND THE PASSCODE, asked at the moment of the change like every other locked change."
+      "text": "WHAT IS BUILT WHICHEVER IS CHOSEN\n\n1. REMOVING ASKS WHERE THE THINGS GO. The brain moves them first, to the chosen room or to New devices, in one call. Nothing is dropped without being asked.\n\n2. WHAT FOLLOWS IS SAID AND DONE. A screen that opens on the room opens on the room the things went to. A routine that can't run without this room -- it lights only this room, or waits on it being quiet -- goes with it; one that names it among others just loses it. (Routines has no way to give a routine a room, so a routine waiting for one would wait for good.) Every routine still on the house keeps running, and the house's routines can still be saved.\n\n3. BRING IT BACK. The brain keeps what the room was -- its name, its things, its screen, its routines -- until the drained card goes, and Bring it back puts every part of it back.\n\n4. A NAME THE HOUSE ALREADY HAS IS REFUSED, IN WORDS. So is an empty one. The command box answers to the new name at once.\n\n5. AN EMPTY ROOM SKIPS THE QUESTION. \"Remove the Bathroom? Nothing is in it.\" Remove, or Keep it.\n\n6. NEW DEVICES IS NOT A ROOM, and cannot be renamed or removed (the brain already refuses it).\n\n7. BOTH STAY BEHIND THE PASSCODE, asked at the moment of the change like every other locked change.",
+      "page": "page-1"
     }
   ]
 }
