@@ -280,6 +280,6 @@ describe('a mouse left in the hub', () => {
   it('draws no pointer on the TV the hub drives, and keeps it in a ?tv=1 preview on a computer', () => {
     const app = readFileSync('src/App.vue', 'utf8'), css = readFileSync('src/panel.css', 'utf8')
     expect(app).toMatch(/if \(tv && isScreen\(\)\) document\.documentElement\.dataset\.tvScreen = ''/)
-    expect(css).toMatch(/html\[data-tv-screen\],\nhtml\[data-tv-screen\] \* \{\n  cursor: none !important;/)
+    expect(css).toMatch(/html\[data-tv-screen\],\nhtml\[data-tv-screen\] \* \{\n {2}cursor: none !important;/)
   })
 })
