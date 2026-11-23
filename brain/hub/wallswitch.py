@@ -229,7 +229,7 @@ class WallSwitches:
         entry = (addr.lower(), fut)
         self._listeners.append(entry)
         try: other = await asyncio.wait_for(fut, wait or LISTEN_WAIT)
-        except (asyncio.TimeoutError, TimeoutError): other = None
+        except TimeoutError: other = None
         finally: self._listeners.remove(entry)
         if not other: return {"heard": None}
         dev = await self.device_of(other)
