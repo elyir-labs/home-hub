@@ -28,6 +28,13 @@ const a = ref<Answers>({ walkin: 'on_off' })
 const device = ref<string | null>(props.deviceId ?? null)
 const showing = ref('')                 // what the light is doing right now, said while it does it
 const busy = ref(false)
+/* A setting on its way to the switches takes tens of seconds over the mesh, so the choice moves when it is tapped and
+   breathes until it lands; refused, it goes back and the reason stays in its row (design/switch-setup/ChooseA-working). */
+type Row = 'dims' | 'other'
+const pending = ref<{ row: Row; to: boolean } | null>(null)
+const refused = ref<{ row: Row; text: string } | null>(null)
+const dimsShown = computed(() => pending.value?.row === 'dims' ? pending.value.to : a.value.dims)
+const partnerShown = computed(() => pending.value?.row === 'other' ? false : !!a.value.partner)
 const heard = ref<{ switch: string; name: string } | null>(null)
 const listening = ref(false)
 const room = ref('')
@@ -177,8 +184,18 @@ async function makeRoom() {
 }
 
 async function noPartner() {
-  if (partnerAddr.value) { try { await unpairSwitch(me.value) } catch {} partnerAddr.value = null }
+  if (pending.value) return
+  if (partnerAddr.value) {
+    refused.value = null
+    pending.value = { row: 'other', to: false }
+    try {
+      const r = await unpairSwitch(me.value)
+      if (r.state === 'failed') { refused.value = { row: 'other', text: r.text ?? 'The two switches weren’t separated. Try again.' }; return }
+    } catch (e: any) { refused.value = { row: 'other', text: e.message }; return } finally { pending.value = null }
+    partnerAddr.value = null
+  }
   a.value = { ...a.value, partner: null }
+  if (at.value === 'end') return
   go(next('other', a.value))
 }
 
@@ -203,12 +220,14 @@ async function placeAndName() {
 
 /* The end is the switch's settings page: changing a row here does the same as answering it did. */
 async function changeDims(yes: boolean) {
-  if (a.value.dims === yes || (yes && a.value.canDim === false)) return
+  if (pending.value || a.value.dims === yes || (yes && a.value.canDim === false)) return
+  refused.value = null
+  pending.value = { row: 'dims', to: yes }
   try {
     const r = await switchDims(me.value, yes)
-    if (r.state === 'failed') return notify(r.text ?? 'The switch didn’t take that.', 'error')
+    if (r.state === 'failed') { refused.value = { row: 'dims', text: r.text ?? 'The switch didn’t take that. Try again.' }; return }
     a.value = { ...a.value, dims: yes, restartOwed: true }
-  } catch (e: any) { notify(e.message, 'error') }
+  } catch (e: any) { refused.value = { row: 'dims', text: e.message } } finally { pending.value = null }
 }
 async function changeWalkIn(mode: WalkIn) {
   const was = a.value.walkin
@@ -373,12 +392,12 @@ onUnmounted(stopShowing)
         <span class="sw-seg plain"><b>{{ lightName }}</b><span class="chip-btn on"><Icon name="check" :size="14" />{{ rooms.find(r => r.id === room)?.name }}</span><button class="button small ghost" @click="go('room')">Change</button></span>
       </div>
       <div class="sw-set" v-if="a.light !== false">
-        <span class="sw-k">From the switch<small v-if="foundLine(a)">{{ foundLine(a) }}</small></span>
-        <span class="sw-seg"><button :class="{ on: a.dims }" :disabled="a.canDim === false" @click="changeDims(true)">Dim</button><button :class="{ on: a.dims === false }" @click="changeDims(false)">On and off only</button></span>
+        <span class="sw-k">From the switch<small v-if="pending?.row === 'dims'" class="sw-going">{{ partnerAddr ? 'Setting both switches… about half a minute' : 'Setting the switch…' }}</small><small v-else-if="refused?.row === 'dims'" class="sw-refused">{{ refused.text }}</small><small v-else-if="foundLine(a)">{{ foundLine(a) }}</small></span>
+        <span class="sw-seg"><button :class="{ on: dimsShown, 'sw-going': pending?.row === 'dims' && dimsShown }" :disabled="a.canDim === false || (!!pending && !dimsShown)" @click="changeDims(true)">Dim</button><button :class="{ on: dimsShown === false, 'sw-going': pending?.row === 'dims' && dimsShown === false }" :disabled="!!pending && dimsShown !== false" @click="changeDims(false)">On and off only</button></span>
       </div>
       <div class="sw-set">
-        <span class="sw-k">Other switches<small v-if="a.partner && !otherDevice">You pressed it</small><small v-else-if="a.partner">Added with this one</small></span>
-        <span class="sw-seg"><button :class="{ on: !!a.partner }" @click="go('other')">{{ a.partner ? a.partner[0].toUpperCase() + a.partner.slice(1) : 'Another switch' }}</button><button :class="{ on: !a.partner }" @click="noPartner">Just this one</button></span>
+        <span class="sw-k">Other switches<small v-if="pending?.row === 'other'" class="sw-going">Separating the two switches…</small><small v-else-if="refused?.row === 'other'" class="sw-refused">{{ refused.text }}</small><small v-else-if="a.partner && !otherDevice">You pressed it</small><small v-else-if="a.partner">Added with this one</small></span>
+        <span class="sw-seg"><button :class="{ on: partnerShown }" :disabled="!!pending" @click="go('other')">{{ a.partner ? a.partner[0].toUpperCase() + a.partner.slice(1) : 'Another switch' }}</button><button :class="{ on: !partnerShown, 'sw-going': pending?.row === 'other' }" :disabled="!!pending && pending.row !== 'other'" @click="noPartner">Just this one</button></span>
       </div>
       <div class="sw-set" v-if="a.light !== false">
         <span class="sw-k">When someone walks in</span>

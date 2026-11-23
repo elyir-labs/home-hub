@@ -280,6 +280,10 @@ class Home:
         # the tile. A folded light stays a device -- rules, the log and a tap on the roofline still reach
         # it -- and is only left out of its room's list. Written by hub/roofline.py.
         self.folded: dict[str, str] = {}
+        # WALL SWITCHES WITH NO LIGHT OF THEIR OWN: the far end of a stairway pair still arrives from the driver as
+        # a light, wired to nothing. Its hardware's identifiers (`mesh_<net>_<addr>`); like a folded light it stays
+        # a device and is only left out of its room's list. Written by hub/wallswitch.py.
+        self.not_lights: set[str] = set()
         # SPEAKERS THE MUSIC ENGINE CAN PLAY ON (hub/music.py). The engine hands each speaker it reaches to the driver
         # layer as a second media player, so a Cast speaker arrives twice: as itself, and as the engine's. The house
         # shows it once. The engine's copy is folded into the speaker's own device -- its state and what it is playing
@@ -366,6 +370,8 @@ class Home:
             # whole point of somebody having pressed Keep
             r.colors = list(self.room_colors.get(rid, []))
         dev_area = {d["id"]: d.get("area_id") for d in ha_devices}
+        dev_marks = {d["id"]: {str(x) for i in d.get("identifiers") or [] for x in (i if isinstance(i, (list, tuple)) else [i])}
+                     for d in ha_devices}
         dev_words = {d["id"]: " ".join(str(d.get(k) or "") for k in ("name_by_user", "name", "model", "manufacturer")) for d in ha_devices}
         dev_entry = {d["id"]: next(iter(d.get("config_entries") or []), None) for d in ha_devices}   # what brought the hardware, for entries that do not name it themselves
         self.hardware = {d["id"]: {"name": d.get("name_by_user") or d.get("name") or "", "manufacturer": OUR_OLD_NAMES.get(d.get("manufacturer") or "", d.get("manufacturer") or ""), "model": d.get("model") or ""} for d in ha_devices}
@@ -416,6 +422,7 @@ class Home:
             d.kind = self.shown_as(eid, cap, d.guess)
             self.devices[eid] = d
             if cap == "light" and d.hw and d.hw in self.folded: continue   # part of another light's one tile
+            if cap == "light" and d.hw and self.not_lights & dev_marks.get(d.hw, set()): continue   # a switch wired to nothing
             self.rooms[room].devices.append(d)
         for hw, parts in units.items():
             e = reg.get(parts["plug"], {})

@@ -102,8 +102,24 @@ test('a light that can dim can still be on and off only, chosen from the light i
   await page.locator('.pane-switch').getByRole('button', { name: 'Change' }).click()
   await expect(page.getByText('How the switch for this light is set up.')).toBeVisible()
   await expect(page.getByText('Its bulbs can dim · you saw it')).toBeVisible()
+
+  // Refused: the choice goes back and the reason stays in the row (design/switch-setup/ChooseA-refused).
+  await page.route('**/bridge/switches/*/dims', route => route.fulfill({ json: { state: 'failed', text: 'The switch didn’t take that. Try again.' } }))
   await page.getByRole('button', { name: 'On and off only' }).click()
+  await expect(page.locator('.sw-refused')).toHaveText('The switch didn’t take that. Try again.')
+  await expect(page.getByRole('button', { name: 'Dim', exact: true })).toHaveClass(/\bon\b/)
+  await page.unroute('**/bridge/switches/*/dims')
+
+  // On its way: the choice moves at once and breathes, the row says so, and the other answer can't be tapped.
+  let landed: () => void = () => {}
+  await page.route('**/bridge/switches/*/dims', async route => { await new Promise<void>(go => { landed = go }); await route.fallback() })
+  await page.getByRole('button', { name: 'On and off only' }).click()
+  await expect(page.locator('.sw-k .sw-going')).toHaveText('Setting the switch…')
+  await expect(page.getByRole('button', { name: 'On and off only' })).toHaveClass(/sw-going/)
+  await expect(page.getByRole('button', { name: 'Dim', exact: true })).toBeDisabled()
+  landed()
   await expect(page.getByText('Then restart the switch')).toBeVisible()
+  await expect(page.getByText('Its bulbs can dim · you saw it')).toBeVisible()
   await page.getByRole('button', { name: 'Done' }).click()
   await expect(page.locator('.pane-switch')).toContainText('Wall switch · on and off only')
 })

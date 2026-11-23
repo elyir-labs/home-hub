@@ -475,6 +475,24 @@
    "h": 900,
    "title": "B, chosen 22 November · The end of a pair: both switches dim, so both are restarted",
    "page": "pair"
+  },
+  {
+   "file": "ChooseA-working.dc.html",
+   "x": 0,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "page": "choose",
+   "title": "A, chosen 22 November · While a change is on its way to the switches"
+  },
+  {
+   "file": "ChooseA-refused.dc.html",
+   "x": 1560,
+   "y": 1960,
+   "w": 1440,
+   "h": 900,
+   "page": "choose",
+   "title": "A, chosen 22 November · When a switch refuses it"
   }
  ],
  "annotations": [
@@ -717,6 +735,14 @@
    "w": 540,
    "page": "pair",
    "text": "BOTH ENDS DIM, OR NEITHER\nADDED 22 NOVEMBER, AFTER THE STAIRWAY.\n\nFound at the stairs: the switch with the light dimmed, the far end only turned it on and off. The far switch's slider only reaches the light when it is set to dim too, and a reset leaves it on and off. Setting it to dim and restarting it made it dim the light, switch to switch.\n\nSo Dim and On and off only are one choice for the pair. It is made once, at the dim test or from the light's own page, and the hub sends it to both switches (wallswitch.py, dims() and pair()). The far switch is not touched before the dim test, so the test starts as quickly as before.\n\nA switch reads that choice only when it starts. So when two switches are involved, the last step says \"restart both switches\" and the tab instruction says \"at each switch\". With one switch it stays as it was."
+  },
+  {
+   "id": "choose-working",
+   "x": -640,
+   "y": 1960,
+   "w": 540,
+   "page": "choose",
+   "text": "WHILE IT WORKS, AND WHEN IT IS REFUSED\nADDED 23 NOVEMBER, AFTER THE STAIRWAY.\n\nFound at the stairs: Dim and On and off only looked like placeholders. Each change goes over the mesh to the switch, and to the other end of a pair, about half a minute in all. The row did not move until the change had landed. Every tap in the meantime queued another change, so the row went on flipping long after the last tap.\n\nSo the choice moves the moment it is tapped and breathes until both switches have it. The line under the row's name says what is happening (\"Setting both switches… about half a minute\", or \"Setting the switch…\" for one), and the row's other answers can't be tapped meanwhile. Just this one on Other switches works the same way, with \"Separating the two switches…\".\n\nRefused, the choice goes back to what the switches still are. The reason stays in that line, in red, until the next tap, rather than in a toast that is gone before it is read."
   }
  ]
 }
