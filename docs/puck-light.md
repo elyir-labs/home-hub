@@ -262,8 +262,15 @@ Steps 1–4 are the feature. Step 5 is the one that makes people like it.
 
 **What steps 1 to 4 still owe:** a puck on a cable. `set settled 1` then `set night 1 <level>` should put a settled,
 healthy puck into a warm glow; pulling the broker should take it straight back to amber; a reboot should come
-back glowing without the hub. None of that has been watched happen, and the default brightness (110) was chosen
-on a screen, which `emitter-colours-are-not-screen-colours` is a standing warning about.
+back glowing without the hub. The glow has been seen warm on a wall charger (23 November), and a reboot came back
+glowing; pulling the broker has not been watched. The default brightness (110) was chosen on a screen, which
+`emitter-colors-are-not-screen-colors` is a standing warning about.
+
+**Power the LED from a charger, not a computer's USB port.** On the hub's own USB port the warm glow showed green:
+red needs the most voltage of the three, and it was the one that dropped out, which leaves the glow's green and
+blue -- almost exactly the instrument's green. The status colors still looked right, because none of them leans
+on red at a level the weak supply could not carry. A puck that glows green when it should be warm is on weak power
+before it is anything else.
 
 ## Open
 
