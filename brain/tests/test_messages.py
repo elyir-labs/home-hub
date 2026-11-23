@@ -22,6 +22,7 @@ ROOMY = DISK(100 * 1024 ** 3, 10 * 1024 ** 3, 90 * 1024 ** 3)
 SAMPLES = {
     "device.offline": {"name": "Hall light", "when": "yesterday"},
     "bridge.quiet": {"name": "The Hallway bridge", "when": "3:10 pm", "network": "Home"},
+    "bridge.far": {"name": "The Hallway bridge", "when": "3:10 pm"},
     "storage.low": {"left": "1.0 GB"},
     "account.signed_out": {"name": "Nest", "title": "Home"},
     "account.check": {"name": "Nest", "title": "Home"},
@@ -141,6 +142,14 @@ class HealthCarriesItsIdTests(unittest.TestCase):
         self.assertEqual((n["id"], n["class"]), ("bridge.quiet", "attention"))
         self.assertEqual(n["text"], "The Hallway bridge has not answered since the Wi‑Fi changed to Home2. Its switches still work on the wall — "
                                     "the hub just can’t see them. Plug it into the hub for a minute to set it right.")
+
+    def test_a_placed_bridge_that_cannot_reach_the_switches(self):
+        self.hub.bridge = FakeBridges()
+        self.hub.bridge.far = lambda: [{"room": "Hallway", "chip": "c1", "since": 1795400000}]
+        [n] = self.notes()
+        self.assertEqual((n["id"], n["class"], n["subject"]), ("bridge.far", "attention", "c1"))
+        self.assertTrue(n["text"].startswith("The Hallway bridge hasn’t reached the light switches since "))
+        self.assertIn("They still work on the wall", n["text"])
 
     def test_an_update_that_did_not_finish(self):
         self.hub.updates.state = lambda: {"state": "failed", "finished": 5}

@@ -1,0 +1,125 @@
+{
+ "name": "The bridge's light when it loses the switches",
+ "areas": [
+  "Light switches"
+ ],
+ "artboards": [
+  {
+   "file": "Today.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "Today · Every drop shows at once; red after about 24 seconds",
+   "page": "light"
+  },
+  {
+   "file": "GraceA.dc.html",
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "A · A minute's grace: a drop under a minute never shows",
+   "page": "light-rejected"
+  },
+  {
+   "file": "AmberB.dc.html",
+   "x": 1560,
+   "y": 0,
+   "w": 1440,
+   "h": 900,
+   "title": "B · Red is only for placing; the wall says the rest",
+   "page": "light-rejected"
+  },
+  {
+   "file": "CalmC.dc.html",
+   "x": 0,
+   "y": 980,
+   "w": 1440,
+   "h": 900,
+   "title": "C · A shaky link is one calm color, not three",
+   "page": "light"
+  }
+ ],
+ "annotations": [
+  {
+   "id": "why",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "text": "WHY THIS IS BEING DRAWN\n\n23 November, while setting up the stairway: \"The puck LED is showing different status colors rapidly. Is this really a sign of unstable connection or is it a bug?\"\n\nWhat the hub could see: no restarts, no broker drops, no update running. But the bridge reported \"far\" (breathing red), its link had moved between three different switches during the day at -71 to -75 dBm, and once it lost the switches entirely until it was replugged. It sits nearest the main bedroom switch, then under cabinet, then the stairway; all three are on the house's own network.\n\nSo the light was telling the truth about a link that kept dropping. The question for these boards is whether it should tell it like that. Why the link drops is a separate question, for the bridge's own log.",
+   "page": "light"
+  },
+  {
+   "id": "today",
+   "x": 3120,
+   "y": 0,
+   "w": 540,
+   "text": "TODAY -- FROM THE CODE\n\nOne rule picks the color every pass (puck/src/lightrule.h): not well -> blinking amber, or breathing red once the mesh module has had three empty scans in a row (about 24 seconds); placed and well -> the nightlight, or dark.\n\nRed was made for placing (design/puck/Placing.dc.html): somebody is standing at a socket asking \"is here good?\", and red means \"no, try nearer a switch\". Once the bridge is placed, nobody is asking. A restarted switch or a shaky minute then reads as an alarm, and a link that comes and goes reads as a strobe: warm, amber, red, warm.\n\nWhat stays whichever is picked: faults outrank the nightlight (light.h). A light that glows warm while the bridge can't reach anything is furniture that lies, so every direction still shows a loss that lasts. They differ in how soon, and in which color.",
+   "page": "light"
+  },
+  {
+   "id": "a",
+   "x": -640,
+   "y": 0,
+   "w": 540,
+   "text": "A -- A MINUTE'S GRACE\n\nFor a placed bridge only. The light keeps showing what it showed for the first minute after a drop; amber after a minute, red after three.\n\nCalmest of the three: the restart and the shaky link never show. That is also its cost. A link that drops for 50 seconds every minute is a broken bridge, and the light shows nothing at all. It lies for a minute at a time, which is the thing light.h says the light must not do.",
+   "page": "light-rejected"
+  },
+  {
+   "id": "b",
+   "x": 3120,
+   "y": 0,
+   "w": 540,
+   "text": "B -- RED IS ONLY FOR PLACING\n\nOnce placed, the bridge never goes red: a drop shows as blinking amber at once, for as long as it lasts. After five minutes the wall says it on the Needs a look line, \"The bridge can't reach the switches\", because a household reads the wall, not a socket.\n\nHonest second by second, and it gives a long loss to the screen that can explain it. But the shaky link is still a strobe, warm and amber over and over, which is the thing that was asked about.",
+   "page": "light-rejected"
+  },
+  {
+   "id": "c",
+   "x": 1560,
+   "y": 980,
+   "w": 540,
+   "text": "C -- ONE CALM COLOR FOR A SHAKY LINK\n\nA drop under 20 seconds doesn't show: that is a switch restarting or a moment of noise. Anything longer turns the light a slow amber, a breath, not a blink. It stays slow amber until the link has held for a whole minute, so a link that comes and goes reads as one steady \"shaky\" rather than three colors. Red only after five minutes with no switch at all, when moving the bridge really is the answer.\n\nThe restart case costs a minute of slow amber: the light owns up to the drop, calmly, and clears once the link has proved itself.",
+   "page": "light"
+  },
+  {
+   "id": "decided",
+   "x": -640,
+   "y": 980,
+   "w": 540,
+   "text": "DECIDED 23 NOVEMBER 2026\n\nC, with B's line on the wall. A shaky link is one calm color: a drop under 20 seconds doesn't show, a longer one is slow amber until the link has held for a minute, and red only after five minutes with no switch. Then the wall says it too, on Needs a look: \"The <room> bridge hasn't reached the light switches since <when>.\"\n\nBuilt the same day. The rule with its memory is lightStep() in puck/src/lightrule.h, pinned by puck/native/test_light_native.cpp; the slow amber is Light::Shaky in puck/src/light.cpp. Placing, and a bridge with nothing to carry, keep the plain rule. The wall's line is Bridges.far() in brain/hub/bridge.py and bridge.far in brain/hub/messages.py, pinned by brain/tests/test_bridge.py and test_messages.py.",
+   "page": "light"
+  }
+ ],
+ "reading": [
+  "why",
+  "Today.dc.html",
+  "today",
+  "CalmC.dc.html",
+  "c",
+  "decided",
+  "GraceA.dc.html",
+  "a",
+  "AmberB.dc.html",
+  "b"
+ ],
+ "launch": {
+  "view": "canvas",
+  "page": "light"
+ },
+ "pages": [
+  {
+   "id": "light",
+   "name": "The bridge's light when it loses the switches",
+   "decided": {
+    "on": "2026-11-23",
+    "chose": "C, with B's line on the wall",
+    "board": "CalmC.dc.html"
+   }
+  },
+  {
+   "id": "light-rejected",
+   "name": "The bridge's light when it loses the switches: not chosen"
+  }
+ ]
+}

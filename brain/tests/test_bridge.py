@@ -393,6 +393,18 @@ class LookingAtABridgeThatIsFine(unittest.TestCase):
 
     def each(self): return {x["chip"]: x for x in self.b.each()}
 
+    def test_a_placed_bridge_that_says_far_is_said_on_the_wall_and_one_being_placed_is_not(self):
+        say = lambda leaf, v: self.b._on_mqtt({"topic": f"mesh/bridge/c8ebba/{leaf}", "payload": v})
+        say("light", "far")
+        self.assertEqual(self.b.far(), [])                     # still being placed: the light is talking to the person
+        say("settled", "yes")
+        [b] = self.b.far()
+        self.assertEqual(b["chip"], "c8ebba")
+        say("light", "far")
+        self.assertEqual(self.b.far()[0]["since"], b["since"])  # still the same loss
+        say("light", "shaky")
+        self.assertEqual(self.b.far(), [])
+
     def test_the_answer_is_what_the_puck_said_back_not_the_state_before_the_tap(self):
         """The panel has no stream for bridges, so this answer is all it draws. Answered before the
         puck spoke, the Brightness row sprang back to Soft after a tap on Bright (24 September)."""

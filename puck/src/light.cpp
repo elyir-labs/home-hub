@@ -229,6 +229,17 @@ static void lightTask(void *) {
 #endif
             break;
         }
+        case Light::Shaky: {                     // amber, breathing slowly: a link that has been dropping
+#if defined(HAVE_RGB)
+            uint32_t slow = breathMs * 2, step = breathStep * 2;
+            uint32_t tq = (t / step) * step;
+            float k = 0.5f + 0.5f * sinf((tq % slow) / (float)slow * 6.2831853f);
+            paint(AMBER, 0.15f + 0.85f * k);
+#else
+            paint(AMBER, (t % 3000) < 1500 ? 1.f : 0.f);   // one LED: a slow blink, three times slower than looking
+#endif
+            break;
+        }
         default:
             paint(AMBER, 0.f);
         }

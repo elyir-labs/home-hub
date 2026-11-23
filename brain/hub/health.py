@@ -142,6 +142,12 @@ class Health:
                 "name": it, **line,
                 "acts": [way("bridge.quiet", "forget", b["chip"], name=it)],
             })
+        for b in self.hub.bridge.far():
+            it = f"The {b['room']} bridge" if b["room"] else "A bridge"
+            out.append({
+                "kind": "bridge", "subject": b["chip"], "since": b["since"], "where": b["room"], "name": it,
+                **message("bridge.far", name=it, when=when(b["since"] or time.time(), self.hub.tz)),
+            })
         return out
 
     def storage(self) -> list:

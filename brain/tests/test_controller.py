@@ -173,7 +173,7 @@ class HouseWithAStrip(unittest.TestCase):
         self.hub.strip = self.s
         self.hub.provision = FakeProvision()
         self.hub.provision.parts = [{"id": "zwave", "name": "Z-Wave radio", "state": "failed", "text": "gone"}]
-        self.hub.bridge.quiet = lambda: []
+        self.hub.bridge.quiet = self.hub.bridge.far = lambda: []
         self.hub.log.recent = lambda **k: []
         self.hub.log.last_by_subject = lambda *a: {}
         self.hub.tz = None
