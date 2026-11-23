@@ -39,6 +39,7 @@ class FakeBridges:
     """Just enough of hub.bridge for anything that asks the house about its bridges."""
     def __init__(self, quiet=()): self.gone = list(quiet)
     def quiet(self): return self.gone
+    def far(self): return []
 
 
 class FakeHA:

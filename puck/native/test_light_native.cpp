@@ -12,7 +12,7 @@
 static int fails = 0;
 static const char *name(Light l) {
     switch (l) { case Light::Off: return "off"; case Light::Looking: return "looking"; case Light::Heard: return "heard";
-                 case Light::Far: return "far"; case Light::Night: return "night"; }
+                 case Light::Far: return "far"; case Light::Night: return "night"; case Light::Shaky: return "shaky"; }
     return "?";
 }
 static void is(const char *what, Light got, Light want) {
@@ -54,6 +54,30 @@ int main() {
     is("switches heard and the hub: leave it here", lightFor(mesh), Light::Heard);
     mesh.settled = true; mesh.night = true;
     is("placed and asked for: the nightlight", lightFor(mesh), Light::Night);
+
+    // ---- a placed switch bridge, with memory: design/puck-light/, C ----
+    LightIn on = {};
+    on.carries = on.broker = on.linkUp = on.settled = on.night = true;
+    LightIn off = on; off.linkUp = false;
+    LightMemory m;
+    is("placed and well: the nightlight", lightStep(m, on, 1000), Light::Night);
+    is("a drop under 20 seconds does not show", lightStep(m, off, 2000), Light::Night);
+    is("...nor at 19 seconds", lightStep(m, off, 21000), Light::Night);
+    is("back within 20 seconds: never shaky", lightStep(m, on, 21500), Light::Night);
+    is("a drop of 20 seconds: slow amber", (lightStep(m, off, 30000), lightStep(m, off, 50000)), Light::Shaky);
+    is("back, but not for a minute yet: still slow amber", lightStep(m, on, 51000), Light::Shaky);
+    is("...a short drop while shaky stays shaky", (lightStep(m, off, 80000), lightStep(m, off, 85000)), Light::Shaky);
+    is("...and the minute starts again when it is back", lightStep(m, on, 86000), Light::Shaky);
+    is("held 59 seconds: still slow amber", lightStep(m, on, 145000), Light::Shaky);
+    is("held a minute: the nightlight again", lightStep(m, on, 146000), Light::Night);
+    is("gone 4 minutes 59: slow amber, not red", (lightStep(m, off, 200000), lightStep(m, off, 499000)), Light::Shaky);
+    is("gone five minutes: move me", lightStep(m, off, 500000), Light::Far);
+    is("back from far: slow amber until it holds", lightStep(m, on, 510000), Light::Shaky);
+    LightIn placing = off; placing.settled = false;
+    LightMemory p;
+    is("being placed: the instrument, at once", lightStep(p, placing, 1000), Light::Looking);
+    placing.linkFar = true;
+    is("being placed, three empty scans: too far, at once", lightStep(p, placing, 2000), Light::Far);
 
     printf(fails ? "\n%d FAILED\n" : "\nall good\n", fails);
     return fails ? 1 : 0;

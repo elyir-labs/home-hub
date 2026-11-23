@@ -908,6 +908,16 @@ class Bridges:
         out.sort(key=lambda b: b["since"])
         return out
 
+    def far(self) -> list:
+        """This house's placed bridges that are answering but have found no light switch for five minutes.
+        A bridge still being placed says far to the person holding it, so only a placed one is said here."""
+        out = []
+        for chip in (self.hub.settings.get("bridges") or {}):
+            p = self.pucks.get(chip) or {}
+            if p.get("online") and p.get("settled") and p.get("light") == "far":
+                out.append({"chip": chip, "room": self.room_of(chip), "since": p.get("far_since")})
+        return out
+
     async def forget(self, chip: str) -> dict:
         """Take a bridge off the house. The last thing offered about one that is never coming back.
 
@@ -1293,6 +1303,13 @@ class Bridges:
             # The nightlight's own setting, retained by the puck. Kept because a bridge whose light
             # is off has nothing to lift, and lifting it would turn it on -- which nobody asked for.
             elif leaf == "night": p["night"] = payload == "ON"
+            # What its light is saying, and whether it has been placed: a placed bridge saying far has gone
+            # five minutes without a switch (puck/src/lightrule.h), which the wall says too (far()).
+            elif leaf == "settled": p["settled"] = payload == "yes"
+            elif leaf == "light":
+                if payload != "far": p.pop("far_since", None)
+                elif p.get("light") != "far": p["far_since"] = time.time()
+                p["light"] = payload
             # A puck does not have to be on the cable to be recognised -- the usual place for
             # one is a charger behind a sofa. Both facts arrive here, so check as each lands.
             if leaf in ("status", "net", "caps"): self._adopt_on_sight(chip, p.get("fw"))

@@ -66,6 +66,10 @@ TABLE = (
                              "ask": "Remove {name!l}? Its switches stop appearing here; they keep working on the wall."}},
             also={"moved": "{name} has not answered since the Wi‑Fi changed to {network}." + BRIDGE_TAIL,
                   "unsure": "{name} has not answered." + BRIDGE_TAIL}),
+    # A placed bridge that has found no light switch for five minutes says so on its light (breathing red,
+    # design/puck-light/, C); the wall says it too, because the wall is what a household reads (B's line).
+    Message("bridge.far", "attention", "{name} hasn’t reached the light switches since {when}. They still work on the wall, "
+            "but the hub can’t see or change them. A socket nearer one of them usually sets it right.", "bridge"),
     Message("storage.low", "attention", "The hub's storage is nearly full: {left} left.", "hub"),
     Message("account.signed_out", "attention", "{name} needs signing in again.", "account",
             back={"sign_in": {"do": "Sign in again", "act": "flow"}},

@@ -14,6 +14,9 @@
 //                              range -- try a socket nearer a switch
 //   NIGHT     warm and still   settled, well, and the household asked for it:
 //                              the nightlight (docs/puck-light.md)
+//   SHAKY     slow amber       placed, and its link to the switches has been
+//                              dropping: one calm color rather than amber, red,
+//                              warm over and over (design/puck-light/, C)
 //
 // The first three answer "is here good?", and that question is over about a
 // minute after the puck is plugged in. NIGHT is what the light does for the
@@ -38,7 +41,7 @@
 
 #include <Arduino.h>
 
-enum class Light : uint8_t { Off, Looking, Heard, Far, Night };
+enum class Light : uint8_t { Off, Looking, Heard, Far, Night, Shaky };
 
 void lightBegin();
 void lightSet(Light what);

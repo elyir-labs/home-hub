@@ -111,7 +111,7 @@ void bridgeDevice(char *out, size_t n) {
 // The names the light's states go out under, on the broker and on the cable's `status` line. Indexed
 // with & 7 and padded to eight: this was & 3 with four entries, and a fifth state would have masked
 // itself silently onto "off".
-static const char *LIGHT_NAMES[] = {"off", "looking", "heard", "far", "night", "?", "?", "?"};
+static const char *LIGHT_NAMES[] = {"off", "looking", "heard", "far", "night", "shaky", "?", "?"};
 
 static void announceBridge() {
     char topic[128], payload[640], st[80], devj[260];   // worst case: a 16-char base and a 24-char label
@@ -619,7 +619,8 @@ static void lightRefresh() {
     in.wifiLongDown = !wifi && millis() - wifiDownSince >= WIFI_FAR_MS;
     in.settled = cfg.settled;
     in.night = cfg.night;
-    lightSet(lightFor(in));
+    static LightMemory memory;
+    lightSet(lightStep(memory, in, millis()));
 }
 
 void hubLightRefresh() { lightRefresh(); }
