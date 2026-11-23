@@ -5943,6 +5943,144 @@ select.input {
   color: var(--ink);
   font-weight: 500;
 }
+
+/* ---------- the room itself, under its pencil (design/room-edit/, A) ----------
+   The heading is a field at the heading's own size, so renaming is done where the name is read. The room's
+   way out is the last card, after its things, and opens into the one question removing asks. */
+.room-name {
+  margin: 0;
+}
+.room-name-field {
+  field-sizing: content;
+  min-width: 4ch;
+  max-width: 100%;
+  margin-left: -16px;
+  padding: 4px 16px;
+  border-radius: var(--r-md);
+  background: var(--surface-hi);
+  border: 1px solid var(--edge);
+  color: var(--ink);
+  font: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  outline: 0;
+}
+.room-name-field:focus {
+  border-color: var(--lamp);
+}
+.room-remove {
+  max-width: 760px;
+  margin-top: 6px;
+  padding: 14px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  backdrop-filter: var(--frost);
+  flex: 0 0 auto;
+}
+.room-remove.open {
+  display: block;
+  padding: 18px 20px 20px;
+  border-color: rgba(var(--danger-rgb), 0.4);
+}
+.room-remove-start {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--danger-rgb), 0.45);
+  background: rgba(var(--danger-rgb), 0.06);
+  color: var(--danger-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+.room-remove-sub {
+  font-size: 14px;
+  color: var(--muted);
+}
+.room-remove-head {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+.room-remove-ask {
+  margin: 6px 0 0;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.room-remove-to {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.room-remove-to .chip-btn.picked {
+  background: rgba(var(--lamp-rgb), 0.16);
+  border-color: var(--lamp);
+  color: var(--ink);
+}
+.room-remove-to .chip-btn.later {
+  background: transparent;
+  border-style: dashed;
+}
+.room-remove-follows {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  font-size: 14.5px;
+  color: var(--ink-2);
+}
+.room-remove-follows li {
+  padding: 7px 0;
+  border-top: 1px solid var(--edge);
+}
+.room-remove-follows li:first-child {
+  border-top: 0;
+}
+.room-remove-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.room-remove-go {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--bg);
+}
+
+/* A room just taken away, on the Rooms tab: its cell, drained, saying where its things went, and the undo. */
+.room-cell.room-gone {
+  background: rgba(var(--surface-rgb), 0.2);
+  border: 1px dashed var(--edge-hi, var(--edge));
+  backdrop-filter: none;
+  justify-content: flex-end;
+}
+.room-gone .room-cell-name {
+  color: var(--ink-2);
+}
+.room-gone .room-cell-line {
+  white-space: normal;
+  overflow: visible;
+}
+.room-gone-back {
+  pointer-events: auto;
+  margin-top: 14px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--surface-hi);
+  border: 1px solid var(--edge);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
 .sort-row.busy {
   opacity: 0.6;
 }

@@ -25,7 +25,8 @@
  */
 import { computed, ref, watch } from 'vue'
 import type { Room } from '../api'
-import { houseLine } from '../store'
+import { houseLine, removedRoom, removedRooms } from '../store'
+import { bringBack } from '../roomEdit'
 import { arrangeRooms, tracks, type Cell } from '../rooms'
 import { useArrive } from '../arrive'
 import RoomCard from '../RoomCard.vue'
@@ -58,9 +59,17 @@ const byId = computed(() => new Map(props.rooms.map(r => [r.id, r])))
    Derived from the plan rather than stored with it, so the thing the test pins
    stays the arrangement and not the arithmetic that lays it out. */
 const track = computed(() => tracks(plan.value))
+/* A room just taken away keeps its cell, drained, until the panel looks away (design/room-edit/, A). It is
+   laid out as it was, where it stood, so the house around it arranges exactly as before and nothing moves. */
+const laidOut = computed(() => {
+  const out = [...props.rooms]
+  const ghosts = Object.keys(removedRooms).filter(id => removedRoom(id) && !out.some(r => r.id === id))
+  for (const id of ghosts.sort((a, b) => removedRooms[a].at - removedRooms[b].at)) out.splice(Math.min(removedRooms[id].at, out.length), 0, removedRooms[id].room)
+  return out
+})
 watch(
-  () => props.rooms.map(r => r.id).join(),
-  () => (plan.value = arrangeRooms(props.rooms)),
+  () => laidOut.value.map(r => r.id).join(),
+  () => (plan.value = arrangeRooms(laidOut.value)),
   { immediate: true },
 )
 </script>
@@ -80,6 +89,14 @@ watch(
       <template v-for="(c, i) in plan" :key="c.id">
         <RoomCard v-if="byId.get(c.id)" :room="byId.get(c.id)!" :size="c.size"
           :style="{ '--flow-i': i, '--span': track[i].span, '--row-at': track[i].at }" @open="$emit('open', $event)" />
+        <div v-else-if="removedRoom(c.id)" class="room-cell room-gone" :data-size="c.size"
+          :style="{ '--flow-i': i, '--span': track[i].span, '--row-at': track[i].at }">
+          <div class="room-cell-foot">
+            <div class="room-cell-name">{{ removedRoom(c.id)!.name }}</div>
+            <div class="room-cell-line">{{ removedRoom(c.id)!.line }}</div>
+            <button class="room-gone-back" @click="bringBack(c.id)">Bring it back</button>
+          </div>
+        </div>
       </template>
     </div>
   </section>

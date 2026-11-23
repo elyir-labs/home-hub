@@ -498,6 +498,22 @@ export function forgetDone(all = false) {
 export const keepLeft = (here: string, room: string) => keepDone(`music:${here}:${room}`, 'left')
 export const forgetLeft = (here: string, room: string) => { delete done[`music:${here}:${room}`] }
 export const leftOf = (here: string) => Object.keys(done).filter(k => k.startsWith(`music:${here}:`)).map(k => k.slice(`music:${here}:`.length))
+/* A room just taken away keeps its place on the Rooms tab, drained, saying where its things went, and is
+   the way to bring it back (design/room-edit/, A). It goes with everything else in `done`. */
+/* `room` is the room as it was, and `at` where it stood in the house's list, so the Rooms tab can lay the house out
+   exactly as before and put the drained card in the cell the room had. */
+export const removedRooms = reactive<Record<string, { name: string; line: string; said: string; room: Room; at: number }>>({})
+/** Taken BEFORE the house is asked: the push saying the room is gone can land before the answer does. */
+export function roomAsItIs(id: string) {
+  const at = store.rooms.findIndex(r => r.id === id), room = store.rooms[at]
+  return room ? { room: { ...room, devices: [...room.devices] }, at } : null
+}
+export function keepRemoved(was: { room: Room; at: number }, line: string, said: string) {
+  removedRooms[was.room.id] = { name: was.room.name, line, said, ...was }
+  keepDone(`room:${was.room.id}`, 'removed')
+}
+export const removedRoom = (id: string) => done[`room:${id}`] ? removedRooms[id] : undefined
+export function forgetRemoved(id: string) { delete removedRooms[id]; delete done[`room:${id}`] }
 /** A car that stops charging keeps its line in Home's band until nobody is looking (chargers.ts). */
 export function noteCharger(was: Device, now: Device) {
   if (cap(now) !== 'charger') return

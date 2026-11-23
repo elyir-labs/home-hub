@@ -304,6 +304,7 @@ export function createHouse({ env = {}, qr = null } = {}) {
     ...day('te1', temps.map(([h, v], i) => [h, 'state', i ? String(temps[i - 1][1]) : null, String(v)])),
     ...day('k6', [[0.5, 'state', '49', '51'], [4, 'state', '54', '49'], [8, 'state', '47', '54']]),
   ]
+  const removedRooms = {}   // what Bring it back needs, per room taken away
   const rules = { rules: [
     { id: 'evening-lights', name: 'Living room lights on at dusk', room: 'living', when: { sun: 'set', offset: -1200 }, then: { intent: 'movie' }, enabled: true },
     { id: 'kitchen-motion', name: 'Kitchen lights when someone walks in', room: 'kitchen', when: { motion: true }, if: [['sun', 'below', 0]], then: { intent: 'occupied' }, enabled: true },
@@ -942,6 +943,55 @@ export function createHouse({ env = {}, qr = null } = {}) {
     }
     /* Setting a switch up on its light (design/switch-setup/, C). LISTEN=none is nobody pressing the
        other switch; otherwise one is heard a moment after the house starts listening. */
+    /* Renaming and taking a room away (design/room-edit/, A), as the brain's hub/rooms.py does it: things move
+       first, a routine that lights only this room goes with it, and Bring it back undoes the lot. */
+    const roomAct = p.match(/^\/rooms\/([^/]+)(?:\/(rename|removing|back))?$/)
+    if (roomAct && !PRETEND && (req.method === 'DELETE' || roomAct[2])) {
+      const id = decodeURIComponent(roomAct[1]), room = rooms.find(r => r.id === id && r !== unassigned)
+      const refuse = (status, detail) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ detail })) }
+      const named = n => rooms.find(r => r !== unassigned && r.name.trim().toLowerCase() === n.trim().toLowerCase())
+      if (roomAct[2] === 'back' && req.method === 'POST') {
+        const kept = removedRooms[id]
+        if (!kept) return refuse(404, 'That room can’t be brought back now.')
+        if (named(kept.room.name)) return refuse(409, `There’s already a ${named(kept.room.name).name}. Rename it first, then bring this one back.`)
+        rooms.splice(Math.min(kept.at, rooms.indexOf(unassigned)), 0, kept.room)
+        for (const d of kept.devices) { const from = rooms.find(r => r.devices.includes(d)); if (from) from.devices.splice(from.devices.indexOf(d), 1); kept.room.devices.push(d); d.room_id = kept.room.id }
+        for (const g of kept.going) rules.rules.splice(Math.min(g.at, rules.rules.length), 0, g.rule)
+        delete removedRooms[id]; push({ type: 'home', home })
+        return json(res, { ok: true, id, name: kept.room.name })
+      }
+      if (!room) return refuse(404, 'unknown room')
+      if (roomAct[2] === 'removing' && req.method === 'GET') {
+        return json(res, { id, name: room.name, things: room.devices.length,
+          screens: phones.phones.filter(x => x.kind === 'screen' && x.room === id).map(x => x.name),
+          routines_going: rules.rules.filter(r => r.room === id).map(r => r.name),
+          routines_trimmed: rules.rules.filter(r => Array.isArray(r.room) && r.room.includes(id) && r.room.length > 1).map(r => r.name) })
+      }
+      if (roomAct[2] === 'rename' && req.method === 'POST') {
+        let raw = ''; req.on('data', c => (raw += c))
+        return req.on('end', () => {
+          let b = {}; try { b = JSON.parse(raw || '{}') } catch {}
+          const name = String(b.name || '').trim()
+          if (!name) return refuse(400, 'A room needs a name.')
+          const other = named(name)
+          if (other && other !== room) return refuse(409, `There’s already a ${other.name}.`)
+          room.name = name; push({ type: 'home', home })
+          json(res, { id, name })
+        })
+      }
+      if (req.method === 'DELETE') {
+        const toId = new URL(req.url, 'http://mock').searchParams.get('to'), to = toId ? rooms.find(r => r.id === toId && r !== room) : unassigned
+        if (!to) return refuse(404, 'unknown room')
+        const devices = [...room.devices], at = rooms.indexOf(room)
+        for (const d of devices) { to.devices.push(d); d.room_id = to.id }
+        room.devices = []
+        const going = rules.rules.map((rule, i) => ({ rule, at: i })).filter(g => g.rule.room === id)
+        rules.rules = rules.rules.filter(r => r.room !== id)
+        rooms.splice(at, 1); removedRooms[id] = { room, devices, at, going }
+        push({ type: 'home', home })
+        return json(res, { ok: true, id, name: room.name, things: devices.length, to: toId || null, to_name: toId ? to.name : null, routines_going: going.map(g => g.rule.name) })
+      }
+    }
     // a room made from the switch's room step (design/switch-setup/, room A), there for the next screen to see
     if (p === '/rooms' && req.method === 'POST' && status.setup_done && !PRETEND) {
       let raw = ''; req.on('data', c => (raw += c))

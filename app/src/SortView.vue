@@ -5,8 +5,9 @@
 <script setup lang="ts">
 import { failed } from './code'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { addRoom, moveDevice, renameDevice, forgetDevice, getAccounts, getSuggestions, identifyDevice, type Account, type Device, type Room, type Suggestion } from './api'
-import { store, cap, notify } from './store'
+import { addRoom, moveDevice, renameDevice, renameRoom, removingRoom, removeRoom, forgetDevice, getAccounts, getSuggestions, identifyDevice, type Account, type Device, type Removing, type Room, type Suggestion } from './api'
+import { store, cap, notify, keepRemoved, roomAsItIs } from './store'
+import { asking, following, goneLine, goneSaid, removeLabel, theRoom } from './roomEdit'
 import { partWord, renameParts, unitsOf, type UnitRow } from './units'
 import Icon from './Icon.vue'
 import { pressedIn, snapshot, type Seen } from './pressed'
@@ -98,6 +99,49 @@ async function createAndMove(r: UnitRow) {
   busy.value[r.key] = 'room'
   try { const rm = await addRoom(n); store.rooms.push({ id: rm.id, name: rm.name, devices: [], intent: 'unknown' }); adding.value = null; await move(r, rm.id) }
   catch (e: any) { notify(failed('Couldn’t add the room', e), 'error'); delete busy.value[r.key] }
+}
+
+/* ---------- the room itself (design/room-edit/, A) ----------
+
+   The heading is a field here, saved when it is left like every name under it. The room's own way out is
+   the last card, after its things: one tap opens the question, which asks where the things go and says
+   what else follows; the button says the whole act. */
+const heading = ref(props.room.name)
+watch(() => props.room.name, n => (heading.value = n))
+async function renameThisRoom() {
+  const n = heading.value.trim()
+  if (n === props.room.name) return
+  if (!n) { heading.value = props.room.name; return }
+  try {
+    const r = await renameRoom(props.room.id, n)
+    // eslint-disable-next-line vue/no-mutating-props
+    props.room.name = r.name
+    notify(`Renamed to ${r.name}.`)
+  } catch (e: any) { heading.value = props.room.name; notify(failed('Couldn’t rename the room', e), 'error') }
+}
+const removing = ref(false), removeTo = ref<string | null | undefined>(undefined), removeBusy = ref(false)
+const follows = ref<Removing | null>(null)
+const others = computed(() => rooms.value.filter(r => r.id !== props.room.id))
+const things = computed(() => follows.value?.things ?? props.room.devices.length)
+const toName = computed(() => removeTo.value ? roomName(removeTo.value) : null)
+const ready = computed(() => !things.value || removeTo.value !== undefined)
+async function askRemove() {
+  removing.value = true; removeTo.value = undefined; follows.value = null
+  setTimeout(() => document.querySelector('.room-remove')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 30)
+  try { follows.value = await removingRoom(props.room.id) } catch {}
+  showAsk()
+}
+const showAsk = () => setTimeout(() => document.querySelector('.room-remove-acts')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 30)
+watch(removeTo, showAsk)
+async function removeThisRoom() {
+  if (!ready.value || removeBusy.value) return
+  removeBusy.value = true
+  const was = roomAsItIs(props.room.id) ?? { room: { ...props.room, devices: [...props.room.devices] }, at: store.rooms.length }
+  try {
+    const r = await removeRoom(props.room.id, removeTo.value ?? null)
+    keepRemoved(was, goneLine(r.things, r.to_name), goneSaid(was.room.name, r.things, r.to_name))
+  } catch (e: any) { notify(failed('Couldn’t remove the room', e), 'error') }
+  removeBusy.value = false
 }
 
 /* ---------- naming by touch ----------
@@ -237,8 +281,9 @@ watch(() => props.room.devices.length, (n, was) => { if (n > (was ?? 0)) think()
     <header class="stage-head room-head">
       <button class="back" @click="$emit('back')" :aria-label="editing ? 'Done' : 'Back'"><Icon :name="editing ? 'check' : 'back'" :size="22" /></button>
       <div>
-        <h1 class="display">{{ editing ? room.name : 'New devices' }}</h1>
-        <p class="lede">{{ editing ? 'Rename anything, move it to another room, or remove it for good. Tap Done when you’re finished.' : 'Check each name and say which room it lives in. It moves there on its own.' }}</p>
+        <h1 class="display room-name" v-if="editing"><input class="room-name-field" v-model="heading" :size="Math.max(4, heading.length + 1)" @change="renameThisRoom" @keydown.enter="($event.target as HTMLInputElement).blur()" spellcheck="false" autocapitalize="words" aria-label="The room’s name" /></h1>
+        <h1 class="display" v-else>New devices</h1>
+        <p class="lede">{{ editing ? 'Rename the room or anything in it, move things to another room, or remove them. Tap Done when you’re finished.' : 'Check each name and say which room it lives in. It moves there on its own.' }}</p>
       </div>
     </header>
 
@@ -329,6 +374,28 @@ watch(() => props.room.devices.length, (n, was) => { if (n > (was ?? 0)) think()
       <div v-else class="empty-room">
         <p class="empty">{{ editing ? 'Nothing left in this room.' : 'Everything has a room.' }}</p>
         <p class="empty-sub">{{ editing ? 'Everything moved elsewhere. Tap Done to go back.' : 'Anything you add later that does not know where it lives will wait here.' }}</p>
+      </div>
+
+      <div class="room-remove" v-if="editing" :class="{ open: removing }">
+        <template v-if="!removing">
+          <button class="room-remove-start" @click="askRemove">Remove {{ theRoom(room.name) }}</button>
+          <span class="room-remove-sub">{{ things ? 'Its things go to another room first.' : 'Nothing is in it.' }}</span>
+        </template>
+        <template v-else>
+          <h2 class="room-remove-head">Remove {{ theRoom(room.name) }}?</h2>
+          <p class="room-remove-ask">{{ asking(things) }}</p>
+          <div class="room-remove-to" v-if="things">
+            <button v-for="r in others" :key="r.id" class="chip-btn" :class="{ picked: removeTo === r.id }" @click="removeTo = r.id">{{ r.name }}</button>
+            <button class="chip-btn later" :class="{ picked: removeTo === null }" @click="removeTo = null">Leave them to place later</button>
+          </div>
+          <ul class="room-remove-follows" v-if="follows && following(follows, toName).length">
+            <li v-for="line in following(follows, toName)" :key="line">{{ line }}</li>
+          </ul>
+          <div class="room-remove-acts">
+            <button class="button room-remove-go" :class="{ busy: removeBusy }" :disabled="!ready" @click="removeThisRoom">{{ removeTo === undefined ? removeLabel(room.name, 0, null) : removeLabel(room.name, things, toName) }}</button>
+            <button class="button ghost" @click="removing = false">Keep it</button>
+          </div>
+        </template>
       </div>
     </div>
   </section>

@@ -499,6 +499,12 @@ Do not reopen these, and do not propose around them.
   on the house yet is made from the room step (New room, A). The hub speaks to the bridge in plain
   words (`setup`, `dims`, `pair`, `unpair`) and never knows a maker's settings. Pinned by `app/tests/switchSetup.test.ts`,
   `app/e2e/switch-setup.spec.ts` and `brain/tests/test_wallswitch.py`; the hub's half is `brain/hub/wallswitch.py`.
+- **A room is renamed and removed under its own pencil** (22 November, `design/room-edit/`, A). The heading is the
+  field; the room's way out is the last card, after its things. Removing asks where the things go (another room, or
+  New devices) before anything moves, and says what follows: a screen that opened on it opens where the things went,
+  and a routine that can't run without it goes with it, so rules.json always saves. The room's card stays on the Rooms
+  tab, drained, as Bring it back, until the wall rests. `brain/hub/rooms.py`, `app/src/roomEdit.ts`; pinned by
+  `brain/tests/test_rooms.py`, `app/tests/roomEdit.test.ts` and `app/e2e/room-edit.spec.ts`.
 - **A hub being worked on has a page for it, and a hub in a house does not show one** (22 October, `design/developer/`,
   B with C's rule). For working on the hub is a page on This house's list, there from the start on a hub following
   development, main or a branch, and on a release hub only after seven taps on the version and the passcode; Take this

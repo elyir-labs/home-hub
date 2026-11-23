@@ -6,7 +6,8 @@
 import { inApp } from './inapp'
 import { narrow } from './band'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { store, start, halt, deviceById, load, foundCount, visibleRooms, activity, roomActive, houseLine, weatherLine, needsSetup, dismissToast, updateReady, forgetDone, cap, linkNow, clockNow, runScene, scenesFor } from './store'
+import { store, start, halt, deviceById, load, foundCount, visibleRooms, activity, roomActive, houseLine, weatherLine, needsSetup, dismissToast, updateReady, forgetDone, cap, linkNow, clockNow, runScene, scenesFor, notify, removedRooms, removedRoom } from './store'
+import { bringBack } from './roomEdit'
 import { bandFor, probe, reach } from './reach'
 import { door } from './door'
 import Setup from './Setup.vue'
@@ -224,6 +225,17 @@ const tab = ref<'home' | 'rooms' | 'cameras'>('home')
 /* The dock along the foot of every screen (design/every-screen/, B) */
 const docked = computed(() => nav.value === 'top')
 function go(t: 'home' | 'rooms' | 'cameras') { tab.value = t; open(null) }
+/* A room just taken away (design/room-edit/, A): its card stays on the Rooms tab, drained, as the undo. Where
+   there is no Rooms tab, the line saying it went carries the same undo. Watched rather than told: the house's
+   push that the room is gone can arrive before the answer, and takes the room screen down with it. */
+watch(() => selected.value && removedRoom(selected.value) && !store.rooms.some(r => r.id === selected.value) ? selected.value : null,
+  id => { if (id) roomRemoved(id) })
+function roomRemoved(id: string) {
+  if (docked.value) return go('rooms')
+  open(null)
+  const gone = removedRooms[id]
+  if (gone) notify(gone.said, 'info', { label: 'Bring it back', run: () => bringBack(id) })
+}
 
 /* an opened device lends the room its color: a warm lamp pushes the field
    amber, a lock or a camera cools it. Falls back to the lamp, which is what a

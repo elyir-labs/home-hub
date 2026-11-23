@@ -585,7 +585,19 @@ export const placedBridge = (night?: boolean) =>
 export const retryEntry = (entry_id: string) => post<Status>(`/setup/retry/${encodeURIComponent(entry_id)}`)
 export const setCredentials = (handler: string, client_id: string, client_secret: string, hints?: Record<string, string>) => post<Step>('/credentials', { handler, client_id, client_secret, hints })
 export const addRoom = (name: string) => post<{ id: string; name: string }>('/rooms', { name })
-export const renameRoom = (id: string, name: string) => post(`/rooms/${encodeURIComponent(id)}/rename`, { name })
+export const renameRoom = (id: string, name: string) => post<{ id: string; name: string }>(`/rooms/${encodeURIComponent(id)}/rename`, { name })
+/* Taking a room away (design/room-edit/, A): what it would touch, asked before; then the act, with where its
+   things go (none: they wait in New devices); then Bring it back, while the drained card is still up. */
+export type Removing = { id: string; name: string; things: number; screens: string[]; routines_going: string[]; routines_trimmed: string[] }
+export async function removingRoom(id: string): Promise<Removing> {
+  const r = await request(`/rooms/${encodeURIComponent(id)}/removing`); if (!r.ok) await fail(r); return r.json()
+}
+export type Removed = { id: string; name: string; things: number; to: string | null; to_name: string | null; routines_going: string[] }
+export async function removeRoom(id: string, to: string | null): Promise<Removed> {
+  const q = to ? `?to=${encodeURIComponent(to)}` : ''
+  const r = await request(`/rooms/${encodeURIComponent(id)}${q}`, { method: 'DELETE' }); if (!r.ok) await fail(r); return r.json()
+}
+export const bringRoomBack = (id: string) => post<{ id: string; name: string }>(`/rooms/${encodeURIComponent(id)}/back`)
 export const moveDevice = (id: string, room_id: string | null) => post(`/devices/${encodeURIComponent(id)}/move`, { room_id })
 /** `unit` names the hardware this is part of, and its parts follow (docs/units.md). */
 export const renameDevice = (id: string, name: string, unit = false) => post(`/devices/${encodeURIComponent(id)}/rename`, unit ? { name, unit } : { name })
