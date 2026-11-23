@@ -17086,6 +17086,16 @@ html[data-wall] [data-moving] *::after {
   color: var(--bg);
   font-weight: 500;
 }
+.sw-seg button.sw-going,
+.sw-k small.sw-going {
+  animation: breathe 1.4s ease-in-out infinite;
+}
+.sw-seg button:disabled:not(.on) {
+  opacity: .4;
+}
+.sw-k small.sw-refused {
+  color: var(--danger);
+}
 .sw-seg.plain {
   align-items: center;
   gap: 12px;
