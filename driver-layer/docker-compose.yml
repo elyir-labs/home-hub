@@ -86,6 +86,11 @@ services:
     restart: unless-stopped
     network_mode: host      # discovery (mDNS, SSDP, Cast, HomeKit) needs the real LAN
     privileged: false
+    # Docker's default AppArmor profile refuses D-Bus calls on a host that enforces it (Ubuntu on a
+    # mini PC; not Raspberry Pi OS), so the mount below is not enough and Bluetooth fails to start
+    # with AccessDenied on AddMatch.
+    security_opt:
+      - apparmor=unconfined
     depends_on: [mosquitto]
     volumes:
       - ./homeassistant:/config
@@ -106,6 +111,8 @@ services:
     container_name: brain
     restart: unless-stopped
     network_mode: host      # talks to HA on localhost:8123; the panel is on :8300
+    security_opt:
+      - apparmor=unconfined   # for the system bus below, as on homeassistant
     depends_on: [homeassistant]
     volumes:
       - ./brain-data:/data  # settings.json (names, location, the engine login), events.db, rules.json, scenes.json
